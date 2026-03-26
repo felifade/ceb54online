@@ -64,28 +64,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* =======================================
        VISTA 1: DASHBOARD
-       ======================================= */
-    async function initDashboard() {
+       ====================================    async function initDashboard() {
         showLoader();
         try {
             const data = await api.getDashboardData();
+            if (!data || !data.equipos) throw new Error("Datos del dashboard incompletos");
             
             // Stats
-            document.getElementById('dash-grupos').textContent = data.totalGrupos;
-            document.getElementById('dash-equipos').textContent = data.totalEquipos;
-            document.getElementById('dash-evaluaciones').textContent = data.evaluaciones;
-            document.getElementById('dash-avance').textContent = `${data.avance}%`;
+            document.getElementById('dash-grupos').textContent = data.totalGrupos || 0;
+            document.getElementById('dash-equipos').textContent = data.totalEquipos || 0;
+            document.getElementById('dash-evaluaciones').textContent = data.evaluaciones || 0;
+            document.getElementById('dash-avance').textContent = `${data.avance || 0}%`;
 
             // Grupos Lista (Equipos por grupo)
             const listGrupos = document.getElementById('dash-lista-grupos');
             const equiposPorGrupo = {};
             data.equipos.forEach(eq => {
                 const g = eq.grupo;
+                if (!g) return;
                 if (!equiposPorGrupo[g]) equiposPorGrupo[g] = 0;
                 equiposPorGrupo[g]++;
             });
             
-            listGrupos.innerHTML = data.grupos.map(g => {
+            listGrupos.innerHTML = (data.grupos || []).map(g => {
                 const count = equiposPorGrupo[g] || 0;
                 return `<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:6px 12px; font-size:0.85rem; font-weight:500; color:#334155;">
                     <span style="color:#2563eb; font-weight:700; margin-right:4px;">${g}</span>
@@ -94,6 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }).join('');
 
             // Avance Lista
+            const totalEq = data.equipos.length || 1;
             const eqEvaluados = data.equipos.filter(e => e.estado === 'Evaluado').length;
             const dashAvance = document.getElementById('dash-avance-equipos');
             dashAvance.innerHTML = `
@@ -102,7 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <span>${data.equipos.length - eqEvaluados} Pendientes</span>
                 </div>
                 <div style="width: 100%; height: 12px; background: #E2E8F0; border-radius: 999px; overflow: hidden;">
-                    <div style="height: 100%; width: ${(eqEvaluados/data.equipos.length)*100}%; background: var(--clr-success);"></div>
+                    <div style="height: 100%; width: ${(eqEvaluados/totalEq)*100}%; background: var(--clr-success);"></div>
                 </div>
             `;
 
@@ -118,21 +120,28 @@ document.addEventListener("DOMContentLoaded", () => {
             const containerSinEq = document.getElementById('dash-sin-equipo');
             const panelDiag = document.getElementById('panel-diagnostico');
             
-            badgeSinEq.textContent = `${sinEquipo.length} alumno(s)`;
+            if (badgeSinEq) badgeSinEq.textContent = `${sinEquipo.length} alumno(s)`;
             
             if (sinEquipo.length === 0) {
-                containerSinEq.innerHTML = '<p style="text-align: center; color: #10b981; font-weight: 500; margin: 0;">✅ Todos los alumnos de la lista tienen equipo asignado.</p>';
-                panelDiag.style.borderLeftColor = '#10b981';
-                badgeSinEq.style.background = '#d1fae5';
-                badgeSinEq.style.color = '#047857';
-                panelDiag.querySelector('h2').style.color = '#047857';
-                panelDiag.querySelector('h2').textContent = '✅ Equipos Completos';
+                if (containerSinEq) containerSinEq.innerHTML = '<p style="text-align: center; color: #10b981; font-weight: 500; margin: 0;">✅ Todos los alumnos de la lista tienen equipo asignado.</p>';
+                if (panelDiag) {
+                    panelDiag.style.borderLeftColor = '#10b981';
+                    const h2 = panelDiag.querySelector('h2');
+                    if (h2) {
+                        h2.style.color = '#047857';
+                        h2.textContent = '✅ Equipos Completos';
+                    }
+                }
+                if (badgeSinEq) {
+                    badgeSinEq.style.background = '#d1fae5';
+                    badgeSinEq.style.color = '#047857';
+                }
             } else {
-                // Agrupar por grupo para mejor lectura
                 const sinEqPorGrupo = {};
                 sinEquipo.forEach(a => {
+                    if (!a.grupo) return;
                     if (!sinEqPorGrupo[a.grupo]) sinEqPorGrupo[a.grupo] = [];
-                    sinEqPorGrupo[a.grupo].push(a.alumno);
+                    sinEqPorGrupo[a.grupo].push(a.alumno || "Sin nombre");
                 });
                 
                 let htmlSinEq = '<div style="display:flex; flex-direction:column; gap:8px;">';
@@ -147,14 +156,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     `;
                 });
                 htmlSinEq += '</div>';
-                containerSinEq.innerHTML = htmlSinEq;
+                if (containerSinEq) containerSinEq.innerHTML = htmlSinEq;
             }
 
             // === SEGUIMIENTO DOCENTE ===
-            
-            // Llenar selector de grupos del seguimiento
             const segGrupoSelect = document.getElementById('seg-grupo');
-            if (segGrupoSelect.options.length <= 1) {
+            if (segGrupoSelect && segGrupoSelect.options.length <= 1) {
                 const gruposDir = [...new Set(directorio.map(d => d.grupo))].sort();
                 gruposDir.forEach(g => {
                     const opt = document.createElement('option');
@@ -164,49 +171,32 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             }
 
-            // Función para renderizar la tabla de seguimiento
             const renderSeguimiento = () => {
                 const parcialSel = document.getElementById('seg-parcial').value;
                 const grupoSel = document.getElementById('seg-grupo').value;
-                const extractNum = (g) => g.replace(/^[A-Za-z]+/, '');
+                const extractNum = (g) => String(g).replace(/^[A-Za-z]+/, '');
 
-                // Obtener programación para este parcial
-                const progParcial = programacion.filter(p => p.parcial === parcialSel);
+                const progParcial = programacion.filter(p => String(p.parcial) === parcialSel);
+                const getTurno = (grupo) => String(grupo).toUpperCase().startsWith('V') ? 'VESPERTINO' : 'MATUTINO';
 
-                // Función para detectar turno de un grupo del Directorio
-                const getTurno = (grupo) => {
-                    if (grupo.toUpperCase().startsWith('V')) return 'VESPERTINO';
-                    return 'MATUTINO'; // M o sin prefijo = matutino
-                };
-
-                // Filtrar directorio: solo materias programadas para este parcial Y turno correcto
                 let dirFiltrado = directorio;
                 if (progParcial.length > 0) {
                     dirFiltrado = directorio.filter(d => {
                         const turnoGrupo = getTurno(d.grupo);
-                        // Buscar si esta materia está programada para el turno de este grupo
                         return progParcial.some(p => {
-                            const matchMateria = p.materia === d.materia;
+                            const matchMateria = String(p.materia || '').trim() === String(d.materia || '').trim();
                             const matchTurno = !p.turno || p.turno === '' || p.turno === turnoGrupo || p.turno === 'AMBOS';
-                            
                             const pGrupoOpcional = p.grupoEspecial ? String(p.grupoEspecial).trim().toUpperCase() : '';
                             const dGrupoNum = extractNum(d.grupo);
                             const gruposPermitidos = pGrupoOpcional.split(',').map(s => s.trim());
-                            const matchGrupo = !pGrupoOpcional || 
-                                               gruposPermitidos.includes(d.grupo.toUpperCase()) || 
-                                               gruposPermitidos.includes(dGrupoNum);
-                            
+                            const matchGrupo = !pGrupoOpcional || gruposPermitidos.includes(String(d.grupo).toUpperCase()) || gruposPermitidos.includes(dGrupoNum);
                             return matchMateria && matchTurno && matchGrupo;
                         });
                     });
                 }
                 
-                // Filtrar por grupo si se seleccionó uno
-                if (grupoSel) {
-                    dirFiltrado = dirFiltrado.filter(d => d.grupo === grupoSel);
-                }
+                if (grupoSel) dirFiltrado = dirFiltrado.filter(d => d.grupo === grupoSel);
 
-                // Crear set de evaluaciones hechas: "grupoNum|materia|parcial"
                 const evalsHechas = new Set();
                 evaluaciones.forEach(ev => {
                     const gNum = extractNum(String(ev.grupoId));
@@ -215,16 +205,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     evalsHechas.add(`${gNum}|${mat}|${par}`);
                 });
 
-                // Construir filas
                 let filas = '';
                 let totalEval = 0, totalPend = 0;
                 dirFiltrado.forEach(item => {
                     const gNum = extractNum(item.grupo);
                     const key = `${gNum}|${item.materia}|${parcialSel}`;
                     const yaEvaluo = evalsHechas.has(key);
-                    // Detectar semestre: si el número empieza con 2 -> 2do, con 4 -> 4to
-                    const semestre = gNum.startsWith('2') ? '2do' : gNum.startsWith('4') ? '4to' : '-';
-                    
+                    const semestre = String(gNum).startsWith('2') ? '2do' : String(gNum).startsWith('4') ? '4to' : '-';
                     if (yaEvaluo) totalEval++; else totalPend++;
 
                     filas += `
@@ -244,55 +231,57 @@ document.addEventListener("DOMContentLoaded", () => {
                     `;
                 });
 
-                const hasProgramacion = progParcial.length > 0;
                 const container = document.getElementById('seg-tabla-container');
-                container.innerHTML = `
-                    ${!hasProgramacion ? '<div style="background:#FEF3C7; border:1px solid #FDE68A; color:#92400E; padding:10px 14px; border-radius:8px; margin-bottom:1rem; font-size:0.85rem;">⚠️ No hay materias programadas para el Parcial ' + parcialSel + '. Ve a tu Google Sheets → pestaña <strong>"Programación"</strong> y agrega filas con: <strong>Parcial</strong> | <strong>Semestre</strong> | <strong>Turno</strong> (Matutino/Vespertino/Ambos) | <strong>Materia</strong> | <strong>Docente</strong>.</div>' : ''}
-                    <div style="display:flex; gap:1rem; margin-bottom:1rem;">
-                        <span style="background:#D1FAE5; color:#059669; padding:4px 12px; border-radius:999px; font-weight:600; font-size:0.85rem;">✅ ${totalEval} Evaluados</span>
-                        <span style="background:#FEF3C7; color:#D97706; padding:4px 12px; border-radius:999px; font-weight:600; font-size:0.85rem;">⏳ ${totalPend} Pendientes</span>
-                    </div>
-                    <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
-                        <thead>
-                            <tr style="background:#f8fafc; border-bottom:2px solid #e2e8f0;">
-                                <th style="padding:10px; text-align:center; font-size:0.75rem; text-transform:uppercase; color:#64748b;">Sem.</th>
-                                <th style="padding:10px; text-align:left; font-size:0.75rem; text-transform:uppercase; color:#64748b;">Grupo</th>
-                                <th style="padding:10px; text-align:left; font-size:0.75rem; text-transform:uppercase; color:#64748b;">Materia</th>
-                                <th style="padding:10px; text-align:left; font-size:0.75rem; text-transform:uppercase; color:#64748b;">Docente</th>
-                                <th style="padding:10px; text-align:center; font-size:0.75rem; text-transform:uppercase; color:#64748b;">Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>${filas}</tbody>
-                    </table>
-                `;
+                if (container) {
+                    container.innerHTML = `
+                        ${progParcial.length === 0 ? '<div style="background:#FEF3C7; border:1px solid #FDE68A; color:#92400E; padding:10px 14px; border-radius:8px; margin-bottom:1rem; font-size:0.85rem;">⚠️ No hay materias programadas para el Parcial ' + parcialSel + '. Ve a tu Google Sheets → pestaña <strong>"Programación"</strong> e ingresa datos.</div>' : ''}
+                        <div style="display:flex; gap:1rem; margin-bottom:1rem;">
+                            <span style="background:#D1FAE5; color:#059669; padding:4px 12px; border-radius:999px; font-weight:600; font-size:0.85rem;">✅ ${totalEval} Evaluados</span>
+                            <span style="background:#FEF3C7; color:#D97706; padding:4px 12px; border-radius:999px; font-weight:600; font-size:0.85rem;">⏳ ${totalPend} Pendientes</span>
+                        </div>
+                        <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+                            <thead>
+                                <tr style="background:#f8fafc; border-bottom:2px solid #e2e8f0;">
+                                    <th style="padding:10px; text-align:center;">Sem.</th>
+                                    <th style="padding:10px; text-align:left;">Grupo</th>
+                                    <th style="padding:10px; text-align:left;">Materia</th>
+                                    <th style="padding:10px; text-align:left;">Docente</th>
+                                    <th style="padding:10px; text-align:center;">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>${filas || '<tr><td colspan="5" style="text-align:center; padding:20px; color:#94a3b8;">No hay datos para mostrar.</td></tr>'}</tbody>
+                        </table>
+                    `;
+                }
             };
 
-            // Eventos de los filtros
-            document.getElementById('seg-parcial').addEventListener('change', renderSeguimiento);
-            document.getElementById('seg-grupo').addEventListener('change', renderSeguimiento);
-            
-            // Render inicial
-            renderSeguimiento();
-
-            // === PANEL DE PONDERACIONES ===
+            const segParcial = document.getElementById('seg-parcial');
+            const segGrupo = document.getElementById('seg-grupo');
+            if (segParcial) segParcial.addEventListener('change', renderSeguimiento);
+            if (segGrupo) segGrupo.addEventListener('change', renderSeguimiento);
+                  // === PANEL DE PONDERACIONES (Premium UI) ===
             const renderPonderaciones = () => {
-                const parcialPond = document.getElementById('pond-parcial').value;
-                const progFiltrada = programacion.filter(p => p.parcial === parcialPond);
+                const pondParcialEl = document.getElementById('pond-parcial');
+                if (!pondParcialEl) return;
+                const parcialPond = pondParcialEl.value;
+                const progFiltrada = programacion.filter(p => String(p.parcial) === parcialPond);
                 const container = document.getElementById('pond-container');
 
+                if (!container) return;
                 if (progFiltrada.length === 0) {
-                    container.innerHTML = '<p style="color:#94a3b8; font-style:italic;">No hay ponderaciones registradas para este parcial.</p>';
+                    container.innerHTML = `
+                        <div style="text-align:center; padding:3rem; color:#64748b; background:#f8fafc; border:2px dashed #e2e8f0; border-radius:16px;">
+                            <div style="font-size:2rem; margin-bottom:1rem;">📋</div>
+                            <p style="font-weight:600; margin:0;">No hay materias programadas para el Parcial ${parcialPond}</p>
+                            <p style="font-size:0.85rem; margin-top:0.5rem;">Agrega la información en la pestaña "Programación" de tu Google Sheets.</p>
+                        </div>
+                    `;
                     return;
                 }
 
-                // Helper para turno
-                const getTurno = (g) => g.toUpperCase().startsWith('V') ? 'VESPERTINO' : 'MATUTINO';
-                const extractNum = (g) => g.replace(/^[A-Za-z]+/, '');
-
-                // Obtener lista completa de grupos desde el directorio
+                const getTurno = (g) => String(g).toUpperCase().startsWith('V') ? 'VESPERTINO' : 'MATUTINO';
+                const extractNum = (g) => String(g).replace(/^[A-Za-z]+/, '');
                 const todosLosGrupos = [...new Set(directorio.map(d => d.grupo))].sort();
-
-                // Agrupar los grupos por "Curriculum" (exacta combinación de materias y ponderaciones)
                 const curriculumPorGrupo = {};
 
                 todosLosGrupos.forEach(grupo => {
@@ -300,34 +289,35 @@ document.addEventListener("DOMContentLoaded", () => {
                     const grupoNum = extractNum(grupo);
                     const semestre = grupoNum.startsWith('2') ? '2do' : grupoNum.startsWith('4') ? '4to' : '-';
 
-                    // Encontrar qué materias en la programación aplican Específicamente a este grupo
+                    // Encontrar qué materias aplican a este grupo (incluyendo excepciones en grupoEspecial)
                     const materiasAplicables = progFiltrada.filter(p => {
                         const matchTurno = !p.turno || p.turno === '' || p.turno === turnoGrupo || p.turno === 'AMBOS';
-                        // Asumiendo que semestre en programacion dice "2" o "4"
-                        const matchSemestre = !p.semestre || p.semestre === '' || semestre.includes(p.semestre);
-
-                        const pGrupoOpcional = p.grupoEspecial ? String(p.grupoEspecial).trim().toUpperCase() : '';
-                        const gruposPermitidos = pGrupoOpcional.split(',').map(s => s.trim());
-                        const matchGrupo = !pGrupoOpcional || 
-                                           gruposPermitidos.includes(grupo.toUpperCase()) || 
-                                           gruposPermitidos.includes(grupoNum);
+                        const matchSemestre = !p.semestre || p.semestre === '' || semestre.includes(String(p.semestre));
+                        
+                        const pGrupoEspecial = p.grupoEspecial ? String(p.grupoEspecial).trim().toUpperCase() : '';
+                        const gruposHabilitados = pGrupoEspecial.split(',').map(s => s.trim());
+                        
+                        // Si hay grupo especial, DEBE estar en la lista. Si no hay, sigue regla general de turno/semestre.
+                        const matchGrupo = !pGrupoEspecial || 
+                                           gruposHabilitados.includes(String(grupo).toUpperCase()) || 
+                                           gruposHabilitados.includes(grupoNum);
 
                         return matchTurno && matchSemestre && matchGrupo;
                     });
 
-                    // Si no tiene materias aplicables, lo omitimos del dashboard
                     if (materiasAplicables.length === 0) return;
 
-                    // Deduplicar materias para armar el fingerprint (evitar dobles si hay un error en Sheets)
+                    // Deduplicar por materia en caso de error en la hoja
                     const materiasUnicas = {};
                     materiasAplicables.forEach(m => {
+                        if (!m.materia) return;
                         if (!materiasUnicas[m.materia]) {
-                            materiasUnicas[m.materia] = { materia: m.materia, ponderacion: m.ponderacion };
+                            materiasUnicas[m.materia] = { materia: m.materia, ponderacion: parseFloat(m.ponderacion) || 0 };
                         }
                     });
 
                     const listaMaterias = Object.values(materiasUnicas);
-                    // Crear un "identificador único" de esta combinación de materias
+                    // El "fingerprint" agrupa grupos con la misma carga académica exactamente
                     const fingerprint = listaMaterias.map(m => `${m.materia}|${m.ponderacion}`).sort().join('||');
 
                     if (!curriculumPorGrupo[fingerprint]) {
@@ -341,92 +331,78 @@ document.addEventListener("DOMContentLoaded", () => {
                     curriculumPorGrupo[fingerprint].grupos.push(grupo);
                 });
 
-                let html = '<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap:1.5rem;">';
+                let html = '<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap:1.5rem;">';
 
-                Object.values(curriculumPorGrupo).forEach(curriculum => {
-                    const total = curriculum.materias.reduce((s, p) => s + (p.ponderacion || 0), 0);
-                    const porcentaje = Math.min((total / 2) * 100, 100);
-                    const isComplete = Math.abs(total - 2) < 0.01;
-                    const semColor = curriculum.semestre === '2do' ? '#3B82F6' : curriculum.semestre === '4to' ? '#8B5CF6' : '#6B7280';
-                    const gruposLabel = curriculum.grupos.join(', ');
+                Object.values(curriculumPorGrupo).forEach(curr => {
+                    const totalPuntos = curr.materias.reduce((acc, m) => acc + m.ponderacion, 0);
+                    const isTotalCorrect = Math.abs(totalPuntos - 2) < 0.01;
+                    const semColor = curr.semestre === '2do' ? '#2563eb' : curr.semestre === '4to' ? '#7c3aed' : '#475569';
+                    const semBg = curr.semestre === '2do' ? '#eff6ff' : curr.semestre === '4to' ? '#f5f3ff' : '#f8fafc';
+                    const progressWidth = Math.min((totalPuntos / 2) * 100, 100);
 
                     html += `
-                        <div style="background:white; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-                            <div style="background:linear-gradient(135deg, ${semColor}, ${semColor}dd); padding:14px 18px; color:white;">
-                                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div style="background:white; border:1px solid #e2e8f0; border-radius:16px; overflow:hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition:transform 0.2s hover; cursor:default;">
+                            <div style="background: linear-gradient(135deg, ${semColor}, ${semColor}dd); padding: 1.25rem; color: white;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                                     <div>
-                                        <span style="font-size:0.75rem; text-transform:uppercase; opacity:0.85; letter-spacing:1px; display:flex; align-items:center; gap:6px;">
-                                            ${curriculum.semestre} Sem. | ${curriculum.turno === 'VESPERTINO' ? '🌙 Vesp.' : '☀️ Mat.'}
-                                        </span>
-                                        <h3 style="margin:4px 0 0; font-size:1rem; color:white; line-height:1.3;">Grupos: ${gruposLabel}</h3>
+                                        <div style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8;">
+                                            ${curr.semestre} Semestre | ${curr.turno === 'VESPERTINO' ? '🌙 VESPERTINO' : '☀️ MATUTINO'}
+                                        </div>
+                                        <h3 style="margin: 4px 0 0; font-size: 1.1rem; color: white; display:flex; align-items:center; gap:8px;">
+                                            Grupos: ${curr.grupos.map(g => `<span style="background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:6px; font-size:0.9rem;">${g}</span>`).join('')}
+                                        </h3>
                                     </div>
-                                    <div style="text-align:right;">
-                                        <span style="font-size:1.8rem; font-weight:800;">${total.toFixed(2)}</span>
-                                        <span style="font-size:0.8rem; opacity:0.8;">/ 2.00</span>
+                                    <div style="text-align: right;">
+                                        <div style="font-size: 1.75rem; font-weight: 900; line-height: 1;">${totalPuntos.toFixed(2)}</div>
+                                        <div style="font-size: 0.7rem; opacity: 0.8; font-weight:600;">/ 2.00 PUNTOS</div>
                                     </div>
                                 </div>
-                                <div style="background:rgba(255,255,255,0.25); height:6px; border-radius:99px; margin-top:10px; overflow:hidden;">
-                                    <div style="height:100%; width:${porcentaje}%; background:white; border-radius:99px; transition:width 0.5s;"></div>
+                                <div style="height: 6px; background: rgba(255,255,255,0.2); border-radius: 99px; margin-top: 1rem; overflow: hidden;">
+                                    <div style="height: 100%; width: ${progressWidth}%; background: white; border-radius: 99px; transition: width 0.8s ease-out;"></div>
                                 </div>
-                                ${!isComplete ? '<span style="font-size:0.7rem; color:#FDE68A; margin-top:4px; display:block;">⚠️ No suma 2 puntos exactos</span>' : '<span style="font-size:0.7rem; color:#A7F3D0; margin-top:4px; display:block;">✅ Suma Correcta</span>'}
+                                <div style="margin-top: 0.75rem; display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 600;">
+                                    ${isTotalCorrect 
+                                        ? '<span style="display:inline-flex; align-items:center; gap:4px; background:rgba(34,197,94,0.3); padding:2px 8px; border-radius:99px;">✓ Configuración Correcta</span>' 
+                                        : `<span style="display:inline-flex; align-items:center; gap:4px; background:rgba(239,68,68,0.3); padding:2px 8px; border-radius:99px;">⚠ Error: Debe sumar 2.00</span>`}
+                                </div>
                             </div>
-                            <div style="padding:12px 18px;">
+                            <div style="padding: 1.25rem;">
+                                ${curr.materias.map(m => {
+                                    // Buscar docentes para esta materia en estos grupos
+                                    const docentesMateria = directorio.filter(d => d.materia === m.materia && curr.grupos.includes(d.grupo));
+                                    const listaDocentes = [...new Set(docentesMateria.map(d => d.docente))];
+                                    
+                                    return `
+                                        <div style="padding: 0.75rem 0; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+                                            <div style="flex: 1; min-width: 0;">
+                                                <div style="font-size: 0.9rem; font-weight: 700; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${m.materia}">${m.materia}</div>
+                                                <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">
+                                                    ${listaDocentes.length > 0 
+                                                        ? `👤 ${listaDocentes.join(', ')}` 
+                                                        : '<span style="color:#ef4444; font-style:italic;">⚠ No asignado en Directorio</span>'}
+                                                </div>
+                                            </div>
+                                            <div style="background: ${semBg}; color: ${semColor}; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-variant-numeric: tabular-nums; min-width: 55px; text-align: center; border: 1px solid ${semColor}22;">
+                                                ${m.ponderacion.toFixed(2)}
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
                     `;
-
-                    curriculum.materias.forEach(mat => {
-                        // Buscar en el directorio general qué docentes dan esta materia a ESTOS grupos específicos
-                        const direct = directorio.filter(d => 
-                            d.materia === mat.materia && curriculum.grupos.includes(d.grupo)
-                        );
-                        
-                        // Agrupar docentes -> grupos
-                        const docentesMap = {};
-                        direct.forEach(d => {
-                            if (!docentesMap[d.docente]) docentesMap[d.docente] = [];
-                            docentesMap[d.docente].push(d.grupo);
-                        });
-
-                        const docentesHTML = Object.entries(docentesMap).map(([docente, gruposDelDocente]) => 
-                            `<div style="font-size:0.75rem; color:#64748b; padding:2px 0;">
-                                👤 <strong>${docente}</strong> <span style="color:#94a3b8;">(${gruposDelDocente.join(', ')})</span>
-                            </div>`
-                        ).join('');
-                        
-                        html += `
-                            <div style="padding:10px 0; border-bottom:1px solid #f1f5f9;">
-                                <div style="display:flex; align-items:center; gap:10px;">
-                                    <div style="flex:1; min-width:0;">
-                                        <div style="font-size:0.85rem; font-weight:600; color:#1e293b;" title="${mat.materia}">${mat.materia}</div>
-                                    </div>
-                                    <div style="width:80px; text-align:right;">
-                                        <span style="font-size:1rem; font-weight:700; color:${semColor};">${mat.ponderacion > 0 ? mat.ponderacion.toFixed(2) : '-'}</span>
-                                    </div>
-                                </div>
-                                <div style="margin-top:4px; padding-left:4px;">
-                                    ${docentesHTML || '<i style="font-size:0.75rem; color:#94a3b8;">No asignado en directorio</i>'}
-                                </div>
-                            </div>
-                        `;
-                    });
-
-                    html += '</div></div>';
                 });
 
-                if (Object.keys(curriculumPorGrupo).length === 0) {
-                     html = '<p style="color:#94a3b8; font-style:italic;">No hay grupos con materias programadas para este parcial.</p>';
-                } else {
-                     html += '</div>';
-                }
-                
-                container.innerHTML = html;
+                container.innerHTML = html + '</div>';
             };
 
-            document.getElementById('pond-parcial').addEventListener('change', renderPonderaciones);
-            renderPonderaciones();
+            const pondSelect = document.getElementById('pond-parcial');
+            if (pondSelect) pondSelect.addEventListener('change', renderPonderaciones);
+            renderPonderaciones();      renderPonderaciones();
 
-        } catch(e) {
-            console.error(e);
-            alert("Error cargando dashboard");
+        } catch (e) {
+            console.error("DEBUG - Error detallado:", e);
+            alert("Error cargando dashboard: " + e.message);
         }
         hideLoader();
     }
