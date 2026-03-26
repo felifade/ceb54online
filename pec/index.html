@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión PEC | CEB 5/4</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app" class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-text">PEC 5/4</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-view="dashboard">
+                    <i data-feather="grid"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-view="grupos">
+                    <i data-feather="users"></i>
+                    <span>Grupos y Equipos</span>
+                </a>
+                <a href="#" class="nav-item" data-view="concentrado">
+                    <i data-feather="file-text"></i>
+                    <span>Concentrado</span>
+                </a>
+                <a href="#" class="nav-item" data-view="directorio">
+                    <i data-feather="map"></i>
+                    <span>Directorio Escolar</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <p>Centro de Estudios de Bachillerato<br>CEB 5/4</p>
+                <a href="../index.html" style="color: #67A8DB; font-weight: 600; margin-top: 10px; display: inline-block;">Volver al Sitio Web Principal</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="topbar">
+                <button id="menu-toggle" class="btn-icon">
+                    <i data-feather="menu"></i>
+                </button>
+                <div class="topbar-title">
+                    <h1 id="view-title">Dashboard Principal</h1>
+                </div>
+                <div class="topbar-user">
+                    <div class="avatar">
+                        <i data-feather="user"></i>
+                    </div>
+                    <span>Docente PEC</span>
+                </div>
+            </header>
+
+            <!-- Loading Overlay -->
+            <div id="loading" class="loading-overlay hidden">
+                <div class="spinner"></div>
+                <p>Procesando con Google Sheets...</p>
+            </div>
+
+            <!-- Views Container -->
+            <div id="views-container" class="views-wrapper">
+                
+                <!-- View: Dashboard -->
+                <section id="view-dashboard" class="view active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon"><i data-feather="hash"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-title">Total Grupos</span>
+                                <h3 class="stat-value" id="dash-grupos">-</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i data-feather="users"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-title">Equipos Activos</span>
+                                <h3 class="stat-value" id="dash-equipos">-</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i data-feather="check-circle"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-title">Evaluaciones</span>
+                                <h3 class="stat-value" id="dash-evaluaciones">-</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card highlight">
+                            <div class="stat-icon"><i data-feather="activity"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-title">Avance Global</span>
+                                <h3 class="stat-value" id="dash-avance">-</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-panels">
+                        <div class="panel">
+                            <h2>Distribución de Grupos</h2>
+                            <div id="dash-lista-grupos" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem;">
+                                <!-- Tags inyectados por JS -->
+                            </div>
+                        </div>
+                        <div class="panel">
+                            <h2>Equipos Pendientes vs Evaluados</h2>
+                            <div id="dash-avance-equipos" style="margin-top: 1rem;">
+                                <!-- ProgressBar / Info inyectada por JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel de Diagnóstico -->
+                    <div class="panel" style="margin-top: 1.5rem; border-left: 4px solid #ef4444;" id="panel-diagnostico">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h2 style="color: #ef4444; margin: 0;">⚠️ Alumnos sin Equipo Asignado</h2>
+                            <span id="badge-sin-equipo" style="background: #fee2e2; color: #b91c1c; padding: 4px 12px; border-radius: 999px; font-weight: 600; font-size: 0.85rem;">0 alumnos</span>
+                        </div>
+                        <p style="font-size: 0.85rem; color: #64748b; margin-top: -0.5rem; margin-bottom: 1rem;">Alumnos de la hoja "Alumnos" que no tienen número de equipo asignado o está en 0.</p>
+                        <div id="dash-sin-equipo" style="max-height: 200px; overflow-y: auto; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
+                            <p style="text-align: center; color: #94a3b8; font-style: italic; margin: 0;">Cargando diagnóstico...</p>
+                        </div>
+                    </div>
+
+                    <!-- Panel de Ponderaciones (ARRIBA) -->
+                    <div class="panel" style="margin-top: 1.5rem;">
+                        <h2>⚖️ Ponderaciones por Parcial</h2>
+                        <p style="font-size: 0.85rem; color: #64748b; margin-top: -0.5rem; margin-bottom: 1rem;">Distribución de puntos del PEC. El total debe sumar <strong>2 puntos</strong> por turno.</p>
+                        <div style="margin-bottom: 1rem;">
+                            <label style="font-size:0.8rem; font-weight:600; color:#64748b;">Parcial:</label>
+                            <select id="pond-parcial" class="input-control" style="width: auto; min-width: 150px;">
+                                <option value="1">Parcial 1</option>
+                                <option value="2" selected>Parcial 2</option>
+                                <option value="3">Parcial 3</option>
+                            </select>
+                        </div>
+                        <div id="pond-container">
+                            <!-- Cards inyectadas por JS -->
+                        </div>
+                    </div>
+
+                    <!-- Panel de Seguimiento Docente -->
+                    <div class="panel" style="margin-top: 1.5rem;">
+                        <h2>📋 Seguimiento de Evaluaciones por Docente</h2>
+                        <p style="font-size: 0.85rem; color: #64748b; margin-top: -0.5rem; margin-bottom: 1rem;">Muestra qué maestros ya evaluaron y cuáles faltan, por grupo y parcial.</p>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                            <div>
+                                <label style="font-size:0.8rem; font-weight:600; color:#64748b;">Parcial:</label>
+                                <select id="seg-parcial" class="input-control" style="width: auto; min-width: 150px;">
+                                    <option value="1">Parcial 1</option>
+                                    <option value="2" selected>Parcial 2</option>
+                                    <option value="3">Parcial 3</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; font-weight:600; color:#64748b;">Grupo:</label>
+                                <select id="seg-grupo" class="input-control" style="width: auto; min-width: 150px;">
+                                    <option value="">-- Todos los grupos --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="seg-tabla-container" style="overflow-x: auto;">
+                            <!-- Tabla inyectada por JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- View: Grupos -->
+                <section id="view-grupos" class="view hidden">
+                    <div class="panel filters-bar">
+                        <div style="flex-grow: 1;">
+                            <label for="select-grupo">Selecciona un Grupo de Segundo Semestre:</label>
+                            <select id="select-grupo" class="input-control">
+                                <option value="">-- Elige un grupo para ver el PEC --</option>
+                                <!-- Opciones inyectadas -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="equipos-container" class="equipos-grid hidden">
+                        <!-- Tarjetas de equipos inyectadas por JS -->
+                    </div>
+                </section>
+
+                <!-- Modal/View: Captura de Calificaciones -->
+                <div id="modal-captura" class="modal hidden">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2 id="modal-equipo-nombre">Evaluar Equipo</h2>
+                            <button class="btn-icon close-modal"><i data-feather="x"></i></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="info-alert">
+                                <strong>Consultar PEC:</strong> <a href="#" id="modal-equipo-link" target="_blank">Abrir Documento del Equipo <i data-feather="external-link" style="width: 14px;"></i></a>
+                            </div>
+                            
+                            <form id="form-evaluacion" class="eval-form">
+                                <input type="hidden" id="eval-equipo-id">
+                                <input type="hidden" id="eval-equipo-nombre">
+                                <input type="hidden" id="eval-grupo-id">
+                                
+                                <div class="form-group">
+                                    <label>Docente Evaluador:</label>
+                                    <input type="text" id="eval-docente" required placeholder="Ej: Profr. Juan Pérez" class="input-control border-focus">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Periodo (Parcial a evaluar):</label>
+                                    <select id="eval-parcial" required class="input-control border-focus">
+                                        <option value="1">Primer Parcial</option>
+                                        <option value="2" selected>Segundo Parcial</option>
+                                        <option value="3">Tercer Parcial</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Materia u horas a evaluar:</label>
+                                    <select id="eval-materia" required class="input-control border-focus">
+                                        <option value="">Selecciona tu materia...</option>
+                                    </select>
+                                    <div id="eval-ponderacion-hint"></div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Calificación General del Equipo (0 a 10):</label>
+                                    <input type="number" id="eval-puntaje" required min="0" max="10" step="0.1" placeholder="Ej: 8.5" class="input-control border-focus puntaje-input">
+                                </div>
+
+                                <div class="form-group">
+                                    <label style="font-size: 0.9rem; margin-bottom: 0.5rem; display: block; color: #475569;">Evaluación Individual (Modifica sólo si algún alumno tuvo desempeño diferente al resto del equipo):</label>
+                                    <div id="eval-evaluacion-individual" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
+                                        <!-- Inputs de alumnos inyectados por JS -->
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="margin-top: 1rem;">
+                                    <label>Observaciones (Desempeño general):</label>
+                                    <textarea id="eval-obs" rows="3" placeholder="Muy buen sustento teórico..." class="input-control border-focus"></textarea>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-outline close-modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-primary"><i data-feather="save"></i> Enviar a Sheets</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- View: Concentrado -->
+                <section id="view-concentrado" class="view hidden">
+                    <div class="panel">
+                        <div class="panel-header-flex">
+                            <div>
+                                <h2>Concentrado General de Calificaciones PEC</h2>
+                                <p style="font-size: 0.9rem; color: #64748b;">Visualización en tiempo real de los datos en Google Sheets.</p>
+                            </div>
+                            <button id="btn-exportar" class="btn btn-secondary"><i data-feather="download"></i> Excel / CSV</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table" id="tabla-concentrado">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha Hora</th>
+                                        <th>Parcial</th>
+                                        <th>Grupo</th>
+                                        <th>Equipo</th>
+                                        <th>Materia</th>
+                                        <th>Docente</th>
+                                        <th>Puntaje</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Filas inyectadas -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- View: Directorio -->
+                <section id="view-directorio" class="view hidden">
+                    <div class="panel">
+                        <div class="panel-header-flex" style="margin-bottom: 2rem;">
+                            <div>
+                                <h2>Directorio Escolar Asignado</h2>
+                                <p style="font-size: 0.9rem; color: #64748b;">Estructura de Horarios y Asignaturas - Mapeo Extraído de Google Sheets.</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Segundos Semestres -->
+                        <h3 style="color:var(--clr-primary); border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 1.5rem;">Estructura de Segundo Semestre</h3>
+                        <div id="dir-segundos" class="equipos-grid" style="margin-bottom: 3rem;">
+                            <!-- Tarjetas inyectadas por JS -->
+                        </div>
+
+                        <!-- Cuartos Semestres -->
+                        <h3 style="color:var(--clr-secondary); border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 1.5rem;">Estructura de Cuarto Semestre</h3>
+                        <div id="dir-cuartos" class="equipos-grid">
+                            <!-- Tarjetas inyectadas por JS -->
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/mock-data.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
