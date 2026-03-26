@@ -102,40 +102,93 @@
     <section class="section gallery" style="background-color: var(--clr-light); padding: 5rem 0;">
         <div class="container">
             <div class="section-header center scroll-reveal">
-                <span style="display: block; font-weight: 600; color: var(--clr-primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">Nuestra Comunidad</span>
+                <span
+                    style="display: block; font-weight: 600; color: var(--clr-primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">Nuestra
+                    Comunidad</span>
                 <h2 class="section-title" style="margin-bottom: 1rem;">Galería de Eventos</h2>
-                <p class="section-desc">Un vistazo a nuestras actividades cívicas, deportivas, culturales y logros académicos en el CEB 5/4.</p>
+                <p class="section-desc">Un vistazo a nuestras actividades cívicas, deportivas, culturales y logros
+                    académicos en el CEB 5/4.</p>
             </div>
-            
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 3rem;" class="scroll-reveal">
-                <!-- Foto 1 -->
-                <div style="position: relative; overflow: hidden; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); aspect-ratio: 4/3; background-color: #E2E8F0;">
-                    <img src="assets/galeria1.jpg" alt="Evento escolar 1" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; cursor: pointer;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onerror="this.src='https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=600'">
+
+            <div class="carousel-wrapper scroll-reveal" style="position: relative; margin-top: 3rem; padding: 0 1rem;">
+                <button aria-label="Anterior foto"
+                    onclick="document.getElementById('gallery-track').scrollBy({left: -320, behavior: 'smooth'})"
+                    style="position: absolute; left: -10px; top: 50%; transform: translateY(-50%); background: white; border: none; width: 45px; height: 45px; border-radius: 50%; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); color: var(--clr-primary); font-size: 1.5rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; transition: all 0.2s;"
+                    onmouseover="this.style.backgroundColor='var(--clr-primary)'; this.style.color='white';"
+                    onmouseout="this.style.backgroundColor='white'; this.style.color='var(--clr-primary)';">❮</button>
+
+                <style>
+                    #gallery-track::-webkit-scrollbar {
+                        display: none;
+                    }
+                </style>
+                <div id="gallery-track"
+                    style="display: flex; gap: 1.5rem; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none; padding: 1rem 0; scroll-behavior: smooth;">
+                    <!-- Foto 1 -->
+                    <div
+                        style="flex: 0 0 300px; scroll-snap-align: center; position: relative; overflow: hidden; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); aspect-ratio: 4/3; background-color: #E2E8F0;">
+                        <img src="assets/galeria1.jpg" alt="Evento escolar 1"
+                            style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; cursor: pointer;"
+                            onmouseover="this.style.transform='scale(1.05)'"
+                            onmouseout="this.style.transform='scale(1)'"
+                            onerror="this.src='https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=600'">
+                    </div>
+                    <!-- Foto 2 -->
+                    <div
+                        style="flex: 0 0 300px; scroll-snap-align: center; position: relative; overflow: hidden; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); aspect-ratio: 4/3; background-color: #E2E8F0;">
+                        <img src="assets/galeria2.jpg" alt="Evento escolar 2"
+                            style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; cursor: pointer;"
+                            onmouseover="this.style.transform='scale(1.05)'"
+                            onmouseout="this.style.transform='scale(1)'"
+                            onerror="this.src='https://images.unsplash.com/photo-1544531586-fde5298cdd40?auto=format&fit=crop&w=600'">
+                    </div>
+                    <!-- Foto 3 -->
+                    <div
+                        style="flex: 0 0 300px; scroll-snap-align: center; position: relative; overflow: hidden; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); aspect-ratio: 4/3; background-color: #E2E8F0;">
+                        <img src="assets/galeria3.jpg" alt="Evento escolar 3"
+                            style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; cursor: pointer;"
+                            onmouseover="this.style.transform='scale(1.05)'"
+                            onmouseout="this.style.transform='scale(1)'"
+                            onerror="this.src='https://images.unsplash.com/photo-1523580453303-34e2c88d8b6c?auto=format&fit=crop&w=600'">
+                    </div>
+                    <!-- Foto 4 -->
+                    <div
+                        style="flex: 0 0 300px; scroll-snap-align: center; position: relative; overflow: hidden; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); aspect-ratio: 4/3; background-color: #E2E8F0;">
+                        <img src="assets/galeria4.jpg" alt="Evento escolar 4"
+                            style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; cursor: pointer;"
+                            onmouseover="this.style.transform='scale(1.05)'"
+                            onmouseout="this.style.transform='scale(1)'"
+                            onerror="this.src='https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=600'">
+                    </div>
+                    <!-- Foto 5 -->
+                    <div
+                        style="flex: 0 0 300px; scroll-snap-align: center; position: relative; overflow: hidden; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); aspect-ratio: 4/3; background-color: #E2E8F0;">
+                        <img src="assets/galeria5.jpg" alt="Evento escolar 5"
+                            style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; cursor: pointer;"
+                            onmouseover="this.style.transform='scale(1.05)'"
+                            onmouseout="this.style.transform='scale(1)'"
+                            onerror="this.src='https://images.unsplash.com/photo-1571260899304-425dea4cf715?auto=format&fit=crop&w=600'">
+                    </div>
+                    <!-- Foto 6 -->
+                    <div
+                        style="flex: 0 0 300px; scroll-snap-align: center; position: relative; overflow: hidden; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); aspect-ratio: 4/3; background-color: #E2E8F0;">
+                        <img src="assets/galeria6.jpg" alt="Evento escolar 6"
+                            style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; cursor: pointer;"
+                            onmouseover="this.style.transform='scale(1.05)'"
+                            onmouseout="this.style.transform='scale(1)'"
+                            onerror="this.src='https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=600'">
+                    </div>
                 </div>
-                <!-- Foto 2 -->
-                <div style="position: relative; overflow: hidden; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); aspect-ratio: 4/3; background-color: #E2E8F0;">
-                    <img src="assets/galeria2.jpg" alt="Evento escolar 2" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; cursor: pointer;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onerror="this.src='https://images.unsplash.com/photo-1544531586-fde5298cdd40?auto=format&fit=crop&w=600'">
-                </div>
-                <!-- Foto 3 -->
-                <div style="position: relative; overflow: hidden; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); aspect-ratio: 4/3; background-color: #E2E8F0;">
-                    <img src="assets/galeria3.jpg" alt="Evento escolar 3" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; cursor: pointer;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onerror="this.src='https://images.unsplash.com/photo-1523580453303-34e2c88d8b6c?auto=format&fit=crop&w=600'">
-                </div>
-                <!-- Foto 4 -->
-                <div style="position: relative; overflow: hidden; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); aspect-ratio: 4/3; background-color: #E2E8F0;">
-                    <img src="assets/galeria4.jpg" alt="Evento escolar 4" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; cursor: pointer;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onerror="this.src='https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=600'">
-                </div>
-                <!-- Foto 5 -->
-                <div style="position: relative; overflow: hidden; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); aspect-ratio: 4/3; background-color: #E2E8F0;">
-                    <img src="assets/galeria5.jpg" alt="Evento escolar 5" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; cursor: pointer;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onerror="this.src='https://images.unsplash.com/photo-1571260899304-425dea4cf715?auto=format&fit=crop&w=600'">
-                </div>
-                <!-- Foto 6 -->
-                <div style="position: relative; overflow: hidden; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); aspect-ratio: 4/3; background-color: #E2E8F0;">
-                    <img src="assets/galeria6.jpg" alt="Evento escolar 6" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; cursor: pointer;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onerror="this.src='https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=600'">
-                </div>
+
+                <button aria-label="Siguiente foto"
+                    onclick="document.getElementById('gallery-track').scrollBy({left: 320, behavior: 'smooth'})"
+                    style="position: absolute; right: -10px; top: 50%; transform: translateY(-50%); background: white; border: none; width: 45px; height: 45px; border-radius: 50%; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); color: var(--clr-primary); font-size: 1.5rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; transition: all 0.2s;"
+                    onmouseover="this.style.backgroundColor='var(--clr-primary)'; this.style.color='white';"
+                    onmouseout="this.style.backgroundColor='white'; this.style.color='var(--clr-primary)';">❯</button>
             </div>
-            
+
             <div style="text-align: center; margin-top: 3rem;">
-                <p style="color: #64748B; font-size: 0.95rem;">*Para mostrar tus propias fotos aquí, diles a tus administradores que las guarden como <strong>galeria1.jpg</strong>, <strong>galeria2.jpg</strong>, etc. dentro de la carpeta assets/ de tu sitio.</p>
+
             </div>
         </div>
     </section>
