@@ -122,14 +122,19 @@ function doGet(e) {
     let gruposDelDocente = [];
     if (isAdmin) {
       gruposDelDocente = [...new Set([...gruposUnicos, ...directorio.map(d => d.grupo)])].sort();
-    } else if (userEmail) {
-      const gruposDirectos = directorio.filter(d => d.correo === userEmail).map(d => d.grupo);
+    } else if (userEmail && userEmail !== "") {
+      // 1. Grupos donde su correo aparece directo en el Directorio (Validando que no sea vacío)
+      const gruposDirectos = directorio
+        .filter(d => d.correo !== "" && d.correo === userEmail)
+        .map(d => d.grupo);
+
+      // 2. Grupos por materia en Programación (Validando que no sea vacío)
       const materiasEnParcial = programacion
-        .filter(p => p.correoDocente === userEmail && p.parcial === parcialActivo)
+        .filter(p => p.correoDocente !== "" && p.correoDocente === userEmail && p.parcial === parcialActivo)
         .map(p => normalize(p.materia));
       
       const gruposPorMateria = directorio
-        .filter(d => materiasEnParcial.includes(normalize(d.materia)))
+        .filter(d => materiasEnParcial.length > 0 && materiasEnParcial.includes(normalize(d.materia)))
         .map(d => d.grupo);
       
       gruposDelDocente = [...new Set([...gruposDirectos, ...gruposPorMateria])].filter(g => g !== "").sort();
