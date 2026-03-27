@@ -23,7 +23,7 @@
                     <i data-feather="grid"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="#" class="nav-item" id="nav-grupos" data-view="grupos">
+                <a href="#" class="nav-item" data-view="grupos">
                     <i data-feather="users"></i>
                     <span>Grupos y Equipos</span>
                 </a>
@@ -35,7 +35,7 @@
                     <i data-feather="map"></i>
                     <span>Directorio Escolar</span>
                 </a>
-                <a href="#" class="nav-item" data-view="logout" onclick="window.logout()" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; color: #fda4af;">
+                <a href="#" class="nav-item" onclick="logout()" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; color: #fda4af;">
                     <i data-feather="log-out"></i>
                     <span>Cerrar Sesión</span>
                 </a>
@@ -57,11 +57,10 @@
                     <h1 id="view-title">Dashboard Principal</h1>
                 </div>
                 <div class="topbar-user">
-                    <span id="user-role-badge" style="background: #e0f2fe; color: #0369a1; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; margin-right: 12px;">Docente</span>
                     <div class="avatar">
                         <i data-feather="user"></i>
                     </div>
-                    <span id="topbar-user-name">Cargando...</span>
+                    <span id="topbar-user-name">Docente PEC</span>
                 </div>
             </header>
 
@@ -179,12 +178,9 @@
 
                 <!-- View: Grupos -->
                 <section id="view-grupos" class="view hidden">
-                    <!-- Banner de guía: se inyecta por JS según el rol del usuario -->
-                    <div id="banner-mis-grupos"></div>
-
-                    <div class="panel filters-bar" id="panel-filtros-grupos">
+                    <div class="panel filters-bar">
                         <div style="flex-grow: 1;">
-                            <label for="select-grupo" id="label-select-grupo">Selecciona un Grupo:</label>
+                            <label for="select-grupo">Selecciona un Grupo de Segundo Semestre:</label>
                             <select id="select-grupo" class="input-control">
                                 <option value="">-- Elige un grupo para ver el PEC --</option>
                                 <!-- Opciones inyectadas -->

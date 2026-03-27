@@ -11,6 +11,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return match ? match[0] : String(val).trim();
     };
 
+    // Establecer nombre de usuario desde la sesión
+    const userName = sessionStorage.getItem('user_name');
+    if (userName) {
+        const userNameEl = document.getElementById('topbar-user-name');
+        if (userNameEl) userNameEl.textContent = userName;
+    }
 
     // DOM Elements
     const views = document.querySelectorAll('.view');
@@ -22,197 +28,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Estado local
     let currentView = 'dashboard';
 
-    // =============================================
-    // ESTADO GLOBAL DE USUARIO PEC
-    // =============================================
-    window.PEC_USER = {
-        email: (sessionStorage.getItem('user_email') || '').toLowerCase().trim(),
-        nombre: sessionStorage.getItem('user_name') || 'Docente PEC',
-        role: sessionStorage.getItem('user_role') || 'Docente',
-        isAdmin: false,
-        gruposAsignados: [],
-        parcialActivo: '2',
-        avanceDocente: { total: 0, evaluados: 0, pendientes: 0, porcentaje: 0 }
-    };
-    window.PEC_USER.isAdmin = PEC_USER.role.toLowerCase() === 'admin';
-
-    // Establecer nombre y ROL en topbar
-    const userNameEl = document.getElementById('topbar-user-name');
-    const roleBadgeEl = document.getElementById('user-role-badge');
-    
-    if (userNameEl) userNameEl.textContent = PEC_USER.nombre || "Usuario";
-    if (roleBadgeEl) {
-        roleBadgeEl.textContent = PEC_USER.role || "Docente";
-        // Estilo visual según rol
-        if (PEC_USER.role === 'Admin') {
-            roleBadgeEl.style.background = '#fef2f2';
-            roleBadgeEl.style.color = '#991b1b';
-        } else {
-            roleBadgeEl.style.background = '#e0f2fe';
-            roleBadgeEl.style.color = '#0369a1';
-        }
-    }
-
-    // =============================================
-    function aplicarControlAcceso(data) {
-        // Actualizar estado global
-        PEC_USER.isAdmin = data.isAdmin || false;
-        PEC_USER.gruposAsignados = data.gruposDelDocente || [];
-        PEC_USER.parcialActivo = data.parcialActivo || '2';
-        PEC_USER.avanceDocente = data.avanceDocente || { total: 0, evaluados: 0, pendientes: 0, porcentaje: 0 };
-
-        // DIAGNÓSTICO PROFUNDO (Imprimir en F12)
-        if (data.audit) {
-            console.log("--- 🕵️ DIAGNÓSTICO DE ACCESO PEC ---");
-            console.log("Correo Detectado:", data.audit.emailRecibido);
-            console.log("Rol Detectado:", data.audit.roleDetectado);
-            console.log("Materias encontradas en Programación:", data.audit.materiasProgramadas);
-            console.log("Grupos Directos (Directorio):", data.audit.gruposDirectos);
-            console.log("Grupos por Materia (Directorio):", data.audit.gruposPorMateria);
-            console.log("--- FIN DEL DIAGNÓSTICO ---");
-        }
-
-        const navGrupos = document.getElementById('nav-grupos');
-        const tieneGrupos = PEC_USER.gruposAsignados.length > 0;
-
-        if (PEC_USER.isAdmin) {
-            // Admin siempre ve todo
-            navGrupos.style.display = 'flex';
-            navGrupos.classList.add('nav-item');
-            navGrupos.classList.remove('nav-item-disabled');
-            navGrupos.setAttribute('data-view', 'grupos');
-        } else if (tieneGrupos) {
-            // Docente con grupos: habilitar
-            navGrupos.style.display = 'flex';
-            navGrupos.classList.add('nav-item');
-            navGrupos.classList.remove('nav-item-disabled');
-            navGrupos.setAttribute('data-view', 'grupos');
-            
-            // Badge con conteo
-            let badge = navGrupos.querySelector('.nav-badge');
-            if (!badge) {
-                badge = document.createElement('span');
-                badge.className = 'nav-badge';
-                navGrupos.appendChild(badge);
-            }
-            badge.textContent = PEC_USER.gruposAsignados.length;
-        } else {
-            // OCULTAR por completo si no es admin y no tiene grupos
-            navGrupos.style.display = 'none';
-        }
-
-        // Ocultar botón exportar para no-admin
-        const btnExportar = document.getElementById('btn-exportar');
-        if (btnExportar && !PEC_USER.isAdmin) {
-            btnExportar.style.display = 'none';
-        }
-    }
-
-    // =============================================
-    // BANNER: Renderizar banner de guia en vista Grupos
-    // =============================================
-    function renderizarBannerGrupos() {
-        const container = document.getElementById('banner-mis-grupos');
-        if (!container) return;
-
-        const tieneGrupos = PEC_USER.gruposAsignados.length > 0;
-        const av = PEC_USER.avanceDocente;
-        const parcial = PEC_USER.parcialActivo;
-
-        if (tieneGrupos) {
-            // Banner azul con info y guia
-            const grupoTags = PEC_USER.gruposAsignados
-                .map(g => `<span class="grupo-tag">${g}</span>`).join('');
-
-            container.innerHTML = `
-                <div class="banner-mis-grupos">
-                    <div class="banner-top-row">
-                        <div class="banner-left">
-                            <div class="banner-eyebrow">✅ Acceso Habilitado — Parcial ${parcial}</div>
-                            <h2 class="banner-title">📋 Tus grupos para capturar</h2>
-                            <p class="banner-subtitle">
-                                Usuario: <strong>${PEC_USER.email}</strong> (${PEC_USER.role})<br>
-                                Tienes <strong>${PEC_USER.gruposAsignados.length} grupo(s)</strong> asignado(s).
-                            </p>
-                        </div>
-                        <div style="display: flex; gap: 0.75rem;">
-                            <div class="banner-stats-box">
-                                <span class="stat-num">${av.evaluados}</span>
-                                <span class="stat-lbl">✅ Evaluados</span>
-                            </div>
-                            <div class="banner-stats-box">
-                                <span class="stat-num">${av.pendientes}</span>
-                                <span class="stat-lbl">⏳ Pendientes</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="banner-grupos-row">
-                        <span style="font-size: 0.75rem; font-weight: 700; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; align-self: center;">Grupos:</span>
-                        ${grupoTags}
-                    </div>
-
-                    <div class="banner-progress-section">
-                        <div class="banner-progress-label">
-                            <span>📊 Avance de captura en tus grupos</span>
-                            <span>${av.porcentaje}% — ${av.evaluados} de ${av.total} equipos</span>
-                        </div>
-                        <div class="banner-progress-bar">
-                            <div class="banner-progress-fill" style="width: 0%" data-target="${av.porcentaje}"></div>
-                        </div>
-                    </div>
-
-                    <div class="banner-guia">
-                        <div class="guia-step">
-                            <span class="guia-step-num">1</span>
-                            <span>Selecciona un grupo</span>
-                        </div>
-                        <span class="guia-arrow">→</span>
-                        <div class="guia-step">
-                            <span class="guia-step-num">2</span>
-                            <span>Elige el equipo</span>
-                        </div>
-                        <span class="guia-arrow">→</span>
-                        <div class="guia-step">
-                            <span class="guia-step-num">3</span>
-                            <span>Presiona <em>Evaluar</em></span>
-                        </div>
-                        <span class="guia-arrow">→</span>
-                        <div class="guia-step">
-                            <span class="guia-step-num">4</span>
-                            <span>Llena y envia el formulario</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Animar la barra de progreso después de renderizar
-            setTimeout(() => {
-                const fill = container.querySelector('.banner-progress-fill');
-                if (fill) fill.style.width = fill.dataset.target + '%';
-            }, 150);
-
-        } else if (!PEC_USER.isAdmin) {
-            // Banner de sin acceso
-            container.innerHTML = `
-                <div class="banner-sin-acceso">
-                    <div class="icono-lock">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                    </div>
-                    <h3>🔐 Sin grupos asignados en Parcial ${parcial}</h3>
-                    <p>No tienes captura de PEC en este parcial. Puedes consultar el Dashboard y el Directorio. Si crees que es un error, contacta al administrador.</p>
-                </div>
-            `;
-        }
-        // Si es admin, no mostramos nada especial (ve todo)
-    }
-
     // Navegación
     navItems.forEach(item => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
             const viewName = item.getAttribute('data-view');
-            if (!viewName) return; // Ignorar items deshabilitados sin data-view
             
             navItems.forEach(nav => nav.classList.remove('active'));
             item.classList.add('active');
@@ -234,27 +54,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 sidebar.classList.remove('open');
             }
 
-            // Caso especial: Cerrar Sesión
-            if (viewName === 'logout') {
-                window.logout();
-                return;
-            }
-
             // Cargar datos de la vista
             loadViewData(viewName);
         });
     });
-
-    // FUNCIÓN DE LOGOUT GLOBAL PARA SEGURIDAD
-    window.logout = function() {
-        if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-            sessionStorage.clear();
-            localStorage.clear();
-            if (window.api) window.api.cache = null;
-            // Forzar recarga completa para limpiar memoria JS
-            window.location.replace('login.html');
-        }
-    };
 
     // Menú móvil
     menuToggle.addEventListener('click', () => {
@@ -282,9 +85,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await api.getDashboardData();
             if (!data || !data.equipos) throw new Error("Datos del dashboard incompletos");
             
-            // Aplicar control de acceso con los datos recien cargados
-            const cacheAcceso = api.cache;
-            if (cacheAcceso) aplicarControlAcceso(cacheAcceso);
             // Stats
             document.getElementById('dash-grupos').textContent = data.totalGrupos || 0;
             document.getElementById('dash-equipos').textContent = data.totalEquipos || 0;
@@ -652,44 +452,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const containerEquipos = document.getElementById('equipos-container');
 
     async function initGrupos() {
-        // Renderizar el banner según el usuario (siempre actualizado)
-        renderizarBannerGrupos();
-
-        showLoader();
-        
-        // FILTRAR GRUPOS: 
-        // - Admin: ve grupos con datos (api.getGrupos)
-        // - Docente: ve sus grupos asignados (PEC_USER.gruposAsignados)
-        let gruposAMostrar = [];
-        
-        if (PEC_USER.isAdmin) {
-            const todosConEquipos = await api.getGrupos();
-            gruposAMostrar = [...todosConEquipos];
-        } else {
-            // Para el docente, usamos sus grupos asignados (los 11 detectados)
-            gruposAMostrar = [...PEC_USER.gruposAsignados];
+        if (selectGrupo.options.length <= 1) { // Solo opción default
+            showLoader();
+            const grupos = await api.getGrupos();
+            // Ordenar grupos alfabéticamente
+            const gruposOrdenados = [...grupos].sort((a, b) => String(a).localeCompare(String(b), undefined, {numeric: true}));
             
-            // Actualizar label del select (ej: "Selecciona uno de tus 11 grupo(s):")
-            const lbl = document.getElementById('label-select-grupo');
-            if (lbl) lbl.textContent = `Selecciona uno de tus ${gruposAMostrar.length} grupo(s):`;
+            gruposOrdenados.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g; opt.textContent = `Grupo ${g}`;
+                selectGrupo.appendChild(opt);
+            });
+            hideLoader();
         }
-
-        // Ordenar grupos
-        const gruposOrdenados = [...gruposAMostrar].sort((a, b) =>
-            String(a).localeCompare(String(b), undefined, {numeric: true})
-        );
-
-        // Limpiar y poblar el selector usando innerHTML para mayor fiabilidad
-        let optionsHtml = '<option value="">-- Elige un grupo para ver el PEC --</option>';
-        gruposOrdenados.forEach(g => {
-            optionsHtml += `<option value="${g}">Grupo ${g}</option>`;
-        });
-        
-        selectGrupo.innerHTML = optionsHtml;
-        
-        hideLoader();
-
-        // Limpiar equipos al recargar vista
+        // Limpiar equipos al recargar
         containerEquipos.innerHTML = '';
         containerEquipos.classList.add('hidden');
         selectGrupo.value = "";
@@ -843,8 +619,6 @@ document.addEventListener("DOMContentLoaded", () => {
         btn.addEventListener('click', () => {
             modal.classList.add('hidden');
             formEval.reset();
-            const ponderacionHint = document.getElementById('eval-ponderacion-hint');
-            if (ponderacionHint) ponderacionHint.innerHTML = '';
         });
     });
 
@@ -886,10 +660,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     const opt = document.createElement('option');
                     opt.value = m.materia;
                     opt.textContent = m.materia;
-                    opt.dataset.docente = m.docente;
+                    opt.dataset.docente = m.docente; // Guardamos el docente en el dataset
                     selectMateria.appendChild(opt);
                 });
             } else {
+                // Fallback si no hay nada en el directorio para ese grupo
                 const defaultMaterias = ["Metodología de la Investigación", "Cultura Digital", "Inglés", "Cs. Naturales"];
                 defaultMaterias.forEach(m => {
                     const opt = document.createElement('option');
@@ -898,30 +673,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     selectMateria.appendChild(opt);
                 });
             }
-
-            // --- NUEVO: MOSTRAR PONDERACIÓN ---
-            const ponderacionHint = document.getElementById('eval-ponderacion-hint');
-            const progDocente = await api.getProgramacion();
-            
-            selectMateria.addEventListener('change', () => {
-                const matSel = selectMateria.value;
-                if (!matSel) {
-                    ponderacionHint.innerHTML = '';
-                    return;
-                }
-                const p = progDocente.find(x => normalizeText(x.materia) === normalizeText(matSel));
-                if (p && p.ponderacion) {
-                    ponderacionHint.innerHTML = `
-                        <div style="background:#f0f9ff; color:#0369a1; padding:8px 12px; border-radius:8px; margin-top:10px; font-weight:700; font-size:0.85rem; border:1px solid #bae6fd; display:flex; align-items:center; gap:8px;">
-                            <i data-feather="info" style="width:16px; height:16px;"></i>
-                            <span>Ponderación detectada: <b style="font-size:1.1rem; color:#0c4a6e;">${p.ponderacion}</b></span>
-                        </div>
-                    `;
-                    feather.replace();
-                } else {
-                    ponderacionHint.innerHTML = '';
-                }
-            });
         } catch(e) {
             console.error("Error al cargar materias del directorio", e);
         }

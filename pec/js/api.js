@@ -2,7 +2,7 @@
 
 const USE_MOCK = false;
 // La URL que te dará Google Apps Script cuando lo publiques
-const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbyj6hE8GGfJ0Y-d2bjeu7droTvAgMuZtczSnqaRHqy3lp9psz15s0mIzobppwLSCuLxSQ/exec";
+const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbzdIhrRqPS3Sk6aZ4GfTFNEBM61uofVdOBFXoW0aYfIPv-JpyT3KrMrP6QxquS-h4V_EQ/exec";
 
 const api = {
     // Almacén temporal de datos para no recargar en cada clic
@@ -28,38 +28,18 @@ const api = {
     async getDashboardData() {
         const db = await this.fetchAllData();
 
-        if (db.isAdmin) {
-            // VISTA ADMINISTRADOR: Totales de toda la escuela
-            const materiasPorEquipo = 7;
-            const totalEsperado = db.totalEquiposGlobal * materiasPorEquipo;
-            const avancePorcentaje = totalEsperado === 0 ? 0 : Math.round((db.totalEvaluacionesGlobal / totalEsperado) * 100);
+        const materiasPorEquipo = 7;
+        const totalEsperado = db.equipos.length * materiasPorEquipo;
+        const avancePorcentaje = totalEsperado === 0 ? 0 : Math.round((db.evaluaciones.length / totalEsperado) * 100);
 
-            return {
-                totalGrupos: db.grupos.length,
-                totalEquipos: db.totalEquiposGlobal,
-                evaluaciones: db.totalEvaluacionesGlobal,
-                grupos: db.grupos,
-                equipos: db.equipos,
-                avance: avancePorcentaje
-            };
-        } else {
-            // VISTA DOCENTE: Totales personalizados
-            // Solo contamos los equipos que pertenecen a los grupos del docente
-            const misGruposNorm = (db.gruposDelDocente || []).map(g => String(g).replace(/^[A-Za-z]+/, ''));
-            const misEquipos = db.equipos.filter(eq => {
-                const eqG = String(eq.grupo).replace(/^[A-Za-z]+/, '');
-                return misGruposNorm.includes(eqG);
-            });
-
-            return {
-                totalGrupos: (db.gruposDelDocente || []).length,
-                totalEquipos: misEquipos.length,
-                evaluaciones: db.evaluaciones.length, // Ya filtradas por el servidor
-                grupos: db.gruposDelDocente,
-                equipos: misEquipos,
-                avance: db.avanceDocente ? db.avanceDocente.porcentaje : 0
-            };
-        }
+        return {
+            totalGrupos: db.grupos.length,
+            totalEquipos: db.equipos.length,
+            evaluaciones: db.evaluaciones.length,
+            grupos: db.grupos,
+            equipos: db.equipos,
+            avance: avancePorcentaje
+        };
     },
 
     async getGrupos() {
@@ -69,22 +49,12 @@ const api = {
 
     async getEquiposPorGrupo(grupoId) {
         const db = await this.fetchAllData();
-        // Quitar letras para comparar (ej: M201 -> 201)
-        const target = String(grupoId).replace(/^[A-Za-z]+/, '');
-        return db.equipos.filter(e => {
-            const eqGrupo = String(e.grupo).replace(/^[A-Za-z]+/, '');
-            return eqGrupo === target;
-        });
+        return db.equipos.filter(e => e.grupo === grupoId);
     },
 
     async getDirectorio() {
         const db = await this.fetchAllData();
         return db.directorio || [];
-    },
-
-    async getProgramacion() {
-        const db = await this.fetchAllData();
-        return db.programacion || [];
     },
 
     async getConcentrado() {
