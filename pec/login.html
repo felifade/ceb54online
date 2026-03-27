@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso PEC | CEB 5/4</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=Inter:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --clr-primary: #1d4ed8;
+            --clr-primary-dark: #1e40af;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            overflow: hidden;
+            position: relative;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            top: -100px;
+            left: -100px;
+            animation: float 25s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            50% { transform: translate(40px, -30px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            padding: 3rem;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .login-logo {
+            width: 70px;
+            height: 70px;
+            background: var(--clr-primary);
+            color: white;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(29, 78, 216, 0.3);
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.75rem;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            color: #64748b;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .input-group {
+            text-align: left;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            width: 18px;
+            height: 18px;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 0.875rem 1rem 0.875rem 3rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.2s;
+            background: white;
+            box-sizing: border-box;
+        }
+
+        .input-wrapper input:focus {
+            outline: none;
+            border-color: var(--clr-primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            background: var(--clr-primary);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .btn-login:hover {
+            background: var(--clr-primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(29, 78, 216, 0.2);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .error-msg {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+            display: none;
+            border: 1px solid #fee2e2;
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 2rem;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--clr-primary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-card">
+        <div class="login-logo">
+            <i data-lucide="layout-grid" size="32"></i>
+        </div>
+        <h1>Portal PEC</h1>
+        <p>Inicia sesión para gestionar evaluaciones</p>
+
+        <div id="error-box" class="error-msg"></div>
+
+        <form id="login-form">
+            <div class="input-group">
+                <label>Correo Institucional</label>
+                <div class="input-wrapper">
+                    <i data-lucide="mail"></i>
+                    <input type="email" id="login-email" placeholder="nombre@ceb54.online" required>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Contraseña</label>
+                <div class="input-wrapper">
+                    <i data-lucide="lock"></i>
+                    <input type="password" id="login-pass" placeholder="••••••••" required>
+                </div>
+            </div>
+
+            <button type="submit" id="btn-submit" class="btn-login">
+                Entrar al Dashboard
+            </button>
+        </form>
+
+        <a href="../index.html" class="back-link">Volver al sitio principal</a>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        lucide.createIcons();
+
+        const form = document.getElementById('login-form');
+        const btn = document.getElementById('btn-submit');
+        const errorBox = document.getElementById('error-box');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-pass').value;
+
+            btn.disabled = true;
+            btn.innerHTML = 'Verificando...';
+            errorBox.style.display = 'none';
+
+            try {
+                // Reutilizamos la misma API URL del pec/js/api.js que ya está en el scope (si se carga antes)
+                // Pero por seguridad la definimos o usamos la del archivo cargado
+                const response = await fetch(GOOGLE_SHEETS_API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'login',
+                        email: email,
+                        password: password
+                    }),
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    sessionStorage.setItem('tutorias_auth', 'true'); // Usamos la misma clave para sesión única global
+                    sessionStorage.setItem('user_name', result.nombre);
+                    window.location.href = 'index.html';
+                } else {
+                    errorBox.textContent = result.message || 'Credenciales incorrectas';
+                    errorBox.style.display = 'block';
+                }
+            } catch (error) {
+                errorBox.textContent = 'Error de conexión con el servidor.';
+                errorBox.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Entrar al Dashboard';
+            }
+        });
+    </script>
+</body>
+
+</html>

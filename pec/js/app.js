@@ -4,6 +4,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // Inicializar íconos
     feather.replace();
 
+    // Establecer nombre de usuario desde la sesión
+    const userName = sessionStorage.getItem('user_name');
+    if (userName) {
+        const userNameEl = document.getElementById('topbar-user-name');
+        if (userNameEl) userNameEl.textContent = userName;
+    }
+
     // DOM Elements
     const views = document.querySelectorAll('.view');
     const navItems = document.querySelectorAll('.nav-item');
