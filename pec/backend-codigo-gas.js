@@ -10,6 +10,7 @@ const SHEET_DIRECTORIO = "Directorio";
 const SHEET_PROGRAMACION = "Programación";
 const SHEET_TUTORIAS = "Tutorias";
 const SHEET_CONFIGURACION = "Configuracion";
+const SHEET_USUARIOS = "Usuarios";
 
 const HEADERS_ALUMNOS = ["nombre_alumno", "grupo", "numero_equipo", "tema", "url_documento"];
 const HEADERS_EVAL = ["fecha", "parcial", "grupoId", "equipoId", "equipoNombre", "materia", "docente", "puntaje", "observaciones", "alumno"];
@@ -57,6 +58,13 @@ function setupInitialize() {
     const s = ss.insertSheet(SHEET_CONFIGURACION);
     s.appendRow(["Configuracion", "Valor"]);
     s.appendRow(["docente_nombre", "Felipe López Salazar"]);
+  }
+
+  const sheetUser = ss.getSheetByName(SHEET_USUARIOS);
+  if (!sheetUser) {
+    const s = ss.insertSheet(SHEET_USUARIOS);
+    s.appendRow(["Email", "Password", "Nombre"]);
+    s.appendRow(["admin@ceb54.online", "ceb54admin", "Administrador"]);
   }
 }
 
@@ -250,7 +258,21 @@ function doPost(e) {
       return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Reportes en Excel generados." })).setMimeType(ContentService.MimeType.JSON);
     }
     
-    // CASO B: Guardar tutoría
+    // CASO B: Login
+    if (body.action === "login") {
+      const sheetUser = ss.getSheetByName(SHEET_USUARIOS);
+      const dataUser = sheetUser ? sheetUser.getDataRange().getValues() : [];
+      if (dataUser.length > 0) dataUser.shift();
+      const found = dataUser.find(row => row[0].toLowerCase() === body.email.toLowerCase() && String(row[1]) === String(body.password));
+      
+      if (found) {
+        return ContentService.createTextOutput(JSON.stringify({ status: "success", nombre: found[2] })).setMimeType(ContentService.MimeType.JSON);
+      } else {
+        return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Credenciales inválidas" })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+
+    // CASO C: Guardar tutoría
     if (body.action === "saveTutoria") {
       const sheetTut = ss.getSheetByName(SHEET_TUTORIAS);
       const rowTut = [
@@ -270,7 +292,7 @@ function doPost(e) {
       return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Tutoría guardada." })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    // CASO C: Guardar evaluación regular
+    // CASO D: Guardar evaluación regular
     const sheet = ss.getSheetByName(SHEET_EVALUACIONES);
     
     // Plantilla de la fila

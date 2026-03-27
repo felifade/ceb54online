@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="css/style.css">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="js/auth.js"></script>
 </head>
 
 <body>
@@ -45,6 +46,12 @@
                 <a href="#" class="nav-link" data-view="reporte">
                     <i data-lucide="printer"></i>
                     <span>Generar Reporte</span>
+                </a>
+            </div>
+            <div class="nav-item" style="margin-top: 2rem; border-top: 1px solid #f1f5f9; padding-top: 1rem;">
+                <a href="#" class="nav-link" onclick="logout()" style="color: var(--clr-danger);">
+                    <i data-lucide="log-out"></i>
+                    <span>Cerrar Sesión</span>
                 </a>
             </div>
         </nav>
