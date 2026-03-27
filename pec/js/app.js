@@ -64,7 +64,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* =======================================
        VISTA 1: DASHBOARD
-       ====================================    async function initDashboard() {
+       ======================================= */
+    async function initDashboard() {
         showLoader();
         try {
             const data = await api.getDashboardData();
@@ -402,7 +403,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
         } catch (e) {
             console.error("DEBUG - Error detallado:", e);
-            alert("Error cargando dashboard: " + e.message);
+            const listGrupos = document.getElementById('dash-lista-grupos');
+            if (listGrupos) {
+                listGrupos.innerHTML = `
+                    <div style="background:#fef2f2; border:1px solid #fee2e2; color:#b91c1c; padding:1.5rem; border-radius:12px; grid-column: 1 / -1; width:100%;">
+                        <h3 style="margin-top:0;">⚠️ Error al cargar datos</h3>
+                        <p style="font-size:0.9rem; margin-bottom:1rem;">No pudimos conectar con los datos de Google Sheets. Esto puede ocurrir por:</p>
+                        <ul style="font-size:0.85rem; padding-left:1.5rem;">
+                            <li>Problemas de conexión a internet.</li>
+                            <li>La URL de la API en <code>pec/js/api.js</code> ha cambiado.</li>
+                            <li>El script de Google Apps Script no ha sido actualizado o desplegado correctamente.</li>
+                        </ul>
+                        <p style="font-size:0.8rem; margin-top:1rem; opacity:0.8;">Detalle técnico: ${e.message}</p>
+                    </div>
+                `;
+            } else {
+                alert("Error cargando dashboard: " + e.message);
+            }
         }
         hideLoader();
     }
