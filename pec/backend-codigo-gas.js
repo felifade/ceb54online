@@ -178,6 +178,25 @@ function doGet(e) {
        }
     }
 
+    // 4. LEER PROGRAMACIÓN
+    let programacion = [];
+    const sheetProg = ss.getSheetByName(SHEET_PROGRAMACION);
+    if (sheetProg) {
+       const dataProg = sheetProg.getDataRange().getValues();
+       if (dataProg.length > 1) {
+          dataProg.shift();
+          programacion = dataProg.map(row => ({
+             parcial: String(row[0] || ''),
+             semestre: String(row[1] || ''),
+             turno: String(row[2] || ''),
+             materia: String(row[3] || ''),
+             docente: String(row[4] || ''),
+             ponderacion: Number(row[5] || 0),
+             grupoEspecial: String(row[6] || '')
+          }));
+       }
+    }
+
     // 5. LEER TUTORÍAS
     let tutorias = [];
     const sheetTut = ss.getSheetByName(SHEET_TUTORIAS);
@@ -232,7 +251,7 @@ function doGet(e) {
       equipos: equipos,
       evaluaciones: evaluaciones,
       directorio: directorio,
-      programacion: [], // No se usa por ahora en tutorías
+      programacion: programacion,
       tutorias: tutorias,
       config: config,
       alumnosFull: alumnosFull,
