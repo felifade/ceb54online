@@ -51,32 +51,30 @@ document.addEventListener("DOMContentLoaded", () => {
         const navGrupos = document.getElementById('nav-grupos');
         const tieneGrupos = PEC_USER.gruposAsignados.length > 0;
 
-        // DEBUG: Imprimir en consola para el administrador del sistema
-        console.log("Control Acceso:", { email: PEC_USER.email, role: PEC_USER.role, grupos: PEC_USER.gruposAsignados.length });
-
-        if (tieneGrupos) {
-            // Habilitar y mostrar badge
+        if (PEC_USER.isAdmin) {
+            // Admin siempre ve todo
+            navGrupos.style.display = 'flex';
+            navGrupos.classList.add('nav-item');
+            navGrupos.classList.remove('nav-item-disabled');
+            navGrupos.setAttribute('data-view', 'grupos');
+        } else if (tieneGrupos) {
+            // Docente con grupos: habilitar
+            navGrupos.style.display = 'flex';
             navGrupos.classList.add('nav-item');
             navGrupos.classList.remove('nav-item-disabled');
             navGrupos.setAttribute('data-view', 'grupos');
             
-            const spn = navGrupos.querySelector('span');
-            if (spn && !navGrupos.querySelector('.nav-badge')) {
-                const badge = document.createElement('span');
+            // Badge
+            let badge = navGrupos.querySelector('.nav-badge');
+            if (!badge) {
+                badge = document.createElement('span');
                 badge.className = 'nav-badge';
-                badge.textContent = PEC_USER.gruposAsignados.length;
                 navGrupos.appendChild(badge);
             }
-        } else if (!PEC_USER.isAdmin) {
-            // FORZAR BLOQUEO: Si no es admin y no tiene grupos, deshabilitar pestaña
-            navGrupos.classList.remove('nav-item');
-            navGrupos.classList.add('nav-item-disabled');
-            navGrupos.removeAttribute('data-view');
-            navGrupos.setAttribute('title', 'No tienes grupos asignados para el Parcial ' + PEC_USER.parcialActivo);
-            
-            // Quitar badge si existía
-            const oldBadge = navGrupos.querySelector('.nav-badge');
-            if (oldBadge) oldBadge.remove();
+            badge.textContent = PEC_USER.gruposAsignados.length;
+        } else {
+            // OCULTAR por completo si no es admin y no tiene grupos
+            navGrupos.style.display = 'none';
         }
 
         // Ocultar botón exportar para no-admin
@@ -214,11 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Caso especial: Cerrar Sesión
             if (viewName === 'logout') {
-                if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-                    sessionStorage.clear();
-                    if (window.api) window.api.cache = null;
-                    window.location.href = 'login.html';
-                }
+                window.logout();
                 return;
             }
 
@@ -226,6 +220,17 @@ document.addEventListener("DOMContentLoaded", () => {
             loadViewData(viewName);
         });
     });
+
+    // FUNCIÓN DE LOGOUT GLOBAL PARA SEGURIDAD
+    window.logout = function() {
+        if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+            sessionStorage.clear();
+            localStorage.clear();
+            if (window.api) window.api.cache = null;
+            // Forzar recarga completa para limpiar memoria JS
+            window.location.replace('login.html');
+        }
+    };
 
     // Menú móvil
     menuToggle.addEventListener('click', () => {
