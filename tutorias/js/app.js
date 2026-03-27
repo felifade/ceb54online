@@ -49,10 +49,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             allData = await api.getDashboardData();
             
-            // Centralized Teacher Name
-            if (allData.config && allData.config.docente) {
-                document.getElementById('user-name').textContent = allData.config.docente;
-                document.getElementById('report-teacher-name').textContent = allData.config.docente;
+            // --- FILTRADO POR DOCENTE (FRONTEND) ---
+            const userEmail = sessionStorage.getItem('user_email');
+            if (userEmail) {
+                // Filtramos todas las tutorías para que solo se procesen las de este docente
+                allData.tutorias = (allData.tutorias || []).filter(t => 
+                    String(t.docenteEmail || "").toLowerCase().trim() === userEmail.toLowerCase().trim()
+                );
+                
+                // Recalcular contadores locales del dashboard basándose en la lista filtrada
+                allData.totalTutorias = allData.tutorias.length;
+                allData.individual = allData.tutorias.filter(t => t.individual).length;
+                allData.grupal = allData.tutorias.filter(t => t.grupal).length;
+                allData.hombres = allData.tutorias.filter(t => t.sexo === 'H').length;
+                allData.mujeres = allData.tutorias.filter(t => t.sexo === 'F').length;
+            }
+
+            // Centralized Teacher Name (Session Priority)
+            const displayName = sessionStorage.getItem('user_name') || (allData.config && allData.config.docente);
+            if (displayName) {
+                document.getElementById('user-name').textContent = displayName;
+                document.getElementById('report-teacher-name').textContent = displayName.toUpperCase();
+                
+                // Initials avatar
+                const initials = displayName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                const initialsEl = document.getElementById('user-initials');
+                if (initialsEl) initialsEl.textContent = initials;
             }
             
             populateSubjects();

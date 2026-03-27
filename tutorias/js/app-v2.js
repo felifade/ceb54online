@@ -54,23 +54,37 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- DATA LOADING & RENDERING ---
     async function loadInitialData() {
+        console.log("--- INICIANDO CARGA DE DATOS TEST V2 ---");
         try {
             allData = await api.getDashboardData();
-            
+            console.log("Datos recibidos del servidor:", allData.tutorias.length, "tutorías en total.");
+
             // --- FILTRADO POR DOCENTE (FRONTEND) ---
-            const userEmail = sessionStorage.getItem('user_email');
+            const userEmail = sessionStorage.getItem('user_email') || "";
+            console.log("Filtrando para el docente con correo:", userEmail);
+
             if (userEmail) {
                 // Filtramos todas las tutorías para que solo se procesen las de este docente
-                allData.tutorias = (allData.tutorias || []).filter(t => 
-                    String(t.docenteEmail || "").toLowerCase().trim() === userEmail.toLowerCase().trim()
-                );
+                const totalAntes = allData.tutorias.length;
+                allData.tutorias = (allData.tutorias || []).filter(t => {
+                    const tEmail = String(t.docenteEmail || "").toLowerCase().trim();
+                    const uEmail = userEmail.toLowerCase().trim();
+                    return tEmail === uEmail;
+                });
                 
+                console.log("Tutorías después del filtro:", allData.tutorias.length);
+                if (allData.tutorias.length === 0 && totalAntes > 0) {
+                    console.warn("¡OJO! Se han filtrado TODOS los registros. Verifica que la columna L en el Excel tenga tu correo:", userEmail);
+                }
+
                 // Recalcular contadores locales del dashboard basándose en la lista filtrada
                 allData.totalTutorias = allData.tutorias.length;
                 allData.individual = allData.tutorias.filter(t => t.individual).length;
                 allData.grupal = allData.tutorias.filter(t => t.grupal).length;
                 allData.hombres = allData.tutorias.filter(t => t.sexo === 'H').length;
                 allData.mujeres = allData.tutorias.filter(t => t.sexo === 'F').length;
+            } else {
+                console.error("No se encontró 'user_email' en sessionStorage. ¿Has iniciado sesión correctamente?");
             }
 
             // Centralized Teacher Name
