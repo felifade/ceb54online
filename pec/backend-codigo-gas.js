@@ -99,6 +99,7 @@ function doGet(e) {
        programacion = d.map(r => ({ 
          parcial: normalizeParcial(r[0]), 
          materia: String(r[3]||'').trim(), 
+         ponderacion: Number(r[5] || 0), // Columna F
          grupoEspecial: String(r[6]||'').trim(), // Columna G
          correoDocente: normalizeText(r[7]) 
        }));
@@ -160,6 +161,7 @@ function doGet(e) {
       const eqs = listaEquipos.filter(eq => gN.includes(String(eq.grupo).replace(/^[A-Za-z]+/, '')));
       avance.total = eqs.length;
       avance.evaluados = eqs.filter(eq => eq.estado === 'Evaluado').length;
+      avance.pendientes = avance.total - avance.evaluados; // RESTAURADO
       avance.porcentaje = avance.total === 0 ? 0 : Math.round((avance.evaluados / avance.total) * 100);
     }
 

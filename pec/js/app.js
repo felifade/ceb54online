@@ -843,6 +843,8 @@ document.addEventListener("DOMContentLoaded", () => {
         btn.addEventListener('click', () => {
             modal.classList.add('hidden');
             formEval.reset();
+            const ponderacionHint = document.getElementById('eval-ponderacion-hint');
+            if (ponderacionHint) ponderacionHint.innerHTML = '';
         });
     });
 
@@ -884,11 +886,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     const opt = document.createElement('option');
                     opt.value = m.materia;
                     opt.textContent = m.materia;
-                    opt.dataset.docente = m.docente; // Guardamos el docente en el dataset
+                    opt.dataset.docente = m.docente;
                     selectMateria.appendChild(opt);
                 });
             } else {
-                // Fallback si no hay nada en el directorio para ese grupo
                 const defaultMaterias = ["Metodología de la Investigación", "Cultura Digital", "Inglés", "Cs. Naturales"];
                 defaultMaterias.forEach(m => {
                     const opt = document.createElement('option');
@@ -897,6 +898,30 @@ document.addEventListener("DOMContentLoaded", () => {
                     selectMateria.appendChild(opt);
                 });
             }
+
+            // --- NUEVO: MOSTRAR PONDERACIÓN ---
+            const ponderacionHint = document.getElementById('eval-ponderacion-hint');
+            const progDocente = await api.getProgramacion();
+            
+            selectMateria.addEventListener('change', () => {
+                const matSel = selectMateria.value;
+                if (!matSel) {
+                    ponderacionHint.innerHTML = '';
+                    return;
+                }
+                const p = progDocente.find(x => normalizeText(x.materia) === normalizeText(matSel));
+                if (p && p.ponderacion) {
+                    ponderacionHint.innerHTML = `
+                        <div style="background:#f0f9ff; color:#0369a1; padding:8px 12px; border-radius:8px; margin-top:10px; font-weight:700; font-size:0.85rem; border:1px solid #bae6fd; display:flex; align-items:center; gap:8px;">
+                            <i data-feather="info" style="width:16px; height:16px;"></i>
+                            <span>Ponderación detectada: <b style="font-size:1.1rem; color:#0c4a6e;">${p.ponderacion}</b></span>
+                        </div>
+                    `;
+                    feather.replace();
+                } else {
+                    ponderacionHint.innerHTML = '';
+                }
+            });
         } catch(e) {
             console.error("Error al cargar materias del directorio", e);
         }
