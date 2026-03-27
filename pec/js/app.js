@@ -604,40 +604,41 @@ document.addEventListener("DOMContentLoaded", () => {
         // Renderizar el banner según el usuario (siempre actualizado)
         renderizarBannerGrupos();
 
-        if (selectGrupo.options.length <= 1) { // Solo opción default
-            showLoader();
+        showLoader();
+        
+        // FILTRAR GRUPOS: 
+        // - Admin: ve grupos con datos (api.getGrupos)
+        // - Docente: ve sus grupos asignados (PEC_USER.gruposAsignados)
+        let gruposAMostrar = [];
+        
+        if (PEC_USER.isAdmin) {
+            const todosConEquipos = await api.getGrupos();
+            gruposAMostrar = [...todosConEquipos];
+        } else {
+            // Para el docente, usamos sus grupos asignados (los 11 detectados)
+            gruposAMostrar = [...PEC_USER.gruposAsignados];
             
-            // FILTRAR GRUPOS: 
-            // - Admin: ve grupos que tienen datos (api.getGrupos)
-            // - Docente: ve sus grupos asignados (PEC_USER.gruposAsignados)
-            let gruposAMostrar;
-            
-            if (PEC_USER.isAdmin) {
-                const todosConEquipos = await api.getGrupos();
-                gruposAMostrar = [...todosConEquipos];
-            } else {
-                // Para el docente, confiamos en lo que calculó el backend para él
-                gruposAMostrar = [...PEC_USER.gruposAsignados];
-                
-                // Actualizar label del select
-                const lbl = document.getElementById('label-select-grupo');
-                if (lbl) lbl.textContent = `Selecciona uno de tus ${gruposAMostrar.length} grupo(s):`;
-            }
-
-            // Ordenar y poblar el select
-            const gruposOrdenados = [...gruposAMostrar].sort((a, b) =>
-                String(a).localeCompare(String(b), undefined, {numeric: true})
-            );
-
-            gruposOrdenados.forEach(g => {
-                const opt = document.createElement('option');
-                opt.value = g;
-                opt.textContent = `Grupo ${g}`;
-                selectGrupo.appendChild(opt);
-            });
-            hideLoader();
+            // Actualizar label del select (ej: "Selecciona uno de tus 11 grupo(s):")
+            const lbl = document.getElementById('label-select-grupo');
+            if (lbl) lbl.textContent = `Selecciona uno de tus ${gruposAMostrar.length} grupo(s):`;
         }
-        // Limpiar equipos al recargar
+
+        // Ordenar grupos
+        const gruposOrdenados = [...gruposAMostrar].sort((a, b) =>
+            String(a).localeCompare(String(b), undefined, {numeric: true})
+        );
+
+        // Limpiar y poblar el selector usando innerHTML para mayor fiabilidad
+        let optionsHtml = '<option value="">-- Elige un grupo para ver el PEC --</option>';
+        gruposOrdenados.forEach(g => {
+            optionsHtml += `<option value="${g}">Grupo ${g}</option>`;
+        });
+        
+        selectGrupo.innerHTML = optionsHtml;
+        
+        hideLoader();
+
+        // Limpiar equipos al recargar vista
         containerEquipos.innerHTML = '';
         containerEquipos.classList.add('hidden');
         selectGrupo.value = "";

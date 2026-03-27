@@ -49,7 +49,12 @@ const api = {
 
     async getEquiposPorGrupo(grupoId) {
         const db = await this.fetchAllData();
-        return db.equipos.filter(e => e.grupo === grupoId);
+        // Quitar letras para comparar (ej: M201 -> 201)
+        const target = String(grupoId).replace(/^[A-Za-z]+/, '');
+        return db.equipos.filter(e => {
+            const eqGrupo = String(e.grupo).replace(/^[A-Za-z]+/, '');
+            return eqGrupo === target;
+        });
     },
 
     async getDirectorio() {
