@@ -51,8 +51,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const navGrupos = document.getElementById('nav-grupos');
         const tieneGrupos = PEC_USER.gruposAsignados.length > 0;
 
+        // DEBUG: Imprimir en consola para el administrador del sistema
+        console.log("Control Acceso:", { email: PEC_USER.email, role: PEC_USER.role, grupos: PEC_USER.gruposAsignados.length });
+
         if (tieneGrupos) {
-            // Agregar badge con cantidad de grupos
+            // Habilitar y mostrar badge
+            navGrupos.classList.add('nav-item');
+            navGrupos.classList.remove('nav-item-disabled');
+            navGrupos.setAttribute('data-view', 'grupos');
+            
             const spn = navGrupos.querySelector('span');
             if (spn && !navGrupos.querySelector('.nav-badge')) {
                 const badge = document.createElement('span');
@@ -61,11 +68,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 navGrupos.appendChild(badge);
             }
         } else if (!PEC_USER.isAdmin) {
-            // Deshabilitar el botón de Grupos
+            // FORZAR BLOQUEO: Si no es admin y no tiene grupos, deshabilitar pestaña
             navGrupos.classList.remove('nav-item');
             navGrupos.classList.add('nav-item-disabled');
             navGrupos.removeAttribute('data-view');
             navGrupos.setAttribute('title', 'No tienes grupos asignados para el Parcial ' + PEC_USER.parcialActivo);
+            
+            // Quitar badge si existía
+            const oldBadge = navGrupos.querySelector('.nav-badge');
+            if (oldBadge) oldBadge.remove();
         }
 
         // Ocultar botón exportar para no-admin
@@ -98,7 +109,8 @@ document.addEventListener("DOMContentLoaded", () => {
                             <div class="banner-eyebrow">✅ Acceso Habilitado — Parcial ${parcial}</div>
                             <h2 class="banner-title">📋 Tus grupos para capturar</h2>
                             <p class="banner-subtitle">
-                                Hola <strong>${PEC_USER.nombre}</strong>, tienes <strong>${PEC_USER.gruposAsignados.length} grupo(s)</strong> asignado(s) en este parcial.
+                                Usuario: <strong>${PEC_USER.email}</strong> (${PEC_USER.role})<br>
+                                Tienes <strong>${PEC_USER.gruposAsignados.length} grupo(s)</strong> asignado(s).
                             </p>
                         </div>
                         <div style="display: flex; gap: 0.75rem;">
@@ -198,6 +210,16 @@ document.addEventListener("DOMContentLoaded", () => {
             // En móviles, cerrar menú tras click
             if(window.innerWidth <= 768) {
                 sidebar.classList.remove('open');
+            }
+
+            // Caso especial: Cerrar Sesión
+            if (viewName === 'logout') {
+                if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+                    sessionStorage.clear();
+                    if (window.api) window.api.cache = null;
+                    window.location.href = 'login.html';
+                }
+                return;
             }
 
             // Cargar datos de la vista
