@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEST V2 | Sistema de Tutorías | CEB 5/4</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="js/auth.js"></script>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="logo-area">
+            <div style="background: var(--clr-primary); color: white; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800;">T</div>
+            <span class="logo-text">TUTORÍAS <small style="font-size: 0.6rem; color: #ef4444;">TEST V2</small></span>
+        </div>
+        <nav class="nav-menu">
+            <div class="nav-item">
+                <a href="#" class="nav-link active" data-view="dashboard">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#" class="nav-link" data-view="captura">
+                    <i data-lucide="user-plus"></i>
+                    <span>Registrar Sesión</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#" class="nav-link" data-view="historial">
+                    <i data-lucide="clipboard-list"></i>
+                    <span>Historial</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#" class="nav-link" data-view="reporte">
+                    <i data-lucide="printer"></i>
+                    <span>Generar Reporte</span>
+                </a>
+            </div>
+            <div class="nav-item" style="margin-top: 2rem; border-top: 1px solid #f1f5f9; padding-top: 1rem;">
+                <a href="#" class="nav-link" onclick="logout()" style="color: var(--clr-danger);">
+                    <i data-lucide="log-out"></i>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </div>
+        </nav>
+        <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid #f1f5f9;">
+            <a href="../index.html" class="nav-link" style="color: var(--clr-text-light);">
+                <i data-lucide="arrow-left"></i>
+                <span>Volver al Portal</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-header">
+            <div>
+                <h1 id="view-title" class="view-title">Dashboard de Tutorías</h1>
+                <p style="color: var(--clr-text-light); font-size: 0.875rem; margin-top: 0.25rem;" id="current-date"></p>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <span id="user-name" style="font-weight: 600; font-size: 0.9rem;">Cargando...</span>
+                <div id="user-initials" style="width: 40px; height: 40px; background: #e0f2fe; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #0369a1; font-weight: 700;">??</div>
+            </div>
+        </header>
+
+        <!-- VISTA 1: DASHBOARD -->
+        <section id="view-dashboard" class="view">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #ecfdf5; color: #059669;"><i data-lucide="users"></i></div>
+                    <div class="stat-info">
+                        <span id="stat-total" class="stat-value">0</span>
+                        <span class="stat-label">Total Tutorías</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #eff6ff; color: #2563eb;"><i data-lucide="user"></i></div>
+                    <div class="stat-info">
+                        <span id="stat-individual" class="stat-value">0</span>
+                        <span class="stat-label">Individuales</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #fdf2f8; color: #db2777;"><i data-lucide="users-2"></i></div>
+                    <div class="stat-info">
+                        <span id="stat-grupal" class="stat-value">0</span>
+                        <span class="stat-label">Grupales</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #f7fee7; color: #4d7c0f;"><i data-lucide="venus-mars"></i></div>
+                    <div class="stat-info">
+                        <div style="display:flex; gap:1rem;">
+                            <div><span id="stat-hombres" style="font-weight:800; color:#1e293b;">0</span> <small style="color:#64748b;">H</small></div>
+                            <div><span id="stat-mujeres" style="font-weight:800; color:#1e293b;">0</span> <small style="color:#64748b;">M</small></div>
+                        </div>
+                        <span class="stat-label">Por Sexo</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: white; padding: 2rem; border-radius: var(--radius-lg); border: 1px solid #f1f5f9;">
+                <h3 style="margin-bottom: 1.5rem;">Últimas Actividades</h3>
+                <div id="recent-activity-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <p style="color: var(--clr-text-light); text-align: center; padding: 2rem;">No hay registros recientes.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA 2: CAPTURA -->
+        <section id="view-captura" class="view hidden">
+            <div class="form-container">
+                <form id="form-tutoria">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Parcial</label>
+                            <select name="parcial" required>
+                                <option value="1">Primer Parcial</option>
+                                <option value="2">Segundo Parcial</option>
+                                <option value="3">Tercer Parcial</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Grupo</label>
+                            <input type="text" name="grupo" id="input-grupo" placeholder="Ej: 210">
+                        </div>
+                        <div class="form-group">
+                            <label>O Buscar por Nombre</label>
+                            <input type="text" id="input-search-name" placeholder="Buscar en toda la escuela...">
+                        </div>
+                        <div class="form-group full">
+                            <label>Asignatura / Materia</label>
+                            <select name="asignatura" id="select-asignatura" required>
+                                <option value="">Cargando materias...</option>
+                            </select>
+                        </div>
+
+                        <!-- Panel de Captura Manual Integrado -->
+                        <div class="form-group full" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px; margin-bottom:1rem;">
+                            <label style="font-size:0.75rem; color:#64748b; margin-bottom:8px;">+ AGREGAR ALUMNO MANUALMENTE</label>
+                            <div style="display:flex; gap:8px;">
+                                <input type="text" id="manual-name" placeholder="Nombre completo..." style="flex:1; font-size:0.85rem; padding:6px 10px;">
+                                <select id="manual-sex" style="width:80px; font-size:0.85rem; padding:6px;">
+                                    <option value="H">Hombre</option>
+                                    <option value="F">Mujer</option>
+                                </select>
+                                <button type="button" id="btn-add-manual-direct" class="btn btn-primary" style="padding:4px 15px; font-size:0.85rem; background:#10b981;">Añadir</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group full" id="student-selection-area">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+                                <label style="margin-bottom:0; font-weight:700;">Selección de Estudiante(s)</label>
+                                <button type="button" id="btn-select-all" class="btn" style="padding:4px 12px; font-size:0.75rem; background:#f1f5f9; display:none;">Seleccionar todos</button>
+                            </div>
+                            
+                            <div id="students-checkbox-list" style="max-height: 250px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; background: #fff; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px;">
+                                <p style="color: #94a3b8; font-size: 0.85rem; grid-column: 1/-1;">Los alumnos seleccionados o añadidos aparecerán aquí abajo...</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo de Alumno</label>
+                            <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 500;">
+                                    <input type="radio" name="alumno_tipo" value="regular" checked style="width: auto;"> Regular
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 500;">
+                                    <input type="radio" name="alumno_tipo" value="intra" style="width: auto;"> Intra
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Modalidad de Tutoría</label>
+                            <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 500;">
+                                    <input type="radio" name="tutoria_tipo" value="individual" checked style="width: auto;"> Individual
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 500;">
+                                    <input type="radio" name="tutoria_tipo" value="grupal" style="width: auto;"> Grupal
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group full">
+                            <label>Tema / Asunto</label>
+                            <textarea name="tema" rows="3" placeholder="Describe brevemente el motivo de la tutoría..."></textarea>
+                        </div>
+                    </div>
+                    <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                        <button type="submit" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-lucide="save"></i> Guardar Tutoría
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- VISTA 3: HISTORIAL -->
+        <section id="view-historial" class="view hidden">
+            <div style="background: white; padding: 1rem; border-radius: var(--radius-lg); border: 1px solid #f1f5f9; overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; min-width: 900px;" id="table-historial">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #f1f5f9; text-align: left;">
+                            <th style="padding: 1rem;">Fecha</th>
+                            <th style="padding: 1rem;">Parcial</th>
+                            <th style="padding: 1rem;">Grupo</th>
+                            <th style="padding: 1rem;">Estudiante</th>
+                            <th style="padding: 1rem;">Materia</th>
+                            <th style="padding: 1rem;">Tipo</th>
+                            <th style="padding: 1rem;">Tema</th>
+                            <th style="padding: 1rem;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historial-tbody">
+                        <!-- Registros dinámicos -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- VISTA 4: REPORTE -->
+        <section id="view-reporte" class="view hidden">
+            <div style="background: white; padding: 2rem; border-radius: var(--radius-md); box-shadow: var(--shadow-md); margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h3>Vista Previa del Reporte Oficial</h3>
+                    <div style="display: flex; gap: 1rem;">
+                        <select id="report-parcial-filter" style="width: 200px;">
+                            <option value="1">Primer Parcial</option>
+                            <option value="2">Segundo Parcial</option>
+                            <option value="3">Tercer Parcial</option>
+                        </select>
+                        <button onclick="window.print()" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-lucide="printer"></i> Imprimir PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Reporte Estilo Excel -->
+                <div id="report-print-area" style="background: white; padding: 1rem; color: #000; border: 1px solid #000;">
+                    <div style="text-align: center; font-weight: 800; font-size: 1.25rem; text-transform: uppercase;">
+                        Reporte de Área de Tutorías
+                    </div>
+                    <div id="report-period" style="text-align: center; font-weight: 600; margin-bottom: 1rem;">
+                        SEMESTRE FEBRERO-JULIO 2026
+                    </div>
+                    <div style="border: 2px solid blue; padding: 5px; text-align: center; font-weight: 800; margin-bottom: 1.5rem; color: blue;">
+                        NOMBRE DEL DOCENTE: <span id="report-teacher-name">...</span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                        <!-- Tabla Resumen -->
+                        <table style="width: 100%; border: 1px solid #000; font-size: 0.8rem; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #e2e8f0;">
+                                    <th style="border: 1px solid #000; padding: 4px;">Parciales</th>
+                                    <th style="border: 1px solid #000; padding: 4px;">Hombres</th>
+                                    <th style="border: 1px solid #000; padding: 4px;">Mujeres</th>
+                                    <th style="border: 1px solid #000; padding: 4px;">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 4px;">Primer parcial</td>
+                                    <td id="rep-p1-h" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                    <td id="rep-p1-m" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                    <td id="rep-p1-t" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 4px;">Segundo parcial</td>
+                                    <td id="rep-p2-h" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                    <td id="rep-p2-m" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                    <td id="rep-p2-t" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 4px;">Tercer parcial</td>
+                                    <td id="rep-p3-h" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                    <td id="rep-p3-m" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                    <td id="rep-p3-t" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <table style="width: 100%; border: 1px solid #000; font-size: 0.8rem; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #e2e8f0;">
+                                    <th style="border: 1px solid #000; padding: 4px;">Categoría</th>
+                                    <th style="border: 1px solid #000; padding: 4px;">Parcial 1</th>
+                                    <th style="border: 1px solid #000; padding: 4px;">Parcial 2</th>
+                                    <th style="border: 1px solid #000; padding: 4px;">Parcial 3</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 4px;">Tutoría Grupal</td>
+                                    <td id="rep-g-p1" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                    <td id="rep-g-p2" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                    <td id="rep-g-p3" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 4px;">Tutoría Individual</td>
+                                    <td id="rep-i-p1" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                    <td id="rep-i-p2" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                    <td id="rep-i-p3" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <table id="report-data-table" style="width: 100%; border-collapse: collapse; font-size: 0.75rem;">
+                        <thead>
+                            <tr style="background: #bae6fd; font-weight:bold;">
+                                <td style="border: 1px solid #000; padding: 4px;">Grupo</td>
+                                <td style="border: 1px solid #000; padding: 4px;">Nombre del Estudiante</td>
+                                <td style="border: 1px solid #000; padding: 4px;">Sexo</td>
+                                <td style="border: 1px solid #000; padding: 4px;">Asignatura</td>
+                                <td style="border: 1px solid #000; padding: 4px;">T. Grupal</td>
+                                <td style="border: 1px solid #000; padding: 4px;">T. Individual</td>
+                                <td style="border: 1px solid #000; padding: 4px;">Fecha</td>
+                            </tr>
+                        </thead>
+                        <tbody id="report-tbody">
+                            <!-- Datos del reporte filtrado -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/app-v2.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
