@@ -203,96 +203,147 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('report-parcial-filter').addEventListener('change', renderReporte);
 
     // --- AUTOMATION & GROUP SELECTION ---
+    let selectedStudentsState = []; // Almacena alumnos seleccionados PERSISTENTES
+
     function setupGroupSelection() {
         const inputGrupo = document.getElementById('input-grupo');
         const inputSearchName = document.getElementById('input-search-name');
         const container = document.getElementById('students-checkbox-list');
         const btnSelectAll = document.getElementById('btn-select-all');
-        const btnAddManual = document.getElementById('btn-add-manual');
+        
+        // Nuevos campos manuales
+        const manualNameInput = document.getElementById('manual-name');
+        const manualSexSelect = document.getElementById('manual-sex');
+        const btnAddManualDirect = document.getElementById('btn-add-manual-direct');
 
-        // Helper to render a student item
-        const createStudentHTML = (a, isNew = false) => {
-            let initialSexo = "H";
-            if (a.sexo && (a.sexo.toUpperCase().startsWith('M') || a.sexo.toUpperCase().startsWith('F'))) initialSexo = "F";
-            
-            return `
-                <div class="student-item ${isNew ? 'new-student' : ''}" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 6px 10px; border-bottom: 1px solid #f1f5f9; background: ${isNew ? '#fffbeb' : 'transparent'};">
-                    <label style="display: flex; align-items: center; gap: 0.8rem; font-size: 0.85rem; cursor: pointer; flex: 1; margin-bottom: 0;">
-                        <input type="checkbox" name="selected_students" value="${a.nombre}" checked style="width: auto;">
-                        <span style="font-weight: 500;">${a.nombre} <small style="color: #64748b;">${a.grupo ? '['+a.grupo+']' : '(Manual)'}</small></span>
-                    </label>
-                    <select class="student-sex-select" style="width: auto; padding: 2px 8px; font-size: 0.75rem; border-radius: 6px; background: #fff; border: 1px solid #cbd5e1;">
-                        <option value="H" ${initialSexo === 'H' ? 'selected' : ''}>H</option>
-                        <option value="F" ${initialSexo === 'F' ? 'selected' : ''}>M</option>
-                    </select>
-                </div>
-            `;
+        const renderTotalList = (searchResults = []) => {
+            // Unir seleccionados existentes + nuevos resultados (evitando duplicados por nombre)
+            const combined = [...selectedStudentsState];
+            searchResults.forEach(res => {
+                if (!combined.find(c => c.nombre === res.nombre)) {
+                    combined.push({ ...res, isSelected: false });
+                }
+            });
+
+            if (combined.length === 0) {
+                container.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; grid-column: 1/-1;">Los alumnos seleccionados o añadidos aparecerán aquí abajo...</p>';
+                btnSelectAll.style.display = 'none';
+                return;
+            }
+
+            btnSelectAll.style.display = 'block';
+            container.innerHTML = combined.map(a => {
+                // Determinar sexo inicial
+                let initialSexo = a.sexo || "H";
+                if (initialSexo.toUpperCase().startsWith('M') || initialSexo.toUpperCase().startsWith('F')) initialSexo = "F";
+                
+                return `
+                    <div class="student-item" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 6px 10px; border-bottom: 1px solid #f1f5f9; background: ${a.isSelected ? '#f0fdf4' : 'transparent'};">
+                        <label style="display: flex; align-items: center; gap: 0.8rem; font-size: 0.85rem; cursor: pointer; flex: 1; margin-bottom: 0;">
+                            <input type="checkbox" class="student-check" value="${a.nombre}" ${a.isSelected ? 'checked' : ''} style="width: auto;">
+                            <span style="font-weight: 500;">${a.nombre} <small style="color: #64748b;">${a.grupo ? '['+a.grupo+']' : '(Nuevo)'}</small></span>
+                        </label>
+                        <select class="student-sex-select" style="width: auto; padding: 2px 8px; font-size: 0.75rem; border-radius: 6px; background: #fff; border: 1px solid #cbd5e1;">
+                            <option value="H" ${initialSexo === 'H' ? 'selected' : ''}>H</option>
+                            <option value="F" ${initialSexo === 'F' ? 'selected' : ''}>M</option>
+                        </select>
+                    </div>
+                `;
+            }).join('');
+
+            // Re-vincular eventos a los checkboxes y selects
+            container.querySelectorAll('.student-item').forEach((item, index) => {
+                const check = item.querySelector('.student-check');
+                const sexSelect = item.querySelector('.student-sex-select');
+                
+                check.addEventListener('change', () => {
+                    const studentName = check.value;
+                    const isChecked = check.checked;
+                    
+                    // Actualizar el estado persistente
+                    const existingIdx = selectedStudentsState.findIndex(s => s.nombre === studentName);
+                    if (isChecked) {
+                        if (existingIdx === -1) {
+                            // Si no estaba en persistentes (era un resultado de búsqueda), lo añadimos
+                            const found = searchResults.find(r => r.nombre === studentName);
+                            selectedStudentsState.push({ ...found, isSelected: true, sexo: sexSelect.value });
+                        } else {
+                            selectedStudentsState[existingIdx].isSelected = true;
+                        }
+                        item.style.background = '#f0fdf4';
+                    } else {
+                        // Si se deselecciona, lo marcamos como no seleccionado en el estado
+                        if (existingIdx !== -1) {
+                            selectedStudentsState[existingIdx].isSelected = false;
+                        }
+                        item.style.background = 'transparent';
+                    }
+                });
+
+                sexSelect.addEventListener('change', () => {
+                    const existingIdx = selectedStudentsState.findIndex(s => s.nombre === check.value);
+                    if (existingIdx !== -1) {
+                        selectedStudentsState[existingIdx].sexo = sexSelect.value;
+                    }
+                });
+            });
         };
 
-        // 1. Search by Group
+        // 1. Filtro por Grupo (Sin borrar seleccionados)
         inputGrupo.addEventListener('input', () => {
-            inputSearchName.value = ''; // Clear other search
             const val = inputGrupo.value.trim().toUpperCase();
             if (val.length >= 2) {
-                const students = allData.alumnosFull.filter(a => a.grupo.toUpperCase() === val);
-                
-                if (students.length > 0) {
-                    btnSelectAll.style.display = 'block';
-                    container.innerHTML = students.map(a => createStudentHTML(a)).join('');
-                    // Desmarcar todos inicialmente si se busca por grupo masivo
-                    container.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
-                } else {
-                    btnSelectAll.style.display = 'none';
-                    container.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; grid-column: 1/-1;">No se encontraron alumnos en este grupo.</p>';
-                }
+                const results = allData.alumnosFull.filter(a => a.grupo.toUpperCase() === val);
+                renderTotalList(results);
             } else {
-                btnSelectAll.style.display = 'none';
-                container.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; grid-column: 1/-1;">Ingresa un grupo para ver la lista de alumnos...</p>';
+                renderTotalList([]);
             }
         });
 
-        // 2. Global Search by Name
+        // 2. Buscador Global (Sin borrar seleccionados)
         inputSearchName.addEventListener('input', () => {
-            inputGrupo.value = ''; // Clear group search
             const val = inputSearchName.value.trim().toLowerCase();
             if (val.length >= 3) {
                 const results = allData.alumnosFull.filter(a => a.nombre.toLowerCase().includes(val));
-                if (results.length > 0) {
-                    btnSelectAll.style.display = 'none';
-                    container.innerHTML = results.map(a => createStudentHTML(a)).join('');
-                    // Al buscar por nombre específico, solemos querer seleccionarlos
-                } else {
-                    container.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; grid-column: 1/-1;">No se encontraron coincidencias.</p>';
-                }
+                renderTotalList(results);
+            } else {
+                renderTotalList([]);
             }
         });
 
-        // 3. Manual Addition
-        btnAddManual.addEventListener('click', () => {
-            const manualName = prompt("Nombre completo del alumno:");
-            if (!manualName || manualName.trim().length < 5) return;
+        // 3. Agregado Manual Directo
+        btnAddManualDirect.addEventListener('click', () => {
+            const name = manualNameInput.value.trim();
+            if (name.length < 5) {
+                alert("Por favor escribe el nombre completo.");
+                return;
+            }
             
-            const manualSexo = prompt("Sexo (H/M):", "H").toUpperCase().startsWith('M') ? 'F' : 'H';
-            
-            const manualItem = {
-                nombre: manualName.trim(),
-                sexo: manualSexo,
-                grupo: inputGrupo.value.trim() || ""
+            const sex = manualSexSelect.value;
+            const newStudent = {
+                nombre: name,
+                sexo: sex,
+                grupo: inputGrupo.value.trim().toUpperCase() || "",
+                isSelected: true
             };
 
-            // Remover el placeholder si existe
-            if (container.querySelector('p')) container.innerHTML = '';
+            // Añadir al estado persistente
+            if (!selectedStudentsState.find(s => s.nombre === name)) {
+                selectedStudentsState.unshift(newStudent);
+            }
             
-            // Añadir al inicio del contenedor
-            const div = document.createElement('div');
-            div.innerHTML = createStudentHTML(manualItem, true);
-            container.prepend(div.firstElementChild);
+            // Limpiar campos y refrescar
+            manualNameInput.value = '';
+            renderTotalList();
         });
 
         btnSelectAll.addEventListener('click', () => {
-            const checks = container.querySelectorAll('input[type="checkbox"]');
+            const checks = container.querySelectorAll('.student-check');
             const allChecked = Array.from(checks).every(c => c.checked);
-            checks.forEach(c => c.checked = !allChecked);
+            checks.forEach(c => {
+                c.checked = !allChecked;
+                c.dispatchEvent(new Event('change'));
+            });
             btnSelectAll.textContent = allChecked ? 'Seleccionar todos' : 'Deseleccionar todos';
         });
     }
@@ -301,32 +352,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     const form = document.getElementById('form-tutoria');
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const formData = new FormData(form);
         
-        // Obtener alumnos seleccionados y su sexo específico
-        const studentItems = document.querySelectorAll('.student-item');
-        const alumnosArray = [];
-        
-        studentItems.forEach(item => {
-            const check = item.querySelector('input[name="selected_students"]');
-            if (check && check.checked) {
-                const sexSelect = item.querySelector('.student-sex-select');
-                alumnosArray.push({
-                    nombre: check.value,
-                    sexo: sexSelect ? sexSelect.value : "H"
-                });
-            }
-        });
+        // Recoger solo los marcados como seleccionados en el estado
+        const finalSelection = selectedStudentsState.filter(s => s.isSelected);
 
-        if (alumnosArray.length === 0) {
-            alert("Por favor, selecciona al menos un estudiante.");
+        if (finalSelection.length === 0) {
+            alert("Por favor, selecciona o añade al menos un estudiante.");
             return;
         }
 
+        const formData = new FormData(form);
         const payload = {
             parcial: formData.get('parcial'),
             grupo: formData.get('grupo').toUpperCase(),
-            alumnos: alumnosArray,
+            alumnos: finalSelection.map(s => ({ nombre: s.nombre, sexo: s.sexo })),
             asignatura: formData.get('asignatura'),
             regular: formData.get('alumno_tipo') === 'regular',
             intra: formData.get('alumno_tipo') === 'intra',
@@ -335,33 +374,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             grupal: formData.get('tutoria_tipo') === 'grupal'
         };
 
-        const submitBtn = form.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = 'Guardando...';
-
         try {
+            const btn = form.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.textContent = "Guardando...";
+            
             const result = await api.guardarTutoria(payload);
-            if (result.status === 'success') {
-                alert(`¡Éxito! Se registraron ${alumnosArray.length} tutorías.`);
+            if (result.status === "success") {
+                alert("Tutoría registrada con éxito.");
                 form.reset();
-                document.getElementById('students-checkbox-list').innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; grid-column: 1/-1;">Ingresa un grupo para ver la lista de alumnos...</p>';
-                document.getElementById('btn-select-all').style.display = 'none';
-                
-                // Volver al dashboard
-                document.querySelector('[data-view="dashboard"]').click();
-                loadInitialData(); 
+                selectedStudentsState = []; // Limpiar lista
+                document.getElementById('students-checkbox-list').innerHTML = '<p ...> Los alumnos seleccionados aparecerán aquí...</p>';
+                loadInitialData(); // Recargar historial
             } else {
-                throw new Error(result.message);
+                alert("Error: " + result.message);
             }
         } catch (error) {
-            alert("Error al guardar: " + error.message);
+            alert("Error al conectar.");
         } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i data-lucide="save"></i> Guardar Tutoría';
-            lucide.createIcons();
+            const btn = form.querySelector('button[type="submit"]');
+            btn.disabled = false;
+            btn.textContent = "Registrar Sesión";
         }
     });
 
-    // Start
+    // --- INITIALIZATION ---
     loadInitialData();
 });
