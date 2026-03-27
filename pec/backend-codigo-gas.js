@@ -146,10 +146,12 @@ function doGet(e) {
 
     // 7. EVALUACIONES PEC
     const sEv = getSheet(ss, S_EVALUACIONES);
-    const evMap = {}; let evaluaciones = [];
+    const evMap = {}; let evaluaciones = []; let totalGlobalEv = 0;
     if (sEv) {
        const d = sEv.getDataRange().getValues(); d.shift();
-       evaluaciones = d.map(r => { evMap[String(r[3])] = true; return { parcial: String(r[1]), equipoId: String(r[3]), docenteEmail: normalizeText(r[10]) }; });
+       const evRaw = d.map(r => { evMap[String(r[3])] = true; return { parcial: String(r[1]), equipoId: String(r[3]), docenteEmail: normalizeText(r[10]) }; });
+       totalGlobalEv = evRaw.length;
+       evaluaciones = [...evRaw];
        if (!isAdmin && userEmail !== "") evaluaciones = evaluaciones.filter(x => x.docenteEmail === userEmail);
     }
     const listaEquipos = Object.values(equiposMap).map(eq => { if (evMap[eq.id]) eq.estado = "Evaluado"; return eq; });
@@ -168,7 +170,8 @@ function doGet(e) {
     return ContentService.createTextOutput(JSON.stringify({
       status: "success", config: config, grupos: [...gruposConEquipos], equipos: listaEquipos, evaluaciones: evaluaciones,
       tutorias: tutoriasData, alumnosFull: alumnosFull, directorio: directorio, programacion: programacion,
-      isAdmin: isAdmin, gruposDelDocente: gruposDelDocente, parcialActivo: parcialActivo, avanceDocente: avance, audit: audit
+      isAdmin: isAdmin, gruposDelDocente: gruposDelDocente, parcialActivo: parcialActivo, avanceDocente: avance, audit: audit,
+      totalEquiposGlobal: listaEquipos.length, totalEvaluacionesGlobal: totalGlobalEv // Se usan globales para Admin
     })).setMimeType(ContentService.MimeType.JSON);
       
   } catch (error) {
