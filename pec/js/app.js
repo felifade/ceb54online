@@ -11,12 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return match ? match[0] : String(val).trim();
     };
 
-    // Establecer nombre de usuario desde la sesión
-    const userName = sessionStorage.getItem('user_name');
-    if (userName) {
-        const userNameEl = document.getElementById('topbar-user-name');
-        if (userNameEl) userNameEl.textContent = userName;
-    }
 
     // DOM Elements
     const views = document.querySelectorAll('.view');
@@ -28,11 +22,163 @@ document.addEventListener("DOMContentLoaded", () => {
     // Estado local
     let currentView = 'dashboard';
 
+    // =============================================
+    // ESTADO GLOBAL DE USUARIO PEC
+    // =============================================
+    window.PEC_USER = {
+        email: (sessionStorage.getItem('user_email') || '').toLowerCase().trim(),
+        nombre: sessionStorage.getItem('user_name') || 'Docente PEC',
+        role: sessionStorage.getItem('user_role') || 'Docente',
+        isAdmin: false,
+        gruposAsignados: [],
+        parcialActivo: '2',
+        avanceDocente: { total: 0, evaluados: 0, pendientes: 0, porcentaje: 0 }
+    };
+    window.PEC_USER.isAdmin = PEC_USER.role.toLowerCase() === 'admin';
+
+    // Establecer nombre en topbar
+    const userNameEl = document.getElementById('topbar-user-name');
+    if (userNameEl && PEC_USER.nombre) userNameEl.textContent = PEC_USER.nombre;
+
+    // =============================================
+    function aplicarControlAcceso(data) {
+        // Actualizar estado global
+        PEC_USER.isAdmin = data.isAdmin || false;
+        PEC_USER.gruposAsignados = data.gruposDelDocente || [];
+        PEC_USER.parcialActivo = data.parcialActivo || '2';
+        PEC_USER.avanceDocente = data.avanceDocente || { total: 0, evaluados: 0, pendientes: 0, porcentaje: 0 };
+
+        const navGrupos = document.getElementById('nav-grupos');
+        const tieneGrupos = PEC_USER.gruposAsignados.length > 0;
+
+        if (tieneGrupos) {
+            // Agregar badge con cantidad de grupos
+            const spn = navGrupos.querySelector('span');
+            if (spn && !navGrupos.querySelector('.nav-badge')) {
+                const badge = document.createElement('span');
+                badge.className = 'nav-badge';
+                badge.textContent = PEC_USER.gruposAsignados.length;
+                navGrupos.appendChild(badge);
+            }
+        } else if (!PEC_USER.isAdmin) {
+            // Deshabilitar el botón de Grupos
+            navGrupos.classList.remove('nav-item');
+            navGrupos.classList.add('nav-item-disabled');
+            navGrupos.removeAttribute('data-view');
+            navGrupos.setAttribute('title', 'No tienes grupos asignados para el Parcial ' + PEC_USER.parcialActivo);
+        }
+
+        // Ocultar botón exportar para no-admin
+        const btnExportar = document.getElementById('btn-exportar');
+        if (btnExportar && !PEC_USER.isAdmin) {
+            btnExportar.style.display = 'none';
+        }
+    }
+
+    // =============================================
+    // BANNER: Renderizar banner de guia en vista Grupos
+    // =============================================
+    function renderizarBannerGrupos() {
+        const container = document.getElementById('banner-mis-grupos');
+        if (!container) return;
+
+        const tieneGrupos = PEC_USER.gruposAsignados.length > 0;
+        const av = PEC_USER.avanceDocente;
+        const parcial = PEC_USER.parcialActivo;
+
+        if (tieneGrupos) {
+            // Banner azul con info y guia
+            const grupoTags = PEC_USER.gruposAsignados
+                .map(g => `<span class="grupo-tag">${g}</span>`).join('');
+
+            container.innerHTML = `
+                <div class="banner-mis-grupos">
+                    <div class="banner-top-row">
+                        <div class="banner-left">
+                            <div class="banner-eyebrow">✅ Acceso Habilitado — Parcial ${parcial}</div>
+                            <h2 class="banner-title">📋 Tus grupos para capturar</h2>
+                            <p class="banner-subtitle">
+                                Hola <strong>${PEC_USER.nombre}</strong>, tienes <strong>${PEC_USER.gruposAsignados.length} grupo(s)</strong> asignado(s) en este parcial.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 0.75rem;">
+                            <div class="banner-stats-box">
+                                <span class="stat-num">${av.evaluados}</span>
+                                <span class="stat-lbl">✅ Evaluados</span>
+                            </div>
+                            <div class="banner-stats-box">
+                                <span class="stat-num">${av.pendientes}</span>
+                                <span class="stat-lbl">⏳ Pendientes</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="banner-grupos-row">
+                        <span style="font-size: 0.75rem; font-weight: 700; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; align-self: center;">Grupos:</span>
+                        ${grupoTags}
+                    </div>
+
+                    <div class="banner-progress-section">
+                        <div class="banner-progress-label">
+                            <span>📊 Avance de captura en tus grupos</span>
+                            <span>${av.porcentaje}% — ${av.evaluados} de ${av.total} equipos</span>
+                        </div>
+                        <div class="banner-progress-bar">
+                            <div class="banner-progress-fill" style="width: 0%" data-target="${av.porcentaje}"></div>
+                        </div>
+                    </div>
+
+                    <div class="banner-guia">
+                        <div class="guia-step">
+                            <span class="guia-step-num">1</span>
+                            <span>Selecciona un grupo</span>
+                        </div>
+                        <span class="guia-arrow">→</span>
+                        <div class="guia-step">
+                            <span class="guia-step-num">2</span>
+                            <span>Elige el equipo</span>
+                        </div>
+                        <span class="guia-arrow">→</span>
+                        <div class="guia-step">
+                            <span class="guia-step-num">3</span>
+                            <span>Presiona <em>Evaluar</em></span>
+                        </div>
+                        <span class="guia-arrow">→</span>
+                        <div class="guia-step">
+                            <span class="guia-step-num">4</span>
+                            <span>Llena y envia el formulario</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Animar la barra de progreso después de renderizar
+            setTimeout(() => {
+                const fill = container.querySelector('.banner-progress-fill');
+                if (fill) fill.style.width = fill.dataset.target + '%';
+            }, 150);
+
+        } else if (!PEC_USER.isAdmin) {
+            // Banner de sin acceso
+            container.innerHTML = `
+                <div class="banner-sin-acceso">
+                    <div class="icono-lock">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    </div>
+                    <h3>🔐 Sin grupos asignados en Parcial ${parcial}</h3>
+                    <p>No tienes captura de PEC en este parcial. Puedes consultar el Dashboard y el Directorio. Si crees que es un error, contacta al administrador.</p>
+                </div>
+            `;
+        }
+        // Si es admin, no mostramos nada especial (ve todo)
+    }
+
     // Navegación
     navItems.forEach(item => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
             const viewName = item.getAttribute('data-view');
+            if (!viewName) return; // Ignorar items deshabilitados sin data-view
             
             navItems.forEach(nav => nav.classList.remove('active'));
             item.classList.add('active');
@@ -85,6 +231,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await api.getDashboardData();
             if (!data || !data.equipos) throw new Error("Datos del dashboard incompletos");
             
+            // Aplicar control de acceso con los datos recien cargados
+            const cacheAcceso = api.cache;
+            if (cacheAcceso) aplicarControlAcceso(cacheAcceso);
             // Stats
             document.getElementById('dash-grupos').textContent = data.totalGrupos || 0;
             document.getElementById('dash-equipos').textContent = data.totalEquipos || 0;
@@ -452,15 +601,35 @@ document.addEventListener("DOMContentLoaded", () => {
     const containerEquipos = document.getElementById('equipos-container');
 
     async function initGrupos() {
+        // Renderizar el banner según el usuario (siempre actualizado)
+        renderizarBannerGrupos();
+
         if (selectGrupo.options.length <= 1) { // Solo opción default
             showLoader();
-            const grupos = await api.getGrupos();
-            // Ordenar grupos alfabéticamente
-            const gruposOrdenados = [...grupos].sort((a, b) => String(a).localeCompare(String(b), undefined, {numeric: true}));
-            
+            const todosGrupos = await api.getGrupos();
+
+            // FILTRAR GRUPOS: Si el docente tiene grupos asignados, solo mostrar los suyos
+            let gruposAMostrar;
+            if (PEC_USER.isAdmin || PEC_USER.gruposAsignados.length === 0) {
+                // Admin ve todos; si no hay asignados tampoco filtramos (evita select vacío)
+                gruposAMostrar = [...todosGrupos];
+            } else {
+                // Docente con grupos: solo sus grupos
+                gruposAMostrar = todosGrupos.filter(g => PEC_USER.gruposAsignados.includes(g));
+                // Actualizar label del select
+                const lbl = document.getElementById('label-select-grupo');
+                if (lbl) lbl.textContent = `Selecciona uno de tus ${gruposAMostrar.length} grupo(s):`;
+            }
+
+            // Ordenar y poblar el select
+            const gruposOrdenados = [...gruposAMostrar].sort((a, b) =>
+                String(a).localeCompare(String(b), undefined, {numeric: true})
+            );
+
             gruposOrdenados.forEach(g => {
                 const opt = document.createElement('option');
-                opt.value = g; opt.textContent = `Grupo ${g}`;
+                opt.value = g;
+                opt.textContent = `Grupo ${g}`;
                 selectGrupo.appendChild(opt);
             });
             hideLoader();

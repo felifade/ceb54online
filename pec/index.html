@@ -23,7 +23,7 @@
                     <i data-feather="grid"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="#" class="nav-item" data-view="grupos">
+                <a href="#" class="nav-item" id="nav-grupos" data-view="grupos">
                     <i data-feather="users"></i>
                     <span>Grupos y Equipos</span>
                 </a>
@@ -178,9 +178,12 @@
 
                 <!-- View: Grupos -->
                 <section id="view-grupos" class="view hidden">
-                    <div class="panel filters-bar">
+                    <!-- Banner de guía: se inyecta por JS según el rol del usuario -->
+                    <div id="banner-mis-grupos"></div>
+
+                    <div class="panel filters-bar" id="panel-filtros-grupos">
                         <div style="flex-grow: 1;">
-                            <label for="select-grupo">Selecciona un Grupo de Segundo Semestre:</label>
+                            <label for="select-grupo" id="label-select-grupo">Selecciona un Grupo:</label>
                             <select id="select-grupo" class="input-control">
                                 <option value="">-- Elige un grupo para ver el PEC --</option>
                                 <!-- Opciones inyectadas -->

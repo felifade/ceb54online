@@ -15,7 +15,8 @@ const SHEET_USUARIOS = "Usuarios";
 const HEADERS_ALUMNOS = ["nombre_alumno", "grupo", "numero_equipo", "tema", "url_documento"];
 const HEADERS_EVAL = ["fecha", "parcial", "grupoId", "equipoId", "equipoNombre", "materia", "docente", "puntaje", "observaciones", "alumno", "docente_email"];
 const HEADERS_DIRECTORIO = ["Grupo", "Materia", "Docente", "Correo"];
-const HEADERS_PROGRAMACION = ["Parcial", "Semestre", "Turno", "Materia", "Docente", "Ponderación"];
+// NOTA: Se agrega columna H "correo_docente" a Programación para identificar al docente por email
+const HEADERS_PROGRAMACION = ["Parcial", "Semestre", "Turno", "Materia", "Docente", "Ponderación", "grupoEspecial", "correo_docente"];
 const HEADERS_TUTORIAS = ["fecha_registro", "parcial", "grupo", "nombre_estudiante", "sexo", "asignatura", "alumno_regular", "alumno_intra", "tema_asunto", "tutoria_grupal", "tutoria_individual", "docente_email"];
 
 // Helper para extraer solo el número de un texto (ej: "Parcial 1" -> "1")
@@ -65,6 +66,7 @@ function setupInitialize() {
     const s = ss.insertSheet(SHEET_CONFIGURACION);
     s.appendRow(["Configuracion", "Valor"]);
     s.appendRow(["docente_nombre", "Felipe López Salazar"]);
+    s.appendRow(["parcial_activo", "2"]); // NUEVO: Parcial activo por defecto
   }
 
   const sheetUser = ss.getSheetByName(SHEET_USUARIOS);
@@ -96,6 +98,21 @@ function doGet(e) {
       }
     }
     const isAdmin = userRole.toLowerCase() === "admin" || userEmail === "admin@ceb54.online";
+
+    // =============================================
+    // NUEVO: LEER CONFIGURACIÓN (incluyendo parcial_activo)
+    // =============================================
+    let config = { docente: "Felipe López Salazar", parcialActivo: "2" };
+    const sheetConf = ss.getSheetByName(SHEET_CONFIGURACION);
+    if (sheetConf) {
+       const dataConf = sheetConf.getDataRange().getValues();
+       dataConf.shift();
+       dataConf.forEach(row => {
+          if (row[0] === "docente_nombre") config.docente = row[1];
+          if (row[0] === "parcial_activo") config.parcialActivo = normalizeParcial(row[1]) || "2";
+       });
+    }
+    const parcialActivo = config.parcialActivo;
 
     // 1. LEER EVALUACIONES
     const sheetEv = ss.getSheetByName(SHEET_EVALUACIONES);
@@ -207,7 +224,7 @@ function doGet(e) {
        }
     }
 
-    // 4. LEER PROGRAMACIÓN
+    // 4. LEER PROGRAMACIÓN (con nueva columna H: correo_docente)
     let programacion = [];
     let sheetProg = ss.getSheetByName(SHEET_PROGRAMACION);
     // Intentar sin acento si falla con acento
@@ -224,9 +241,61 @@ function doGet(e) {
              materia: String(row[3] || ''),
              docente: String(row[4] || ''),
              ponderacion: Number(row[5] || 0),
-             grupoEspecial: String(row[6] || '')
+             grupoEspecial: String(row[6] || ''),
+             correoDocente: String(row[7] || '').toLowerCase().trim() // NUEVA columna H
           }));
        }
+    }
+
+    // =============================================
+    // NUEVO: CALCULAR GRUPOS DEL DOCENTE
+    // Lógica: buscar entradas en Programación donde:
+    //   - correoDocente === userEmail
+    //   - parcial === parcialActivo
+    // Luego cruzar con Directorio para obtener los grupos exactos
+    // =============================================
+    let gruposDelDocente = [];
+    
+    if (!isAdmin && userEmail) {
+      // Paso 1: Encontrar las materias que le tocan al docente en el parcial activo
+      const materiasDocente = programacion
+        .filter(p => p.correoDocente === userEmail && p.parcial === parcialActivo)
+        .map(p => p.materia.trim());
+      
+      const materiasUnicas = [...new Set(materiasDocente)];
+      
+      // Paso 2: Buscar en Directorio qué grupos tiene para esas materias
+      // (Comparación flexibe: también por correo en Directorio)
+      const gruposPorEmail = directorio
+        .filter(d => d.correo.toLowerCase() === userEmail)
+        .map(d => d.grupo);
+      
+      const gruposPorMateria = directorio
+        .filter(d => materiasUnicas.some(mat => 
+          mat.toLowerCase() === d.materia.toLowerCase()
+        ))
+        .map(d => d.grupo);
+      
+      // Unión de ambas búsquedas (por email directo Y por materia del parcial)
+      const todosGrupos = [...new Set([...gruposPorEmail, ...gruposPorMateria])];
+      
+      // Paso 3: Filtrar solo grupos que existen en el sistema de equipos
+      gruposDelDocente = todosGrupos.filter(g => gruposUnicos.includes(g)).sort();
+      
+    } else if (isAdmin) {
+      // Admin ve todos los grupos
+      gruposDelDocente = [...gruposUnicos];
+    }
+
+    // Calcular avance del docente solo en SUS grupos
+    let avanceDocente = { total: 0, evaluados: 0, pendientes: 0, porcentaje: 0 };
+    if (gruposDelDocente.length > 0) {
+      const equiposDocente = equipos.filter(eq => gruposDelDocente.includes(eq.grupo));
+      avanceDocente.total = equiposDocente.length;
+      avanceDocente.evaluados = equiposDocente.filter(eq => eq.estado === 'Evaluado').length;
+      avanceDocente.pendientes = avanceDocente.total - avanceDocente.evaluados;
+      avanceDocente.porcentaje = avanceDocente.total === 0 ? 0 : 
+        Math.round((avanceDocente.evaluados / avanceDocente.total) * 100);
     }
 
     // 5. LEER TUTORÍAS
@@ -261,18 +330,7 @@ function doGet(e) {
        }
     }
 
-    // 6. LEER CONFIGURACIÓN
-    let config = { docente: "Felipe López Salazar" };
-    const sheetConf = ss.getSheetByName(SHEET_CONFIGURACION);
-    if (sheetConf) {
-       const dataConf = sheetConf.getDataRange().getValues();
-       dataConf.shift();
-       dataConf.forEach(row => {
-          if (row[0] === "docente_nombre") config.docente = row[1];
-       });
-    }
-
-    // 7. LEER LISTA COMPLETA DE ALUMNOS (para sugerencias)
+    // 6. LEER LISTA COMPLETA DE ALUMNOS (para sugerencias)
     let alumnosFull = [];
     const sheetAlFull = ss.getSheetByName(SHEET_ALUMNOS);
     if (sheetAlFull) {
@@ -281,7 +339,7 @@ function doGet(e) {
        alumnosFull = dataAlFull.map(row => ({
           nombre: row[1],
           grupo: String(row[2]),
-          sexo: row[6] || "" // Asumimos columna G para sexo en el futuro
+          sexo: row[6] || ""
        })).filter(a => a.nombre && a.grupo);
     }
 
@@ -296,7 +354,12 @@ function doGet(e) {
       tutorias: tutorias,
       config: config,
       alumnosFull: alumnosFull,
-      sinEquipo: sinEquipo || []
+      sinEquipo: sinEquipo || [],
+      // NUEVOS CAMPOS PARA CONTROL DE ACCESO
+      isAdmin: isAdmin,
+      gruposDelDocente: gruposDelDocente,
+      parcialActivo: parcialActivo,
+      avanceDocente: avanceDocente
     };
     
     return ContentService.createTextOutput(JSON.stringify(payload)).setMimeType(ContentService.MimeType.JSON);
