@@ -163,15 +163,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.toggleTutoriaSexo = async (fecha, alumno, sexoActual) => {
         const nuevoSexo = sexoActual === 'H' ? 'F' : 'H';
         
+        // Efecto visual inmediato de "cargando"
+        const badge = event.currentTarget;
+        const originalContent = badge.innerHTML;
+        badge.innerHTML = "...";
+        badge.style.opacity = "0.5";
+        badge.style.pointerEvents = "none";
+        
         try {
             const result = await api.actualizarSexo(fecha, alumno, nuevoSexo);
             if (result.status === 'success') {
-                loadInitialData(); // Recargar para mostrar cambio
+                // Forzar recarga completa para asegurar que vemos el cambio
+                await loadInitialData(); 
             } else {
                 alert("Error al actualizar: " + result.message);
+                badge.innerHTML = originalContent;
+                badge.style.opacity = "1";
+                badge.style.pointerEvents = "auto";
             }
         } catch (error) {
             alert("Error de conexión: " + error.message);
+            badge.innerHTML = originalContent;
+            badge.style.opacity = "1";
+            badge.style.pointerEvents = "auto";
         }
     };
 

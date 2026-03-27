@@ -395,6 +395,7 @@ function doPost(e) {
         
         if (Math.abs(rowDate.getTime() - targetTime) < 10000 && rowAlumno === targetAlumno) {
           sheetTut.getRange(i + 1, 5).setValue(newSexo); // Columna E (Sexo)
+          SpreadsheetApp.flush(); // Asegurar guardado inmediato
           return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Sexo actualizado." })).setMimeType(ContentService.MimeType.JSON);
         }
       }
