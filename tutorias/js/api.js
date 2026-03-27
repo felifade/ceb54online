@@ -1,6 +1,6 @@
 // tutorias/js/api.js
 
-const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbxidIzJ0KG5ArhTlcRWK10QpoeIRjx3_GIvPNPEs8rKVIz5C092oCuiCV781CUmkSoUTQ/exec";
+const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbzfIOIwfDKrYAQrUIqXLM-jrUzMLxf1Deqyocy5xYgQSIdTFYWTttDGoCVZ4XU5EdFLIg/exec";
 
 const api = {
     cache: null,
@@ -10,17 +10,17 @@ const api = {
             const userEmail = sessionStorage.getItem('user_email') || "";
             // Añadimos cache buster para evitar problemas con proxies o caché del navegador
             const url = `${GOOGLE_SHEETS_API_URL}?userEmail=${encodeURIComponent(userEmail)}&_t=${Date.now()}`;
-            
+
             const response = await fetch(url, {
                 method: 'GET',
                 redirect: 'follow'
             });
-            
+
             if (!response.ok) throw new Error("Respuesta de red no válida");
-            
+
             const data = await response.json();
             if (data.status === "error") throw new Error(data.message);
-            
+
             this.cache = data;
             return data;
         } catch (error) {
@@ -62,7 +62,7 @@ const api = {
             redirect: 'follow'
         });
         const result = await response.json();
-        this.cache = null; 
+        this.cache = null;
         return result;
     },
 
@@ -84,7 +84,7 @@ const api = {
             redirect: 'follow'
         });
         const result = await response.json();
-        this.cache = null; 
+        this.cache = null;
         return result;
     }
 };
