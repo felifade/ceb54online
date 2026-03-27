@@ -64,5 +64,27 @@ const api = {
         const result = await response.json();
         this.cache = null; 
         return result;
+    },
+
+    async eliminarTutoria(fecha, alumno) {
+        const payload = {
+            action: "deleteTutoria",
+            fecha: fecha,
+            alumno: alumno,
+            docente_email: sessionStorage.getItem('user_email') || ""
+        };
+
+        const response = await fetch(GOOGLE_SHEETS_API_URL, {
+            method: 'POST',
+            mode: 'cors',
+            body: JSON.stringify(payload),
+            headers: {
+                "Content-Type": "text/plain;charset=utf-8",
+            },
+            redirect: 'follow'
+        });
+        const result = await response.json();
+        this.cache = null; 
+        return result;
     }
 };

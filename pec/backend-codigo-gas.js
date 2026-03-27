@@ -363,6 +363,22 @@ function doPost(e) {
       return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Tutoría(s) guardada(s)." })).setMimeType(ContentService.MimeType.JSON);
     }
 
+    if (body.action === "deleteTutoria") {
+      const sheetTut = ss.getSheetByName(SHEET_TUTORIAS);
+      const data = sheetTut.getDataRange().getValues();
+      const targetTime = new Date(body.fecha).getTime();
+      const targetAlumno = body.alumno;
+      
+      for (let i = data.length - 1; i >= 1; i--) {
+        const rowDate = new Date(data[i][0]);
+        if (Math.abs(rowDate.getTime() - targetTime) < 2000 && data[i][3] === targetAlumno) {
+          sheetTut.deleteRow(i + 1);
+          return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Eliminado." })).setMimeType(ContentService.MimeType.JSON);
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "No encontrado." })).setMimeType(ContentService.MimeType.JSON);
+    }
+
     // CASO D: Guardar evaluación regular
     const sheet = ss.getSheetByName(SHEET_EVALUACIONES);
     

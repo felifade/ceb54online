@@ -127,9 +127,31 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td style="padding:1rem; font-size:0.85rem;">${t.asignatura}</td>
                 <td style="padding:1rem; font-size:0.85rem;">${t.individual ? 'Individual' : 'Grupal'}</td>
                 <td style="padding:1rem; font-size:0.85rem; color:#64748b; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${t.tema}</td>
+                <td style="padding:1rem; font-size:0.85rem;">
+                    <button class="btn-delete" onclick="handleDeleteTutoria('${t.fecha}', '${t.alumno.replace(/'/g, "\\'")}')" style="background:none; border:none; color:#ef4444; cursor:pointer; padding:4px;">
+                        <i data-lucide="trash-2" style="width:16px; height:16px;"></i>
+                    </button>
+                </td>
             </tr>
         `).join('');
+        lucide.createIcons();
     }
+
+    window.handleDeleteTutoria = async (fecha, alumno) => {
+        if (!confirm(`¿Estás seguro de que deseas eliminar el registro de tutoría de ${alumno}?`)) return;
+        
+        try {
+            const result = await api.eliminarTutoria(fecha, alumno);
+            if (result.status === 'success') {
+                alert("Registro eliminado con éxito.");
+                loadInitialData(); // Recargar todo
+            } else {
+                alert("Error al eliminar: " + result.message);
+            }
+        } catch (error) {
+            alert("Error de conexión: " + error.message);
+        }
+    };
 
     // 3. Reporte Render (Automated Totals)
     function renderReporte() {
@@ -193,12 +215,23 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 if (students.length > 0) {
                     btnSelectAll.style.display = 'block';
-                    container.innerHTML = students.map(a => `
-                        <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; padding: 4px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
-                            <input type="checkbox" name="selected_students" value="${a.nombre}" data-sexo="${a.sexo}" style="width: auto;">
-                            <span>${a.nombre}</span>
-                        </label>
-                    `).join('');
+                    container.innerHTML = students.map(a => {
+                        // Determinar sexo inicial (prioridad a lo que venga de la base de datos)
+                        let initialSexo = "H";
+                        if (a.sexo && (a.sexo.toUpperCase().startsWith('M') || a.sexo.toUpperCase().startsWith('F'))) initialSexo = "F";
+                        
+                        return `
+                        <div class="student-item" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 6px 10px; border-bottom: 1px solid #f1f5f9;">
+                            <label style="display: flex; align-items: center; gap: 0.8rem; font-size: 0.85rem; cursor: pointer; flex: 1; margin-bottom: 0;">
+                                <input type="checkbox" name="selected_students" value="${a.nombre}" style="width: auto;">
+                                <span style="font-weight: 500;">${a.nombre}</span>
+                            </label>
+                            <select class="student-sex-select" style="width: auto; padding: 2px 8px; font-size: 0.75rem; border-radius: 6px; background: #fff; border: 1px solid #cbd5e1;">
+                                <option value="H" ${initialSexo === 'H' ? 'selected' : ''}>H</option>
+                                <option value="F" ${initialSexo === 'F' ? 'selected' : ''}>M</option>
+                            </select>
+                        </div>
+                    `}).join('');
                 } else {
                     btnSelectAll.style.display = 'none';
                     container.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; grid-column: 1/-1;">No se encontraron alumnos en este grupo.</p>';
@@ -223,17 +256,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.preventDefault();
         const formData = new FormData(form);
         
-        // Obtener alumnos seleccionados
-        const selectedChecks = document.querySelectorAll('input[name="selected_students"]:checked');
-        if (selectedChecks.length === 0) {
+        // Obtener alumnos seleccionados y su sexo específico
+        const studentItems = document.querySelectorAll('.student-item');
+        const alumnosArray = [];
+        
+        studentItems.forEach(item => {
+            const check = item.querySelector('input[name="selected_students"]');
+            if (check && check.checked) {
+                const sexSelect = item.querySelector('.student-sex-select');
+                alumnosArray.push({
+                    nombre: check.value,
+                    sexo: sexSelect ? sexSelect.value : "H"
+                });
+            }
+        });
+
+        if (alumnosArray.length === 0) {
             alert("Por favor, selecciona al menos un estudiante.");
             return;
         }
-
-        const alumnosArray = Array.from(selectedChecks).map(c => ({
-            nombre: c.value,
-            sexo: c.dataset.sexo || "H"
-        }));
 
         const payload = {
             parcial: formData.get('parcial'),
