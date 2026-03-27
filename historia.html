@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historia | CEB 5/4 "Profr. Rafael Ramírez"</title>
+    <meta name="description"
+        content="Conoce la historia del Profr. Rafael Ramírez Castañeda y el legado educativo que da nombre a nuestra institución.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .history-hero {
+            padding: 120px 0 80px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .history-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        @media (max-width: 992px) {
+            .history-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            .history-image-wrapper {
+                order: -1;
+            }
+        }
+
+        .history-image-wrapper {
+            position: relative;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            aspect-ratio: 1/1;
+        }
+
+        .history-image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .history-content h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--clr-primary);
+        }
+
+        .history-content p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--clr-text);
+            margin-bottom: 1.2rem;
+        }
+
+        .legacy-section {
+            padding: 100px 0;
+            background-color: white;
+        }
+
+        .legacy-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .legacy-card {
+            padding: 2.5rem;
+            background: var(--clr-light);
+            border-radius: var(--radius-md);
+            border-left: 5px solid var(--clr-primary);
+            transition: transform 0.3s ease;
+        }
+
+        .legacy-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .legacy-card h3 {
+            margin-bottom: 1rem;
+            color: var(--clr-primary);
+        }
+
+        .quote-block {
+            margin: 3rem 0;
+            padding: 2rem;
+            border-left: 4px solid var(--clr-secondary);
+            background: #fffafa;
+            font-style: italic;
+            font-size: 1.2rem;
+            color: #4b5563;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="navbar" id="navbar">
+        <div class="container nav-container">
+            <div class="logo">
+                <a href="index.html" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <img src="assets/logo.png" alt="Logo CEB 5/4" style="height: 45px; width: auto;"
+                        onerror="this.style.display='none'">
+                    <span class="logo-text">CEB 5/4</span>
+                </a>
+            </div>
+            <nav class="nav-links" id="nav-links">
+                <a href="index.html" class="nav-link">Inicio</a>
+                <a href="nosotros.html" class="nav-link">Nosotros</a>
+                <a href="historia.html" class="nav-link active-link">Historia</a>
+                <a href="oferta-educativa.html" class="nav-link">Oferta Educativa</a>
+                <a href="admisiones.html" class="nav-link btn-ingreso">Nuevo Ingreso</a>
+                <a href="contacto.html" class="nav-link btn-contacto">Contacto</a>
+            </nav>
+            <div class="mobile-menu-btn" id="mobile-menu-btn">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="history-hero">
+            <div class="container">
+                <div class="history-grid">
+                    <div class="history-content scroll-reveal">
+                        <span class="badge">Nuestra Identidad</span>
+                        <h1>Rafael Ramírez Castañeda</h1>
+                        <p style="font-weight: 600; color: var(--clr-secondary);">Un legado que trasciende el tiempo.</p>
+                        <p>
+                            Rafael Ramírez Castañeda (1884-1959) fue un educador visionario, maestro normalista y revolucionario cuyas ideas transformaron el paisaje educativo de México. Su vida estuvo dedicada a una misión noble: llevar la luz del conocimiento a los rincones más profundos y olvidados de nuestra patria.
+                        </p>
+                        <p>
+                            Nacido en Las Vigas, Veracruz, Ramírez entendió desde temprano que la educación no era solo un proceso académico, sino la herramienta fundamental para la emancipación social y humana del pueblo mexicano.
+                        </p>
+                    </div>
+                    <div class="history-image-wrapper scroll-reveal" style="transition-delay: 0.2s;">
+                        <img src="assets/historia_rafael.png" alt="Ilustración Histórica Rafael Ramírez">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="legacy-section">
+            <div class="container">
+                <div class="section-header center scroll-reveal">
+                    <h2 class="section-title">La Escuela Rural Mexicana</h2>
+                    <p class="section-desc">El Profr. Rafael Ramírez no solo enseñó; él diseñó un sistema de justicia social a través de las aulas.</p>
+                </div>
+
+                <div class="quote-block scroll-reveal">
+                    "La escuela rural no es solo para los niños, es la 'Casa del Pueblo', el centro de vida donde la comunidad se une para progresar y aprender haciendo."
+                </div>
+
+                <div class="legacy-cards">
+                    <div class="legacy-card scroll-reveal">
+                        <h3>Misiones Culturales</h3>
+                        <p>Fue arquitecto de las primeras Misiones Culturales, brigadas de maestros y especialistas que viajaban a comunidades rurales para enseñar artes, oficios y mejorar la calidad de vida de los habitantes.</p>
+                    </div>
+                    <div class="legacy-card scroll-reveal" style="transition-delay: 0.1s;">
+                        <h3>Aprender Haciendo</h3>
+                        <p>Impulsó una metodología técnica y práctica bajo el lema "aprender haciendo", integrando el trabajo manual con el desarrollo intelectual para formar ciudadanos productivos.</p>
+                    </div>
+                    <div class="legacy-card scroll-reveal" style="transition-delay: 0.2s;">
+                        <h3>Escuela y Comunidad</h3>
+                        <p>Para Ramírez, la escuela debía ser bilingüe y multicultural, respetando las raíces indígenas mientras integraba a las comunidades en el desarrollo nacional.</p>
+                    </div>
+                </div>
+
+                <div style="margin-top: 5rem;" class="scroll-reveal">
+                    <h3 style="color: var(--clr-primary); margin-bottom: 1.5rem;">Nuestro Compromiso hoy</h3>
+                    <p>
+                        Como **Centro de Estudios de Bachillerato 5/4**, nos honra portar su nombre. Su filosofía de servicio y excelencia guía cada una de nuestras aulas. A más de 40 años de nuestra fundación, seguimos fieles a su visión: brindar una educación de calidad que empodere a nuestra juventud para construir un México mejor.
+                    </p>
+                    <p>
+                        Llevamos su ideal en nuestro lema cotidiano, fomentando no solo el saber, sino el ser y el hacer, preparando a nuestros estudiantes con la misma pasión que Rafael Ramírez dedicó a cada una de sus escuelas rurales.
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-grid">
+            <div class="footer-info">
+                <div class="logo" style="margin-bottom: 1.5rem;">
+                    <span class="logo-text" style="color: white;">CEB 5/4</span>
+                </div>
+                <p style="opacity: 0.8; margin-bottom: 2rem;">
+                    Centro de Estudios de Bachillerato "Profr. Rafael Ramírez". Formando con valores y excelencia académica desde hace 40 años.
+                </p>
+                <div class="social-links">
+                    <a href="#" aria-label="Facebook">FB</a>
+                    <a href="#" aria-label="Instagram">IG</a>
+                    <a href="#" aria-label="Twitter">TW</a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4 style="margin-bottom: 1.5rem;">Navegación</h4>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin-bottom: 0.8rem;"><a href="index.html" style="color: white; opacity: 0.7; text-decoration: none;">Inicio</a></li>
+                    <li style="margin-bottom: 0.8rem;"><a href="nosotros.html" style="color: white; opacity: 0.7; text-decoration: none;">Nosotros</a></li>
+                    <li style="margin-bottom: 0.8rem;"><a href="historia.html" style="color: white; opacity: 0.7; text-decoration: none;">Historia</a></li>
+                    <li style="margin-bottom: 0.8rem;"><a href="oferta-educativa.html" style="color: white; opacity: 0.7; text-decoration: none;">Oferta Educativa</a></li>
+                    <li style="margin-bottom: 0.8rem;"><a href="admisiones.html" style="color: white; opacity: 0.7; text-decoration: none;">Nuevo Ingreso</a></li>
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h4 style="margin-bottom: 1.5rem;">Ubicación</h4>
+                <p style="opacity: 0.8;">C. Emiliano Zapata s/n, Centro, 62740 Cuautla, Mor., México</p>
+                <p style="opacity: 0.8; margin-top: 1rem;">Tel: (735) 352 1442</p>
+            </div>
+        </div>
+        <div class="container" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 4rem; padding-top: 2rem; text-align: center; opacity: 0.6; font-size: 0.9rem;">
+            <p>&copy; 2026 CEB 5/4 "Profr. Rafael Ramírez". Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        // Animaciones al hacer scroll (simple observer)
+        const observerOptions = { threshold: 0.1 };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.scroll-reveal').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'all 0.8s ease-out';
+            el.classList.add('reveal-ready');
+            observer.observe(el);
+        });
+
+        // CSS inline para el observer
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .visible {
+                opacity: 1 !important;
+                transform: translateY(0) !important;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+
+</html>
