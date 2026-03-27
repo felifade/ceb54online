@@ -1,6 +1,6 @@
 // tutorias/js/api.js
 
-const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbw7cIDzkXsc2PDo7hqKSjMI9dVsO-17DEGmDSck1GwZimm8R6V4atYSfvz9EWZdtQzS7A/exec";
+const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbzwOEQ9h_QPDUCY3VbK4mX47YsVSSAPIenW3qNxzyefQgCYOPe7_37j2b_5fn4njA8V/exec";
 
 const api = {
     cache: null,
@@ -84,7 +84,7 @@ const api = {
             redirect: 'follow'
         });
         const result = await response.json();
-        this.cache = null; 
+        this.cache = null;
         return result;
     },
 
@@ -107,7 +107,7 @@ const api = {
             redirect: 'follow'
         });
         const result = await response.json();
-        this.cache = null; 
+        this.cache = null;
         return result;
     }
 };
