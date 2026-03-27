@@ -9,6 +9,7 @@ const SHEET_EVALUACIONES = "Evaluaciones";
 const SHEET_DIRECTORIO = "Directorio";
 const SHEET_PROGRAMACION = "Programación";
 const SHEET_TUTORIAS = "Tutorias";
+const SHEET_CONFIGURACION = "Configuracion";
 
 const HEADERS_ALUMNOS = ["nombre_alumno", "grupo", "numero_equipo", "tema", "url_documento"];
 const HEADERS_EVAL = ["fecha", "parcial", "grupoId", "equipoId", "equipoNombre", "materia", "docente", "puntaje", "observaciones", "alumno"];
@@ -49,6 +50,13 @@ function setupInitialize() {
   if (!sheetTut) {
     const s = ss.insertSheet(SHEET_TUTORIAS);
     s.appendRow(HEADERS_TUTORIAS);
+  }
+
+  const sheetConf = ss.getSheetByName(SHEET_CONFIGURACION);
+  if (!sheetConf) {
+    const s = ss.insertSheet(SHEET_CONFIGURACION);
+    s.appendRow(["Configuracion", "Valor"]);
+    s.appendRow(["docente_nombre", "Felipe López Salazar"]);
   }
 }
 
@@ -185,6 +193,30 @@ function doGet(e) {
        }
     }
 
+    // 6. LEER CONFIGURACIÓN
+    let config = { docente: "Felipe López Salazar" };
+    const sheetConf = ss.getSheetByName(SHEET_CONFIGURACION);
+    if (sheetConf) {
+       const dataConf = sheetConf.getDataRange().getValues();
+       dataConf.shift();
+       dataConf.forEach(row => {
+          if (row[0] === "docente_nombre") config.docente = row[1];
+       });
+    }
+
+    // 7. LEER LISTA COMPLETA DE ALUMNOS (para sugerencias)
+    let alumnosFull = [];
+    const sheetAlFull = ss.getSheetByName(SHEET_ALUMNOS);
+    if (sheetAlFull) {
+       const dataAlFull = sheetAlFull.getDataRange().getValues();
+       dataAlFull.shift();
+       alumnosFull = dataAlFull.map(row => ({
+          nombre: row[1],
+          grupo: String(row[2]),
+          sexo: row[6] || "" // Asumimos columna G para sexo en el futuro
+       })).filter(a => a.nombre && a.grupo);
+    }
+
     // Preparar respuesta JSON
     const payload = {
       status: "success",
@@ -192,8 +224,10 @@ function doGet(e) {
       equipos: equipos,
       evaluaciones: evaluaciones,
       directorio: directorio,
-      programacion: programacion,
+      programacion: [], // No se usa por ahora en tutorías
       tutorias: tutorias,
+      config: config,
+      alumnosFull: alumnosFull,
       sinEquipo: sinEquipo || []
     };
     

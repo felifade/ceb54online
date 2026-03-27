@@ -24,7 +24,9 @@ const api = {
             hombres: tutorias.filter(t => t.sexo === 'H').length,
             mujeres: tutorias.filter(t => t.sexo === 'F').length,
             grupos: db.grupos || [],
-            tutorias: tutorias
+            tutorias: tutorias,
+            config: db.config || { docente: "Felipe López Salazar" },
+            alumnosFull: db.alumnosFull || []
         };
     },
 

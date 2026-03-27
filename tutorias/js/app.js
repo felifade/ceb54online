@@ -2,7 +2,7 @@
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Initial State
-    let allData = { tutorias: [], grupos: [] };
+    let allData = { tutorias: [], grupos: [], config: { docente: "" }, alumnosFull: [] };
     const views = document.querySelectorAll('.view');
     const navLinks = document.querySelectorAll('.nav-link');
     const viewTitle = document.getElementById('view-title');
@@ -48,7 +48,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadInitialData() {
         try {
             allData = await api.getDashboardData();
+            
+            // Centralized Teacher Name
+            if (allData.config && allData.config.docente) {
+                document.getElementById('user-name').textContent = allData.config.docente;
+                document.getElementById('report-teacher-name').textContent = allData.config.docente;
+            }
+            
             renderAll();
+            setupAutoSuggest();
         } catch (error) {
             console.error("Error cargando datos:", error);
             alert("Error al conectar con la base de datos.");
@@ -151,6 +159,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     document.getElementById('report-parcial-filter').addEventListener('change', renderReporte);
+
+    // --- AUTOMATION & SUGGESTIONS ---
+    function setupAutoSuggest() {
+        const inputGrupo = document.getElementById('input-grupo');
+        const inputAlumno = document.getElementById('input-alumno');
+        const datalist = document.getElementById('datalist-alumnos');
+
+        // Filter Students by Group
+        inputGrupo.addEventListener('input', () => {
+            const val = inputGrupo.value.trim();
+            if (val.length >= 2) {
+                const filtered = allData.alumnosFull.filter(a => a.grupo === val);
+                datalist.innerHTML = filtered.map(a => `<option value="${a.nombre}" data-sexo="${a.sexo}">`).join('');
+            } else {
+                datalist.innerHTML = '';
+            }
+        });
+
+        // Auto-fill gender on student selection
+        inputAlumno.addEventListener('input', () => {
+            const val = inputAlumno.value.trim();
+            const found = allData.alumnosFull.find(a => a.nombre === val && a.grupo === inputGrupo.value.trim());
+            if (found && found.sexo) {
+                const sexoSelect = document.querySelector('select[name="sexo"]');
+                if (found.sexo.toUpperCase().startsWith('H') || found.sexo.toUpperCase().startsWith('M')) {
+                    sexoSelect.value = found.sexo.toUpperCase().startsWith('H') ? 'H' : 'F';
+                }
+            }
+        });
+    }
 
     // --- FORM SUBMISSION ---
     const form = document.getElementById('form-tutoria');

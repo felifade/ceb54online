@@ -129,11 +129,12 @@
                         </div>
                         <div class="form-group">
                             <label>Grupo</label>
-                            <input type="text" name="grupo" placeholder="Ej: 210" required>
+                            <input type="text" name="grupo" id="input-grupo" placeholder="Ej: 210" required>
                         </div>
                         <div class="form-group full">
                             <label>Nombre del Estudiante</label>
-                            <input type="text" name="alumno" placeholder="Nombre completo" required>
+                            <input type="text" name="alumno" id="input-alumno" list="datalist-alumnos" placeholder="Escribe el nombre para buscar..." required>
+                            <datalist id="datalist-alumnos"></datalist>
                         </div>
                         <div class="form-group">
                             <label>Sexo</label>
