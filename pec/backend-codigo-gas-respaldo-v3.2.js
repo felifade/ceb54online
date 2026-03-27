@@ -93,42 +93,23 @@ function doGet(e) {
        const d = sDir.getDataRange().getValues(); d.shift();
        directorio = d.map(r => ({ grupo: String(r[0]||'').trim(), materia: String(r[1]||'').trim(), docente: String(r[2]||'').trim(), correo: normalizeText(r[3]) })).filter(x => x.grupo !== "");
     }
-    let sheetProg = getSheet(ss, S_PROGRAMACION);
-    if (sheetProg) {
-       const d = sheetProg.getDataRange().getValues(); d.shift();
-       programacion = d.map(r => ({ 
-         parcial: normalizeParcial(r[0]), 
-         materia: String(r[3]||'').trim(), 
-         grupoEspecial: String(r[6]||'').trim(), // Columna G
-         correoDocente: normalizeText(r[7]) 
-       }));
+    let programacion = [];
+    const sProg = getSheet(ss, S_PROGRAMACION);
+    if (sProg) {
+       const d = sProg.getDataRange().getValues(); d.shift();
+       programacion = d.map(r => ({ parcial: normalizeParcial(r[0]), materia: String(r[3]||'').trim(), correoDocente: normalizeText(r[7]) }));
     }
 
-    // 5. CÁLCULO DE ACCESO PEC (v3.3 - Prioridad Columna G)
+    // 5. CÁLCULO DE ACCESO PEC
     let gruposDelDocente = [];
-    let audit = { email: userEmail, role: userRole, materias: [], gDirectos: [], gEspeciales: [] };
-    
+    let audit = { email: userEmail, role: userRole, materias: [], gDirectos: [], gMateria: [] };
     if (isAdmin) {
       gruposDelDocente = [...new Set([...gruposConEquipos, ...directorio.map(d => d.grupo)])].sort();
     } else if (userEmail !== "") {
-      const misProgramas = programacion.filter(p => p.correoDocente === userEmail && p.parcial === parcialActivo);
-      const tempGrupos = [];
-
-      misProgramas.forEach(p => {
-          audit.materias.push(normalizeText(p.materia));
-          if (p.grupoEspecial && p.grupoEspecial !== "") {
-              // OPCIÓN A: Prioridad Grupo Especial (Escrito en Columna G)
-              const esp = p.grupoEspecial.split(',').map(g => g.trim());
-              tempGrupos.push(...esp);
-              audit.gEspeciales.push(...esp);
-          } else {
-              // OPCIÓN B: Búsqueda cruzada por materia y correo en el Directorio
-              const matches = directorio.filter(d => d.correo === userEmail && normalizeText(d.materia) === normalizeText(p.materia));
-              tempGrupos.push(...matches.map(m => m.grupo));
-              audit.gDirectos.push(...matches.map(m => m.grupo));
-          }
-      });
-      gruposDelDocente = [...new Set(tempGrupos)].filter(g => g !== "").sort();
+      audit.gDirectos = directorio.filter(d => d.correo === userEmail).map(d => d.grupo);
+      audit.materias = programacion.filter(p => p.correoDocente === userEmail && p.parcial === parcialActivo).map(p => normalizeText(p.materia));
+      audit.gMateria = directorio.filter(d => d.correo === userEmail && audit.materias.includes(normalizeText(d.materia))).map(d => d.grupo);
+      gruposDelDocente = [...new Set([...audit.gDirectos, ...audit.gMateria])].filter(g => g !== "").sort();
     }
 
     // 6. HISTORIAL TUTORÍAS
