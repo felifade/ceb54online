@@ -1,6 +1,6 @@
 /**
- * BACKEND PARA EL PEC - GOOGLE APPS SCRIPT
- * v2.2 - RECONSTRUCCIÓN COMPLETA CON CONTROL DE ACCESO Y EXPORTACIÓN
+ * BACKEND UNIFICADO: PEC + TUTORÍAS - GOOGLE APPS SCRIPT
+ * v3.0 - FUSIÓN DE AMBOS MÓDULOS CON CONTROL DE ACCESO
  */
 
 // Nombres de las pestañas
@@ -12,14 +12,11 @@ const SHEET_TUTORIAS = "Tutorias";
 const SHEET_CONFIGURACION = "Configuracion";
 const SHEET_USUARIOS = "Usuarios";
 
-const HEADERS_ALUMNOS = ["nombre_alumno", "grupo", "numero_equipo", "tema", "url_documento"];
-const HEADERS_EVAL = ["fecha", "parcial", "grupoId", "equipoId", "equipoNombre", "materia", "docente", "puntaje", "observaciones", "alumno", "docente_email"];
-const HEADERS_DIRECTORIO = ["Grupo", "Materia", "Docente", "Correo"];
-const HEADERS_PROGRAMACION = ["Parcial", "Semestre", "Turno", "Materia", "Docente", "Ponderación", "grupoEspecial", "correo_docente"];
+// Headers Tutorías (Asumidos por estándar del sistema)
+const HEADERS_TUTORIA = ["fecha", "parcial", "semestre", "turno", "grupo", "alumno", "sexo", "motivo", "acuerdos", "tipo", "docente_email"];
 
 function normalize(val) {
   if (!val) return "";
-  // Quitar acentos, espacios y convertir a minúsculas
   return String(val)
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -33,13 +30,12 @@ function normalizeParcial(val) {
   return match ? match[0] : String(val).trim();
 }
 
-// === METODO GET ===
+// === METODO GET (Lectura Unificada) ===
 function doGet(e) {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const userEmail = normalize(e.parameter.userEmail || "");
-    let debugLog = [];
-
+    
     // 1. LEER CONFIGURACIÓN
     let config = { docente: "Felipe López Salazar", parcialActivo: "2" };
     const sheetConf = ss.getSheetByName(SHEET_CONFIGURACION);
@@ -52,38 +48,46 @@ function doGet(e) {
     }
     const parcialActivo = config.parcialActivo;
 
-    // 2. VERIFICAR ROL (Seguridad Reforzada)
+    // 2. VERIFICAR ROL (Seguridad)
     let userRole = "Docente";
     const sheetUsr = ss.getSheetByName(SHEET_USUARIOS);
     if (sheetUsr && userEmail !== "") {
       const dataUsr = sheetUsr.getDataRange().getValues();
-      // Solo buscamos si la celda de correo no está vacía en la hoja
       const userFound = dataUsr.find(r => r[0] && normalize(r[0]) === userEmail);
       if (userFound) userRole = String(userFound[3] || "Docente").trim();
     }
-    // Solo es admin si el correo es válido y el rol es 'admin'
     const isAdmin = userEmail !== "" && (userRole.toLowerCase() === "admin" || userEmail === "admin@ceb54.online");
 
-    // 3. LEER EQUIPOS (Desde Alumnos)
+    // 3. LEER EQUIPOS Y ALUMNOS (PEC + Global Tutorías)
     const sheetAlum = ss.getSheetByName(SHEET_ALUMNOS);
     const equiposMap = {}; 
     let gruposConEquipos = new Set();
+    let alumnosFull = [];
     
     if (sheetAlum) {
       const dataAlum = sheetAlum.getDataRange().getValues();
       if(dataAlum.length > 1) {
         dataAlum.shift();
         dataAlum.forEach(row => {
-          const alumno = row[1]; const grupo = String(row[2] || "").trim();
+          const alumno = String(row[1] || "").trim(); 
+          const grupo = String(row[2] || "").trim();
           const numEq = String(row[4] || "").trim();
-          if (!grupo || !alumno || numEq === "0" || numEq === "") return;
+          const sexo = String(row[6] || "H").toUpperCase(); // Columna G asumida para sexo
           
-          gruposConEquipos.add(grupo);
-          const idUnico = `${grupo}-${numEq}`;
-          if (!equiposMap[idUnico]) {
-            equiposMap[idUnico] = { id: idUnico, nombre: `Equipo ${numEq}`, grupo: grupo, tema: row[3] || "Proyecto", integrantes: [], urlDoc: row[5] || "", estado: "Pendiente" };
+          if (!alumno) return;
+
+          // Para Tutorías: Lista completa de alumnos
+          alumnosFull.push({ nombre: alumno, grupo: grupo, sexo: sexo });
+
+          // Para PEC: Equipos
+          if (grupo && numEq !== "0" && numEq !== "") {
+            gruposConEquipos.add(grupo);
+            const idUnico = `${grupo}-${numEq}`;
+            if (!equiposMap[idUnico]) {
+              equiposMap[idUnico] = { id: idUnico, nombre: `Equipo ${numEq}`, grupo: grupo, tema: row[3] || "Proyecto", integrantes: [], urlDoc: row[5] || "", estado: "Pendiente" };
+            }
+            equiposMap[idUnico].integrantes.push(alumno);
           }
-          equiposMap[idUnico].integrantes.push(alumno);
         });
       }
     }
@@ -125,71 +129,77 @@ function doGet(e) {
        }
     }
 
-    // 6. CÁLCULO DE GRUPOS DEL DOCENTE (Con Auditoría)
+    // 6. CÁLCULO DE GRUPOS DEL DOCENTE (PEC)
     let gruposDelDocente = [];
     let audit = { emailRecibido: userEmail, roleDetectado: userRole, materiasProgramadas: [], gruposDirectos: [], gruposPorMateria: [] };
 
     if (isAdmin) {
       gruposDelDocente = [...new Set([...gruposUnicos, ...directorio.map(d => d.grupo)])].sort();
     } else if (userEmail && userEmail !== "") {
-      // 1. Grupos directos (correo en Directorio)
-      audit.gruposDirectos = directorio
-        .filter(d => d.correo !== "" && d.correo === userEmail)
-        .map(d => d.grupo);
-
-      // 2. Grupos por materia (correo en Programación + coincidencia en Directorio)
-      audit.materiasProgramadas = programacion
-        .filter(p => p.correoDocente !== "" && p.correoDocente === userEmail && p.parcial === parcialActivo)
-        .map(p => normalize(p.materia));
-      
-      // SOLO mostrar los grupos donde el docente está asignado en el Directorio 
-      // Y cuya materia esté activa para él en este parcial
-      audit.gruposPorMateria = directorio
-        .filter(d => {
+      audit.gruposDirectos = directorio.filter(d => d.correo !== "" && d.correo === userEmail).map(d => d.grupo);
+      audit.materiasProgramadas = programacion.filter(p => p.correoDocente !== "" && p.correoDocente === userEmail && p.parcial === parcialActivo).map(p => normalize(p.materia));
+      audit.gruposPorMateria = directorio.filter(d => {
             const correoMatch = d.correo !== "" && d.correo === userEmail;
             const materiaMatch = audit.materiasProgramadas.length > 0 && audit.materiasProgramadas.includes(normalize(d.materia));
             return correoMatch && materiaMatch;
-        })
-        .map(d => d.grupo);
-      
+        }).map(d => d.grupo);
       gruposDelDocente = [...new Set([...audit.gruposDirectos, ...audit.gruposPorMateria])].filter(g => g !== "").sort();
     }
 
-    // 7. CALCULAR AVANCE
+    // 7. LEER TUTORIAS (Historial)
+    const sheetTut = ss.getSheetByName(SHEET_TUTORIAS);
+    let tutoriasData = [];
+    if (sheetTut) {
+       const dataTut = sheetTut.getDataRange().getValues();
+       if(dataTut.length > 1) {
+         dataTut.shift();
+         tutoriasData = dataTut.map(row => ({
+            fecha: row[0],
+            parcial: row[1],
+            semestre: row[2],
+            turno: row[3],
+            grupo: row[4],
+            alumno: row[5],
+            sexo: row[6],
+            motivo: row[7],
+            acuerdos: row[8],
+            tipo: row[9],
+            individual: row[9] === "Individual",
+            grupal: row[9] === "Grupal",
+            docente_email: normalize(row[10])
+         }));
+         // Filtrar historial si no es admin
+         if (!isAdmin && userEmail !== "") {
+            tutoriasData = tutoriasData.filter(t => t.docente_email === userEmail);
+         }
+       }
+    }
+
+    // 8. EVALUACIONES PEC
     const sheetEv = ss.getSheetByName(SHEET_EVALUACIONES);
-    let evaluaciones = [];
     const evaluadosMap = {};
+    let evaluaciones = [];
     if (sheetEv) {
        const dataEv = sheetEv.getDataRange().getValues();
        if(dataEv.length > 1) {
          dataEv.shift();
          evaluaciones = dataEv.map(row => {
-           const id = String(row[3]);
-           evaluadosMap[id] = true;
+           const id = String(row[3]); evaluadosMap[id] = true;
            return { fecha: row[0], parcial: row[1], grupoId: String(row[2]), equipoId: id, equipoNombre: row[4], materia: row[5], docente: row[6], puntaje: Number(row[7]), observaciones: row[8], alumno: row[9], docenteEmail: normalize(row[10]) };
          });
-         // Filtrar dashboard docente
-         if (!isAdmin) evaluaciones = evaluaciones.filter(ev => ev.docenteEmail === userEmail || ev.docenteEmail === "");
+         if (!isAdmin && userEmail !== "") evaluaciones = evaluaciones.filter(ev => ev.docenteEmail === userEmail || ev.docenteEmail === "");
        }
     }
 
-    // Actualizar estados de equipos con evaluados
-    const listaEquipos = Object.values(equiposMap).map(eq => {
-       if (evaluadosMap[eq.id]) eq.estado = "Evaluado";
-       return eq;
-    });
-
+    // 9. CÁLCULO AVANCE PEC
+    const listaEquipos = Object.values(equiposMap).map(eq => { if (evaluadosMap[eq.id]) eq.estado = "Evaluado"; return eq; });
     let avanceDocente = { total: 0, evaluados: 0, pendientes: 0, porcentaje: 0 };
     if (gruposDelDocente.length > 0) {
-      // Normalizar mi lista de grupos (ej: ["M201"] -> ["201"])
       const misGruposNorm = gruposDelDocente.map(g => String(g || "").replace(/^[A-Za-z]+/, ''));
-      
-      // Filtrar equipos que pertenecen a mis grupos normalizados
       const eqsMiAcceso = listaEquipos.filter(eq => {
           const eqNorm = String(eq.grupo || "").replace(/^[A-Za-z]+/, '');
           return misGruposNorm.includes(eqNorm);
       });
-      
       avanceDocente.total = eqsMiAcceso.length;
       avanceDocente.evaluados = eqsMiAcceso.filter(eq => eq.estado === 'Evaluado').length;
       avanceDocente.pendientes = avanceDocente.total - avanceDocente.evaluados;
@@ -198,17 +208,19 @@ function doGet(e) {
 
     const payload = {
       status: "success",
+      config: config,
       grupos: gruposUnicos,
       equipos: listaEquipos,
       evaluaciones: evaluaciones,
+      tutorias: tutoriasData, // Datos para Tutorías
+      alumnosFull: alumnosFull, // Listado para Tutorías
       directorio: directorio,
       programacion: programacion,
       isAdmin: isAdmin,
       gruposDelDocente: gruposDelDocente,
       parcialActivo: parcialActivo,
       avanceDocente: avanceDocente,
-      audit: audit,
-      sinEquipo: [] // omitido para brevedad en debug
+      audit: audit
     };
     
     return ContentService.createTextOutput(JSON.stringify(payload)).setMimeType(ContentService.MimeType.JSON);
@@ -218,44 +230,83 @@ function doGet(e) {
   }
 }
 
-// === METODO POST ===
+// === METODO POST (Escritura Unificada) ===
 function doPost(e) {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const body = JSON.parse(e.postData.contents);
+    const action = body.action || "";
     
-    if (body.action === "export") {
-      generarConcentradoDeAsignaturas(ss);
-      return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Reportes generados." })).setMimeType(ContentService.MimeType.JSON);
-    }
-    
-    if (body.action === "login") {
+    // 1. LOGIN
+    if (action === "login") {
       const email = normalize(body.email);
       const pass = String(body.password || "").trim();
-      
-      // Prohibir logins con campos vacíos
-      if (!email || !pass) return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Credenciales vacías" })).setMimeType(ContentService.MimeType.JSON);
-
       const sheetUser = ss.getSheetByName(SHEET_USUARIOS);
+      if (!email || !pass || !sheetUser) return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Error login" }));
       const dataUser = sheetUser.getDataRange().getValues();
       dataUser.shift();
-      
-      // Solo buscar coincidencias en filas que tengan email (ignorando vacíos en el Excel)
       const found = dataUser.find(row => row[0] && normalize(row[0]) === email && String(row[1]) === pass);
-      
-      if (found) {
-        return ContentService.createTextOutput(JSON.stringify({ 
-          status: "success", 
-          nombre: found[2], 
-          rol: found[3] || "Docente" 
-        })).setMimeType(ContentService.MimeType.JSON);
-      }
-      return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Inválido" })).setMimeType(ContentService.MimeType.JSON);
+      if (found) return ContentService.createTextOutput(JSON.stringify({ status: "success", nombre: found[2], rol: found[3] || "Docente" }));
+      return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Inválido" }));
     }
 
+    // 2. EXPORTACIÓN PEC (Sábana)
+    if (action === "export") {
+      generarConcentradoDeAsignaturas(ss);
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Reportes OK" }));
+    }
+
+    // 3. TUTORÍAS: GUARDAR
+    if (action === "saveTutoria") {
+      const sheetTut = ss.getSheetByName(SHEET_TUTORIAS);
+      const row = [body.fecha || new Date(), body.parcial, body.semestre, body.turno, body.grupo, body.alumno, body.sexo, body.motivo, body.acuerdos, body.tipo, normalize(body.docente_email)];
+      sheetTut.appendRow(row);
+      return ContentService.createTextOutput(JSON.stringify({ status: "success" }));
+    }
+
+    // 4. TUTORÍAS: ELIMINAR
+    if (action === "deleteTutoria") {
+      const sheetTut = ss.getSheetByName(SHEET_TUTORIAS);
+      const dataTut = sheetTut.getDataRange().getValues();
+      const targetFecha = new Date(body.fecha).getTime();
+      const targetAlumno = String(body.alumno).trim();
+      
+      for (let i = dataTut.length - 1; i >= 1; i--) {
+        const rowFecha = new Date(dataTut[i][0]).getTime();
+        const rowAlumno = String(dataTut[i][5]).trim();
+        if (rowFecha === targetFecha && rowAlumno === targetAlumno) {
+          sheetTut.deleteRow(i + 1);
+          break;
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify({ status: "success" }));
+    }
+
+    // 5. TUTORÍAS: ACTUALIZAR CAMPO (Sexo, Motivo, etc.)
+    if (action === "updateTutoriaField") {
+       const sheetTut = ss.getSheetByName(SHEET_TUTORIAS);
+       const dataTut = sheetTut.getDataRange().getValues();
+       const targetFecha = new Date(body.fecha).getTime();
+       const targetAlumno = String(body.alumno).trim();
+       const colMap = { "sexo": 6, "motivo": 7, "acuerdos": 8 }; // Columnas 0-indexed
+       const colIndex = colMap[body.column];
+       
+       if (colIndex !== undefined) {
+         for (let i = 1; i < dataTut.length; i++) {
+           const rowFecha = new Date(dataTut[i][0]).getTime();
+           const rowAlumno = String(dataTut[i][5]).trim();
+           if (rowFecha === targetFecha && rowAlumno === targetAlumno) {
+             sheetTut.getRange(i + 1, colIndex + 1).setValue(body.value);
+             break;
+           }
+         }
+       }
+       return ContentService.createTextOutput(JSON.stringify({ status: "success" }));
+    }
+
+    // 6. PEC: GUARDAR EVALUACIÓN (Caso por defecto)
     const sheetEval = ss.getSheetByName(SHEET_EVALUACIONES);
     const baseRow = [new Date(), body.parcial, body.grupoId, body.equipoId, body.equipoNombre, body.materia, body.docente, "", body.observaciones || "", "", normalize(body.docente_email)];
-    
     if (body.integrantes && body.integrantes.length > 0) {
        body.integrantes.forEach(indiv => {
           const rowCopy = [...baseRow]; rowCopy[7] = indiv.puntaje; rowCopy[9] = indiv.alumno;       
@@ -265,24 +316,24 @@ function doPost(e) {
        baseRow[7] = body.puntaje;
        sheetEval.appendRow(baseRow);
     }
-    
-    return ContentService.createTextOutput(JSON.stringify({ status: "success" })).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({ status: "success" }));
+
   } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: error.toString() })).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: error.toString() }));
   }
 }
 
-// FUNCIÓN DE EXPORTACIÓN (LA "SÁBANA")
+// FUNCIÓN DE EXPORTACIÓN PEC (SÁBANA)
 function generarConcentradoDeAsignaturas(ss) {
+  // (Misma lógica robusta de la v2.2)
   const sheetEv = ss.getSheetByName(SHEET_EVALUACIONES);
   const dataEv = sheetEv ? sheetEv.getDataRange().getValues() : [];
   if (dataEv.length > 0) dataEv.shift();
-  
   const scoresObj = {}; const scoresIndiv = {};
   dataEv.forEach(row => {
     const parcial = String(row[1]); const grupoEqId = String(row[3]);
     const materia = String(row[5]).trim(); const puntaje = Number(row[7]);
-    const alumnoNom = row[9] ? String(row[9]).trim() : "";
+    const alumnoNom = String(row[9] || "").trim();
     if (alumnoNom) {
         if(!scoresIndiv[alumnoNom]) scoresIndiv[alumnoNom] = {};
         if(!scoresIndiv[alumnoNom][parcial]) scoresIndiv[alumnoNom][parcial] = {};
@@ -293,7 +344,6 @@ function generarConcentradoDeAsignaturas(ss) {
         scoresObj[grupoEqId][parcial][materia] = Math.max(scoresObj[grupoEqId][parcial][materia] || 0, puntaje);
     }
   });
-
   const sheetDir = ss.getSheetByName(SHEET_DIRECTORIO);
   const directorioMap = {};
   if (sheetDir) {
@@ -308,11 +358,9 @@ function generarConcentradoDeAsignaturas(ss) {
       });
     }
   }
-
   const sheetAlum = ss.getSheetByName(SHEET_ALUMNOS);
   const dataAlum = sheetAlum ? sheetAlum.getDataRange().getValues() : [];
   dataAlum.shift();
-  
   const gruposObj = {}; 
   dataAlum.forEach(row => {
     const alumno = String(row[1]); const grupo = String(row[2]); const numEq = String(row[4]);
@@ -320,7 +368,6 @@ function generarConcentradoDeAsignaturas(ss) {
     if(!gruposObj[grupo]) gruposObj[grupo] = [];
     gruposObj[grupo].push({ alumno: alumno, equipo: numEq, scores: scoresObj[`${grupo}-${numEq}`] || {} });
   });
-
   const parciales = ["1", "2", "3"];
   for (const [grupo, alumnos] of Object.entries(gruposObj)) {
     const grupoNum = grupo.replace(/^[A-Za-z]+/, '');
@@ -332,16 +379,11 @@ function generarConcentradoDeAsignaturas(ss) {
     });
     const materias = todasMaterias.filter(m => materiasEvaluadas.has(m));
     if (materias.length === 0) continue;
-
-    const sheetName = `Sábana_${grupo}`;
+    const sheetName = `Sabana_${grupo}`;
     let sheetRep = ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
     sheetRep.clear();
-
     let fila1 = ["EQUIPO", "ESTUDIANTE"]; let fila2 = ["", ""];
-    parciales.forEach(p => {
-       materias.forEach(m => { fila1.push(`PARCIAL ${p}`); fila2.push(m); });
-       fila1.push(`PARCIAL ${p}`); fila2.push("PROMEDIO");
-    });
+    parciales.forEach(p => { materias.forEach(m => { fila1.push(`PARCIAL ${p}`); fila2.push(m); }); fila1.push(`PARCIAL ${p}`); fila2.push("PROMEDIO"); });
     const outputData = [fila1, fila2];
     alumnos.sort((a,b) => a.alumno.localeCompare(b.alumno));
     alumnos.forEach(alum => {
@@ -349,8 +391,7 @@ function generarConcentradoDeAsignaturas(ss) {
        parciales.forEach(p => {
          let sub = 0; let c = 0;
          materias.forEach(m => {
-            let s = "";
-            if (scoresIndiv[alum.alumno] && scoresIndiv[alum.alumno][p] && scoresIndiv[alum.alumno][p][m] !== undefined) s = scoresIndiv[alum.alumno][p][m];
+            let s = ""; if (scoresIndiv[alum.alumno] && scoresIndiv[alum.alumno][p] && scoresIndiv[alum.alumno][p][m] !== undefined) s = scoresIndiv[alum.alumno][p][m];
             else if (alum.scores[p] && alum.scores[p][m] !== undefined) s = alum.scores[p][m];
             fila.push(s); if(s !== "") { sub += Number(s); c++; }
          });
