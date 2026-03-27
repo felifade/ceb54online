@@ -55,12 +55,29 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('report-teacher-name').textContent = allData.config.docente;
             }
             
+            populateSubjects();
             renderAll();
-            setupAutoSuggest();
+            setupGroupSelection();
         } catch (error) {
             console.error("Error cargando datos:", error);
             alert("Error al conectar con la base de datos.");
         }
+    }
+
+    function populateSubjects() {
+        const select = document.getElementById('select-asignatura');
+        if (!select) return;
+
+        // Materias únicas de Directorio y Programación
+        const allSubjects = [
+            ...allData.directorio.map(d => d.materia),
+            ...allData.programacion.map(p => p.materia)
+        ];
+        const uniqueSubjects = [...new Set(allSubjects)].filter(s => s).sort();
+
+        select.innerHTML = '<option value="">-- Elige una materia --</option>' + 
+            uniqueSubjects.map(s => `<option value="${s}">${s}</option>`).join('') +
+            '<option value="OTRA">-- OTRA (Escribir en Tema/Asunto) --</option>';
     }
 
     function renderAll() {
@@ -160,33 +177,40 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('report-parcial-filter').addEventListener('change', renderReporte);
 
-    // --- AUTOMATION & SUGGESTIONS ---
-    function setupAutoSuggest() {
+    // --- AUTOMATION & GROUP SELECTION ---
+    function setupGroupSelection() {
         const inputGrupo = document.getElementById('input-grupo');
-        const inputAlumno = document.getElementById('input-alumno');
-        const datalist = document.getElementById('datalist-alumnos');
+        const container = document.getElementById('students-checkbox-list');
+        const btnSelectAll = document.getElementById('btn-select-all');
 
-        // Filter Students by Group
         inputGrupo.addEventListener('input', () => {
-            const val = inputGrupo.value.trim();
+            const val = inputGrupo.value.trim().toUpperCase();
             if (val.length >= 2) {
-                const filtered = allData.alumnosFull.filter(a => a.grupo === val);
-                datalist.innerHTML = filtered.map(a => `<option value="${a.nombre}" data-sexo="${a.sexo}">`).join('');
+                const students = allData.alumnosFull.filter(a => a.grupo.toUpperCase() === val);
+                
+                if (students.length > 0) {
+                    btnSelectAll.style.display = 'block';
+                    container.innerHTML = students.map(a => `
+                        <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; padding: 4px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+                            <input type="checkbox" name="selected_students" value="${a.nombre}" data-sexo="${a.sexo}" style="width: auto;">
+                            <span>${a.nombre}</span>
+                        </label>
+                    `).join('');
+                } else {
+                    btnSelectAll.style.display = 'none';
+                    container.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; grid-column: 1/-1;">No se encontraron alumnos en este grupo.</p>';
+                }
             } else {
-                datalist.innerHTML = '';
+                btnSelectAll.style.display = 'none';
+                container.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; grid-column: 1/-1;">Ingresa un grupo para ver la lista de alumnos...</p>';
             }
         });
 
-        // Auto-fill gender on student selection
-        inputAlumno.addEventListener('input', () => {
-            const val = inputAlumno.value.trim();
-            const found = allData.alumnosFull.find(a => a.nombre === val && a.grupo === inputGrupo.value.trim());
-            if (found && found.sexo) {
-                const sexoSelect = document.querySelector('select[name="sexo"]');
-                if (found.sexo.toUpperCase().startsWith('H') || found.sexo.toUpperCase().startsWith('M')) {
-                    sexoSelect.value = found.sexo.toUpperCase().startsWith('H') ? 'H' : 'F';
-                }
-            }
+        btnSelectAll.addEventListener('click', () => {
+            const checks = container.querySelectorAll('input[type="checkbox"]');
+            const allChecked = Array.from(checks).every(c => c.checked);
+            checks.forEach(c => c.checked = !allChecked);
+            btnSelectAll.textContent = allChecked ? 'Seleccionar todos' : 'Deseleccionar todos';
         });
     }
 
@@ -196,11 +220,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.preventDefault();
         const formData = new FormData(form);
         
+        // Obtener alumnos seleccionados
+        const selectedChecks = document.querySelectorAll('input[name="selected_students"]:checked');
+        if (selectedChecks.length === 0) {
+            alert("Por favor, selecciona al menos un estudiante.");
+            return;
+        }
+
+        const alumnosArray = Array.from(selectedChecks).map(c => ({
+            nombre: c.value,
+            sexo: c.dataset.sexo || "H"
+        }));
+
         const payload = {
             parcial: formData.get('parcial'),
-            grupo: formData.get('grupo'),
-            alumno: formData.get('alumno'),
-            sexo: formData.get('sexo'),
+            grupo: formData.get('grupo').toUpperCase(),
+            alumnos: alumnosArray,
             asignatura: formData.get('asignatura'),
             regular: formData.get('alumno_tipo') === 'regular',
             intra: formData.get('alumno_tipo') === 'intra',
@@ -216,11 +251,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const result = await api.guardarTutoria(payload);
             if (result.status === 'success') {
-                alert("Tutoría registrada con éxito.");
+                alert(`¡Éxito! Se registraron ${alumnosArray.length} tutorías.`);
                 form.reset();
+                document.getElementById('students-checkbox-list').innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; grid-column: 1/-1;">Ingresa un grupo para ver la lista de alumnos...</p>';
+                document.getElementById('btn-select-all').style.display = 'none';
+                
                 // Volver al dashboard
                 document.querySelector('[data-view="dashboard"]').click();
-                loadInitialData(); // Recargar todo
+                loadInitialData(); 
             } else {
                 throw new Error(result.message);
             }

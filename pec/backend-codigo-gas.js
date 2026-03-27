@@ -339,22 +339,28 @@ function doPost(e) {
     // CASO C: Guardar tutoría
     if (body.action === "saveTutoria") {
       const sheetTut = ss.getSheetByName(SHEET_TUTORIAS);
-      const rowTut = [
-        new Date(),
-        body.parcial,
-        body.grupo,
-        body.alumno,
-        body.sexo,
-        body.asignatura,
-        body.regular ? "X" : "",
-        body.intra ? "X" : "",
-        body.tema,
-        body.grupal ? "X" : "",
-        body.individual ? "X" : "",
-        body.docente_email || ""
-      ];
-      sheetTut.appendRow(rowTut);
-      return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Tutoría guardada." })).setMimeType(ContentService.MimeType.JSON);
+      // Soporte para múltiples alumnos o uno solo
+      const students = body.alumnos || [{ nombre: body.alumno, sexo: body.sexo }];
+      
+      students.forEach(st => {
+        const rowTut = [
+          new Date(),
+          body.parcial,
+          body.grupo,
+          st.nombre,
+          st.sexo,
+          body.asignatura,
+          body.regular ? "X" : "",
+          body.intra ? "X" : "",
+          body.tema,
+          body.grupal ? "X" : "",
+          body.individual ? "X" : "",
+          body.docente_email || ""
+        ];
+        sheetTut.appendRow(rowTut);
+      });
+      
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Tutoría(s) guardada(s)." })).setMimeType(ContentService.MimeType.JSON);
     }
 
     // CASO D: Guardar evaluación regular

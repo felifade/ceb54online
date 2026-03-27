@@ -29,7 +29,9 @@ const api = {
             grupos: db.grupos || [],
             tutorias: tutorias,
             config: db.config || { docente: "Felipe López Salazar" },
-            alumnosFull: db.alumnosFull || []
+            alumnosFull: db.alumnosFull || [],
+            directorio: db.directorio || [],
+            programacion: db.programacion || []
         };
     },
 
