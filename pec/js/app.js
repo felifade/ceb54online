@@ -606,16 +606,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (selectGrupo.options.length <= 1) { // Solo opción default
             showLoader();
-            const todosGrupos = await api.getGrupos();
-
-            // FILTRAR GRUPOS: Si el docente tiene grupos asignados, solo mostrar los suyos
+            
+            // FILTRAR GRUPOS: 
+            // - Admin: ve grupos que tienen datos (api.getGrupos)
+            // - Docente: ve sus grupos asignados (PEC_USER.gruposAsignados)
             let gruposAMostrar;
-            if (PEC_USER.isAdmin || PEC_USER.gruposAsignados.length === 0) {
-                // Admin ve todos; si no hay asignados tampoco filtramos (evita select vacío)
-                gruposAMostrar = [...todosGrupos];
+            
+            if (PEC_USER.isAdmin) {
+                const todosConEquipos = await api.getGrupos();
+                gruposAMostrar = [...todosConEquipos];
             } else {
-                // Docente con grupos: solo sus grupos
-                gruposAMostrar = todosGrupos.filter(g => PEC_USER.gruposAsignados.includes(g));
+                // Para el docente, confiamos en lo que calculó el backend para él
+                gruposAMostrar = [...PEC_USER.gruposAsignados];
+                
                 // Actualizar label del select
                 const lbl = document.getElementById('label-select-grupo');
                 if (lbl) lbl.textContent = `Selecciona uno de tus ${gruposAMostrar.length} grupo(s):`;
