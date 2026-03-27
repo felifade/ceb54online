@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 equiposPorGrupo[g]++;
             });
             
-            listGrupos.innerHTML = (data.grupos || []).map(g => {
+            listGrupos.innerHTML = (data.grupos || []).sort((a, b) => String(a).localeCompare(String(b), undefined, {numeric: true})).map(g => {
                 const count = equiposPorGrupo[g] || 0;
                 return `<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:6px 12px; font-size:0.85rem; font-weight:500; color:#334155;">
                     <span style="color:#2563eb; font-weight:700; margin-right:4px;">${g}</span>
@@ -434,7 +434,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (selectGrupo.options.length <= 1) { // Solo opción default
             showLoader();
             const grupos = await api.getGrupos();
-            grupos.forEach(g => {
+            // Ordenar grupos alfabéticamente
+            const gruposOrdenados = [...grupos].sort((a, b) => String(a).localeCompare(String(b), undefined, {numeric: true}));
+            
+            gruposOrdenados.forEach(g => {
                 const opt = document.createElement('option');
                 opt.value = g; opt.textContent = `Grupo ${g}`;
                 selectGrupo.appendChild(opt);
@@ -456,7 +459,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         showLoader();
-        const equipos = await api.getEquiposPorGrupo(grupoId);
+        let equipos = await api.getEquiposPorGrupo(grupoId);
+        
+        // Ordenar equipos alfabéticamente por nombre
+        equipos.sort((a, b) => String(a.nombre).localeCompare(String(b.nombre)));
+        
         containerEquipos.innerHTML = '';
         
         if (equipos.length === 0) {
