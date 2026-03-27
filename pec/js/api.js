@@ -2,7 +2,7 @@
 
 const USE_MOCK = false;
 // La URL que te dará Google Apps Script cuando lo publiques
-const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbw5SdbLaVayI5AEnNrSvHwWGm8IztPL_ClR8q4kwJa4BaWaKPQb7IWclAHvC39MooeLAQ/exec";
+const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbyZBI09q4tBG1QXXwXM2vc3wNDES9fIA3qNRAM24VDT1ICQ7WbrE_TbQZ85Dg4RvBGEDg/exec";
 
 const api = {
     // Almacén temporal de datos para no recargar en cada clic
