@@ -121,7 +121,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         tbody.innerHTML = allData.tutorias.map(t => `
             <tr style="border-bottom: 1px solid #f8fafc;">
                 <td style="padding:1rem; font-size:0.85rem;">${new Date(t.fecha).toLocaleDateString()}</td>
-                <td style="padding:1rem; font-size:0.85rem;">Parcial ${t.parcial}</td>
+                <td style="padding:1rem; font-size:0.85rem;">
+                    <span onclick="toggleTutoriaParcial('${t.fecha}', '${t.alumno.replace(/'/g, "\\'")}', ${t.parcial})"
+                          title="Click para cambiar parcial"
+                          style="cursor:pointer; font-weight:700; color:#3b82f6; background:#eff6ff; padding:2px 8px; border-radius:4px; border:1px solid #dbeafe;">
+                        Parcial ${t.parcial}
+                    </span>
+                </td>
                 <td style="padding:1rem; font-size:0.85rem; font-weight:700;">${t.grupo}</td>
                 <td style="padding:1rem; font-size:0.85rem;">
                     ${t.alumno} 
@@ -171,9 +177,35 @@ document.addEventListener('DOMContentLoaded', async () => {
         badge.style.pointerEvents = "none";
         
         try {
-            const result = await api.actualizarSexo(fecha, alumno, nuevoSexo);
+            const result = await api.actualizarCampo(fecha, alumno, 5, nuevoSexo); // Columna 5 = Sexo
             if (result.status === 'success') {
-                // Forzar recarga completa para asegurar que vemos el cambio
+                await loadInitialData(); 
+            } else {
+                alert("Error al actualizar: " + result.message);
+                badge.innerHTML = originalContent;
+                badge.style.opacity = "1";
+                badge.style.pointerEvents = "auto";
+            }
+        } catch (error) {
+            alert("Error de conexión: " + error.message);
+            badge.innerHTML = originalContent;
+            badge.style.opacity = "1";
+            badge.style.pointerEvents = "auto";
+        }
+    };
+
+    window.toggleTutoriaParcial = async (fecha, alumno, parcialActual) => {
+        const nuevoParcial = parcialActual >= 3 ? 1 : parcialActual + 1;
+        
+        const badge = event.currentTarget;
+        const originalContent = badge.innerHTML;
+        badge.innerHTML = "...";
+        badge.style.opacity = "0.5";
+        badge.style.pointerEvents = "none";
+        
+        try {
+            const result = await api.actualizarCampo(fecha, alumno, 2, nuevoParcial); // Columna 2 = Parcial
+            if (result.status === 'success') {
                 await loadInitialData(); 
             } else {
                 alert("Error al actualizar: " + result.message);

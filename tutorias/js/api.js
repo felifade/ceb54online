@@ -88,12 +88,13 @@ const api = {
         return result;
     },
 
-    async actualizarSexo(fecha, alumno, nuevoSexo) {
+    async actualizarCampo(fecha, alumno, columna, valor) {
         const payload = {
-            action: "updateTutoriaSexo",
+            action: "updateTutoriaField",
             fecha: fecha,
             alumno: alumno,
-            sexo: nuevoSexo,
+            column: columna,
+            value: valor,
             docente_email: sessionStorage.getItem('user_email') || ""
         };
 

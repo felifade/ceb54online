@@ -382,24 +382,23 @@ function doPost(e) {
       return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "No encontrado en la base de datos." })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    if (body.action === "updateTutoriaSexo") {
+    if (body.action === "updateTutoriaField") {
       const sheetTut = ss.getSheetByName(SHEET_TUTORIAS);
       const data = sheetTut.getDataRange().getValues();
       const targetTime = new Date(body.fecha).getTime();
       const targetAlumno = String(body.alumno).trim();
-      const newSexo = body.sexo;
       
       for (let i = data.length - 1; i >= 1; i--) {
         const rowDate = new Date(data[i][0]);
         const rowAlumno = String(data[i][3]).trim();
         
         if (Math.abs(rowDate.getTime() - targetTime) < 10000 && rowAlumno === targetAlumno) {
-          sheetTut.getRange(i + 1, 5).setValue(newSexo); // Columna E (Sexo)
-          SpreadsheetApp.flush(); // Asegurar guardado inmediato
-          return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Sexo actualizado." })).setMimeType(ContentService.MimeType.JSON);
+          sheetTut.getRange(i + 1, body.column).setValue(body.value); 
+          SpreadsheetApp.flush();
+          return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Campo actualizado." })).setMimeType(ContentService.MimeType.JSON);
         }
       }
-      return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "No encontrado." })).setMimeType(ContentService.MimeType.JSON);
+      return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "No encontrado en la base de datos." })).setMimeType(ContentService.MimeType.JSON);
     }
 
     // CASO D: Guardar evaluación regular
