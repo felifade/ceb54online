@@ -1,6 +1,6 @@
 // tutorias/js/api.js
 
-const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbyQy6U-Vt60WDHQ6jqAX-PVzoRWFwh0-Pu1dr4Do5gLf1ynpjyiDzlOe5LL5vohrNjC6Q/exec";
+const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbzdIhrRqPS3Sk6aZ4GfTFNEBM61uofVdOBFXoW0aYfIPv-JpyT3KrMrP6QxquS-h4V_EQ/exec";
 
 const api = {
     cache: null,
