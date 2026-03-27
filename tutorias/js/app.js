@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <tr style="border-bottom: 1px solid #f8fafc;">
                 <td style="padding:1rem; font-size:0.85rem;">${new Date(t.fecha).toLocaleDateString()}</td>
                 <td style="padding:1rem; font-size:0.85rem;">
-                    <span onclick="toggleTutoriaParcial('${t.fecha}', '${t.alumno.replace(/'/g, "\\'")}', ${t.parcial})"
+                    <span onclick="toggleTutoriaParcial(event, '${t.fecha}', '${t.alumno.replace(/'/g, "\\'")}', ${t.parcial})"
                           title="Click para cambiar parcial"
                           style="cursor:pointer; font-weight:700; color:#3b82f6; background:#eff6ff; padding:2px 8px; border-radius:4px; border:1px solid #dbeafe;">
                         Parcial ${t.parcial}
@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td style="padding:1rem; font-size:0.85rem; font-weight:700;">${t.grupo}</td>
                 <td style="padding:1rem; font-size:0.85rem;">
                     ${t.alumno} 
-                    <span onclick="toggleTutoriaSexo('${t.fecha}', '${t.alumno.replace(/'/g, "\\'")}', '${t.sexo}')" 
+                    <span onclick="toggleTutoriaSexo(event, '${t.fecha}', '${t.alumno.replace(/'/g, "\\'")}', '${t.sexo}')" 
                           title="Click para cambiar sexo"
                           style="cursor:pointer; font-size:0.7rem; font-weight:700; padding:2px 6px; border-radius:4px; margin-left:4px; background:${t.sexo === 'H' ? '#dcfce7' : '#fce7f3'}; color:${t.sexo === 'H' ? '#166534' : '#9d174d'}; border: 1px solid ${t.sexo === 'H' ? '#bbf7d0' : '#fbcfe8'};">
                         ${t.sexo}
@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    window.toggleTutoriaSexo = async (fecha, alumno, sexoActual) => {
+    window.toggleTutoriaSexo = async (event, fecha, alumno, sexoActual) => {
         const nuevoSexo = sexoActual === 'H' ? 'F' : 'H';
         
         // Efecto visual inmediato de "cargando"
@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    window.toggleTutoriaParcial = async (fecha, alumno, parcialActual) => {
+    window.toggleTutoriaParcial = async (event, fecha, alumno, parcialActual) => {
         const nuevoParcial = parcialActual >= 3 ? 1 : parcialActual + 1;
         
         const badge = event.currentTarget;
