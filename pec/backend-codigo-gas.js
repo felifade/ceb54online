@@ -47,15 +47,17 @@ function doGet(e) {
     }
     const parcialActivo = config.parcialActivo;
 
-    // 2. VERIFICAR ROL
+    // 2. VERIFICAR ROL (Seguridad Reforzada)
     let userRole = "Docente";
     const sheetUsr = ss.getSheetByName(SHEET_USUARIOS);
-    if (sheetUsr) {
+    if (sheetUsr && userEmail !== "") {
       const dataUsr = sheetUsr.getDataRange().getValues();
-      const userFound = dataUsr.find(r => normalize(r[0]) === userEmail);
+      // Solo buscamos si la celda de correo no está vacía en la hoja
+      const userFound = dataUsr.find(r => r[0] && normalize(r[0]) === userEmail);
       if (userFound) userRole = String(userFound[3] || "Docente").trim();
     }
-    const isAdmin = userRole.toLowerCase() === "admin" || userEmail === "admin@ceb54.online";
+    // Solo es admin si el correo es válido y el rol es 'admin'
+    const isAdmin = userEmail !== "" && (userRole.toLowerCase() === "admin" || userEmail === "admin@ceb54.online");
 
     // 3. LEER EQUIPOS (Desde Alumnos)
     const sheetAlum = ss.getSheetByName(SHEET_ALUMNOS);
@@ -214,11 +216,26 @@ function doPost(e) {
     }
     
     if (body.action === "login") {
+      const email = normalize(body.email);
+      const pass = String(body.password || "").trim();
+      
+      // Prohibir logins con campos vacíos
+      if (!email || !pass) return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Credenciales vacías" })).setMimeType(ContentService.MimeType.JSON);
+
       const sheetUser = ss.getSheetByName(SHEET_USUARIOS);
       const dataUser = sheetUser.getDataRange().getValues();
       dataUser.shift();
-      const found = dataUser.find(row => normalize(row[0]) === normalize(body.email) && String(row[1]) === String(body.password));
-      if (found) return ContentService.createTextOutput(JSON.stringify({ status: "success", nombre: found[2], rol: found[3] || "Docente" })).setMimeType(ContentService.MimeType.JSON);
+      
+      // Solo buscar coincidencias en filas que tengan email (ignorando vacíos en el Excel)
+      const found = dataUser.find(row => row[0] && normalize(row[0]) === email && String(row[1]) === pass);
+      
+      if (found) {
+        return ContentService.createTextOutput(JSON.stringify({ 
+          status: "success", 
+          nombre: found[2], 
+          rol: found[3] || "Docente" 
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
       return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Inválido" })).setMimeType(ContentService.MimeType.JSON);
     }
 

@@ -36,9 +36,22 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     window.PEC_USER.isAdmin = PEC_USER.role.toLowerCase() === 'admin';
 
-    // Establecer nombre en topbar
+    // Establecer nombre y ROL en topbar
     const userNameEl = document.getElementById('topbar-user-name');
-    if (userNameEl && PEC_USER.nombre) userNameEl.textContent = PEC_USER.nombre;
+    const roleBadgeEl = document.getElementById('user-role-badge');
+    
+    if (userNameEl) userNameEl.textContent = PEC_USER.nombre || "Usuario";
+    if (roleBadgeEl) {
+        roleBadgeEl.textContent = PEC_USER.role || "Docente";
+        // Estilo visual según rol
+        if (PEC_USER.role === 'Admin') {
+            roleBadgeEl.style.background = '#fef2f2';
+            roleBadgeEl.style.color = '#991b1b';
+        } else {
+            roleBadgeEl.style.background = '#e0f2fe';
+            roleBadgeEl.style.color = '#0369a1';
+        }
+    }
 
     // =============================================
     function aplicarControlAcceso(data) {
@@ -64,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
             navGrupos.classList.remove('nav-item-disabled');
             navGrupos.setAttribute('data-view', 'grupos');
             
-            // Badge
+            // Badge con conteo
             let badge = navGrupos.querySelector('.nav-badge');
             if (!badge) {
                 badge = document.createElement('span');
