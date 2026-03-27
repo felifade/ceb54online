@@ -123,7 +123,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td style="padding:1rem; font-size:0.85rem;">${new Date(t.fecha).toLocaleDateString()}</td>
                 <td style="padding:1rem; font-size:0.85rem;">Parcial ${t.parcial}</td>
                 <td style="padding:1rem; font-size:0.85rem; font-weight:700;">${t.grupo}</td>
-                <td style="padding:1rem; font-size:0.85rem;">${t.alumno} <small style="color:#94a3b8;">(${t.sexo})</small></td>
+                <td style="padding:1rem; font-size:0.85rem;">
+                    ${t.alumno} 
+                    <span onclick="toggleTutoriaSexo('${t.fecha}', '${t.alumno.replace(/'/g, "\\'")}', '${t.sexo}')" 
+                          title="Click para cambiar sexo"
+                          style="cursor:pointer; font-size:0.7rem; font-weight:700; padding:2px 6px; border-radius:4px; margin-left:4px; background:${t.sexo === 'H' ? '#dcfce7' : '#fce7f3'}; color:${t.sexo === 'H' ? '#166534' : '#9d174d'}; border: 1px solid ${t.sexo === 'H' ? '#bbf7d0' : '#fbcfe8'};">
+                        ${t.sexo}
+                    </span>
+                </td>
                 <td style="padding:1rem; font-size:0.85rem;">${t.asignatura}</td>
                 <td style="padding:1rem; font-size:0.85rem;">${t.individual ? 'Individual' : 'Grupal'}</td>
                 <td style="padding:1rem; font-size:0.85rem; color:#64748b; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${t.tema}</td>
@@ -147,6 +154,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                 loadInitialData(); // Recargar todo
             } else {
                 alert("Error al eliminar: " + result.message);
+            }
+        } catch (error) {
+            alert("Error de conexión: " + error.message);
+        }
+    };
+
+    window.toggleTutoriaSexo = async (fecha, alumno, sexoActual) => {
+        const nuevoSexo = sexoActual === 'H' ? 'F' : 'H';
+        
+        try {
+            const result = await api.actualizarSexo(fecha, alumno, nuevoSexo);
+            if (result.status === 'success') {
+                loadInitialData(); // Recargar para mostrar cambio
+            } else {
+                alert("Error al actualizar: " + result.message);
             }
         } catch (error) {
             alert("Error de conexión: " + error.message);
