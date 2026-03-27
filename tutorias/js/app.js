@@ -68,10 +68,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const select = document.getElementById('select-asignatura');
         if (!select) return;
 
-        // Materias únicas de Directorio y Programación
+        // Materias únicas de Directorio y Programación (Protegido contra nulos)
+        const directorio = allData.directorio || [];
+        const programacion = allData.programacion || [];
+        
         const allSubjects = [
-            ...allData.directorio.map(d => d.materia),
-            ...allData.programacion.map(p => p.materia)
+            ...directorio.map(d => d.materia),
+            ...programacion.map(p => p.materia)
         ];
         const uniqueSubjects = [...new Set(allSubjects)].filter(s => s).sort();
 
