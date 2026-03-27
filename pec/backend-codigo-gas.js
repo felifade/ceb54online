@@ -161,7 +161,15 @@ function doGet(e) {
 
     let avanceDocente = { total: 0, evaluados: 0, pendientes: 0, porcentaje: 0 };
     if (gruposDelDocente.length > 0) {
-      const eqsMiAcceso = listaEquipos.filter(eq => gruposDelDocente.includes(eq.grupo));
+      // Normalizar mi lista de grupos (ej: ["M201"] -> ["201"])
+      const misGruposNorm = gruposDelDocente.map(g => String(g || "").replace(/^[A-Za-z]+/, ''));
+      
+      // Filtrar equipos que pertenecen a mis grupos normalizados
+      const eqsMiAcceso = listaEquipos.filter(eq => {
+          const eqNorm = String(eq.grupo || "").replace(/^[A-Za-z]+/, '');
+          return misGruposNorm.includes(eqNorm);
+      });
+      
       avanceDocente.total = eqsMiAcceso.length;
       avanceDocente.evaluados = eqsMiAcceso.filter(eq => eq.estado === 'Evaluado').length;
       avanceDocente.pendientes = avanceDocente.total - avanceDocente.evaluados;
