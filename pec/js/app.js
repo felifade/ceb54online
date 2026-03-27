@@ -4,6 +4,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // Inicializar íconos
     feather.replace();
 
+    // Helper para normalizar el Parcial (convierte "Parcial 1" o "1" en solo "1")
+    const normalizeParcial = (val) => {
+        if (!val) return "";
+        const match = String(val).match(/\d+/);
+        return match ? match[0] : String(val).trim();
+    };
+
     // Establecer nombre de usuario desde la sesión
     const userName = sessionStorage.getItem('user_name');
     if (userName) {
@@ -267,21 +274,28 @@ document.addEventListener("DOMContentLoaded", () => {
             const segGrupo = document.getElementById('seg-grupo');
             if (segParcial) segParcial.addEventListener('change', renderSeguimiento);
             if (segGrupo) segGrupo.addEventListener('change', renderSeguimiento);
-                  // === PANEL DE PONDERACIONES (Premium UI) ===
+
+            // === PANEL DE PONDERACIONES (Premium UI) ===
             const renderPonderaciones = () => {
                 const pondParcialEl = document.getElementById('pond-parcial');
                 if (!pondParcialEl) return;
-                const parcialPond = pondParcialEl.value;
-                const progFiltrada = programacion.filter(p => String(p.parcial) === parcialPond);
+                const parcialPond = normalizeParcial(pondParcialEl.value);
+                
+                // Filtro resiliente: normalizamos ambos lados de la comparación
+                const progFiltrada = programacion.filter(p => normalizeParcial(p.parcial) === parcialPond);
+                
+                // Diagnóstico para consola
+                console.log(`DEBUG - Ponderaciones Parcial ${parcialPond}: filtradas ${progFiltrada.length} de ${programacion.length}`);
+                
                 const container = document.getElementById('pond-container');
-
                 if (!container) return;
+                
                 if (progFiltrada.length === 0) {
                     container.innerHTML = `
                         <div style="text-align:center; padding:3rem; color:#64748b; background:#f8fafc; border:2px dashed #e2e8f0; border-radius:16px;">
                             <div style="font-size:2rem; margin-bottom:1rem;">📋</div>
                             <p style="font-weight:600; margin:0;">No hay materias programadas para el Parcial ${parcialPond}</p>
-                            <p style="font-size:0.85rem; margin-top:0.5rem;">Agrega la información en la pestaña "Programación" de tu Google Sheets.</p>
+                            <p style="font-size:0.85rem; margin-top:0.5rem;">Agrega la información en la pestaña "Programación" de tu Google Sheets (columna Parcial debe tener el número).</p>
                         </div>
                     `;
                     return;

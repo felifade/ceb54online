@@ -18,6 +18,13 @@ const HEADERS_DIRECTORIO = ["Grupo", "Materia", "Docente", "Correo"];
 const HEADERS_PROGRAMACION = ["Parcial", "Semestre", "Turno", "Materia", "Docente", "Ponderación"];
 const HEADERS_TUTORIAS = ["fecha_registro", "parcial", "grupo", "nombre_estudiante", "sexo", "asignatura", "alumno_regular", "alumno_intra", "tema_asunto", "tutoria_grupal", "tutoria_individual"];
 
+// Helper para extraer solo el número de un texto (ej: "Parcial 1" -> "1")
+function normalizeParcial(val) {
+  if (!val) return "";
+  const match = String(val).match(/\d+/);
+  return match ? match[0] : String(val).trim();
+}
+
 // === 1. CONFIGURACIÓN INICIAL ===
 // Ejecuta esta función una sola vez para crear las hojas y cabeceras si no existen
 function setupInitialize() {
@@ -180,15 +187,18 @@ function doGet(e) {
 
     // 4. LEER PROGRAMACIÓN
     let programacion = [];
-    const sheetProg = ss.getSheetByName(SHEET_PROGRAMACION);
+    let sheetProg = ss.getSheetByName(SHEET_PROGRAMACION);
+    // Intentar sin acento si falla con acento
+    if (!sheetProg) sheetProg = ss.getSheetByName("Programacion");
+    
     if (sheetProg) {
        const dataProg = sheetProg.getDataRange().getValues();
        if (dataProg.length > 1) {
           dataProg.shift();
           programacion = dataProg.map(row => ({
-             parcial: String(row[0] || ''),
+             parcial: normalizeParcial(row[0]),
              semestre: String(row[1] || ''),
-             turno: String(row[2] || ''),
+             turno: String(row[2] || '').toUpperCase(),
              materia: String(row[3] || ''),
              docente: String(row[4] || ''),
              ponderacion: Number(row[5] || 0),
@@ -199,14 +209,17 @@ function doGet(e) {
 
     // 5. LEER TUTORÍAS
     let tutorias = [];
-    const sheetTut = ss.getSheetByName(SHEET_TUTORIAS);
+    let sheetTut = ss.getSheetByName(SHEET_TUTORIAS);
+    // Intentar sin acento si falla
+    if (!sheetTut) sheetTut = ss.getSheetByName("Tutorias");
+
     if (sheetTut) {
        const dataTut = sheetTut.getDataRange().getValues();
        if (dataTut.length > 1) {
           dataTut.shift();
           tutorias = dataTut.map(row => ({
              fecha: row[0],
-             parcial: String(row[1] || ''),
+             parcial: normalizeParcial(row[1]),
              grupo: String(row[2] || ''),
              alumno: String(row[3] || ''),
              sexo: String(row[4] || ''),
