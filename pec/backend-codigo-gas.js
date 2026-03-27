@@ -19,7 +19,12 @@ const HEADERS_PROGRAMACION = ["Parcial", "Semestre", "Turno", "Materia", "Docent
 
 function normalize(val) {
   if (!val) return "";
-  return String(val).toLowerCase().trim();
+  // Quitar acentos, espacios y convertir a minúsculas
+  return String(val)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
 }
 
 function normalizeParcial(val) {
@@ -120,26 +125,28 @@ function doGet(e) {
        }
     }
 
-    // 6. CÁLCULO DE GRUPOS DEL DOCENTE
+    // 6. CÁLCULO DE GRUPOS DEL DOCENTE (Con Auditoría)
     let gruposDelDocente = [];
+    let audit = { emailRecibido: userEmail, roleDetectado: userRole, materiasProgramadas: [], gruposDirectos: [], gruposPorMateria: [] };
+
     if (isAdmin) {
       gruposDelDocente = [...new Set([...gruposUnicos, ...directorio.map(d => d.grupo)])].sort();
     } else if (userEmail && userEmail !== "") {
-      // 1. Grupos donde su correo aparece directo en el Directorio (Validando que no sea vacío)
-      const gruposDirectos = directorio
+      // 1. Grupos directos (correo en Directorio)
+      audit.gruposDirectos = directorio
         .filter(d => d.correo !== "" && d.correo === userEmail)
         .map(d => d.grupo);
 
-      // 2. Grupos por materia en Programación (Validando que no sea vacío)
-      const materiasEnParcial = programacion
+      // 2. Grupos por materia (correo en Programación)
+      audit.materiasProgramadas = programacion
         .filter(p => p.correoDocente !== "" && p.correoDocente === userEmail && p.parcial === parcialActivo)
         .map(p => normalize(p.materia));
       
-      const gruposPorMateria = directorio
-        .filter(d => materiasEnParcial.length > 0 && materiasEnParcial.includes(normalize(d.materia)))
+      audit.gruposPorMateria = directorio
+        .filter(d => audit.materiasProgramadas.length > 0 && audit.materiasProgramadas.includes(normalize(d.materia)))
         .map(d => d.grupo);
       
-      gruposDelDocente = [...new Set([...gruposDirectos, ...gruposPorMateria])].filter(g => g !== "").sort();
+      gruposDelDocente = [...new Set([...audit.gruposDirectos, ...audit.gruposPorMateria])].filter(g => g !== "").sort();
     }
 
     // 7. CALCULAR AVANCE
@@ -194,6 +201,7 @@ function doGet(e) {
       gruposDelDocente: gruposDelDocente,
       parcialActivo: parcialActivo,
       avanceDocente: avanceDocente,
+      audit: audit,
       sinEquipo: [] // omitido para brevedad en debug
     };
     

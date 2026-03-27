@@ -61,6 +61,17 @@ document.addEventListener("DOMContentLoaded", () => {
         PEC_USER.parcialActivo = data.parcialActivo || '2';
         PEC_USER.avanceDocente = data.avanceDocente || { total: 0, evaluados: 0, pendientes: 0, porcentaje: 0 };
 
+        // DIAGNÓSTICO PROFUNDO (Imprimir en F12)
+        if (data.audit) {
+            console.log("--- 🕵️ DIAGNÓSTICO DE ACCESO PEC ---");
+            console.log("Correo Detectado:", data.audit.emailRecibido);
+            console.log("Rol Detectado:", data.audit.roleDetectado);
+            console.log("Materias encontradas en Programación:", data.audit.materiasProgramadas);
+            console.log("Grupos Directos (Directorio):", data.audit.gruposDirectos);
+            console.log("Grupos por Materia (Directorio):", data.audit.gruposPorMateria);
+            console.log("--- FIN DEL DIAGNÓSTICO ---");
+        }
+
         const navGrupos = document.getElementById('nav-grupos');
         const tieneGrupos = PEC_USER.gruposAsignados.length > 0;
 
