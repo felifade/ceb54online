@@ -137,13 +137,19 @@ function doGet(e) {
         .filter(d => d.correo !== "" && d.correo === userEmail)
         .map(d => d.grupo);
 
-      // 2. Grupos por materia (correo en Programación)
+      // 2. Grupos por materia (correo en Programación + coincidencia en Directorio)
       audit.materiasProgramadas = programacion
         .filter(p => p.correoDocente !== "" && p.correoDocente === userEmail && p.parcial === parcialActivo)
         .map(p => normalize(p.materia));
       
+      // SOLO mostrar los grupos donde el docente está asignado en el Directorio 
+      // Y cuya materia esté activa para él en este parcial
       audit.gruposPorMateria = directorio
-        .filter(d => audit.materiasProgramadas.length > 0 && audit.materiasProgramadas.includes(normalize(d.materia)))
+        .filter(d => {
+            const correoMatch = d.correo !== "" && d.correo === userEmail;
+            const materiaMatch = audit.materiasProgramadas.length > 0 && audit.materiasProgramadas.includes(normalize(d.materia));
+            return correoMatch && materiaMatch;
+        })
         .map(d => d.grupo);
       
       gruposDelDocente = [...new Set([...audit.gruposDirectos, ...audit.gruposPorMateria])].filter(g => g !== "").sort();
