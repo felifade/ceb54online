@@ -367,16 +367,19 @@ function doPost(e) {
       const sheetTut = ss.getSheetByName(SHEET_TUTORIAS);
       const data = sheetTut.getDataRange().getValues();
       const targetTime = new Date(body.fecha).getTime();
-      const targetAlumno = body.alumno;
+      const targetAlumno = String(body.alumno).trim();
       
       for (let i = data.length - 1; i >= 1; i--) {
         const rowDate = new Date(data[i][0]);
-        if (Math.abs(rowDate.getTime() - targetTime) < 2000 && data[i][3] === targetAlumno) {
+        const rowAlumno = String(data[i][3]).trim();
+        
+        // Margen de 10 segundos para compensar diferencias de servidor/ Sheets
+        if (Math.abs(rowDate.getTime() - targetTime) < 10000 && rowAlumno === targetAlumno) {
           sheetTut.deleteRow(i + 1);
           return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Eliminado." })).setMimeType(ContentService.MimeType.JSON);
         }
       }
-      return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "No encontrado." })).setMimeType(ContentService.MimeType.JSON);
+      return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "No encontrado en la base de datos." })).setMimeType(ContentService.MimeType.JSON);
     }
 
     // CASO D: Guardar evaluación regular
