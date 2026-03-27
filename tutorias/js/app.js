@@ -205,33 +205,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- AUTOMATION & GROUP SELECTION ---
     function setupGroupSelection() {
         const inputGrupo = document.getElementById('input-grupo');
+        const inputSearchName = document.getElementById('input-search-name');
         const container = document.getElementById('students-checkbox-list');
         const btnSelectAll = document.getElementById('btn-select-all');
+        const btnAddManual = document.getElementById('btn-add-manual');
 
+        // Helper to render a student item
+        const createStudentHTML = (a, isNew = false) => {
+            let initialSexo = "H";
+            if (a.sexo && (a.sexo.toUpperCase().startsWith('M') || a.sexo.toUpperCase().startsWith('F'))) initialSexo = "F";
+            
+            return `
+                <div class="student-item ${isNew ? 'new-student' : ''}" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 6px 10px; border-bottom: 1px solid #f1f5f9; background: ${isNew ? '#fffbeb' : 'transparent'};">
+                    <label style="display: flex; align-items: center; gap: 0.8rem; font-size: 0.85rem; cursor: pointer; flex: 1; margin-bottom: 0;">
+                        <input type="checkbox" name="selected_students" value="${a.nombre}" checked style="width: auto;">
+                        <span style="font-weight: 500;">${a.nombre} <small style="color: #64748b;">${a.grupo ? '['+a.grupo+']' : '(Manual)'}</small></span>
+                    </label>
+                    <select class="student-sex-select" style="width: auto; padding: 2px 8px; font-size: 0.75rem; border-radius: 6px; background: #fff; border: 1px solid #cbd5e1;">
+                        <option value="H" ${initialSexo === 'H' ? 'selected' : ''}>H</option>
+                        <option value="F" ${initialSexo === 'F' ? 'selected' : ''}>M</option>
+                    </select>
+                </div>
+            `;
+        };
+
+        // 1. Search by Group
         inputGrupo.addEventListener('input', () => {
+            inputSearchName.value = ''; // Clear other search
             const val = inputGrupo.value.trim().toUpperCase();
             if (val.length >= 2) {
                 const students = allData.alumnosFull.filter(a => a.grupo.toUpperCase() === val);
                 
                 if (students.length > 0) {
                     btnSelectAll.style.display = 'block';
-                    container.innerHTML = students.map(a => {
-                        // Determinar sexo inicial (prioridad a lo que venga de la base de datos)
-                        let initialSexo = "H";
-                        if (a.sexo && (a.sexo.toUpperCase().startsWith('M') || a.sexo.toUpperCase().startsWith('F'))) initialSexo = "F";
-                        
-                        return `
-                        <div class="student-item" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 6px 10px; border-bottom: 1px solid #f1f5f9;">
-                            <label style="display: flex; align-items: center; gap: 0.8rem; font-size: 0.85rem; cursor: pointer; flex: 1; margin-bottom: 0;">
-                                <input type="checkbox" name="selected_students" value="${a.nombre}" style="width: auto;">
-                                <span style="font-weight: 500;">${a.nombre}</span>
-                            </label>
-                            <select class="student-sex-select" style="width: auto; padding: 2px 8px; font-size: 0.75rem; border-radius: 6px; background: #fff; border: 1px solid #cbd5e1;">
-                                <option value="H" ${initialSexo === 'H' ? 'selected' : ''}>H</option>
-                                <option value="F" ${initialSexo === 'F' ? 'selected' : ''}>M</option>
-                            </select>
-                        </div>
-                    `}).join('');
+                    container.innerHTML = students.map(a => createStudentHTML(a)).join('');
+                    // Desmarcar todos inicialmente si se busca por grupo masivo
+                    container.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
                 } else {
                     btnSelectAll.style.display = 'none';
                     container.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; grid-column: 1/-1;">No se encontraron alumnos en este grupo.</p>';
@@ -240,6 +249,44 @@ document.addEventListener('DOMContentLoaded', async () => {
                 btnSelectAll.style.display = 'none';
                 container.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; grid-column: 1/-1;">Ingresa un grupo para ver la lista de alumnos...</p>';
             }
+        });
+
+        // 2. Global Search by Name
+        inputSearchName.addEventListener('input', () => {
+            inputGrupo.value = ''; // Clear group search
+            const val = inputSearchName.value.trim().toLowerCase();
+            if (val.length >= 3) {
+                const results = allData.alumnosFull.filter(a => a.nombre.toLowerCase().includes(val));
+                if (results.length > 0) {
+                    btnSelectAll.style.display = 'none';
+                    container.innerHTML = results.map(a => createStudentHTML(a)).join('');
+                    // Al buscar por nombre específico, solemos querer seleccionarlos
+                } else {
+                    container.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; grid-column: 1/-1;">No se encontraron coincidencias.</p>';
+                }
+            }
+        });
+
+        // 3. Manual Addition
+        btnAddManual.addEventListener('click', () => {
+            const manualName = prompt("Nombre completo del alumno:");
+            if (!manualName || manualName.trim().length < 5) return;
+            
+            const manualSexo = prompt("Sexo (H/M):", "H").toUpperCase().startsWith('M') ? 'F' : 'H';
+            
+            const manualItem = {
+                nombre: manualName.trim(),
+                sexo: manualSexo,
+                grupo: inputGrupo.value.trim() || ""
+            };
+
+            // Remover el placeholder si existe
+            if (container.querySelector('p')) container.innerHTML = '';
+            
+            // Añadir al inicio del contenedor
+            const div = document.createElement('div');
+            div.innerHTML = createStudentHTML(manualItem, true);
+            container.prepend(div.firstElementChild);
         });
 
         btnSelectAll.addEventListener('click', () => {
