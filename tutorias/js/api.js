@@ -17,7 +17,20 @@ const api = {
     },
 
     async getDashboardData() {
-        // ... (resto del código igual)
+        const db = await this.fetchAllData();
+        const tutorias = db.tutorias || [];
+
+        return {
+            totalTutorias: tutorias.length,
+            grupal: tutorias.filter(t => t.grupal).length,
+            individual: tutorias.filter(t => t.individual).length,
+            hombres: tutorias.filter(t => t.sexo === 'H').length,
+            mujeres: tutorias.filter(t => t.sexo === 'F').length,
+            grupos: db.grupos || [],
+            tutorias: tutorias,
+            config: db.config || { docente: "Felipe López Salazar" },
+            alumnosFull: db.alumnosFull || []
+        };
     },
 
     async guardarTutoria(datos) {

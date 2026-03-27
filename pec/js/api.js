@@ -2,7 +2,7 @@
 
 const USE_MOCK = false;
 // La URL que te dará Google Apps Script cuando lo publiques
-const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbxwWi6BuGmF-zBEWjX5Axkq3-LYQV8nuWCEKvMVTodhEuh5An1tezqHFGoMtlVsY6Fh4w/exec";
+const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbwB7VUrYoyzRCgGHKEsIJGSdGDgwOAx6uFtevH4HTrfCZEb0FfqUkFxHHEau_VRVUH5WA/exec";
 
 const api = {
     // Almacén temporal de datos para no recargar en cada clic
@@ -26,10 +26,41 @@ const api = {
     },
 
     async getDashboardData() {
-        // ... (resto del código igual)
+        const db = await this.fetchAllData();
+
+        const materiasPorEquipo = 7;
+        const totalEsperado = db.equipos.length * materiasPorEquipo;
+        const avancePorcentaje = totalEsperado === 0 ? 0 : Math.round((db.evaluaciones.length / totalEsperado) * 100);
+
+        return {
+            totalGrupos: db.grupos.length,
+            totalEquipos: db.equipos.length,
+            evaluaciones: db.evaluaciones.length,
+            grupos: db.grupos,
+            equipos: db.equipos,
+            avance: avancePorcentaje
+        };
     },
 
-    // ... (otros getters omitidos para brevedad en el diff, pero se mantienen arriba)
+    async getGrupos() {
+        const db = await this.fetchAllData();
+        return db.grupos;
+    },
+
+    async getEquiposPorGrupo(grupoId) {
+        const db = await this.fetchAllData();
+        return db.equipos.filter(e => e.grupo === grupoId);
+    },
+
+    async getDirectorio() {
+        const db = await this.fetchAllData();
+        return db.directorio || [];
+    },
+
+    async getConcentrado() {
+        const db = await this.fetchAllData();
+        return [...db.evaluaciones].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+    },
 
     async guardarEvaluacion(datos) {
         if (USE_MOCK) {
