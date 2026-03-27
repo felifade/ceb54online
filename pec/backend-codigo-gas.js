@@ -4,15 +4,17 @@
  */
 
 // Nombres de las pestañas en tu hoja de Google Sheets
-const SHEET_ALUMNOS = "Alumnos"; // <- ¡Cambiamos a "Alumnos"!
+const SHEET_ALUMNOS = "Alumnos";
 const SHEET_EVALUACIONES = "Evaluaciones";
 const SHEET_DIRECTORIO = "Directorio";
 const SHEET_PROGRAMACION = "Programación";
+const SHEET_TUTORIAS = "Tutorias";
 
 const HEADERS_ALUMNOS = ["nombre_alumno", "grupo", "numero_equipo", "tema", "url_documento"];
 const HEADERS_EVAL = ["fecha", "parcial", "grupoId", "equipoId", "equipoNombre", "materia", "docente", "puntaje", "observaciones", "alumno"];
 const HEADERS_DIRECTORIO = ["Grupo", "Materia", "Docente", "Correo"];
 const HEADERS_PROGRAMACION = ["Parcial", "Semestre", "Turno", "Materia", "Docente", "Ponderación"];
+const HEADERS_TUTORIAS = ["fecha_registro", "parcial", "grupo", "nombre_estudiante", "sexo", "asignatura", "alumno_regular", "alumno_intra", "tema_asunto", "tutoria_grupal", "tutoria_individual"];
 
 // === 1. CONFIGURACIÓN INICIAL ===
 // Ejecuta esta función una sola vez para crear las hojas y cabeceras si no existen
@@ -41,6 +43,12 @@ function setupInitialize() {
   if (!sheetProg) {
     const s = ss.insertSheet(SHEET_PROGRAMACION);
     s.appendRow(HEADERS_PROGRAMACION);
+  }
+
+  const sheetTut = ss.getSheetByName(SHEET_TUTORIAS);
+  if (!sheetTut) {
+    const s = ss.insertSheet(SHEET_TUTORIAS);
+    s.appendRow(HEADERS_TUTORIAS);
   }
 }
 
@@ -154,22 +162,26 @@ function doGet(e) {
        }
     }
 
-    // 4. LEER PROGRAMACIÓN (qué materias evalúan en cada parcial)
-    let programacion = [];
-    const sheetProg = ss.getSheetByName(SHEET_PROGRAMACION);
-    if (sheetProg) {
-       const dataProg = sheetProg.getDataRange().getValues();
-       if (dataProg.length > 1) {
-          dataProg.shift();
-           programacion = dataProg.map(row => ({
-              parcial: String(row[0] || '').trim(),
-              semestre: String(row[1] || '').trim(),
-              turno: String(row[2] || '').trim().toUpperCase(),
-              materia: String(row[3] || '').trim(),
-              docente: String(row[4] || '').trim(),
-              ponderacion: row[5] ? Number(row[5]) : 0,
-              grupoEspecial: row[6] ? String(row[6]).trim() : ''
-           })).filter(p => p.parcial !== "" && p.materia !== "");
+    // 5. LEER TUTORÍAS
+    let tutorias = [];
+    const sheetTut = ss.getSheetByName(SHEET_TUTORIAS);
+    if (sheetTut) {
+       const dataTut = sheetTut.getDataRange().getValues();
+       if (dataTut.length > 1) {
+          dataTut.shift();
+          tutorias = dataTut.map(row => ({
+             fecha: row[0],
+             parcial: String(row[1] || ''),
+             grupo: String(row[2] || ''),
+             alumno: String(row[3] || ''),
+             sexo: String(row[4] || ''),
+             asignatura: String(row[5] || ''),
+             regular: row[6] === 'X' || row[6] === true,
+             intra: row[7] === 'X' || row[7] === true,
+             tema: String(row[8] || ''),
+             grupal: row[9] === 'X' || row[9] === true,
+             individual: row[10] === 'X' || row[10] === true
+          }));
        }
     }
 
@@ -181,6 +193,7 @@ function doGet(e) {
       evaluaciones: evaluaciones,
       directorio: directorio,
       programacion: programacion,
+      tutorias: tutorias,
       sinEquipo: sinEquipo || []
     };
     
@@ -203,7 +216,27 @@ function doPost(e) {
       return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Reportes en Excel generados." })).setMimeType(ContentService.MimeType.JSON);
     }
     
-    // CASO B: Guardar evaluación regular
+    // CASO B: Guardar tutoría
+    if (body.action === "saveTutoria") {
+      const sheetTut = ss.getSheetByName(SHEET_TUTORIAS);
+      const rowTut = [
+        new Date(),
+        body.parcial,
+        body.grupo,
+        body.alumno,
+        body.sexo,
+        body.asignatura,
+        body.regular ? "X" : "",
+        body.intra ? "X" : "",
+        body.tema,
+        body.grupal ? "X" : "",
+        body.individual ? "X" : ""
+      ];
+      sheetTut.appendRow(rowTut);
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Tutoría guardada." })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // CASO C: Guardar evaluación regular
     const sheet = ss.getSheetByName(SHEET_EVALUACIONES);
     
     // Plantilla de la fila
