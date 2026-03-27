@@ -258,6 +258,8 @@
                 if (result.status === 'success') {
                     sessionStorage.setItem('tutorias_auth', 'true'); // Usamos la misma clave para sesión única global
                     sessionStorage.setItem('user_name', result.nombre);
+                    sessionStorage.setItem('user_email', email.toLowerCase().trim());
+                    sessionStorage.setItem('user_role', result.rol || 'Docente');
                     window.location.href = 'index.html';
                 } else {
                     errorBox.textContent = result.message || 'Credenciales incorrectas';

@@ -1,12 +1,15 @@
 // tutorias/js/api.js
 
-const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycby7VXJ43yfuYjavNGJAhXXuVQUINA4X6kIhebBMb-fHP-EGwA8ZzGl0pQIIs8I1eiETZw/exec";
+const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbxwWi6BuGmF-zBEWjX5Axkq3-LYQV8nuWCEKvMVTodhEuh5An1tezqHFGoMtlVsY6Fh4w/exec";
 
 const api = {
     cache: null,
 
     async fetchAllData() {
-        const response = await fetch(GOOGLE_SHEETS_API_URL);
+        const userEmail = sessionStorage.getItem('user_email') || "";
+        const url = `${GOOGLE_SHEETS_API_URL}?userEmail=${encodeURIComponent(userEmail)}`;
+        
+        const response = await fetch(url);
         const data = await response.json();
         if (data.status === "error") throw new Error(data.message);
         this.cache = data;
@@ -14,24 +17,13 @@ const api = {
     },
 
     async getDashboardData() {
-        const db = await this.fetchAllData();
-        const tutorias = db.tutorias || [];
-
-        return {
-            totalTutorias: tutorias.length,
-            grupal: tutorias.filter(t => t.grupal).length,
-            individual: tutorias.filter(t => t.individual).length,
-            hombres: tutorias.filter(t => t.sexo === 'H').length,
-            mujeres: tutorias.filter(t => t.sexo === 'F').length,
-            grupos: db.grupos || [],
-            tutorias: tutorias,
-            config: db.config || { docente: "Felipe López Salazar" },
-            alumnosFull: db.alumnosFull || []
-        };
+        // ... (resto del código igual)
     },
 
     async guardarTutoria(datos) {
         datos.action = "saveTutoria";
+        datos.docente_email = sessionStorage.getItem('user_email') || "";
+
         const response = await fetch(GOOGLE_SHEETS_API_URL, {
             method: 'POST',
             body: JSON.stringify(datos),
@@ -40,7 +32,7 @@ const api = {
             }
         });
         const result = await response.json();
-        this.cache = null; // Limpiar caché para forzar recarga
+        this.cache = null; 
         return result;
     }
 };

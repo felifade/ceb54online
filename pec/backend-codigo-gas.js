@@ -13,10 +13,10 @@ const SHEET_CONFIGURACION = "Configuracion";
 const SHEET_USUARIOS = "Usuarios";
 
 const HEADERS_ALUMNOS = ["nombre_alumno", "grupo", "numero_equipo", "tema", "url_documento"];
-const HEADERS_EVAL = ["fecha", "parcial", "grupoId", "equipoId", "equipoNombre", "materia", "docente", "puntaje", "observaciones", "alumno"];
+const HEADERS_EVAL = ["fecha", "parcial", "grupoId", "equipoId", "equipoNombre", "materia", "docente", "puntaje", "observaciones", "alumno", "docente_email"];
 const HEADERS_DIRECTORIO = ["Grupo", "Materia", "Docente", "Correo"];
 const HEADERS_PROGRAMACION = ["Parcial", "Semestre", "Turno", "Materia", "Docente", "Ponderación"];
-const HEADERS_TUTORIAS = ["fecha_registro", "parcial", "grupo", "nombre_estudiante", "sexo", "asignatura", "alumno_regular", "alumno_intra", "tema_asunto", "tutoria_grupal", "tutoria_individual"];
+const HEADERS_TUTORIAS = ["fecha_registro", "parcial", "grupo", "nombre_estudiante", "sexo", "asignatura", "alumno_regular", "alumno_intra", "tema_asunto", "tutoria_grupal", "tutoria_individual", "docente_email"];
 
 // Helper para extraer solo el número de un texto (ej: "Parcial 1" -> "1")
 function normalizeParcial(val) {
@@ -70,8 +70,8 @@ function setupInitialize() {
   const sheetUser = ss.getSheetByName(SHEET_USUARIOS);
   if (!sheetUser) {
     const s = ss.insertSheet(SHEET_USUARIOS);
-    s.appendRow(["Email", "Password", "Nombre"]);
-    s.appendRow(["admin@ceb54.online", "ceb54admin", "Administrador"]);
+    s.appendRow(["Email", "Password", "Nombre", "Rol"]);
+    s.appendRow(["admin@ceb54.online", "ceb54admin", "Administrador", "Admin"]);
   }
 }
 
@@ -80,33 +80,55 @@ function setupInitialize() {
 function doGet(e) {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const userEmail = (e.parameter.userEmail || "").toLowerCase().trim();
     
-    // 1. LEER EVALUACIONES Y CREAR UN MAPA DE EQUIPOS YA EVALUADOS
+    // VERIFICAR ROL DEL USUARIO
+    let userRole = "Docente"; // Por defecto restringido
+    const sheetUsr = ss.getSheetByName(SHEET_USUARIOS);
+    if (sheetUsr && userEmail) {
+      const dataUsr = sheetUsr.getDataRange().getValues();
+      if (dataUsr.length > 1) {
+        dataUsr.shift();
+        const userFound = dataUsr.find(r => String(r[0]).toLowerCase().trim() === userEmail);
+        if (userFound) {
+           userRole = String(userFound[3] || "Docente").trim();
+        }
+      }
+    }
+    const isAdmin = userRole.toLowerCase() === "admin" || userEmail === "admin@ceb54.online";
+
+    // 1. LEER EVALUACIONES
     const sheetEv = ss.getSheetByName(SHEET_EVALUACIONES);
     let evaluaciones = [];
-    const evaluadosMap = {}; // Para saber rápido qué equipo ya fue calificado
+    const evaluadosMap = {}; 
     
     if (sheetEv) {
       const dataEv = sheetEv.getDataRange().getValues();
-      if (dataEv.length > 1) { // Si hay más que la cabecera
-        const headersEv = dataEv.shift();
+      if (dataEv.length > 1) { 
+        dataEv.shift();
         evaluaciones = dataEv.map(row => {
-          const eqId = String(row[3]); // Ahora el equipoId es la columna D (índice 3)
-          evaluadosMap[eqId] = true; // Marcamos este equipo como Evaluado
+          const eqId = String(row[3]); 
+          evaluadosMap[eqId] = true; 
           
           return {
             fecha: row[0],
             parcial: row[1],
             grupoId: String(row[2]),
             equipoId: eqId,
-            equipoNombre: row[4],
-            materia: row[5],
-            docente: row[6],
-            puntaje: Number(row[7]),
-            observaciones: row[8],
-            alumno: row[9] || ""
+            equipoNombre: String(row[4] || ""),
+            materia: String(row[5] || ""),
+            docente: String(row[6] || ""),
+            puntaje: Number(row[7] || 0),
+            observaciones: row[8] || "",
+            alumno: row[9] || "",
+            docenteEmail: String(row[10] || "").toLowerCase().trim()
           };
         });
+
+        // FILTRAR SI NO ES ADMIN
+        if (!isAdmin && userEmail) {
+           evaluaciones = evaluaciones.filter(ev => ev.docenteEmail === userEmail || ev.docenteEmail === "");
+        }
       }
     }
 
@@ -228,8 +250,14 @@ function doGet(e) {
              intra: row[7] === 'X' || row[7] === true,
              tema: String(row[8] || ''),
              grupal: row[9] === 'X' || row[9] === true,
-             individual: row[10] === 'X' || row[10] === true
+             individual: row[10] === 'X' || row[10] === true,
+             docenteEmail: String(row[11] || '').toLowerCase().trim()
           }));
+
+          // FILTRAR SI NO ES ADMIN
+          if (!isAdmin && userEmail) {
+             tutorias = tutorias.filter(t => t.docenteEmail === userEmail || t.docenteEmail === "");
+          }
        }
     }
 
@@ -298,7 +326,11 @@ function doPost(e) {
       const found = dataUser.find(row => row[0].toLowerCase() === body.email.toLowerCase() && String(row[1]) === String(body.password));
       
       if (found) {
-        return ContentService.createTextOutput(JSON.stringify({ status: "success", nombre: found[2] })).setMimeType(ContentService.MimeType.JSON);
+        return ContentService.createTextOutput(JSON.stringify({ 
+          status: "success", 
+          nombre: found[2],
+          rol: found[3] || "Docente"
+        })).setMimeType(ContentService.MimeType.JSON);
       } else {
         return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Credenciales inválidas" })).setMimeType(ContentService.MimeType.JSON);
       }
@@ -318,7 +350,8 @@ function doPost(e) {
         body.intra ? "X" : "",
         body.tema,
         body.grupal ? "X" : "",
-        body.individual ? "X" : ""
+        body.individual ? "X" : "",
+        body.docente_email || ""
       ];
       sheetTut.appendRow(rowTut);
       return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Tutoría guardada." })).setMimeType(ContentService.MimeType.JSON);
@@ -332,25 +365,24 @@ function doPost(e) {
       new Date(), // fecha exacta
       body.parcial,
       body.grupoId,
-      body.equipoId,   // Ejemplo: "201-3"
-      body.equipoNombre, // Ejemplo: "Equipo 3"
+      body.equipoId,   
+      body.equipoNombre, 
       body.materia,
       body.docente,
       "", // puntaje
       body.observaciones || "",
-      ""  // alumno
+      "", // alumno
+      body.docente_email || ""
     ];
     
     if (body.integrantes && body.integrantes.length > 0) {
-       // Insertar múltiples filas (una por alumno del equipo)
        body.integrantes.forEach(indiv => {
           const rowCopy = [...baseRow];
-          rowCopy[7] = indiv.puntaje;      // Puntaje específico del alumno
-          rowCopy[9] = indiv.alumno;       // Nombre del alumno específico
+          rowCopy[7] = indiv.puntaje;      
+          rowCopy[9] = indiv.alumno;       
           sheet.appendRow(rowCopy);
        });
     } else {
-       // Retro-compatibilidad (Sin desglose individual)
        baseRow[7] = body.puntaje;
        sheet.appendRow(baseRow);
     }
