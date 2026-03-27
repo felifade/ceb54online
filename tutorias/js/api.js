@@ -6,14 +6,27 @@ const api = {
     cache: null,
 
     async fetchAllData() {
-        const userEmail = sessionStorage.getItem('user_email') || "";
-        const url = `${GOOGLE_SHEETS_API_URL}?userEmail=${encodeURIComponent(userEmail)}`;
-        
-        const response = await fetch(url);
-        const data = await response.json();
-        if (data.status === "error") throw new Error(data.message);
-        this.cache = data;
-        return data;
+        try {
+            const userEmail = sessionStorage.getItem('user_email') || "";
+            // Añadimos cache buster para evitar problemas con proxies o caché del navegador
+            const url = `${GOOGLE_SHEETS_API_URL}?userEmail=${encodeURIComponent(userEmail)}&_t=${Date.now()}`;
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                redirect: 'follow'
+            });
+            
+            if (!response.ok) throw new Error("Respuesta de red no válida");
+            
+            const data = await response.json();
+            if (data.status === "error") throw new Error(data.message);
+            
+            this.cache = data;
+            return data;
+        } catch (error) {
+            console.error("Fetch error:", error);
+            throw error;
+        }
     },
 
     async getDashboardData() {
@@ -41,10 +54,12 @@ const api = {
 
         const response = await fetch(GOOGLE_SHEETS_API_URL, {
             method: 'POST',
+            mode: 'cors',
             body: JSON.stringify(datos),
             headers: {
                 "Content-Type": "text/plain;charset=utf-8",
-            }
+            },
+            redirect: 'follow'
         });
         const result = await response.json();
         this.cache = null; 
