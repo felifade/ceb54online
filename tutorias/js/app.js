@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         badge.style.pointerEvents = "none";
         
         try {
-            const result = await api.actualizarCampo(fecha, alumno, 5, nuevoSexo); // Columna 5 = Sexo
+            const result = await api.actualizarCampo(fecha, alumno, 'sexo', nuevoSexo); // Columna Sexo
             if (result.status === 'success') {
                 await loadInitialData(); 
             } else {
@@ -231,7 +231,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         badge.style.pointerEvents = "none";
         
         try {
-            const result = await api.actualizarCampo(fecha, alumno, 2, nuevoParcial); // Columna 2 = Parcial
+            const result = await api.actualizarCampo(fecha, alumno, 'parcial', nuevoParcial); // Columna Parcial
             if (result.status === 'success') {
                 await loadInitialData(); 
             } else {

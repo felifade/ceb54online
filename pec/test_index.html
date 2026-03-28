@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal PEC (v7 Test) | CEB 5/4</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <link rel="stylesheet" href="css/test_style_v2.css">
+    <!-- <script src="js/auth.js"></script> --> <!-- Deshabilitado para vista previa de pruebas -->
+</head>
+<body>
+    <div id="app" class="app-layout">
+        <!-- Sidebar Categorizado (Enfocado en Docentes) -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-text">PORTAL PEC</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-header">DOCENTES</div>
+                <a href="#" class="nav-item active" data-view="dashboard">
+                    <i data-feather="grid"></i>
+                    <span>Dashboard PEC</span>
+                </a>
+                <a href="#" class="nav-item" data-view="grupos">
+                    <i data-feather="users"></i>
+                    <span>Grupos y Equipos</span>
+                </a>
+                <a href="#" class="nav-item" data-view="directorio">
+                    <i data-feather="map"></i>
+                    <span>Directorio Escolar</span>
+                </a>
+                <a href="#" class="nav-item" data-view="tutorias">
+                    <i data-feather="heart"></i>
+                    <span>Tutorías</span>
+                </a>
+
+                <a href="#" class="nav-item" onclick="logout()" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; color: #fda4af;">
+                    <i data-feather="log-out"></i>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <p>Centro de Estudios de Bachillerato<br>CEB 5/4</p>
+                <a href="../test_main_v2.html" style="color: #67A8DB; font-weight: 600; margin-top: 10px; display: inline-block;">Volver al Menú Principal</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar">
+                <button id="menu-toggle" class="btn-icon">
+                    <i data-feather="menu"></i>
+                </button>
+                <div class="topbar-title">
+                    <h1 id="view-title">Dashboard Principal</h1>
+                </div>
+                <div class="topbar-user">
+                    <div class="avatar">
+                        <i data-feather="user"></i>
+                    </div>
+                    <span id="topbar-user-name">Docente PEC</span>
+                </div>
+            </header>
+
+            <div id="loading" class="loading-overlay hidden">
+                <div class="spinner"></div>
+                <p>Conectando con Google...</p>
+            </div>
+
+            <div id="views-container" class="views-wrapper">
+                
+                <section id="view-dashboard" class="view active">
+                    <div class="banner-deadline">
+                        <div>
+                            <h2 class="banner-label">Fecha Límite de Captura</h2>
+                            <div class="banner-date" id="dash-fecha-entrega">24 de abril de 2026</div>
+                            <div class="banner-sub">
+                                <i data-feather="clock" style="width: 14px;"></i> Parcial <span id="dash-fecha-parcial">2</span>
+                            </div>
+                        </div>
+                        <div class="banner-icon-bg">
+                            <i data-feather="calendar" style="width: 32px; height: 32px; color: #38bdf8;"></i>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon"><i data-feather="users"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-title">Tus Grupos</span>
+                                <h3 class="stat-value" id="dash-grupos">-</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card highlight">
+                            <div class="stat-icon"><i data-feather="activity"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-title">Tu Avance</span>
+                                <h3 class="stat-value" id="dash-avance">-</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-panels">
+                        <div class="panel">
+                            <h2>Distribución de Grupos</h2>
+                            <div id="dash-lista-grupos" class="tag-list"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="view-grupos" class="view hidden">
+                    <div class="panel filters-bar">
+                        <div>
+                            <label for="select-grupo">Selecciona un Grupo:</label>
+                            <select id="select-grupo" class="input-control">
+                                <option value="">-- Elige un grupo --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="equipos-container" class="equipos-grid hidden"></div>
+                </section>
+
+                <section id="view-tutorias" class="view hidden">
+                    <div class="panel" style="text-align: center; padding: 4rem 2rem;">
+                        <i data-feather="heart" style="width: 64px; height: 64px; color: #f43f5e; margin-bottom: 1.5rem;"></i>
+                        <h2>Módulo de Tutorías</h2>
+                        <p style="color: #64748b; max-width: 500px; margin: 1rem auto;">Accede al sistema de seguimiento tutorial para registrar sesiones individuales o grupales.</p>
+                        <a href="../tutorias/test_index_v2.html" class="btn btn-primary" style="margin-top: 2rem;">Ingresar a Tutorías (v2)</a>
+                    </div>
+                </section>
+
+                <section id="view-directorio" class="view hidden">
+                    <div class="panel">
+                        <h2>Directorio y Horarios</h2>
+                        <div id="dir-segundos" class="equipos-grid"></div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/api_v3.js?v=3"></script>
+    <script src="js/test_app_v7.js?v=7"></script>
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>
