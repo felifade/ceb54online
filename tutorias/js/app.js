@@ -160,6 +160,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </span>
                 </td>
                 <td style="padding:1rem; font-size:0.85rem;">${t.asignatura}</td>
+                <td style="padding:1rem; font-size:1.1rem; text-align:center;" 
+                    onclick="toggleAsistencia(event, '${t.fecha}', '${t.alumno.replace(/'/g, "\\'")}', '${t.asistencia}')"
+                    title="Click para cambiar asistencia">
+                    ${t.asistencia === 'NO' ? '❌' : '✅'}
+                </td>
                 <td style="padding:1rem; font-size:0.85rem;">${t.individual ? 'Individual' : 'Grupal'}</td>
                 <td style="padding:1rem; font-size:0.85rem; color:#64748b; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${t.tema}</td>
                 <td style="padding:1rem; font-size:0.85rem;">
@@ -243,6 +248,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
+    window.toggleAsistencia = async (event, fecha, alumno, asistenciaActual) => {
+        const nuevoValor = asistenciaActual === 'NO' ? 'SÍ' : 'NO';
+        
+        const cell = event.currentTarget;
+        const originalContent = cell.innerHTML;
+        cell.innerHTML = "...";
+        cell.style.opacity = "0.5";
+        cell.style.pointerEvents = "none";
+        
+        try {
+            const result = await api.actualizarCampo(fecha, alumno, 'asistencia', nuevoValor);
+            if (result.status === 'success') {
+                await loadInitialData(); 
+            } else {
+                alert("Error al actualizar: " + result.message);
+                cell.innerHTML = originalContent;
+                cell.style.opacity = "1";
+                cell.style.pointerEvents = "auto";
+            }
+        } catch (error) {
+            alert("Error de conexión: " + error.message);
+            cell.innerHTML = originalContent;
+            cell.style.opacity = "1";
+            cell.style.pointerEvents = "auto";
+        }
+    };
+
     // 3. Reporte Render (Automated Totals)
     function renderReporte() {
         const pFilter = document.getElementById('report-parcial-filter').value;
@@ -283,6 +315,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td style="border:1px solid #000; padding:4px;">${t.alumno}</td>
                 <td style="border:1px solid #000; padding:4px; text-align:center;">${t.sexo}</td>
                 <td style="border:1px solid #000; padding:4px;">${t.asignatura}</td>
+                <td style="border:1px solid #000; padding:4px; text-align:center; font-size:1.1rem;">${t.asistencia === 'NO' ? '❌' : '✅'}</td>
                 <td style="border:1px solid #000; padding:4px; text-align:center;">${t.grupal ? 'X' : ''}</td>
                 <td style="border:1px solid #000; padding:4px; text-align:center;">${t.individual ? 'X' : ''}</td>
                 <td style="border:1px solid #000; padding:4px;">${new Date(t.fecha).toLocaleDateString()}</td>
@@ -456,6 +489,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             parcial: formData.get('parcial'),
             grupo: formData.get('grupo').toUpperCase(),
             alumnos: finalSelection.map(s => ({ nombre: s.nombre, sexo: s.sexo })),
+            asistencia: document.getElementById('check-asistencia').checked ? "SÍ" : "NO",
             asignatura: formData.get('asignatura'),
             regular: formData.get('alumno_tipo') === 'regular',
             intra: formData.get('alumno_tipo') === 'intra',
