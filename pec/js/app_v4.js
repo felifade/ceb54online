@@ -283,14 +283,21 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             if (segGrupoEl) segGrupoEl.addEventListener('change', renderSeguimiento);
 
-            // === LLAMADA INICIAL PARA RENDERIZAR ===
             renderSeguimiento();
-            if (typeof renderPonderaciones === 'function') renderPonderaciones();
+
+            const pActivoGlobal = (data.config && data.config.parcialActivo) || "1";
 
             // === PANEL DE PONDERACIONES (Premium UI) ===
             const renderPonderaciones = () => {
                 const pondParcialEl = document.getElementById('pond-parcial');
                 if (!pondParcialEl) return;
+                
+                // Si nunca se ha tocado, poner el parcial activo
+                if (!pondParcialEl.dataset.initialized) {
+                    pondParcialEl.value = pActivoGlobal;
+                    pondParcialEl.dataset.initialized = "true";
+                }
+                
                 const parcialPond = normalizeParcial(pondParcialEl.value);
                 
                 // Filtro resiliente: normalizamos ambos lados de la comparación
@@ -433,7 +440,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const pondSelect = document.getElementById('pond-parcial');
             if (pondSelect) pondSelect.addEventListener('change', renderPonderaciones);
-            renderPonderaciones();      renderPonderaciones();
+            renderPonderaciones();
 
         } catch (e) {
             console.error("DEBUG - Error detallado:", e);
