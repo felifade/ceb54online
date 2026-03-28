@@ -1,6 +1,6 @@
 /**
  * BACKEND MAESTRO UNIFICADO: PEC + TUTORÍAS + EXPORTACIÓN
- * v3.3 - VERSIÓN CON CAMPO DE ASISTENCIA (TEST)
+ * v3.3.1 - CORRECCIÓN: SEMESTRE Y TURNO EN PROGRAMACIÓN
  */
 
 // --- CONFIGURACIÓN DE PESTAÑAS ---
@@ -94,11 +94,13 @@ function doGet(e) {
        directorio = d.map(r => ({ grupo: String(r[0]||'').trim(), materia: String(r[1]||'').trim(), docente: String(r[2]||'').trim(), correo: normalizeText(r[3]) })).filter(x => x.grupo !== "");
     }
     let sheetProg = getSheet(ss, S_PROGRAMACION);
-    let programacion = []; // Se añadió declaración
+    let programacion = []; 
     if (sheetProg) {
        const d = sheetProg.getDataRange().getValues(); d.shift();
        programacion = d.map(r => ({ 
          parcial: normalizeParcial(r[0]), 
+         semestre: String(r[1]||'').trim(), // <--- CORREGIDO (v3.3.1)
+         turno: String(r[2]||'').trim(),    // <--- CORREGIDO (v3.3.1)
          materia: String(r[3]||'').trim(), 
          ponderacion: Number(r[5] || 0), // Columna F
          grupoEspecial: String(r[6]||'').trim(), // Columna G
@@ -170,7 +172,7 @@ function doGet(e) {
       const eqs = listaEquipos.filter(eq => gN.includes(String(eq.grupo).replace(/^[A-Za-z]+/, '')));
       avance.total = eqs.length;
       avance.evaluados = eqs.filter(eq => eq.estado === 'Evaluado').length;
-      avance.pendientes = avance.total - avance.evaluados; // RESTAURADO
+      avance.pendientes = avance.total - avance.evaluados; 
       avance.porcentaje = avance.total === 0 ? 0 : Math.round((avance.evaluados / avance.total) * 100);
     }
 
@@ -178,7 +180,7 @@ function doGet(e) {
       status: "success", config: config, grupos: [...gruposConEquipos], equipos: listaEquipos, evaluaciones: evaluaciones,
       tutorias: tutoriasData, alumnosFull: alumnosFull, directorio: directorio, programacion: programacion,
       isAdmin: isAdmin, gruposDelDocente: gruposDelDocente, parcialActivo: parcialActivo, avanceDocente: avance, audit: audit,
-      totalEquiposGlobal: listaEquipos.length, totalEvaluacionesGlobal: totalGlobalEv // Se usan globales para Admin
+      totalEquiposGlobal: listaEquipos.length, totalEvaluacionesGlobal: totalGlobalEv 
     })).setMimeType(ContentService.MimeType.JSON);
       
   } catch (error) {
@@ -223,7 +225,7 @@ function doPost(e) {
         body.acuerdos, 
         body.tipo, 
         normalizeText(body.docente_email),
-        body.asistencia || "SÍ" // <--- NUEVO CAMPO (v3.3)
+        body.asistencia || "SÍ" 
       ]);
       return ContentService.createTextOutput(JSON.stringify({ status: "success" }));
     }
@@ -236,7 +238,7 @@ function doPost(e) {
     if (action === "updateTutoriaField") {
        const s = getSheet(ss, S_TUTORIAS); const d = s.getDataRange().getValues();
        const tF = new Date(body.fecha).getTime(); const tA = String(body.alumno).trim();
-       const m = { "sexo": 6, "motivo": 7, "acuerdos": 8, "asistencia": 11 }; // Se añadió asistencia (Columna 12 = indice 11)
+       const m = { "sexo": 6, "motivo": 7, "acuerdos": 8, "asistencia": 11 }; 
        const col = m[body.column];
        if (col !== undefined) {
          for(let i=1; i<d.length; i++){ if(new Date(d[i][0]).getTime()===tF && String(d[i][5]).trim()===tA){ s.getRange(i+1, col+1).setValue(body.value); break; } }
