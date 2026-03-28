@@ -83,6 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showLoader();
         try {
             const data = await api.getDashboardData();
+            console.log("DEBUG - Datos PEC Dashboard:", data); // Depuración preventiva
             if (!data || !data.equipos) throw new Error("Datos del dashboard incompletos");
             
             // Stats

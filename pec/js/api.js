@@ -14,10 +14,17 @@ const api = {
         }
 
         const userEmail = sessionStorage.getItem('user_email') || "";
-        const url = `${GOOGLE_SHEETS_API_URL}?userEmail=${encodeURIComponent(userEmail)}`;
+        // Cache buster + Redirect follow (v3.3 compatible)
+        const url = `${GOOGLE_SHEETS_API_URL}?userEmail=${encodeURIComponent(userEmail)}&_t=${Date.now()}`;
 
         // Pide la información real a Google Sheets
-        const response = await fetch(url);
+        const response = await fetch(url, {
+            method: 'GET',
+            redirect: 'follow'
+        });
+
+        if (!response.ok) throw new Error("Respuesta de red no válida");
+
         const data = await response.json();
         if (data.status === "error") throw new Error(data.message);
 
