@@ -14,8 +14,9 @@ const api = {
         }
 
         const userEmail = sessionStorage.getItem('user_email') || "";
+        const userRole = sessionStorage.getItem('user_role') || "";
         // Cache buster + Redirect follow (v3.3 compatible)
-        const url = `${GOOGLE_SHEETS_API_URL}?userEmail=${encodeURIComponent(userEmail)}&_t=${Date.now()}`;
+        const url = `${GOOGLE_SHEETS_API_URL}?userEmail=${encodeURIComponent(userEmail)}&userRole=${encodeURIComponent(userRole)}&_t=${Date.now()}`;
 
         // Pide la información real a Google Sheets
         const response = await fetch(url, {
@@ -48,12 +49,16 @@ const api = {
         const avancePorcentaje = totalEsperado === 0 ? 0 : Math.round((db.evaluaciones.length / totalEsperado) * 100);
 
         return {
-            totalGrupos: db.grupos.length,
-            totalEquipos: db.equipos.length,
-            evaluaciones: db.evaluaciones.length,
-            grupos: db.grupos,
-            equipos: db.equipos,
-            avance: avancePorcentaje
+            totalGrupos: db.grupos ? db.grupos.length : 0,
+            totalEquipos: db.equipos ? db.equipos.length : 0,
+            evaluaciones: db.evaluaciones || [],
+            grupos: db.grupos || [],
+            equipos: db.equipos || [],
+            avance: avancePorcentaje,
+            directorio: db.directorio || [],
+            programacion: db.programacion || [],
+            sinEquipo: db.sinEquipo || [],
+            config: db.config || {}
         };
     },
 

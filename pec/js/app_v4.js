@@ -196,7 +196,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const progParcial = programacion.filter(p => normalizeParcial(p.parcial) === parcialSel);
                 const getTurno = (grupo) => String(grupo).toUpperCase().startsWith('V') ? 'VESPERTINO' : 'MATUTINO';
-
+                const extractNum = (g) => String(g).replace(/^[A-Za-z]+/, '');
+                
                 let dirFiltrado = directorio;
                 if (progParcial.length > 0) {
                     dirFiltrado = directorio.filter(d => {
