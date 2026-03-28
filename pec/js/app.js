@@ -187,11 +187,14 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const renderSeguimiento = () => {
-                const parcialSel = document.getElementById('seg-parcial').value;
-                const grupoSel = document.getElementById('seg-grupo').value;
-                const extractNum = (g) => String(g).replace(/^[A-Za-z]+/, '');
+                const segParcial = document.getElementById('seg-parcial');
+                const segGrupo = document.getElementById('seg-grupo');
+                if (!segParcial || !segGrupo) return;
 
-                const progParcial = programacion.filter(p => String(p.parcial) === parcialSel);
+                const parcialSel = normalizeParcial(segParcial.value);
+                const grupoSel = String(segGrupo.value || '').trim();
+
+                const progParcial = programacion.filter(p => normalizeParcial(p.parcial) === parcialSel);
                 const getTurno = (grupo) => String(grupo).toUpperCase().startsWith('V') ? 'VESPERTINO' : 'MATUTINO';
 
                 let dirFiltrado = directorio;
@@ -271,10 +274,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             };
 
-            const segParcial = document.getElementById('seg-parcial');
-            const segGrupo = document.getElementById('seg-grupo');
-            if (segParcial) segParcial.addEventListener('change', renderSeguimiento);
+            if (segParcial) {
+                const pActivo = (data.config && data.config.parcialActivo) || "1";
+                segParcial.value = pActivo;
+                segParcial.addEventListener('change', renderSeguimiento);
+            }
             if (segGrupo) segGrupo.addEventListener('change', renderSeguimiento);
+
+            // === LLAMADA INICIAL PARA RENDERIZAR ===
+            renderSeguimiento();
+            if (typeof renderPonderaciones === 'function') renderPonderaciones();
 
             // === PANEL DE PONDERACIONES (Premium UI) ===
             const renderPonderaciones = () => {
