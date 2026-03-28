@@ -273,13 +273,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     `;
                 }
             };
+            const segParcialEl = document.getElementById('seg-parcial');
+            const segGrupoEl = document.getElementById('seg-grupo');
 
-            if (segParcial) {
+            if (segParcialEl) {
                 const pActivo = (data.config && data.config.parcialActivo) || "1";
-                segParcial.value = pActivo;
-                segParcial.addEventListener('change', renderSeguimiento);
+                segParcialEl.value = pActivo;
+                segParcialEl.addEventListener('change', renderSeguimiento);
             }
-            if (segGrupo) segGrupo.addEventListener('change', renderSeguimiento);
+            if (segGrupoEl) segGrupoEl.addEventListener('change', renderSeguimiento);
 
             // === LLAMADA INICIAL PARA RENDERIZAR ===
             renderSeguimiento();
