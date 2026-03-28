@@ -98,8 +98,8 @@ img { max-width: 100%; height: auto; display: block; }
 
 .nav-container { display: flex; justify-content: space-between; align-items: center; }
 .logo-text { font-family: var(--font-heading); font-size: 1.5rem; font-weight: 800; color: var(--clr-white); letter-spacing: -0.5px; transition: var(--transition); }
-.nav-links { display: flex; align-items: center; gap: 2rem; }
-.nav-link { font-family: var(--font-heading); font-weight: 600; color: var(--clr-white); font-size: 1rem; position: relative; transition: var(--transition); }
+.nav-links { display: flex; align-items: center; gap: 1.25rem; }
+.nav-link { font-family: var(--font-heading); font-weight: 600; color: var(--clr-white); font-size: 0.9rem; position: relative; transition: var(--transition); }
 .nav-link.active-link { color: var(--clr-secondary); }
 .navbar.inner-nav .nav-link.active-link { color: var(--clr-primary); font-weight: 800; }
 .navbar.scrolled .nav-link.active-link { color: var(--clr-primary); }
@@ -107,6 +107,10 @@ img { max-width: 100%; height: auto; display: block; }
 .nav-link:not(.btn-primary):not(.btn-contacto):not(.btn-ingreso)::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background-color: var(--clr-secondary); transition: var(--transition); }
 .nav-link:not(.btn-primary):not(.btn-contacto):not(.btn-ingreso):hover::after, .nav-link.active-link:not(.btn-primary):not(.btn-contacto):not(.btn-ingreso)::after { width: 100%; }
 .navbar.inner-nav .nav-link:not(.btn-primary):not(.btn-contacto):not(.btn-ingreso)::after, .navbar.scrolled .nav-link:not(.btn-primary):not(.btn-contacto):not(.btn-ingreso)::after { background-color: var(--clr-primary); }
+
+.nav-link-special { color: #818cf8 !important; font-weight: 800 !important; }
+.navbar.scrolled .nav-link-special, .navbar.inner-nav .nav-link-special { color: #6366f1 !important; }
+.nav-link-special::after { background-color: #6366f1 !important; }
 
 .mobile-menu-btn { display: none; flex-direction: column; gap: 6px; cursor: pointer; z-index: 1001; }
 .mobile-menu-btn span { display: block; width: 24px; height: 2px; background-color: var(--clr-white); transition: var(--transition); }

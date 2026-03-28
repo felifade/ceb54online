@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const sidebar = document.getElementById('sidebar');
 
     // Estado local
-    let currentView = 'dashboard';
+    let currentView = 'pecportal';
 
     // Navegación
     navItems.forEach(item => {

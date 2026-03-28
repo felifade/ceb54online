@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PEC | Portal de Proyectos</title>
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #059669; /* Emerald 600 */
+            --primary-light: #ecfdf5;
+            --primary-dark: #065f46;
+            --accent: #f59e0b;
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --glass: rgba(255, 255, 255, 0.95);
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            --radius: 20px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* --- HEADER & NAVIGATION --- */
+        header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            padding: 4rem 1rem 6rem;
+            text-align: center;
+            color: white;
+            clip-path: ellipse(150% 100% at 50% 0%);
+        }
+
+        header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            letter-spacing: -1px;
+            margin-bottom: 2rem;
+        }
+
+        .tab-nav {
+            display: inline-flex;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 8px;
+            border-radius: 50px;
+            gap: 10px;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 40px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* --- CONTENT AREA --- */
+        .container {
+            max-width: 1200px;
+            margin: -4rem auto 5rem;
+            padding: 0 1.5rem;
+            position: relative;
+            z-index: 20;
+        }
+
+        .view-pane {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        .view-pane.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- PROJECT GRID --- */
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+        }
+
+        .project-card {
+            background: var(--glass);
+            border: 1px solid white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .shift-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 15px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            width: fit-content;
+        }
+
+        .matutino-badge { background: #fef3c7; color: #92400e; }
+        .vespertino-badge { background: #e0f2fe; color: #075985; }
+        .global-badge { background: #f0fdf4; color: #166534; }
+
+        .project-card h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-dark);
+            line-height: 1.2;
+        }
+
+        .project-card .objective {
+            font-size: 0.95rem;
+            color: #475569;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        /* --- TEACHER SECTION --- */
+        .teachers-section h4 {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .teachers-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            max-height: 250px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .teacher-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            background: white;
+            color: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.75rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .teacher-item span {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #1e293b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* --- FOOTER & MISC --- */
+        footer {
+            text-align: center;
+            padding: 5rem 1rem;
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+
+        @media (max-width: 992px) {
+            .project-grid { grid-template-columns: 1fr; }
+            header h1 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Portal de Proyecto Escolar Comunitario (PEC)</h1>
+        <nav class="tab-nav">
+            <button class="tab-btn active" onclick="switchSemester('2')">2do Semestre</button>
+            <button class="tab-btn" onclick="switchSemester('4')">4to Semestre</button>
+            <button class="tab-btn" onclick="switchSemester('6')">6to Semestre</button>
+        </nav>
+    </header>
+
+    <div class="container">
+        <!-- SEMESTRE 2 -->
+        <div id="pane-2" class="view-pane active">
+            <div class="project-grid">
+                <!-- Matutino -->
+                <div class="project-card">
+                    <div class="shift-badge matutino-badge"><i data-lucide="sun"></i> Matutino</div>
+                    <h2 id="pec_2m_nombre">Cargando Proyecto...</h2>
+                    <p class="objective" id="pec_2m_objetivo">...</p>
+                    <div class="teachers-section">
+                        <h4><i data-lucide="users"></i> Docentes Participantes</h4>
+                        <div class="teachers-list" id="list_2m"></div>
+                    </div>
+                </div>
+                <!-- Vespertino -->
+                <div class="project-card">
+                    <div class="shift-badge vespertino-badge"><i data-lucide="moon"></i> Vespertino</div>
+                    <h2 id="pec_2v_nombre">Cargando Proyecto...</h2>
+                    <p class="objective" id="pec_2v_objetivo">...</p>
+                    <div class="teachers-section">
+                        <h4><i data-lucide="users"></i> Docentes Participantes</h4>
+                        <div class="teachers-list" id="list_2v"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEMESTRE 4 -->
+        <div id="pane-4" class="view-pane">
+            <div class="project-grid">
+                <!-- Matutino -->
+                <div class="project-card">
+                    <div class="shift-badge matutino-badge"><i data-lucide="sun"></i> Matutino</div>
+                    <h2 id="pec_4m_nombre">Cargando Proyecto...</h2>
+                    <p class="objective" id="pec_4m_objetivo">...</p>
+                    <div class="teachers-section">
+                        <h4><i data-lucide="users"></i> Docentes Participantes</h4>
+                        <div class="teachers-list" id="list_4m"></div>
+                    </div>
+                </div>
+                <!-- Vespertino -->
+                <div class="project-card">
+                    <div class="shift-badge vespertino-badge"><i data-lucide="moon"></i> Vespertino</div>
+                    <h2 id="pec_4v_nombre">Cargando Proyecto...</h2>
+                    <p class="objective" id="pec_4v_objetivo">...</p>
+                    <div class="teachers-section">
+                        <h4><i data-lucide="users"></i> Docentes Participantes</h4>
+                        <div class="teachers-list" id="list_4v"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEMESTRE 6 (UNIFICADO) -->
+        <div id="pane-6" class="view-pane">
+            <div class="project-grid">
+                <div class="project-card" style="grid-column: 1 / -1;">
+                    <div class="shift-badge global-badge"><i data-lucide="globe"></i> Ambos Turnos</div>
+                    <h2 id="pec_6_nombre">Cargando Proyecto de 6to Semestre...</h2>
+                    <p class="objective" id="pec_6_objetivo">...</p>
+                    <div class="teachers-section">
+                        <h4><i data-lucide="users"></i> Gran Equipo Docente (Ambos Turnos)</h4>
+                        <div class="teachers-list" id="list_6" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); max-height: 400px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Centro de Estudios de Bachillerato 5/4</p>
+        <p style="margin-top:5px; opacity:0.6;">Proyecto Escolar Comunitario | Secretaría de Educación</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/api_v3.js"></script>
+    <script src="js/info_pec.js"></script>
+    <script>
+        lucide.createIcons();
+        window.switchSemester = function(sem) {
+            document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById('pane-' + sem).classList.add('active');
+            event.currentTarget.classList.add('active');
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>

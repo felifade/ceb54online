@@ -1,6 +1,6 @@
 // tutorias/js/api.js
 
-const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbx-Wrrn0Do39mtqGgnT-aUaxRM8pVQwkpF1BpcIM9_ssxX9a3iF5R84G4aC3zsGKhHj/exec";
+const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbz4q9VlhAvvVJ1XYOwqNTJ9eMkVRm3HgoyFJNpEQaPJsDdK1JcfhbTX1CRfDg38x79fsA/exec";
 
 const api = {
     cache: null,
@@ -41,6 +41,9 @@ const api = {
             mujeres: tutorias.filter(t => t.sexo === 'F').length,
             grupos: db.grupos || [],
             tutorias: tutorias,
+            feedbackHistory: db.feedbackHistory || [],
+            isAdmin: db.isAdmin || false,
+            groupsDelDocente: db.gruposDelDocente || [],
             config: db.config || { docente: "Felipe López Salazar" },
             alumnosFull: db.alumnosFull || [],
             directorio: db.directorio || [],
@@ -112,3 +115,6 @@ const api = {
         return result;
     }
 };
+
+// Exportar al ámbito global para visibilidad entre carpetas
+window.api = api;

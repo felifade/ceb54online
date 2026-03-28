@@ -48,6 +48,12 @@
                     <span>Generar Reporte</span>
                 </a>
             </div>
+            <div class="nav-item">
+                <a href="#" class="nav-link" data-view="encuesta">
+                    <i data-lucide="star"></i>
+                    <span>Opinión Estudiantil</span>
+                </a>
+            </div>
             <div class="nav-item" style="margin-top: 2rem; border-top: 1px solid #f1f5f9; padding-top: 1rem;">
                 <a href="#" class="nav-link" onclick="logout()" style="color: var(--clr-danger);">
                     <i data-lucide="log-out"></i>
@@ -216,6 +222,16 @@
 
         <!-- VISTA 3: HISTORIAL -->
         <section id="view-historial" class="view hidden">
+            <div id="admin-controls-historial" style="display:none; background:#f8fafc; padding:1.2rem; border-radius:12px; border:1px solid #e2e8f0; margin-bottom:1.5rem; flex-wrap:wrap; align-items:center; gap:1rem;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <i data-lucide="filter" style="width:18px; color:#059669;"></i>
+                    <span style="font-weight:700; font-size:0.9rem; color:#1e293b;">Filtrar por Docente:</span>
+                </div>
+                <select id="admin-teacher-select" style="max-width:350px; background:white;">
+                    <option value="all">-- Todos los Docentes (Global) --</option>
+                </select>
+            </div>
+
             <div style="background: white; padding: 1rem; border-radius: var(--radius-lg); border: 1px solid #f1f5f9; overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse; min-width: 900px;" id="table-historial">
                     <thead>
@@ -224,6 +240,7 @@
                             <th style="padding: 1rem;">Parcial</th>
                             <th style="padding: 1rem;">Grupo</th>
                             <th style="padding: 1rem;">Estudiante</th>
+                            <th class="admin-only-col" style="padding: 1rem; display:none;">Docente</th>
                             <th style="padding: 1rem;">Materia</th>
                             <th style="padding: 1rem; text-align: center;">Asis.</th>
                             <th style="padding: 1rem;">Tipo</th>
@@ -243,8 +260,14 @@
             <div style="background: white; padding: 2rem; border-radius: var(--radius-md); box-shadow: var(--shadow-md); margin-bottom: 2rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                     <h3>Vista Previa del Reporte Oficial</h3>
-                    <div style="display: flex; gap: 1rem;">
-                        <select id="report-parcial-filter" style="width: 200px;">
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <!-- Filtro Admin (Solo visible en JS por Admin) -->
+                        <div id="admin-report-filter" style="display:none; align-items:center; gap:8px;">
+                            <span style="font-size:0.75rem; font-weight:700; color:#64748b;">DOCENTE:</span>
+                            <select id="report-teacher-select" style="width: 250px; font-size:0.8rem;"></select>
+                        </div>
+
+                        <select id="report-parcial-filter" style="width: 150px;">
                             <option value="1">Primer Parcial</option>
                             <option value="2">Segundo Parcial</option>
                             <option value="3">Tercer Parcial</option>
@@ -343,6 +366,143 @@
                             <!-- Datos del reporte filtrado -->
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA 5: ENCUESTA (RESULTADOS DOCENTE) -->
+        <section id="view-encuesta" class="view hidden">
+            <div id="encuesta-local-banner" style="display:none; background:#fff7ed; border:1px solid #fed7aa; padding:12px; border-radius:12px; margin-bottom:1.5rem; color:#9a3412; font-size:0.85rem;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <i data-lucide="alert-triangle" style="width:16px;"></i>
+                    <span><strong>Modo de Prueba:</strong> No has iniciado sesión real. Usa el selector abajo para simular a un docente.</span>
+                </div>
+            </div>
+
+            <!-- PANEL ADMINISTRATIVO (CONTEXTO GLOBAL) -->
+            <div id="encuesta-admin-dashboard" style="display:none; margin-bottom: 2rem;">
+                <!-- KPIs Globales Institucionales -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="background:#065f46; color:white; padding:1rem; border-radius:16px; text-align:center; box-shadow: var(--shadow-sm);">
+                        <div style="font-size:0.65rem; font-weight:800; opacity:0.8; text-transform:uppercase;">Media Institucional</div>
+                        <div id="encuesta-kpi-global" style="font-size:1.5rem; font-weight:800;">0.0</div>
+                    </div>
+                    <div style="background:white; padding:1rem; border-radius:16px; text-align:center; border:1px solid #e2e8f0;">
+                        <div style="font-size:0.65rem; color:#64748b; font-weight:800; text-transform:uppercase;">Claridad</div>
+                        <div id="encuesta-kpi-c1" style="font-size:1.2rem; font-weight:800; color:#065f46;">0.0</div>
+                    </div>
+                    <div style="background:white; padding:1rem; border-radius:16px; text-align:center; border:1px solid #e2e8f0;">
+                        <div style="font-size:0.65rem; color:#64748b; font-weight:800; text-transform:uppercase;">Respeto</div>
+                        <div id="encuesta-kpi-c2" style="font-size:1.2rem; font-weight:800; color:#065f46;">0.0</div>
+                    </div>
+                    <div style="background:white; padding:1rem; border-radius:16px; text-align:center; border:1px solid #e2e8f0;">
+                        <div style="font-size:0.65rem; color:#64748b; font-weight:800; text-transform:uppercase;">Dominio</div>
+                        <div id="encuesta-kpi-c3" style="font-size:1.2rem; font-weight:800; color:#065f46;">0.0</div>
+                    </div>
+                    <div style="background:white; padding:1rem; border-radius:16px; text-align:center; border:1px solid #e2e8f0;">
+                        <div style="font-size:0.65rem; color:#64748b; font-weight:800; text-transform:uppercase;">Organización</div>
+                        <div id="encuesta-kpi-c4" style="font-size:1.2rem; font-weight:800; color:#065f46;">0.0</div>
+                    </div>
+                </div>
+
+                <!-- Selector de Espejo para Admin -->
+                <div style="background:white; padding:1.2rem; border-radius:16px; border:1px solid #059669; display:flex; align-items:center; gap:15px; box-shadow: var(--shadow-md);">
+                    <div style="background:#ecfdf5; color:#059669; padding:10px; border-radius:12px;">
+                        <i data-lucide="users" style="width:20px;"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-size:0.75rem; font-weight:800; color:#065f46; margin-bottom:4px;">VISTA ESPEJO: SUPERVISIÓN INDIVIDUAL</div>
+                        <select id="encuesta-admin-mirror-select" style="width:100%; border:none; background:transparent; font-weight:700; color:#1e293b; cursor:pointer; font-size:1rem; padding:0;">
+                            <option value="global">-- Ver Promedio Global Institucional --</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DASHBOARD DE ESTRELLAS (VISTA PRINCIPAL) -->
+            <div id="encuesta-main-dashboard">
+                <div class="panel" style="margin-bottom: 2rem; border-left: 8px solid #059669; background: white; padding: 1.5rem; border-radius: 16px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h2 id="encuesta-teacher-name" style="margin:0; font-family:'Outfit', sans-serif;">Cargando Perfil...</h2>
+                        <p id="encuesta-subtitle" style="color:#64748b; font-size:0.875rem; margin-top:5px;">Evaluación Semestral Única (Basado en Retroalimentación Estudiantil)</p>
+                    </div>
+                    <div style="background:#f59e0b; color:white; padding:10px 20px; border-radius:12px; text-align:center;">
+                        <div style="font-size:0.7rem; font-weight:800; opacity:0.9;">PROMEDIO</div>
+                        <div id="encuesta-global-avg" style="font-size:1.8rem; font-weight:800; font-family:'Outfit', sans-serif;">0.0</div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div style="background:white; padding:1.5rem; border-radius:16px; border:1px solid #f1f5f9; text-align:center; box-shadow: var(--shadow-sm);">
+                        <h4 style="font-size:0.8rem; color:#64748b; text-transform:uppercase; margin-bottom:10px;">Claridad</h4>
+                        <div id="encuesta-val-c1" style="font-size:2rem; font-weight:800; margin-bottom:10px; color:#1e293b;">0.0</div>
+                        <div id="encuesta-stars-c1" style="display:flex; justify-content:center; gap:2px; color:#f59e0b; margin-bottom:10px;"></div>
+                        <div style="height:6px; background:#f1f5f9; border-radius:3px; overflow:hidden;"><div id="encuesta-bar-c1" style="height:100%; background:#059669; width:0%; transition:width 0.5s;"></div></div>
+                    </div>
+                    <div style="background:white; padding:1.5rem; border-radius:16px; border:1px solid #f1f5f9; text-align:center; box-shadow: var(--shadow-sm);">
+                        <h4 style="font-size:0.8rem; color:#64748b; text-transform:uppercase; margin-bottom:10px;">Respeto</h4>
+                        <div id="encuesta-val-c2" style="font-size:2rem; font-weight:800; margin-bottom:10px; color:#1e293b;">0.0</div>
+                        <div id="encuesta-stars-c2" style="display:flex; justify-content:center; gap:2px; color:#f59e0b; margin-bottom:10px;"></div>
+                        <div style="height:6px; background:#f1f5f9; border-radius:3px; overflow:hidden;"><div id="encuesta-bar-c2" style="height:100%; background:#059669; width:0%; transition:width 0.5s;"></div></div>
+                    </div>
+                    <div style="background:white; padding:1.5rem; border-radius:16px; border:1px solid #f1f5f9; text-align:center; box-shadow: var(--shadow-sm);">
+                        <h4 style="font-size:0.8rem; color:#64748b; text-transform:uppercase; margin-bottom:10px;">Dominio</h4>
+                        <div id="encuesta-val-c3" style="font-size:2rem; font-weight:800; margin-bottom:10px; color:#1e293b;">0.0</div>
+                        <div id="encuesta-stars-c3" style="display:flex; justify-content:center; gap:2px; color:#f59e0b; margin-bottom:10px;"></div>
+                        <div style="height:6px; background:#f1f5f9; border-radius:3px; overflow:hidden;"><div id="encuesta-bar-c3" style="height:100%; background:#059669; width:0%; transition:width 0.5s;"></div></div>
+                    </div>
+                    <div style="background:white; padding:1.5rem; border-radius:16px; border:1px solid #f1f5f9; text-align:center; box-shadow: var(--shadow-sm);">
+                        <h4 style="font-size:0.8rem; color:#64748b; text-transform:uppercase; margin-bottom:10px;">Organización</h4>
+                        <div id="encuesta-val-c4" style="font-size:2rem; font-weight:800; margin-bottom:10px; color:#1e293b;">0.0</div>
+                        <div id="encuesta-stars-c4" style="display:flex; justify-content:center; gap:2px; color:#f59e0b; margin-bottom:10px;"></div>
+                        <div style="height:6px; background:#f1f5f9; border-radius:3px; overflow:hidden;"><div id="encuesta-bar-c4" style="height:100%; background:#059669; width:0%; transition:width 0.5s;"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
+                <!-- Comentarios -->
+                <div style="background:white; padding:2rem; border-radius:16px; border:1px solid #f1f5f9;">
+                    <h3 style="margin-bottom:1.5rem; font-size:1.1rem; display:flex; align-items:center; gap:8px;">
+                        <i data-lucide="message-square" style="color:#059669;"></i> Comentarios Anónimos del Estudiante
+                    </h3>
+                    <div id="encuesta-comment-list" style="max-height:400px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding-right:10px;">
+                        <!-- Inyectado por JS -->
+                    </div>
+                </div>
+
+                <!-- Admin Global (Ranking & Leaderboard) -->
+                <div id="encuesta-admin-panel" style="display:none; background:white; padding:2rem; border-radius:16px; border:1px solid #f1f5f9; box-shadow: var(--shadow-sm);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                        <h3 style="margin:0; font-size:1.1rem; display:flex; align-items:center; gap:8px;">
+                            <i data-lucide="award" style="color:#f59e0b;"></i> Ranking de Desempeño Institucional
+                        </h3>
+                        <div style="font-size:0.75rem; color:#64748b;">Actualizado en tiempo real</div>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%; border-collapse:collapse; font-size:0.9rem;" id="encuesta-admin-table">
+                            <thead>
+                                <tr style="background:#f8fafc; text-align:left; border-bottom:2px solid #e2e8f0;">
+                                    <th style="padding:12px; border-radius:12px 0 0 12px;">Rank</th>
+                                    <th style="padding:12px;">Docente</th>
+                                    <th style="padding:12px; text-align:center;">Promedio</th>
+                                    <th style="padding:12px;">Desglose (C | R | D | O)</th>
+                                    <th style="padding:12px; border-radius:0 12px 12px 0;">Estatus</th>
+                                </tr>
+                            </thead>
+                            <tbody id="encuesta-admin-tbody">
+                                <!-- Generado por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Selector de Prueba (Local) -->
+                <div id="encuesta-test-selector" style="display:none; background:#f8fafc; border:2px dashed #059669; padding:2rem; border-radius:16px; text-align:center;">
+                    <label style="display:block; font-weight:800; margin-bottom:15px; color:#065f46;">SIMULADOR DE DOCENTE (MODO PRUEBA)</label>
+                    <select id="encuesta-debug-select" style="padding:12px; width:100%; max-width:400px; border-radius:12px; border:1px solid #059669; background:white;">
+                        <option value="">-- Elige un nombre para probar reporte --</option>
+                    </select>
                 </div>
             </div>
         </section>

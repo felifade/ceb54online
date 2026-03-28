@@ -129,3 +129,6 @@ const api = {
         return await response.json();
     }
 };
+
+// Exponer al ámbito global para visibilidad en todo el PEC
+window.api = api;

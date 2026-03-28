@@ -19,7 +19,13 @@
                 </div>
             </div>
             <nav class="sidebar-nav">
-                <a href="#" class="nav-item active" data-view="dashboard">
+                <!-- Portal Informativo PEC como Vista Principal -->
+                <a href="#" class="nav-item active" data-view="pecportal" style="background: rgba(5, 150, 105, 0.1); border-left: 3px solid #059669; margin-bottom: 0.5rem;">
+                    <i data-feather="info"></i>
+                    <span>Portal Proyectos (PEC)</span>
+                </a>
+
+                <a href="#" class="nav-item" data-view="dashboard">
                     <i data-feather="grid"></i>
                     <span>Dashboard</span>
                 </a>
@@ -43,6 +49,7 @@
                     <i data-feather="shield"></i>
                     <span>Auditoría Academia</span>
                 </a>
+
                 <a href="#" class="nav-item" onclick="logout()" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; color: #fda4af;">
                     <i data-feather="log-out"></i>
                     <span>Cerrar Sesión</span>
@@ -50,7 +57,8 @@
             </nav>
             <div class="sidebar-footer">
                 <p>Centro de Estudios de Bachillerato<br>CEB 5/4</p>
-                <a href="../index.html" style="color: #67A8DB; font-weight: 600; margin-top: 10px; display: inline-block;">Volver al Sitio Web Principal</a>
+
+                <a href="../index.html" style="color: #67A8DB; font-weight: 600; margin-top: 15px; display: inline-block; font-size: 0.85rem;">Volver al Sitio Web Principal</a>
             </div>
         </aside>
 
@@ -62,8 +70,9 @@
                     <i data-feather="menu"></i>
                 </button>
                 <div class="topbar-title">
-                    <h1 id="view-title">Dashboard Principal</h1>
+                    <h1 id="view-title" class="page-title">Portal Proyectos (PEC)</h1>
                 </div>
+                <div class="user-info">
                 <div class="topbar-user">
                     <div class="avatar">
                         <i data-feather="user"></i>
@@ -81,8 +90,13 @@
             <!-- Views Container -->
             <div id="views-container" class="views-wrapper">
                 
+                <!-- View: Portal PEC (Página Principal Integrada) -->
+                <section id="view-pecportal" class="view active">
+                    <iframe src="info_proyecto.html" style="width: 100%; height: calc(100vh - 120px); border: none; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);"></iframe>
+                </section>
+
                 <!-- View: Dashboard -->
-                <section id="view-dashboard" class="view active">
+                <section id="view-dashboard" class="view hidden">
                     
                     <!-- Banner de Fecha de Entrega -->
                     <div style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white; padding: 1.5rem 2.5rem; border-radius: 16px; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border-left: 5px solid #38bdf8;">

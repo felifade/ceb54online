@@ -38,11 +38,192 @@ document.addEventListener('DOMContentLoaded', async () => {
             viewTitle.textContent = link.querySelector('span').textContent;
             
             // Refresh Data if needed
-            if (viewId === 'dashboard' || viewId === 'historial' || viewId === 'reporte') {
+            if (viewId === 'dashboard' || viewId === 'historial' || viewId === 'reporte' || viewId === 'encuesta') {
                 renderAll();
             }
         });
     });
+
+    // --- ENCUESTA (SURVEY) RENDER LOGIC ---
+    function normalizeName(str) {
+        if (!str) return "";
+        return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    }
+
+    function renderEncuesta() {
+        const history = allData.feedbackHistory || [];
+        const userEmail = sessionStorage.getItem('user_email');
+        const userName = sessionStorage.getItem('user_name');
+        const isAdmin = allData.isAdmin === true;
+
+        const mainView = document.getElementById('view-encuesta');
+        if (mainView.classList.contains('hidden')) return;
+
+        // 1. Mostrar modo local si no hay sesión
+        if (!userEmail && !userName) {
+            document.getElementById('encuesta-local-banner').style.display = 'block';
+            document.getElementById('encuesta-test-selector').style.display = 'block';
+            
+            // Llenar selector de prueba si está vacío
+            const select = document.getElementById('encuesta-debug-select');
+            if (select.options.length <= 1) {
+                const names = [...new Set(history.map(h => h.docente))].filter(Boolean).sort();
+                select.innerHTML = '<option value="">-- Elige un nombre para probar reporte --</option>' +
+                    names.map(n => `<option value="${n}">${n}</option>`).join('');
+                select.onchange = (e) => {
+                    const filtered = history.filter(h => h.docente === e.target.value);
+                    renderEncuestaAnalysis(filtered, e.target.value);
+                };
+            }
+        }
+
+        // 2. Panel Admin y Ranking
+        if (isAdmin) {
+            const adminDashboard = document.getElementById('encuesta-admin-dashboard');
+            const adminPanel = document.getElementById('encuesta-admin-panel');
+            if (adminDashboard) adminDashboard.style.display = 'block';
+            if (adminPanel) adminPanel.style.display = 'block';
+
+            // --- CÁLCULO DE KPIs GLOBALES ---
+            const gTotals = { c1:0, c2:0, c3:0, c4:0, all:0 };
+            history.forEach(r => {
+                gTotals.c1 += parseFloat(r.claridad || 0); gTotals.c2 += parseFloat(r.respeto || 0);
+                gTotals.c3 += parseFloat(r.dominio || 0); gTotals.c4 += parseFloat(r.org || 0);
+            });
+            const hCount = history.length || 1;
+            const kpis = {
+                c1: (gTotals.c1 / hCount).toFixed(1), c2: (gTotals.c2 / hCount).toFixed(1),
+                c3: (gTotals.c3 / hCount).toFixed(1), c4: (gTotals.c4 / hCount).toFixed(1)
+            };
+            const globalAvg = ((parseFloat(kpis.c1) + parseFloat(kpis.c2) + parseFloat(kpis.c3) + parseFloat(kpis.c4)) / 4).toFixed(1);
+            
+            document.getElementById('encuesta-kpi-global').textContent = globalAvg;
+            document.getElementById('encuesta-kpi-c1').textContent = kpis.c1;
+            document.getElementById('encuesta-kpi-c2').textContent = kpis.c2;
+            document.getElementById('encuesta-kpi-c3').textContent = kpis.c3;
+            document.getElementById('encuesta-kpi-c4').textContent = kpis.c4;
+
+            // --- GENERAR RANKING DOCENTE ---
+            const grouped = {};
+            history.forEach(r => {
+                const name = r.docente || "Desconocido";
+                if (!grouped[name]) grouped[name] = { count:0, c1:0, c2:0, c3:0, c4:0, items: [] };
+                grouped[name].count++;
+                grouped[name].c1 += parseFloat(r.claridad || 0);
+                grouped[name].c2 += parseFloat(r.respeto || 0);
+                grouped[name].c3 += parseFloat(r.dominio || 0);
+                grouped[name].c4 += parseFloat(r.org || 0);
+                grouped[name].items.push(r);
+            });
+
+            const ranking = Object.keys(grouped).map(name => {
+                const g = grouped[name];
+                const avgs = {
+                    c1: (g.c1 / g.count).toFixed(1), c2: (g.c2 / g.count).toFixed(1),
+                    c3: (g.c3 / g.count).toFixed(1), c4: (g.c4 / g.count).toFixed(1)
+                };
+                const total = ((parseFloat(avgs.c1) + parseFloat(avgs.c2) + parseFloat(avgs.c3) + parseFloat(avgs.c4)) / 4).toFixed(1);
+                return { name, total, avgs, count: g.count };
+            }).sort((a, b) => b.total - a.total);
+
+            const tbody = document.getElementById('encuesta-admin-tbody');
+            tbody.innerHTML = ranking.map((r, i) => `
+                <tr style="border-bottom:1px solid #f1f5f9;">
+                    <td style="padding:12px; font-weight:800; color:#64748b;">#${i+1}</td>
+                    <td style="padding:12px; font-weight:700; color:#1e293b;">${r.name} <div style="font-size:0.65rem; color:#94a3b8; font-weight:400;">${r.count} evaluaciones</div></td>
+                    <td style="padding:12px; text-align:center;"><span style="background:${r.total >= 4 ? '#f0fdf4' : '#fff7ed'}; color:${r.total >= 4 ? '#166534' : '#9a3412'}; padding:4px 8px; border-radius:8px; font-weight:800; font-size:1rem;">${r.total}</span></td>
+                    <td style="padding:12px; font-size:0.75rem; color:#64748b;">${r.avgs.c1} | ${r.avgs.c2} | ${r.avgs.c3} | ${r.avgs.c4}</td>
+                    <td style="padding:12px;"><span style="font-size:0.7rem; padding:2px 6px; border-radius:4px; background:#f1f5f9; color:#475569; font-weight:700;">${r.total >= 4.5 ? 'EXCELENTE' : (r.total >= 3.5 ? 'SATISFACTORIO' : 'MEJORABLE')}</span></td>
+                </tr>
+            `).join('');
+
+            // --- POBLAR SELECTOR ESPEJO ---
+            const mirrorSelect = document.getElementById('encuesta-admin-mirror-select');
+            if (mirrorSelect && mirrorSelect.options.length <= 1) {
+                const names = Object.keys(grouped).sort();
+                names.forEach(n => {
+                    const opt = document.createElement('option');
+                    opt.value = n;
+                    opt.textContent = `Ver Dashboard de: ${n}`;
+                    mirrorSelect.appendChild(opt);
+                });
+                mirrorSelect.addEventListener('change', (e) => {
+                    const val = e.target.value;
+                    if (val === 'global') {
+                        renderEncuestaAnalysis(history, "Resumen Global Institucional");
+                    } else {
+                        const filtered = grouped[val].items;
+                        renderEncuestaAnalysis(filtered, val);
+                    }
+                });
+            }
+        }
+
+        // 3. Renderizado automático si hay sesión (Docente Regular)
+        const loggedEncuestaName = userName || userEmail;
+        if (loggedEncuestaName) {
+            const nUser = normalizeName(userName);
+            const myFeedback = history.filter(h => {
+                const nDoc = normalizeName(h.docente);
+                const userWords = nUser.split(' ').filter(w => w.length > 2);
+                const matchCount = userWords.filter(w => nDoc.includes(w)).length;
+                return matchCount >= 2 || nDoc.includes(nUser) || nUser.includes(nDoc);
+            });
+
+            if (myFeedback.length > 0) {
+                renderEncuestaAnalysis(myFeedback, userName || myFeedback[0].docente);
+            } else if (isAdmin) {
+                // El admin por defecto ve el Resumen Global si no tiene evaluaciones directas
+                renderEncuestaAnalysis(history, "Resumen Global Institucional");
+            } else {
+                document.getElementById('encuesta-teacher-name').textContent = "Sin evaluaciones aún";
+                document.getElementById('encuesta-comment-list').innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">Aún no tienes evaluaciones registradas este semestre.</p>';
+            }
+        }
+    }
+
+    function renderEncuestaAnalysis(lista, nombre) {
+        document.getElementById('encuesta-teacher-name').textContent = `Reporte de ${nombre}`;
+        
+        const totals = { c1: 0, c2: 0, c3: 0, c4: 0 };
+        lista.forEach(r => {
+            totals.c1 += parseFloat(r.claridad || 0);
+            totals.c2 += parseFloat(r.respeto || 0);
+            totals.c3 += parseFloat(r.dominio || 0);
+            totals.c4 += parseFloat(r.org || 0);
+        });
+
+        const count = lista.length || 1;
+        const avgs = {
+            c1: (totals.c1 / count).toFixed(1),
+            c2: (totals.c2 / count).toFixed(1),
+            c3: (totals.c3 / count).toFixed(1),
+            c4: (totals.c4 / count).toFixed(1)
+        };
+
+        const globalAvg = ((parseFloat(avgs.c1) + parseFloat(avgs.c2) + parseFloat(avgs.c3) + parseFloat(avgs.c4)) / 4).toFixed(1);
+        document.getElementById('encuesta-global-avg').textContent = globalAvg;
+
+        ['c1', 'c2', 'c3', 'c4'].forEach(id => {
+            const v = avgs[id];
+            document.getElementById(`encuesta-val-${id}`).textContent = v;
+            document.getElementById(`encuesta-bar-${id}`).style.width = `${(v / 5) * 100}%`;
+            
+            const stars = document.getElementById(`encuesta-stars-${id}`);
+            const full = Math.round(v);
+            stars.innerHTML = Array(5).fill(0).map((_, i) => 
+                `<i data-lucide="star" style="width:14px; fill:${i < full ? '#f59e0b' : 'none'}; color:${i < full ? '#f59e0b' : '#cbd5e1'};"></i>`
+            ).join('');
+        });
+
+        const comms = document.getElementById('encuesta-comment-list');
+        comms.innerHTML = lista.map(r => {
+            const txt = r.comentarios || "";
+            return txt.trim() ? `<div class="comment-item">&ldquo;${txt}&rdquo; <div style="font-size:0.7rem; color:#94a3b8; margin-top:4px;">&mdash; Grupo ${r.grupo || "?"}</div></div>` : '';
+        }).join('') || '<p style="text-align:center; color:#94a3b8;">Sin comentarios.</p>';
+
+        lucide.createIcons();
+    }
 
     // --- DATA LOADING & RENDERING ---
     async function loadInitialData() {
@@ -51,18 +232,67 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // --- FILTRADO POR DOCENTE (FRONTEND) ---
             const userEmail = sessionStorage.getItem('user_email');
-            if (userEmail) {
+            const userRole = sessionStorage.getItem('user_role');
+            const isAdmin = userRole === 'admin' || allData.isAdmin === true;
+
+            if (userEmail && !isAdmin) {
                 // Filtramos todas las tutorías para que solo se procesen las de este docente
                 allData.tutorias = (allData.tutorias || []).filter(t => 
                     String(t.docenteEmail || "").toLowerCase().trim() === userEmail.toLowerCase().trim()
                 );
+            }
+
+            // --- CRUCE DE DATOS: Asignar Nombres Reales a los Correos de los Docentes ---
+            const directorio = allData.directorio || [];
+            allData.tutorias.forEach(t => {
+                const docFound = directorio.find(d => 
+                    normalizeName(d.correo) === normalizeName(t.docenteEmail)
+                );
+                t.docente = docFound ? docFound.docente : t.docenteEmail || "Desconocido";
+            });
+
+            // Recalcular contadores (ahora pueden ser globales o personales según el rol)
+            allData.totalTutorias = allData.tutorias.length;
+            allData.individual = allData.tutorias.filter(t => t.individual).length;
+            allData.grupal = allData.tutorias.filter(t => t.grupal).length;
+            allData.hombres = allData.tutorias.filter(t => t.sexo === 'H').length;
+            allData.mujeres = allData.tutorias.filter(t => t.sexo === 'F').length;
+
+            if (isAdmin) {
+                const adminControls = document.getElementById('admin-controls-historial');
+                if (adminControls) adminControls.style.display = 'flex';
+                document.querySelectorAll('.admin-only-col').forEach(el => el.style.display = 'table-cell');
+
+                // Poblar selector de maestros para Historial y Reporte
+                const teachers = [...new Set(allData.tutorias.map(t => t.docente))].filter(Boolean).sort();
                 
-                // Recalcular contadores locales del dashboard basándose en la lista filtrada
-                allData.totalTutorias = allData.tutorias.length;
-                allData.individual = allData.tutorias.filter(t => t.individual).length;
-                allData.grupal = allData.tutorias.filter(t => t.grupal).length;
-                allData.hombres = allData.tutorias.filter(t => t.sexo === 'H').length;
-                allData.mujeres = allData.tutorias.filter(t => t.sexo === 'F').length;
+                // Selector Historial
+                const teacherSelect = document.getElementById('admin-teacher-select');
+                if (teacherSelect && teacherSelect.options.length <= 1) {
+                    teachers.forEach(t => {
+                        const opt = document.createElement('option');
+                        opt.value = t;
+                        opt.textContent = t;
+                        teacherSelect.appendChild(opt);
+                    });
+                    teacherSelect.addEventListener('change', renderHistorial);
+                }
+
+                // Selector Reporte
+                const reportTeacherSelect = document.getElementById('report-teacher-select');
+                if (reportTeacherSelect && reportTeacherSelect.options.length === 0) {
+                    const adminReportFilter = document.getElementById('admin-report-filter');
+                    if (adminReportFilter) adminReportFilter.style.display = 'flex';
+                    
+                    reportTeacherSelect.innerHTML = '<option value="all">-- Reporte Global Institucional --</option>';
+                    teachers.forEach(t => {
+                        const opt = document.createElement('option');
+                        opt.value = t;
+                        opt.textContent = t;
+                        reportTeacherSelect.appendChild(opt);
+                    });
+                    reportTeacherSelect.addEventListener('change', renderReporte);
+                }
             }
 
             // Centralized Teacher Name (Session Priority)
@@ -109,6 +339,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderDashboard();
         renderHistorial();
         renderReporte();
+        renderEncuesta();
     }
 
     // 1. Dashboard Render
@@ -140,7 +371,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 2. Historial Render
     function renderHistorial() {
         const tbody = document.getElementById('historial-tbody');
-        tbody.innerHTML = allData.tutorias.map(t => `
+        const userRole = sessionStorage.getItem('user_role');
+        const isAdmin = userRole === 'admin' || allData.isAdmin === true;
+        const teacherFilter = document.getElementById('admin-teacher-select')?.value || 'all';
+
+        let filtered = allData.tutorias;
+        if (isAdmin && teacherFilter !== 'all') {
+            filtered = filtered.filter(t => t.docente === teacherFilter);
+        }
+
+        tbody.innerHTML = filtered.map(t => `
             <tr style="border-bottom: 1px solid #f8fafc;">
                 <td style="padding:1rem; font-size:0.85rem;">${new Date(t.fecha).toLocaleDateString()}</td>
                 <td style="padding:1rem; font-size:0.85rem;">
@@ -159,6 +399,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         ${t.sexo}
                     </span>
                 </td>
+                <td class="admin-only-col" style="padding:1rem; font-size:0.8rem; font-weight:600; color:#475569; display:${isAdmin ? 'table-cell' : 'none'};">${t.docente || "-"}</td>
                 <td style="padding:1rem; font-size:0.85rem;">${t.asignatura}</td>
                 <td style="padding:1rem; font-size:1.1rem; text-align:center;" 
                     onclick="toggleAsistencia(event, '${t.fecha}', '${t.alumno.replace(/'/g, "\\'")}', '${t.asistencia}')"
@@ -278,16 +519,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 3. Reporte Render (Automated Totals)
     function renderReporte() {
         const pFilter = document.getElementById('report-parcial-filter').value;
-        const filtered = allData.tutorias.filter(t => String(t.parcial) === String(pFilter));
+        const userRole = sessionStorage.getItem('user_role');
+        const isAdmin = userRole === 'admin' || allData.isAdmin === true;
+        const reportTeacherFilter = document.getElementById('report-teacher-select')?.value || 'all';
+
+        // 1. Filtrar los datos base (primero por docente si aplica)
+        let baseData = allData.tutorias;
+        if (isAdmin && reportTeacherFilter !== 'all') {
+            baseData = baseData.filter(t => t.docente === reportTeacherFilter);
+            document.getElementById('report-teacher-name').textContent = reportTeacherFilter.toUpperCase();
+        } else if (isAdmin) {
+            document.getElementById('report-teacher-name').textContent = "RESUMEN GLOBAL INSTITUCIONAL";
+        } else {
+            const displayName = sessionStorage.getItem('user_name') || (allData.config && allData.config.docente);
+            document.getElementById('report-teacher-name').textContent = displayName ? displayName.toUpperCase() : "---";
+        }
+
+        // 2. Filtrar por el parcial seleccionado para la tabla de abajo
+        const filtered = baseData.filter(t => String(t.parcial) === String(pFilter));
         
-        // Final Summary Logic (Counts per parcial)
+        // 3. Lógica de Totales (Basada en baseData para llenar la tabla resumen de arriba)
         const stats = {
             p1: { h:0, m:0, g:0, i:0 },
             p2: { h:0, m:0, g:0, i:0 },
             p3: { h:0, m:0, g:0, i:0 }
         };
 
-        allData.tutorias.forEach(t => {
+        baseData.forEach(t => {
             const key = `p${t.parcial}`;
             if (stats[key]) {
                 if (t.sexo === 'H') stats[key].h++;
@@ -297,7 +555,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        // Update Summary Tables in the Report View
+        // 4. Actualizar Tablas de Resumen
         for (let i = 1; i <= 3; i++) {
             const s = stats[`p${i}`];
             document.getElementById(`rep-p${i}-h`).textContent = s.h;
@@ -307,7 +565,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById(`rep-i-p${i}`).textContent = s.i;
         }
 
-        // Render Data Rows for the filtered Parcial
+        // 5. Renderizar Filas de Datos (Parcial seleccionado)
         const repTbody = document.getElementById('report-tbody');
         repTbody.innerHTML = filtered.map(t => `
             <tr>
@@ -320,7 +578,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td style="border:1px solid #000; padding:4px; text-align:center;">${t.individual ? 'X' : ''}</td>
                 <td style="border:1px solid #000; padding:4px;">${new Date(t.fecha).toLocaleDateString()}</td>
             </tr>
-        `).join('') || '<tr><td colspan="7" style="text-align:center; padding:10px;">No hay datos para este parcial</td></tr>';
+        `).join('') || '<tr><td colspan="8" style="text-align:center; padding:10px;">No hay datos para este parcial</td></tr>';
     }
 
     document.getElementById('report-parcial-filter').addEventListener('change', renderReporte);
