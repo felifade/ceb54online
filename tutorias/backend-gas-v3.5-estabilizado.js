@@ -107,7 +107,14 @@ function doGet(e) {
     const sDir = getSheet(ss, S_DIRECTORIO);
     if (sDir) {
        const d = sDir.getDataRange().getValues(); d.shift();
-       directorio = d.map(r => ({ grupo: String(r[0]||'').trim(), materia: String(r[1]||'').trim(), docente: String(r[2]||'').trim(), correo: normalizeText(r[3]) })).filter(x => x.grupo !== "");
+       directorio = d.map(r => ({ 
+           grupo: String(r[0]||'').trim(), 
+           materia: String(r[1]||'').trim(), 
+           docente: String(r[2]||'').trim(), 
+           correo: normalizeText(r[3]),
+           parcial: String(r[4]||'').trim(),
+           ponderacion: String(r[5]||'').trim()
+       })).filter(x => x.grupo !== "");
     }
 
     let sheetProg = getSheet(ss, S_PROGRAMACION);
