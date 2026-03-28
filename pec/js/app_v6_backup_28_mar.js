@@ -94,7 +94,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (view === 'grupos') await initGrupos();
         if (view === 'concentrado') await initConcentrado();
         if (view === 'directorio') await initDirectorio();
-        if (view === 'rapida') await initVistaRapida();
     };
 
     /* =======================================
@@ -1080,84 +1079,6 @@ document.addEventListener("DOMContentLoaded", () => {
         loadingText.textContent = defaultMessage;
         hideLoader();
     });
-
-    // --- VISTA: VISTA RÁPIDA (GLOBAL) ---
-    async function initVistaRapida() {
-        showLoader();
-        try {
-            const data = await api.getDashboardData();
-            const container = document.getElementById('lista-rapida-container');
-            const stats = document.getElementById('rapida-stats');
-            
-            if (!container) return;
-
-            if (!data.equipos || data.equipos.length === 0) {
-                container.innerHTML = '<p style="text-align:center; padding:2rem; color:#64748b;">No hay equipos registrados en el sistema.</p>';
-                hideLoader();
-                return;
-            }
-
-            // Stats Rápidos
-            if (stats) {
-                stats.innerHTML = `
-                    <span style="color:#0369a1; background:#e0f2fe; padding:4px 12px; border-radius:999px;">${data.totalGrupos} Grupos</span>
-                    <span style="color:#059669; background:#d1fae5; padding:4px 12px; border-radius:999px;">${data.totalEquipos} Equipos</span>
-                `;
-            }
-
-            // Agrupar Equipos por Grupo
-            const grouped = {};
-            data.equipos.forEach(eq => {
-                if (!eq.grupo) return;
-                if (!grouped[eq.grupo]) grouped[eq.grupo] = [];
-                grouped[eq.grupo].push(eq);
-            });
-
-            const sortedGroups = Object.keys(grouped).sort((a,b)=>String(a).localeCompare(String(b), undefined, {numeric:true}));
-            
-            container.innerHTML = sortedGroups.map(gName => {
-                const eqs = grouped[gName].sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre)));
-                return `
-                    <div class="grupo-section" style="border-bottom: 2px solid #f1f5f9; padding-bottom: 2rem; margin-bottom: 1rem;">
-                        <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.5rem; position:sticky; top:0; background:white; padding:10px 0; z-index:10; border-bottom: 1px solid #e2e8f0; box-shadow: 0 2px 4px -2px rgba(0,0,0,0.05);">
-                            <span style="background:var(--clr-primary); color:white; width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">${gName[0]}</span>
-                            <div>
-                                <h3 style="margin:0; font-size:1.4rem; color:#1e293b; letter-spacing:-0.5px;">Grupo ${gName}</h3>
-                                <span style="font-size:0.85rem; color:#64748b; font-weight:600; display:flex; align-items:center; gap:4px;">
-                                    <i data-feather="users" style="width:14px;"></i> ${eqs.length} equipos conformados
-                                </span>
-                            </div>
-                        </div>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
-                            ${eqs.map(eq => `
-                                <div style="background:white; border:1px solid #e2e8f0; border-radius:16px; padding:1.25rem; border-left: 5px solid ${eq.estado === 'Evaluado' ? '#10b981' : '#f59e0b'}; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                                    <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:10px;">
-                                        <h4 style="margin:0; font-size:1.05rem; color:#1e293b; font-weight:800; line-height:1.2;">${eq.nombre}</h4>
-                                        <span style="white-space:nowrap; font-size:0.65rem; padding:3px 10px; border-radius:999px; background:${eq.estado==='Evaluado'?'#d1fae5':'#fef3c7'}; color:${eq.estado==='Evaluado'?'#047857':'#92400e'}; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">${eq.estado}</span>
-                                    </div>
-                                    <p style="font-size:0.8rem; color:#64748b; margin-top:0; font-style:italic; margin-bottom:12px; border-bottom:1px solid #f1f5f9; padding-bottom:8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" title="${eq.tema || 'Proyecto PEC'}">${eq.tema || 'Proyecto PEC'}</p>
-                                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                                        ${eq.integrantes.map(i => `<span style="font-size:0.75rem; background:#f8fafc; color:#475569; padding:4px 10px; border-radius:6px; border:1px solid #e2e8f0; font-weight:500;">${i}</span>`).join('')}
-                                    </div>
-                                    ${eq.urlDoc ? `
-                                        <a href="${eq.urlDoc}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; margin-top:16px; font-size:0.8rem; color:#2563eb; text-decoration:none; font-weight:700; background:#eff6ff; padding:6px 12px; border-radius:8px; border:1px solid #dbeafe; transition:all 0.2s;">
-                                            <i data-feather="external-link" style="width:14px;"></i> Consultar Protocolo
-                                        </a>` : ''}
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            feather.replace();
-        } catch (e) {
-            console.error("Error en Vista Rápida:", e);
-            const container = document.getElementById('lista-rapida-container');
-            if (container) container.innerHTML = `<p style="color:#ef4444; text-align:center; padding:3rem; background:#fef2f2; border-radius:12px; border:1px solid #fee2e2;">⚠️ Ocurrió un error al cargar los datos: ${e.message}</p>`;
-        }
-        hideLoader();
-    }
 
     // Iniciar con la primera vista
     initDashboard();

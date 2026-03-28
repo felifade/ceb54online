@@ -35,10 +35,6 @@
                     <i data-feather="map"></i>
                     <span>Directorio Escolar</span>
                 </a>
-                <a href="#" class="nav-item" data-view="rapida">
-                    <i data-feather="eye"></i>
-                    <span>Vista Rápida</span>
-                </a>
                 <a href="#" class="nav-item" onclick="logout()" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; color: #fda4af;">
                     <i data-feather="log-out"></i>
                     <span>Cerrar Sesión</span>
@@ -323,23 +319,24 @@
 
                 <!-- View: Directorio -->
                 <section id="view-directorio" class="view hidden">
-                    <!-- Contenido renderizado por JS -->
-                </section>
-
-                <!-- View: Vista Rápida -->
-                <section id="view-rapida" class="view hidden">
                     <div class="panel">
-                        <div class="panel-header-flex">
+                        <div class="panel-header-flex" style="margin-bottom: 2rem;">
                             <div>
-                                <h2>Vista Rápida: Grupos y Equipos</h2>
-                                <p style="font-size: 0.9rem; color: #64748b;">Estructura completa de todos los equipos registrados en el sistema PEC.</p>
-                            </div>
-                            <div id="rapida-stats" style="display:flex; gap:1rem; font-size:0.85rem; font-weight:700;">
-                                <!-- Stats globales rápidos -->
+                                <h2>Directorio Escolar Asignado</h2>
+                                <p style="font-size: 0.9rem; color: #64748b;">Estructura de Horarios y Asignaturas - Mapeo Extraído de Google Sheets.</p>
                             </div>
                         </div>
-                        <div id="lista-rapida-container" style="display: flex; flex-direction: column; gap: 2rem; margin-top: 1.5rem;">
-                            <!-- Lista continua de grupos inyectada por JS -->
+                        
+                        <!-- Segundos Semestres -->
+                        <h3 style="color:var(--clr-primary); border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 1.5rem;">Estructura de Segundo Semestre</h3>
+                        <div id="dir-segundos" class="equipos-grid" style="margin-bottom: 3rem;">
+                            <!-- Tarjetas inyectadas por JS -->
+                        </div>
+
+                        <!-- Cuartos Semestres -->
+                        <h3 style="color:var(--clr-secondary); border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 1.5rem;">Estructura de Cuarto Semestre</h3>
+                        <div id="dir-cuartos" class="equipos-grid">
+                            <!-- Tarjetas inyectadas por JS -->
                         </div>
                     </div>
                 </section>
