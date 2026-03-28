@@ -124,12 +124,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
             `;
 
-            // === OBTENER TODOS LOS DATOS ===
-            const allData = await api.fetchAllData();
-            const directorio = allData.directorio || [];
-            const evaluaciones = allData.evaluaciones || [];
-            const programacion = allData.programacion || [];
-            const sinEquipo = allData.sinEquipo || [];
+            // === EQUIPOS Y EVALUACIONES (De la primera carga) ===
+            const directorio = data.directorio || [];
+            const evaluaciones = data.evaluaciones || [];
+            const programacion = data.programacion || [];
+            const sinEquipo = data.sinEquipo || [];
 
             // === DIAGNÓSTICO ALUMNOS SIN EQUIPO ===
             const badgeSinEq = document.getElementById('badge-sin-equipo');
@@ -198,10 +197,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 let dirFiltrado = directorio;
                 if (progParcial.length > 0) {
                     dirFiltrado = directorio.filter(d => {
-                        const turnoGrupo = getTurno(d.grupo);
+                        const turnoGrupo = getTurno(d.grupo).toUpperCase();
                         return progParcial.some(p => {
-                            const matchMateria = String(p.materia || '').trim() === String(d.materia || '').trim();
-                            const matchTurno = !p.turno || p.turno === '' || p.turno === turnoGrupo || p.turno === 'AMBOS';
+                            const matchMateria = String(p.materia || '').trim().toLowerCase() === String(d.materia || '').trim().toLowerCase();
+                            const pTurno = String(p.turno || '').toUpperCase();
+                            const matchTurno = !pTurno || pTurno === '' || pTurno === turnoGrupo || pTurno === 'AMBOS';
                             const pGrupoOpcional = p.grupoEspecial ? String(p.grupoEspecial).trim().toUpperCase() : '';
                             const dGrupoNum = extractNum(d.grupo);
                             const gruposPermitidos = pGrupoOpcional.split(',').map(s => s.trim());
@@ -308,13 +308,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 const curriculumPorGrupo = {};
 
                 todosLosGrupos.forEach(grupo => {
-                    const turnoGrupo = getTurno(grupo);
+                    const turnoGrupo = getTurno(grupo).toUpperCase();
                     const grupoNum = extractNum(grupo);
                     const semestre = grupoNum.startsWith('2') ? '2do' : grupoNum.startsWith('4') ? '4to' : '-';
 
                     // Encontrar qué materias aplican a este grupo (incluyendo excepciones en grupoEspecial)
                     const materiasAplicables = progFiltrada.filter(p => {
-                        const matchTurno = !p.turno || p.turno === '' || p.turno === turnoGrupo || p.turno === 'AMBOS';
+                        const pTurno = String(p.turno || '').toUpperCase();
+                        const matchTurno = !pTurno || pTurno === '' || pTurno === turnoGrupo || pTurno === 'AMBOS';
                         const matchSemestre = !p.semestre || p.semestre === '' || semestre.includes(String(p.semestre));
                         
                         const pGrupoEspecial = p.grupoEspecial ? String(p.grupoEspecial).trim().toUpperCase() : '';

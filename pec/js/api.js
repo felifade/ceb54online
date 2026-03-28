@@ -2,7 +2,7 @@
 
 const USE_MOCK = false;
 // La URL que te dará Google Apps Script cuando lo publiques
-const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbzdKNO4yrL_DZSi2iUqUMHp9dEVsJesJNPdXJXJzINi6XXEDW057mBQ-b3nDwF6uOqGwg/exec";
+const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbzMEGdwwbDb8OnX8LpiCkG-jeQnAIiPepMgLYYKDgSo09kQPAIxv21RUZOS0w-9Cyk0Og/exec";
 
 const api = {
     // Almacén temporal de datos para no recargar en cada clic
@@ -23,9 +23,17 @@ const api = {
             redirect: 'follow'
         });
 
-        if (!response.ok) throw new Error("Respuesta de red no válida");
+        console.log(`DEBUG - API Status: ${response.status} ${response.statusText}`);
+
+        if (!response.ok) {
+            const text = await response.text();
+            console.error("DEBUG - Fallo de red:", text);
+            throw new Error(`Error de red (${response.status}): Verifica la URL de la API.`);
+        }
 
         const data = await response.json();
+        console.log("DEBUG - Datos recibidos (Primeros 100 caracteres):", JSON.stringify(data).substring(0, 100));
+
         if (data.status === "error") throw new Error(data.message);
 
         this.cache = data;
