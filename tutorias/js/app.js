@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     ${t.asistencia === 'NO' ? '❌' : '✅'}
                 </td>
                 <td style="padding:1rem; font-size:0.85rem;">${t.individual ? 'Individual' : 'Grupal'}</td>
-                <td style="padding:1rem; font-size:0.85rem; color:#64748b; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${t.tema}</td>
+                <td style="padding:1rem; font-size:0.85rem; color:#64748b; min-width: 250px; word-wrap: break-word;">${t.tema}</td>
                 <td style="padding:1rem; font-size:0.85rem;">
                     <button class="btn-delete" onclick="handleDeleteTutoria('${t.fecha}', '${t.alumno.replace(/'/g, "\\'")}')" style="background:none; border:none; color:#ef4444; cursor:pointer; padding:4px;">
                         <i data-lucide="trash-2" style="width:16px; height:16px;"></i>
