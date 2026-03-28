@@ -93,8 +93,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (view === 'dashboard') await initDashboard();
         if (view === 'grupos') await initGrupos();
         if (view === 'concentrado') await initConcentrado();
-        if (view === 'directorio') await initDirectorio();
+        if (view === 'directorio') await window.initDirectorioV2();
         if (view === 'rapida') await initVistaRapida();
+        if (view === 'auditoria' && window.initAuditoriaView) await window.initAuditoriaView();
     };
 
     /* =======================================

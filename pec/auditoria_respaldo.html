@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión PEC | CEB 5/4</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/auth.js"></script>
+</head>
+<body>
+    <div id="app" class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-text">PEC 5/4</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-view="dashboard">
+                    <i data-feather="shield"></i>
+                    <span>Auditoría Directorio</span>
+                </a>
+                <a href="index.html" class="nav-item" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                    <i data-feather="arrow-left"></i>
+                    <span>Volver al Sistema</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <p>Módulo de Auditoría de Líderes de Academia<br>CEB 5/4</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="topbar">
+                <button id="menu-toggle" class="btn-icon">
+                    <i data-feather="menu"></i>
+                </button>
+                <div class="topbar-title">
+                    <h1 id="view-title">Cargando Auditoría...</h1>
+                </div>
+                <div class="topbar-user">
+                    <div class="avatar">
+                        <i data-feather="user"></i>
+                    </div>
+                    <span id="topbar-user-name">Líder de Academia</span>
+                </div>
+            </header>
+
+            <!-- Loading Overlay -->
+            <div id="loading" class="loading-overlay">
+                <div class="spinner"></div>
+                <p>Escaneando Directorio en Google Sheets...</p>
+            </div>
+
+            <!-- Views Container -->
+            <div id="views-container" class="views-wrapper">
+                
+                <!-- View: Dashboard (Audit results go here) -->
+                <section id="view-dashboard" class="view active">
+                    
+                    <div class="stats-grid">
+                        <!-- Stats injected by app_auditoria.js -->
+                    </div>
+
+                    <!-- Audit content will be injected by app_auditoria.js -->
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/api_v3.js?v=3"></script>
+    <script src="js/app_auditoria.js?v=0.1"></script>
+</body>
+</html>

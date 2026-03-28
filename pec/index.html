@@ -39,6 +39,10 @@
                     <i data-feather="eye"></i>
                     <span>Vista Rápida</span>
                 </a>
+                <a href="#" class="nav-item" data-view="auditoria">
+                    <i data-feather="shield"></i>
+                    <span>Auditoría Academia</span>
+                </a>
                 <a href="#" class="nav-item" onclick="logout()" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; color: #fda4af;">
                     <i data-feather="log-out"></i>
                     <span>Cerrar Sesión</span>
@@ -344,6 +348,13 @@
                     </div>
                 </section>
 
+                <!-- View: Auditoría Academia -->
+                <section id="view-auditoria" class="view hidden">
+                    <div class="stats-grid">
+                        <!-- Stats inyectados por JS -->
+                    </div>
+                </section>
+
             </div>
         </main>
     </div>
@@ -352,5 +363,7 @@
     <script src="js/mock-data.js"></script>
     <script src="js/api_v3.js?v=3"></script>
     <script src="js/app_v6.js?v=6"></script>
+    <script src="js/app_auditoria.js?v=0.1"></script>
+    <script src="js/app_directorio_v2.js?v=0.1"></script>
 </body>
 </html>
