@@ -212,6 +212,33 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
 
+        .btn-documento {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: #f1f5f9;
+            color: #475569;
+            padding: 14px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-decoration: none;
+            margin-bottom: 2rem;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+
+        .btn-documento:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(5, 150, 105, 0.2);
+        }
+
+        .hidden { display: none !important; }
+
         @media (max-width: 992px) {
             .project-grid { grid-template-columns: 1fr; }
             header h1 { font-size: 2rem; }
@@ -238,6 +265,9 @@
                     <div class="shift-badge matutino-badge"><i data-lucide="sun"></i> Matutino</div>
                     <h2 id="pec_2m_nombre">Cargando Proyecto...</h2>
                     <p class="objective" id="pec_2m_objetivo">...</p>
+                    <a id="pec_2m_url" href="#" target="_blank" class="btn-documento hidden">
+                        <i data-lucide="external-link" style="width:18px;"></i> Ver Documento de Trabajo
+                    </a>
                     <div class="teachers-section">
                         <h4><i data-lucide="users"></i> Docentes Participantes</h4>
                         <div class="teachers-list" id="list_2m"></div>
@@ -248,6 +278,9 @@
                     <div class="shift-badge vespertino-badge"><i data-lucide="moon"></i> Vespertino</div>
                     <h2 id="pec_2v_nombre">Cargando Proyecto...</h2>
                     <p class="objective" id="pec_2v_objetivo">...</p>
+                    <a id="pec_2v_url" href="#" target="_blank" class="btn-documento hidden">
+                        <i data-lucide="external-link" style="width:18px;"></i> Ver Documento de Trabajo
+                    </a>
                     <div class="teachers-section">
                         <h4><i data-lucide="users"></i> Docentes Participantes</h4>
                         <div class="teachers-list" id="list_2v"></div>
@@ -264,6 +297,9 @@
                     <div class="shift-badge matutino-badge"><i data-lucide="sun"></i> Matutino</div>
                     <h2 id="pec_4m_nombre">Cargando Proyecto...</h2>
                     <p class="objective" id="pec_4m_objetivo">...</p>
+                    <a id="pec_4m_url" href="#" target="_blank" class="btn-documento hidden">
+                        <i data-lucide="external-link" style="width:18px;"></i> Ver Documento de Trabajo
+                    </a>
                     <div class="teachers-section">
                         <h4><i data-lucide="users"></i> Docentes Participantes</h4>
                         <div class="teachers-list" id="list_4m"></div>
@@ -274,6 +310,9 @@
                     <div class="shift-badge vespertino-badge"><i data-lucide="moon"></i> Vespertino</div>
                     <h2 id="pec_4v_nombre">Cargando Proyecto...</h2>
                     <p class="objective" id="pec_4v_objetivo">...</p>
+                    <a id="pec_4v_url" href="#" target="_blank" class="btn-documento hidden">
+                        <i data-lucide="external-link" style="width:18px;"></i> Ver Documento de Trabajo
+                    </a>
                     <div class="teachers-section">
                         <h4><i data-lucide="users"></i> Docentes Participantes</h4>
                         <div class="teachers-list" id="list_4v"></div>
@@ -289,6 +328,9 @@
                     <div class="shift-badge global-badge"><i data-lucide="globe"></i> Ambos Turnos</div>
                     <h2 id="pec_6_nombre">Cargando Proyecto de 6to Semestre...</h2>
                     <p class="objective" id="pec_6_objetivo">...</p>
+                    <a id="pec_6_url" href="#" target="_blank" class="btn-documento hidden">
+                        <i data-lucide="external-link" style="width:18px;"></i> Ver Documento de Trabajo
+                    </a>
                     <div class="teachers-section">
                         <h4><i data-lucide="users"></i> Gran Equipo Docente (Ambos Turnos)</h4>
                         <div class="teachers-list" id="list_6" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); max-height: 400px;"></div>

@@ -32,9 +32,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         projectKeys.forEach(key => {
             const nameEl = document.getElementById(`pec_${key}_nombre`);
             const objEl = document.getElementById(`pec_${key}_objetivo`);
+            const urlEl = document.getElementById(`pec_${key}_url`);
             
             if (nameEl) nameEl.textContent = config[`pec_${key}_nombre`] || `Proyecto PEC ${key.toUpperCase()}`;
             if (objEl) objEl.textContent = config[`pec_${key}_objetivo`] || "Desarrollando habilidades para el bienestar comunitario y el crecimiento académico.";
+            
+            // Lógica para el botón de documento
+            const docUrl = config[`pec_${key}_url`] || config[`pec_${key}_documento`];
+            if (urlEl && docUrl) {
+                urlEl.href = docUrl;
+                urlEl.classList.remove('hidden');
+            } else if (urlEl) {
+                urlEl.classList.add('hidden');
+            }
         });
 
         // 2. Lógica de Agrupación de Maestros (Detección Inteligente)
