@@ -129,6 +129,27 @@
                 showStep('teachers');
                 loadDirectors();
             }
+        },
+        reset: async () => {
+             showLoader();
+             try {
+                 // Recargar datos (allData) para actualizar el historial de evaluados (feedbackHistory)
+                 allData = await api.fetchAllData();
+                 
+                 // Limpiar estado de la encuesta anterior
+                 selectedTeacher = null;
+                 ratings = { c1:0, c2:0, c3:0, c4:0 };
+                 const comments = document.getElementById('eval-comments');
+                 if(comments) comments.value = '';
+                 
+                 // Regresar a la pantalla de elección (Profesores vs Directivos)
+                 showStep('choice');
+             } catch(e) {
+                 console.error(e);
+                 alert("⚠️ Hubo un problema al actualizar el historial. Intenta de nuevo.");
+             } finally {
+                 hideLoader();
+             }
         }
     };
 
@@ -163,7 +184,7 @@
         
         const clean = (g) => String(g).replace(/[^0-9]/g, '');
         const targetClean = clean(grupo);
-        const pActivo = String(allData.config.parcialActivo || "2");
+        const pActivo = "Semestral"; // Evaluación fija de semestre
 
         const misMaestros = (allData.directorio || []).filter(d => clean(d.grupo) === targetClean);
         
@@ -183,12 +204,11 @@
         container.innerHTML = '';
 
         const directivos = [
-            { docente: "DIRECTOR DEL PLANTEL", materia: "Gestión Directiva", isDirector: true },
-            { docente: "SUBDIRECTOR ACADÉMICO", materia: "Área Académica / Control", isDirector: true },
-            { docente: "SUBDIRECTOR ADMINISTRATIVO", materia: "Recursos y Servicios", isDirector: true }
+            { docente: "DIRECTORA DEL PLANTEL", materia: "Gestión Directiva", isDirector: true },
+            { docente: "SUBDIRECTOR ACADÉMICO", materia: "Planteamiento Académico", isDirector: true }
         ];
 
-        const pActivo = String(allData.config.parcialActivo || "2");
+        const pActivo = "Semestral"; // Evaluación fija de semestre
         renderList(directivos, container, pActivo);
     }
 
@@ -234,11 +254,18 @@
     }
 
     // --- 4. FORMULARIO DE EVALUACIÓN ---
-    const criterios = [
+    const criteriosDocentes = [
         { id: 'c1', texto: '1. ¿El profesor explica con claridad los temas y resuelve tus dudas?' },
         { id: 'c2', texto: '2. ¿Te trata con respeto, amabilidad y fomenta un buen ambiente?' },
         { id: 'c3', texto: '3. ¿Demuestra dominio y conocimiento profundo de su materia?' },
         { id: 'c4', texto: '4. ¿Es organizado con el tiempo y cumple con los acuerdos de evaluación?' }
+    ];
+
+    const criteriosDirectivos = [
+        { id: 'c1', texto: '1. Gestión Institucional: ¿Qué tan efectiva es la dirección para resolver problemas y atender las necesidades del plantel?' },
+        { id: 'c2', texto: '2. Atención a la Comunidad: ¿Qué tan satisfecho estás con la atención, disponibilidad y trato que brindan a los padres y alumnos?' },
+        { id: 'c3', texto: '3. Clima y Seguridad: ¿Qué tanto se esfuerza la dirección por garantizar un ambiente de seguridad, orden y sana convivencia?' },
+        { id: 'c4', texto: '4. Comunicación y Cumplimiento: ¿Consideras que la dirección informa con claridad y cumple con los acuerdos realizados con la comunidad?' }
     ];
 
     function openSurvey(m) {
@@ -250,7 +277,9 @@
         container.innerHTML = '';
         ratings = { c1:0, c2:0, c3:0, c4:0 };
 
-        criterios.forEach(crit => {
+        const listaCriterios = m.isDirector ? criteriosDirectivos : criteriosDocentes;
+
+        listaCriterios.forEach(crit => {
             const div = document.createElement('div');
             div.style.marginBottom = '2rem';
             div.innerHTML = `
@@ -326,16 +355,16 @@
             showLoader();
             const payload = {
                 action: 'eval-docente',
-                Parcial: 'Semestral',
-                Alumno: selectedStudent.nombre,
-                Grupo: selectedStudent.grupo,
-                Docente: selectedTeacher.docente,
-                Materia: selectedTeacher.materia,
-                Claridad: ratings.c1,
-                Respeto: ratings.c2,
-                Dominio: ratings.c3,
-                Org: ratings.c4,
-                Comentarios: document.getElementById('eval-comments').value
+                parcial: 'Semestral',
+                alumno: selectedStudent.nombre,
+                grupo: selectedStudent.grupo,
+                docente: selectedTeacher.docente,
+                materia: selectedTeacher.materia,
+                c1: ratings.c1,
+                c2: ratings.c2,
+                c3: ratings.c3,
+                c4: ratings.c4,
+                comentarios: document.getElementById('eval-comments').value
             };
 
             console.log("DEBUG - Enviando Encuesta:", payload);
