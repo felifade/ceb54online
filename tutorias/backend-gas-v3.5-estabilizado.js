@@ -164,7 +164,8 @@ function doGet(e) {
             tema: String(r[8]||''),
             grupal: r[9] === 'X' || r[9] === true || r[9] === 'Grupal',
             individual: r[10] === 'X' || r[10] === true || r[10] === 'Individual',
-            docenteEmail: normalizeText(r[11] || r[10] || "") // Soporte para varias versiones de columna
+            docenteEmail: normalizeText(r[11] || r[10] || ""), // Soporte para varias versiones de columna
+            asistencia: String(r[11] || r[12] || "SÍ").trim().toUpperCase()
          }));
          if (!isAdmin && userEmail !== "") tutoriasData = tutoriasData.filter(x => x.docenteEmail === userEmail);
        }
@@ -285,10 +286,14 @@ function doPost(e) {
     if (action === "updateTutoriaField") {
        const s = getSheet(ss, S_TUTORIAS); const d = s.getDataRange().getValues();
        const tF = new Date(body.fecha).getTime(); const tA = String(body.alumno).trim();
-       for(let i=1; i<d.length; i++){ 
-         if(Math.abs(new Date(d[i][0]).getTime()-tF) < 10000 && String(d[i][3]).trim()===tA){ 
-           s.getRange(i+1, body.column).setValue(body.value); break; 
-         } 
+       const m = { "parcial": 1, "sexo": 4, "tema": 8, "asistencia": 12 }; 
+       let col = m[body.column];
+       if (col !== undefined) {
+         for(let i=1; i<d.length; i++){ 
+           if(Math.abs(new Date(d[i][0]).getTime()-tF) < 10000 && String(d[i][3]).trim()===tA){ 
+             s.getRange(i+1, col+1).setValue(body.value); break; 
+           } 
+         }
        }
        return ContentService.createTextOutput(JSON.stringify({ status: "success" }));
     }
