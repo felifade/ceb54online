@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Stats
             document.getElementById('dash-grupos').textContent = data.totalGrupos || 0;
             document.getElementById('dash-equipos').textContent = data.totalEquipos || 0;
-            document.getElementById('dash-evaluaciones').textContent = (data.evaluaciones || []).length;
+            document.getElementById('dash-evaluaciones').textContent = data.evaluaciones || 0;
             document.getElementById('dash-avance').textContent = `${data.avance || 0}%`;
 
             // Fecha de Entrega Dinámica
@@ -224,14 +224,15 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const renderSeguimiento = () => {
-                const segParcialEl = document.getElementById('seg-parcial');
-                const segGrupoEl = document.getElementById('seg-grupo');
-                if (!segParcialEl || !segGrupoEl) return;
+                const segParcial = document.getElementById('seg-parcial');
+                const segGrupo = document.getElementById('seg-grupo');
+                if (!segParcial || !segGrupo) return;
 
-                const parcialSel = normalizeParcial(segParcialEl.value);
-                const grupoSel = String(segGrupoEl.value || '').trim();
+                const parcialSel = normalizeParcial(segParcial.value);
+                const grupoSel = String(segGrupo.value || '').trim();
 
-                const cleanG = (g) => String(g).replace(/[^0-9]/g, '');
+                const getTurno = (grupo) => String(grupo).toUpperCase().startsWith('V') ? 'VESPERTINO' : 'MATUTINO';
+                const extractNum = (g) => String(g).replace(/[^0-9]/g, '');
                 
                 let dirFiltrado = directorio.filter(d => {
                     const strParciales = String(d.parcial || "").trim();
@@ -242,82 +243,35 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 if (grupoSel) dirFiltrado = dirFiltrado.filter(d => d.grupo === grupoSel);
 
-                // 1. Agrupar Directorio por Docente
-                const porDocente = {};
-                dirFiltrado.forEach(d => {
-                    const docNormal = String(d.docente || "SIN NOMBRE").trim().toUpperCase();
-                    if (!porDocente[docNormal]) {
-                        porDocente[docNormal] = { 
-                            docente: d.docente || "SIN NOMBRE", 
-                            docNormal: docNormal,
-                            asignaciones: [], // {grupo, materia}
-                            totalesPorEquipo: 0,
-                            hechos: 0
-                        };
-                    }
-                    porDocente[docNormal].asignaciones.push({ grupo: d.grupo, materia: d.materia });
+                const evalsHechas = new Set();
+                evaluaciones.forEach(ev => {
+                    const gNum = extractNum(String(ev.grupoId));
+                    const mat = String(ev.materia || '').trim();
+                    const par = String(ev.parcial);
+                    evalsHechas.add(`${gNum}|${mat}|${par}`);
                 });
 
-                // 2. Calcular Carga de Equipos y Evaluaciones por Docente
-                Object.values(porDocente).forEach(docObj => {
-                    docObj.asignaciones.forEach(asig => {
-                        const teamsInG = (data.equipos || []).filter(eq => cleanG(eq.grupo) === cleanG(asig.grupo));
-                        docObj.totalesPorEquipo += teamsInG.length;
-
-                        // Contar cuántos de esos equipos ya tienen evaluación de este docente para esta materia
-                        teamsInG.forEach(eq => {
-                            const yaEvaluo = evaluaciones.some(ev => 
-                                String(ev.docente).trim().toUpperCase() === docObj.docNormal &&
-                                cleanG(ev.grupoId) === cleanG(asig.grupo) &&
-                                String(ev.equipoId) === String(eq.id) &&
-                                String(ev.materia).trim() === String(asig.materia).trim() &&
-                                String(ev.parcial) === String(parcialSel)
-                            );
-                            if (yaEvaluo) docObj.hechos++;
-                        });
-                    });
-                });
-
-                // 3. Crear Filas de Tabla (Ordenados por faltantes)
-                const listaDocentes = Object.values(porDocente).sort((a,b) => {
-                    const faltanA = a.totalesPorEquipo - a.hechos;
-                    const faltanB = b.totalesPorEquipo - b.hechos;
-                    return faltanB - faltanA; // Más faltantes arriba
-                });
-
-                let totalTerminado = 0, totalEnProceso = 0;
                 let filas = '';
-                
-                listaDocentes.forEach(item => {
-                    const faltan = item.totalesPorEquipo - item.hechos;
-                    const avancePct = item.totalesPorEquipo > 0 ? (item.hechos / item.totalesPorEquipo) * 100 : 0;
-                    const yaTermino = (faltan === 0 && item.totalesPorEquipo > 0);
-
-                    if (yaTermino) totalTerminado++; else totalEnProceso++;
-
-                    const resumenCarga = item.asignaciones.map(a => `<span style="display:inline-block; background:#f1f5f9; padding:2px 6px; border-radius:4px; margin:2px; font-size:0.75rem;">${a.grupo} (${a.materia})</span>`).join(' ');
+                let totalEval = 0, totalPend = 0;
+                dirFiltrado.forEach(item => {
+                    const gNum = extractNum(item.grupo);
+                    const key = `${gNum}|${item.materia}|${parcialSel}`;
+                    const yaEvaluo = evalsHechas.has(key);
+                    const semestre = String(gNum).startsWith('2') ? '2do' : String(gNum).startsWith('4') ? '4to' : '-';
+                    if (yaEvaluo) totalEval++; else totalPend++;
 
                     filas += `
                         <tr style="border-bottom: 1px solid #f1f5f9;">
-                            <td style="padding:12px 10px;">
-                                <div style="font-weight:700; color:#1e293b; font-size:0.95rem;">${item.docente}</div>
-                                <div style="margin-top:4px;">${resumenCarga}</div>
+                            <td style="padding:8px 10px; text-align:center;">
+                                <span style="background:${semestre === '2do' ? '#DBEAFE' : '#E0E7FF'}; color:${semestre === '2do' ? '#1D4ED8' : '#4338CA'}; padding:2px 8px; border-radius:999px; font-weight:600; font-size:0.75rem;">${semestre}</span>
                             </td>
-                            <td style="padding:12px 10px; text-align:center;">
-                                <div style="font-weight:800; color:#475569; font-size:1rem;">${item.hechos} / ${item.totalesPorEquipo}</div>
-                                <div style="width:60px; height:4px; background:#f1f5f9; border-radius:999px; margin:4px auto; overflow:hidden;">
-                                    <div style="height:100%; width:${avancePct}%; background:${yaTermino ? '#10b981' : '#3b82f6'}; transition: width 0.3s;"></div>
-                                </div>
-                            </td>
-                            <td style="padding:12px 10px; text-align:center;">
-                                <span style="font-size:1.1rem; font-weight:900; color:${faltan > 0 ? '#ef4444' : '#10b981'};">
-                                    ${faltan > 0 ? faltan : '✓'}
-                                </span>
-                            </td>
-                            <td style="padding:12px 10px; text-align:center;">
-                                ${yaTermino 
-                                    ? '<span style="background:#D1FAE5; color:#065f46; padding:4px 12px; border-radius:99px; font-weight:700; font-size:0.75rem; border:1px solid #10b98133;">COMPLETO</span>' 
-                                    : '<span style="background:#FEF3C7; color:#92400e; padding:4px 12px; border-radius:999px; font-weight:700; font-size:0.75rem; border:1px solid #eab30833;">PENDIENTE</span>'}
+                            <td style="padding:8px 10px; font-weight:600; color:#334155;">${item.grupo}</td>
+                            <td style="padding:8px 10px; color:#475569; max-width:220px;">${item.materia}</td>
+                            <td style="padding:8px 10px; color:#64748b; font-weight:500;">${item.docente}</td>
+                            <td style="padding:8px 10px; text-align:center;">
+                                ${yaEvaluo 
+                                    ? '<span style="background:#D1FAE5; color:#059669; padding:3px 10px; border-radius:999px; font-weight:600; font-size:0.8rem;">✅ Evaluado</span>' 
+                                    : '<span style="background:#FEF3C7; color:#D97706; padding:3px 10px; border-radius:999px; font-weight:600; font-size:0.8rem;">⏳ Pendiente</span>'}
                             </td>
                         </tr>
                     `;
@@ -326,21 +280,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 const container = document.getElementById('seg-tabla-container');
                 if (container) {
                     container.innerHTML = `
-                        ${dirFiltrado.length === 0 ? '<div style="background:#FEF3C7; border:1px solid #FDE68A; color:#92400E; padding:10px 14px; border-radius:8px; margin-bottom:1rem; font-size:0.85rem;">⚠️ No hay docentes asignados para evaluar en el Parcial ' + parcialSel + '.</div>' : ''}
-                        <div style="display:flex; gap:1rem; margin-bottom:1.5rem;">
-                            <span style="background:#D1FAE5; color:#065f46; padding:6px 16px; border-radius:12px; font-weight:700; font-size:0.85rem; border:1px solid #10b98144;">🏆 ${totalTerminado} Concluidos</span>
-                            <span style="background:#FEF3C7; color:#92400e; padding:6px 16px; border-radius:12px; font-weight:700; font-size:0.85rem; border:1px solid #eab30844;">⏳ ${totalEnProceso} En Proceso</span>
+                        ${dirFiltrado.length === 0 ? '<div style="background:#FEF3C7; border:1px solid #FDE68A; color:#92400E; padding:10px 14px; border-radius:8px; margin-bottom:1rem; font-size:0.85rem;">⚠️ No hay docentes asignados para evaluar en el Parcial ' + parcialSel + '. Revisa la columna E de tu Directorio.</div>' : ''}
+                        <div style="display:flex; gap:1rem; margin-bottom:1rem;">
+                            <span style="background:#D1FAE5; color:#059669; padding:4px 12px; border-radius:999px; font-weight:600; font-size:0.85rem;">✅ ${totalEval} Evaluados</span>
+                            <span style="background:#FEF3C7; color:#D97706; padding:4px 12px; border-radius:999px; font-weight:600; font-size:0.85rem;">⏳ ${totalPend} Pendientes</span>
                         </div>
                         <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
                             <thead>
-                                <tr style="background:#f8fafc; border-bottom:2px solid #e2e8f0; color:#64748b; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">
-                                    <th style="padding:12px 10px; text-align:left;">Docente / Carga Académica</th>
-                                    <th style="padding:12px 10px; text-align:center;">Avance (Equipos)</th>
-                                    <th style="padding:12px 10px; text-align:center;">Faltantes</th>
-                                    <th style="padding:12px 10px; text-align:center;">Estado</th>
+                                <tr style="background:#f8fafc; border-bottom:2px solid #e2e8f0;">
+                                    <th style="padding:10px; text-align:center;">Sem.</th>
+                                    <th style="padding:10px; text-align:left;">Grupo</th>
+                                    <th style="padding:10px; text-align:left;">Materia</th>
+                                    <th style="padding:10px; text-align:left;">Docente</th>
+                                    <th style="padding:10px; text-align:center;">Estado</th>
                                 </tr>
                             </thead>
-                            <tbody>${filas || '<tr><td colspan="4" style="text-align:center; padding:30px; color:#94a3b8; font-style:italic;">No hay docentes en este grupo/parcial.</td></tr>'}</tbody>
+                            <tbody>${filas || '<tr><td colspan="5" style="text-align:center; padding:20px; color:#94a3b8;">No hay datos para mostrar.</td></tr>'}</tbody>
                         </table>
                     `;
                 }
@@ -1148,13 +1103,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 stats.innerHTML = `
                     <span style="color:#0369a1; background:#e0f2fe; padding:4px 12px; border-radius:999px;">${data.totalGrupos} Grupos</span>
                     <span style="color:#059669; background:#d1fae5; padding:4px 12px; border-radius:999px;">${data.totalEquipos} Equipos</span>
-                    <span style="color:#6366f1; background:#eef2ff; padding:4px 12px; border-radius:999px;">Parcial ${data.config.parcialActivo || "1"}</span>
                 `;
             }
-
-            const pActivo = (data.config && data.config.parcialActivo) || "1";
-            const cleanG = (g) => String(g).replace(/[^0-9]/g, '');
-            const parseP = (v) => { const m = String(v).match(/\d+/); return m ? m[0] : String(v).trim(); };
 
             // Agrupar Equipos por Grupo
             const grouped = {};
@@ -1180,79 +1130,22 @@ document.addEventListener("DOMContentLoaded", () => {
                             </div>
                         </div>
                         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
-                            ${eqs.map(eq => {
-                                // 1. Calcular Estatus Estricto
-                                const materiasAsignadas = (data.directorio || []).filter(d => {
-                                    const parciales = String(d.parcial || "").split(',').map(s => parseP(s));
-                                    return cleanG(d.grupo) === cleanG(gName) && parciales.includes(parseP(pActivo));
-                                }).map(d => d.materia);
-                                
-                                const uniqueAsignadas = [...new Set(materiasAsignadas)];
-                                const evalsEqP = (data.evaluaciones || []).filter(ev => ev.equipoId === eq.id && String(ev.parcial) === String(pActivo));
-                                const materiasEvaluadas = [...new Set(evalsEqP.map(ev => ev.materia))];
-                                
-                                const countAsign = uniqueAsignadas.length;
-                                const countEval = materiasEvaluadas.filter(m => uniqueAsignadas.includes(m)).length;
-                                
-                                let stText = "PENDIENTE";
-                                let stColor = "#92400e";
-                                let stBg = "#fef3c7";
-                                let borderColor = "#f59e0b";
-                                
-                                if (countEval > 0) {
-                                    if (countEval < countAsign) {
-                                        stText = "EN PROCESO";
-                                        stColor = "#854d0e";
-                                        stBg = "#fefce8";
-                                        borderColor = "#eab308";
-                                    } else {
-                                        stText = "COMPLETO";
-                                        stColor = "#065f46";
-                                        stBg = "#d1fae5";
-                                        borderColor = "#10b981";
-                                    }
-                                }
-
-                                return `
-                                <div style="background:white; border:1px solid #e2e8f0; border-radius:16px; padding:1.25rem; border-left: 5px solid ${borderColor}; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                            ${eqs.map(eq => `
+                                <div style="background:white; border:1px solid #e2e8f0; border-radius:16px; padding:1.25rem; border-left: 5px solid ${eq.estado === 'Evaluado' ? '#10b981' : '#f59e0b'}; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
                                     <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:10px;">
                                         <h4 style="margin:0; font-size:1.05rem; color:#1e293b; font-weight:800; line-height:1.2;">${eq.nombre}</h4>
-                                        <span style="white-space:nowrap; font-size:0.6rem; padding:3px 10px; border-radius:999px; background:${stBg}; color:${stColor}; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">
-                                            ${stText} ${countAsign > 0 ? `(${countEval}/${countAsign})` : ''}
-                                        </span>
+                                        <span style="white-space:nowrap; font-size:0.65rem; padding:3px 10px; border-radius:999px; background:${eq.estado==='Evaluado'?'#d1fae5':'#fef3c7'}; color:${eq.estado==='Evaluado'?'#047857':'#92400e'}; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">${eq.estado}</span>
                                     </div>
                                     <p style="font-size:0.8rem; color:#64748b; margin-top:0; font-style:italic; margin-bottom:12px; border-bottom:1px solid #f1f5f9; padding-bottom:8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" title="${eq.tema || 'Proyecto PEC'}">${eq.tema || 'Proyecto PEC'}</p>
                                     <div style="display:flex; flex-wrap:wrap; gap:6px;">
                                         ${eq.integrantes.map(i => `<span style="font-size:0.75rem; background:#f8fafc; color:#475569; padding:4px 10px; border-radius:6px; border:1px solid #e2e8f0; font-weight:500;">${i}</span>`).join('')}
                                     </div>
-
-                                    <div style="display:flex; gap:6px; margin-top:12px; padding-top:10px; border-top:1px dashed #e2e8f0;">
-                                        ${['1', '2', '3'].map(p => {
-                                            const evs = (data.evaluaciones || []).filter(ev => ev.equipoId === eq.id && String(ev.parcial) === p);
-                                            if (evs.length === 0) {
-                                                return `<div style="flex:1; text-align:center; padding:4px; background:#f8fafc; color:#cbd5e1; border-radius:8px; font-size:0.7rem; font-weight:700; border:1px solid #e2e8f0; opacity:0.6;">P${p} -</div>`;
-                                            }
-                                            
-                                            const avg = (evs.reduce((acc, cur) => acc + cur.puntaje, 0) / evs.length).toFixed(1);
-                                            const docs = [...new Set(evs.map(ev => ev.docente))].join(', ');
-                                            const obsEscaped = evs.map(ev => (ev.observaciones || 'Sin observaciones')).join('\\n---\\n').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                                            const titleText = `Evaluado por: ${docs}\nPromedio: ${avg}\nHaz clic para ver observaciones.`;
-
-                                            return `
-                                                <div onclick="window.verObservacionesPEC('${eq.nombre}', '${p}', '${obsEscaped}')" 
-                                                     title="${titleText}" 
-                                                     style="flex:1; text-align:center; padding:4px; background:#f0fdf4; color:#166534; border-radius:8px; font-size:0.7rem; font-weight:800; border:1px solid #bbf7d0; cursor:pointer; transition:all 0.2s;">
-                                                    P${p}: ${avg}
-                                                </div>`;
-                                        }).join('')}
-                                    </div>
-
                                     ${eq.urlDoc ? `
-                                        <a href="${eq.urlDoc}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; margin-top:12px; font-size:0.8rem; color:#2563eb; text-decoration:none; font-weight:700; background:#eff6ff; padding:6px 12px; border-radius:8px; border:1px solid #dbeafe; transition:all 0.2s;">
-                                            <i data-feather="external-link" style="width:14px;"></i> Protocolo
+                                        <a href="${eq.urlDoc}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; margin-top:16px; font-size:0.8rem; color:#2563eb; text-decoration:none; font-weight:700; background:#eff6ff; padding:6px 12px; border-radius:8px; border:1px solid #dbeafe; transition:all 0.2s;">
+                                            <i data-feather="external-link" style="width:14px;"></i> Consultar Protocolo
                                         </a>` : ''}
-                                </div>`;
-                            }).join('')}
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
                 `;
@@ -1266,11 +1159,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         hideLoader();
     }
-
-    // Función Global para ver observaciones desde Vista Rápida
-    window.verObservacionesPEC = (equipo, parcial, obs) => {
-        alert(`📝 Observaciones PEC - ${equipo}\nParcial ${parcial}\n\n${obs}`);
-    };
 
     // Iniciar con la primera vista
     initDashboard();
