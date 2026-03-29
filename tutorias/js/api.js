@@ -7,6 +7,8 @@ const api = {
 
     async fetchAllData() {
         try {
+            if (this.cache) return this.cache;
+
             const userEmail = sessionStorage.getItem('user_email') || "";
             // Añadimos cache buster para evitar problemas con proxies o caché del navegador
             const url = `${GOOGLE_SHEETS_API_URL}?userEmail=${encodeURIComponent(userEmail)}&_t=${Date.now()}`;

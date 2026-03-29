@@ -32,10 +32,19 @@ function getSheet(ss, name) {
   return sheets.find(s => normalizeText(s.getName()) === target);
 }
 
+// === CALIFICACIONES PEC: IDs HOJAS HISTÓRICAS ===
+const OLD_GRADES_SHEET_ID    = "1MmAwYm2mfRBH3q-BGlKklwvsHE8iSYY5y1ac4mO07rQ"; // 2do semestre
+const OLD_GRADES_SHEET_ID_4S = "1aRY6lP8R5-myw61Epbffsc1WmzNDYo67N0ovGOWng7s"; // 4to semestre
+
 // === MÉTODO GET: LECTURA DE DATOS ===
 function doGet(e) {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    // Acción especial: calificaciones por parcial
+    if (e.parameter.action === "getCalificaciones") {
+      return doGetCalificaciones(e, ss);
+    }
     const userEmail = normalizeText(e.parameter.userEmail || "");
 
     // 1. CONFIGURACIÓN
@@ -44,11 +53,27 @@ function doGet(e) {
     if (sConf) {
       const d = sConf.getDataRange().getValues();
       d.forEach(r => {
-        if (normalizeText(r[0]) === "docente_nombre") config.docente = r[1];
-        if (normalizeText(r[0]) === "parcial_activo") config.parcialActivo = normalizeParcial(r[1]);
+        if (!r[0]) return;
+        const key = String(r[0]).trim();
+        const keyNorm = normalizeText(key);
+        if (keyNorm === "docente_nombre") config.docente = r[1];
+        else if (keyNorm === "parcial_activo") config.parcialActivo = normalizeParcial(r[1]);
+        else config[key] = r[1]; // Captura todas las demás claves (ej: pec_2m_nombre, etc.)
       });
     }
     const parcialActivo = config.parcialActivo;
+
+    // Fechas límite por parcial
+    let fechas = { p1: "", p2: "", p3: "" };
+    if (sConf) {
+      const d = sConf.getDataRange().getValues();
+      d.forEach(r => {
+        const key = normalizeText(r[0]);
+        if (key === "cal_p1_fecha") fechas.p1 = String(r[1] || "").trim();
+        if (key === "cal_p2_fecha") fechas.p2 = String(r[1] || "").trim();
+        if (key === "cal_p3_fecha") fechas.p3 = String(r[1] || "").trim();
+      });
+    }
 
     // 2. ROL DE USUARIO
     let userRole = "Docente";
@@ -253,7 +278,8 @@ function doGet(e) {
       parcialActivo: parcialActivo,
       avanceDocente: avanceDoc,
       sinEquipo: sinEquipo,
-      audit: audit
+      audit: audit,
+      fechas: fechas
     })).setMimeType(ContentService.MimeType.JSON);
 
   } catch (error) {
@@ -275,6 +301,41 @@ function doPost(e) {
       const f = d.find(r => r[0] && normalizeText(r[0]) === normalizeText(body.email) && String(r[1]) === String(body.password));
       if (f) return ContentService.createTextOutput(JSON.stringify({ status: "success", nombre: f[2], rol: f[3] || "Docente" }));
       return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Credenciales inválidas" }));
+    }
+
+    // GUARDAR FECHA LÍMITE POR PARCIAL
+    if (action === "setFechaLimite") {
+      const sConf = getSheet(ss, S_CONFIGURACION) || ss.insertSheet(S_CONFIGURACION);
+      const key   = "cal_p" + body.parcial + "_fecha";
+      const valor = String(body.fecha || "").trim();
+      const d = sConf.getDataRange().getValues();
+      let found = false;
+      for (let i = 0; i < d.length; i++) {
+        if (normalizeText(String(d[i][0])) === key) {
+          sConf.getRange(i + 1, 2).setValue(valor);
+          found = true; break;
+        }
+      }
+      if (!found) sConf.appendRow([key, valor]);
+      return ContentService.createTextOutput(JSON.stringify({ status: "success" }));
+    }
+
+    // ACTIVAR / DESACTIVAR CALIFICACIONES POR PARCIAL (solo admin)
+    if (action === "toggleCalificacion") {
+      const sConf = getSheet(ss, S_CONFIGURACION) || ss.insertSheet(S_CONFIGURACION);
+      const key = "cal_p" + body.parcial + "_activa";
+      const valor = body.activa ? "si" : "no";
+      const d = sConf.getDataRange().getValues();
+      let found = false;
+      for (let i = 0; i < d.length; i++) {
+        if (normalizeText(String(d[i][0])) === key) {
+          sConf.getRange(i + 1, 2).setValue(valor);
+          found = true;
+          break;
+        }
+      }
+      if (!found) sConf.appendRow([key, valor]);
+      return ContentService.createTextOutput(JSON.stringify({ status: "success" }));
     }
 
     // EXPORTAR SÁBANA (PEC)
@@ -381,6 +442,140 @@ function doPost(e) {
   } catch (error) {
     return ContentService.createTextOutput(JSON.stringify({ status: "error", message: error.toString() }));
   }
+}
+
+// === CALIFICACIONES PEC POR PARCIAL ===
+function doGetCalificaciones(e, ss) {
+  const userEmail = normalizeText(e.parameter.userEmail || "");
+
+  // 1. Verificar admin
+  let isAdmin = userEmail === "admin@ceb54.online";
+  const sUsr = getSheet(ss, S_USUARIOS);
+  if (sUsr && userEmail !== "") {
+    const d = sUsr.getDataRange().getValues();
+    const f = d.find(r => r[0] && normalizeText(r[0]) === userEmail);
+    if (f && String(f[3] || "").toLowerCase() === "admin") isAdmin = true;
+  }
+
+  // 2. Leer overrides de activación en Configuracion
+  const sConf = getSheet(ss, S_CONFIGURACION);
+  let cfgCal = { p1: null, p2: null, p3: null };
+  let fechas  = { p1: "", p2: "", p3: "" };
+  if (sConf) {
+    sConf.getDataRange().getValues().forEach(r => {
+      const k = normalizeText(r[0]);
+      if (k === "cal_p1_activa") cfgCal.p1 = String(r[1]).toLowerCase() === "si";
+      if (k === "cal_p2_activa") cfgCal.p2 = String(r[1]).toLowerCase() === "si";
+      if (k === "cal_p3_activa") cfgCal.p3 = String(r[1]).toLowerCase() === "si";
+      if (k === "cal_p1_fecha")  fechas.p1  = String(r[1] || "").trim();
+      if (k === "cal_p2_fecha")  fechas.p2  = String(r[1] || "").trim();
+      if (k === "cal_p3_fecha")  fechas.p3  = String(r[1] || "").trim();
+    });
+  }
+
+  // 3. Alumnos y equipos del sistema actual
+  const sAlum = getSheet(ss, S_ALUMNOS);
+  const alumnosInfo = {}; // nombre_lower -> { nombre, grupo }
+  const equiposSet = new Set();
+  if (sAlum) {
+    const d = sAlum.getDataRange().getValues(); d.shift();
+    d.forEach(r => {
+      const nombre = String(r[1] || '').trim();
+      const grupo  = String(r[2] || '').trim();
+      const equipo = String(r[4] || '').trim();
+      if (!nombre) return;
+      alumnosInfo[nombre.toLowerCase()] = { nombre, grupo };
+      if (grupo && equipo && equipo !== '0' && equipo !== 'S/E' && equipo !== '') {
+        equiposSet.add(grupo + "-" + equipo);
+      }
+    });
+  }
+  const totalEquipos = equiposSet.size;
+
+  // 4. Evaluaciones P2 y P3 del sistema actual
+  const sEv = getSheet(ss, S_EVALUACIONES);
+  const calMap = { "2": {}, "3": {} };
+  const evaluadosPor = { "2": new Set(), "3": new Set() };
+  if (sEv) {
+    const d = sEv.getDataRange().getValues(); d.shift();
+    d.forEach(r => {
+      const parc   = normalizeParcial(r[1]);
+      if (parc !== "2" && parc !== "3") return;
+      const eqId   = String(r[3]);
+      const alumno = String(r[9] || '').trim();
+      const pts    = Number(r[7] || 0);
+      const grp    = String(r[2] || '').trim();
+      evaluadosPor[parc].add(eqId);
+      if (alumno) {
+        if (!calMap[parc][alumno]) {
+          const info = alumnosInfo[alumno.toLowerCase()] || { nombre: alumno, grupo: grp };
+          calMap[parc][alumno] = { alumno: info.nombre, grupo: info.grupo, cal: 0 };
+        }
+        calMap[parc][alumno].cal += pts;
+      }
+    });
+  }
+
+  // 5. Activación automática: cuando todos los equipos tienen evaluación
+  const p2Auto = totalEquipos > 0 && evaluadosPor["2"].size >= totalEquipos;
+  const p3Auto = totalEquipos > 0 && evaluadosPor["3"].size >= totalEquipos;
+  const p1Activa = cfgCal.p1 !== null ? cfgCal.p1 : false;
+  const p2Activa = cfgCal.p2 !== null ? cfgCal.p2 : p2Auto;
+  const p3Activa = cfgCal.p3 !== null ? cfgCal.p3 : p3Auto;
+
+  // 6. Leer P1 de hojas históricas (una pestaña por grupo, múltiples hojas)
+  let calP1 = [];
+  const sheetIds = [OLD_GRADES_SHEET_ID, OLD_GRADES_SHEET_ID_4S];
+
+  sheetIds.forEach(sheetId => {
+    try {
+      const oldSS = SpreadsheetApp.openById(sheetId);
+      oldSS.getSheets().forEach(sheet => {
+        const data = sheet.getDataRange().getValues();
+        if (data.length < 2) return;
+
+        // Buscar fila de encabezados con NOMBRE y PRIMER PARCIAL
+        let headerRow = -1, nombreCol = 1, calCol = 6;
+        for (let i = 0; i < Math.min(6, data.length); i++) {
+          for (let j = 0; j < data[i].length; j++) {
+            const c = String(data[i][j]).toUpperCase().trim();
+            if (c === "NOMBRE")               { headerRow = i; nombreCol = j; }
+            if (c.includes("PRIMER PARCIAL")) { headerRow = i; calCol    = j; }
+          }
+          if (headerRow === i) break;
+        }
+        if (headerRow < 0) return;
+
+        const grupo = sheet.getName().trim();
+        for (let i = headerRow + 1; i < data.length; i++) {
+          const nombre = String(data[i][nombreCol] || '').trim();
+          if (!nombre || nombre.toUpperCase() === "NOMBRE") continue;
+          const cal = parseFloat(data[i][calCol]) || 0;
+          calP1.push({ alumno: nombre, grupo: grupo, cal: Math.min(parseFloat(cal.toFixed(2)), 2) });
+        }
+      });
+    } catch(err) {
+      Logger.log("Error leyendo hoja histórica (" + sheetId + "): " + err.toString());
+    }
+  });
+
+  // 7. Convertir maps a arrays limitando a 2 puntos máximo
+  const toArr = map => Object.values(map).map(v => ({
+    alumno: v.alumno, grupo: v.grupo,
+    cal: Math.min(parseFloat(v.cal.toFixed(2)), 2)
+  }));
+
+  return ContentService.createTextOutput(JSON.stringify({
+    status: "success",
+    isAdmin: isAdmin,
+    parciales: {
+      p1: { activa: p1Activa, data: calP1 },
+      p2: { activa: p2Activa, data: toArr(calMap["2"]) },
+      p3: { activa: p3Activa, data: toArr(calMap["3"]) }
+    },
+    fechas: fechas,
+    stats: { totalEquipos: totalEquipos, evaluadosP2: evaluadosPor["2"].size, evaluadosP3: evaluadosPor["3"].size }
+  })).setMimeType(ContentService.MimeType.JSON);
 }
 
 // === REPORTES PEC: GENERAR SÁBANA ===

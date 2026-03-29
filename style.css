@@ -112,6 +112,37 @@ img { max-width: 100%; height: auto; display: block; }
 .navbar.scrolled .nav-link-special, .navbar.inner-nav .nav-link-special { color: #6366f1 !important; }
 .nav-link-special::after { background-color: #6366f1 !important; }
 
+/* Portal links: PEC y Tutorías */
+.nav-link-pec, .nav-link-tutorias {
+    border-radius: var(--radius-pill);
+    padding: 0.35rem 0.9rem !important;
+    font-weight: 700 !important;
+    font-size: 0.82rem !important;
+    letter-spacing: 0.3px;
+    transition: all 0.25s ease;
+    margin: 0 0.1rem;
+}
+.nav-link-pec { background: rgba(56,132,192,0.12); color: #3884C0 !important; border: 1px solid rgba(56,132,192,0.3); }
+.nav-link-pec:hover { background: #3884C0; color: white !important; box-shadow: 0 4px 12px rgba(56,132,192,0.3); transform: translateY(-2px); }
+.nav-link-tutorias { background: rgba(5,150,105,0.12); color: #059669 !important; border: 1px solid rgba(5,150,105,0.3); }
+.nav-link-tutorias:hover { background: #059669; color: white !important; box-shadow: 0 4px 12px rgba(5,150,105,0.3); transform: translateY(-2px); }
+
+/* Sobre fondo oscuro (navbar transparente inicial) */
+.navbar:not(.scrolled):not(.inner-nav) .nav-link-pec { background: rgba(255,255,255,0.12); color: #93c5fd !important; border-color: rgba(255,255,255,0.25); }
+.navbar:not(.scrolled):not(.inner-nav) .nav-link-pec:hover { background: #3884C0; color: white !important; border-color: #3884C0; }
+.navbar:not(.scrolled):not(.inner-nav) .nav-link-tutorias { background: rgba(255,255,255,0.12); color: #6ee7b7 !important; border-color: rgba(255,255,255,0.25); }
+.navbar:not(.scrolled):not(.inner-nav) .nav-link-tutorias:hover { background: #059669; color: white !important; border-color: #059669; }
+
+/* Quitar el underline animado en estos botones */
+.nav-link-pec::after, .nav-link-tutorias::after { display: none !important; }
+
+/* En móvil, quitar el borde pill y mostrar como texto */
+@media (max-width: 768px) {
+    .nav-link-pec, .nav-link-tutorias { background: none !important; border: none !important; padding: 0 !important; box-shadow: none !important; }
+    .nav-link-pec { color: #3884C0 !important; }
+    .nav-link-tutorias { color: #059669 !important; }
+}
+
 .mobile-menu-btn { display: none; flex-direction: column; gap: 6px; cursor: pointer; z-index: 1001; }
 .mobile-menu-btn span { display: block; width: 24px; height: 2px; background-color: var(--clr-white); transition: var(--transition); }
 .navbar.scrolled .mobile-menu-btn span { background-color: var(--clr-dark); }

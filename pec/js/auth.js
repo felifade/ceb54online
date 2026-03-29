@@ -1,13 +1,13 @@
 // pec/js/auth.js
 
 (function() {
-    // Verificar si hay una sesión activa en sessionStorage (Clave compartida con Tutorías)
+    // Verificar si hay una sesión activa en sessionStorage
     const authRecord = sessionStorage.getItem('tutorias_auth');
     const userEmail = sessionStorage.getItem('user_email');
-    
-    // Si no está autenticado o no tiene email (sesión vieja), redirigir
+
+    // Si no está autenticado o no tiene email, redirigir
     if ((!authRecord || !userEmail) && !window.location.pathname.includes('login.html')) {
-        sessionStorage.removeItem('tutorias_auth'); // Por si quedó corrupta
+        sessionStorage.removeItem('tutorias_auth');
         window.location.href = 'login.html';
     }
 

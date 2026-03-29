@@ -155,28 +155,359 @@ header.top-header {
     font-weight: 500;
 }
 
-/* Forms */
-.form-container {
+/* ══════════════════════════════════════════════════
+   FORMULARIO DE CAPTURA — DISEÑO MODERNO
+══════════════════════════════════════════════════ */
+
+.capture-form { max-width: 820px; }
+
+/* Tarjeta base */
+.cap-card {
     background: white;
-    padding: 2.5rem;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-    max-width: 800px;
+    border-radius: 20px;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid #f1f5f9;
+    transition: box-shadow 0.2s;
+}
+.cap-card:focus-within { box-shadow: 0 4px 20px rgba(0,0,0,0.09); }
+
+/* Encabezado de tarjeta */
+.cap-card-head {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 1.4rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f8fafc;
+}
+.cap-icon {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.cap-title {
+    font-size: 0.97rem; font-weight: 700; color: #1e293b;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.cap-sub { font-size: 0.76rem; color: #94a3b8; margin-top: 2px; }
+
+/* Badge contador de alumnos */
+.count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--clr-primary);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 800;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
 }
 
-.form-grid {
+/* Campo label genérico */
+.cap-field { margin-bottom: 0; }
+.cap-field label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.55rem;
+}
+.req { color: #ef4444; }
+
+/* Row 2 columnas */
+.cap-row-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
+    gap: 1rem;
 }
 
-.form-group {
-    margin-bottom: 1.5rem;
+/* ── SELECTOR DE PARCIAL ───────────────────────── */
+.parcial-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
 }
 
-.form-group.full {
-    grid-column: 1 / -1;
+.parcial-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.4rem 0.5rem 1.1rem;
+    border-radius: 16px;
+    border: 2px solid #e2e8f0;
+    background: #fafafa;
+    cursor: pointer;
+    transition: all 0.22s;
+    gap: 0.3rem;
+    user-select: none;
 }
+.parcial-card input[type="radio"] { display: none; }
+.parcial-num {
+    font-size: 2.2rem; font-weight: 800; line-height: 1;
+    transition: color 0.2s;
+}
+.parcial-lbl {
+    font-size: 0.72rem; font-weight: 600;
+    color: #94a3b8; text-align: center;
+    transition: color 0.2s;
+}
+
+/* Colores por parcial */
+.parcial-card.p1 .parcial-num { color: #f59e0b; }
+.parcial-card.p2 .parcial-num { color: #3b82f6; }
+.parcial-card.p3 .parcial-num { color: #8b5cf6; }
+
+.parcial-card.p1:has(input:checked) { border-color: #f59e0b; background: #fffbeb; box-shadow: 0 4px 16px rgba(245,158,11,0.2); }
+.parcial-card.p2:has(input:checked) { border-color: #3b82f6; background: #eff6ff; box-shadow: 0 4px 16px rgba(59,130,246,0.2); }
+.parcial-card.p3:has(input:checked) { border-color: #8b5cf6; background: #f5f3ff; box-shadow: 0 4px 16px rgba(139,92,246,0.2); }
+.parcial-card:has(input:checked) .parcial-lbl { color: #475569; font-weight: 700; }
+
+.parcial-card.p1:hover:not(:has(input:checked)) { border-color: #fcd34d; background: #fffdf5; }
+.parcial-card.p2:hover:not(:has(input:checked)) { border-color: #93c5fd; background: #f8fbff; }
+.parcial-card.p3:hover:not(:has(input:checked)) { border-color: #c4b5fd; background: #faf9ff; }
+
+/* ── BÚSQUEDA DE ALUMNOS ───────────────────────── */
+.search-bar-wrap { margin-bottom: 0.65rem; }
+.search-field {
+    position: relative;
+}
+.search-ico {
+    position: absolute; left: 12px; top: 50%;
+    transform: translateY(-50%);
+    width: 16px; height: 16px; color: #94a3b8;
+    pointer-events: none;
+}
+.search-field input {
+    padding-left: 2.4rem;
+    border-radius: 12px;
+    border: 1.5px solid #e2e8f0;
+    font-size: 0.88rem;
+    transition: border-color 0.2s;
+}
+.search-field input:focus { border-color: #3b82f6; outline: none; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+
+/* Fila manual */
+.manual-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px dashed #cbd5e1;
+}
+.manual-ico { width: 16px; height: 16px; color: #94a3b8; flex-shrink: 0; }
+.manual-row input {
+    flex: 1; background: transparent; border: none;
+    font-size: 0.85rem; padding: 0;
+}
+.manual-row input:focus { outline: none; }
+
+/* Botón sexo toggle */
+.sexo-toggle-btn {
+    flex-shrink: 0;
+    width: 38px; height: 34px;
+    border-radius: 8px; border: 1.5px solid;
+    font-weight: 800; font-size: 0.82rem;
+    cursor: pointer; transition: all 0.18s;
+}
+.sexo-toggle-btn.sexo-H { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+.sexo-toggle-btn.sexo-H:hover { background: #2563eb; color: white; }
+.sexo-toggle-btn.sexo-F { background: #fdf2f8; color: #be185d; border-color: #fbcfe8; }
+.sexo-toggle-btn.sexo-F:hover { background: #be185d; color: white; }
+
+/* Botón añadir manual */
+.btn-add-manual {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 0.5rem 0.9rem;
+    background: var(--clr-primary); color: white;
+    border: none; border-radius: 8px;
+    font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; transition: background 0.2s;
+    white-space: nowrap;
+}
+.btn-add-manual:hover { background: var(--clr-primary-dark); }
+
+/* Botón seleccionar todos */
+.btn-sel-all {
+    background: none; border: 1px solid #e2e8f0;
+    color: #64748b; font-size: 0.78rem; font-weight: 600;
+    cursor: pointer; padding: 0.3rem 0.75rem;
+    border-radius: 8px; white-space: nowrap;
+    transition: all 0.18s;
+}
+.btn-sel-all:hover { background: #f1f5f9; color: #1e293b; }
+
+/* ── LISTA DE ALUMNOS ──────────────────────────── */
+.students-list {
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    background: #fafafa;
+    min-height: 72px;
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.students-empty {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 0.6rem; padding: 2rem;
+    color: #94a3b8; text-align: center;
+}
+.students-empty p { font-size: 0.83rem; margin: 0; }
+
+/* Fila alumno */
+.student-item {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    background: white;
+    transition: background 0.15s;
+    cursor: pointer;
+}
+.student-item:last-child { border-bottom: none; }
+.student-item:first-child { border-radius: 14px 14px 0 0; }
+.student-item:only-child { border-radius: 14px; }
+.student-item.selected { background: #f0fdf4; }
+.student-item:hover:not(.selected) { background: #f8fafc; }
+.student-item.selected:hover { background: #dcfce7; }
+
+.student-item input[type="checkbox"] {
+    width: 16px; height: 16px;
+    accent-color: var(--clr-primary);
+    flex-shrink: 0; cursor: pointer;
+}
+
+/* Avatar con iniciales */
+.student-avatar {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 800;
+    flex-shrink: 0;
+}
+
+.student-info {
+    flex: 1; display: flex; align-items: center;
+    gap: 0.5rem; min-width: 0;
+}
+.student-name {
+    font-size: 0.88rem; font-weight: 600; color: #1e293b;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.student-group-badge {
+    font-size: 0.7rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 999px;
+    background: #e0f2fe; color: #0369a1;
+    flex-shrink: 0;
+}
+.student-group-badge.manual { background: #fef9c3; color: #92400e; }
+
+/* Badge sexo en fila alumno */
+.sexo-badge {
+    flex-shrink: 0;
+    width: 30px; height: 26px;
+    border-radius: 7px; border: 1.5px solid;
+    font-weight: 800; font-size: 0.75rem;
+    cursor: pointer; transition: all 0.15s;
+}
+.sexo-badge.sexo-H { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+.sexo-badge.sexo-H:hover { background: #2563eb; color: white; }
+.sexo-badge.sexo-F { background: #fdf2f8; color: #be185d; border-color: #fbcfe8; }
+.sexo-badge.sexo-F:hover { background: #be185d; color: white; }
+
+/* ── OPTION CARDS (Tipo / Modalidad) ───────────── */
+.details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
+}
+
+.option-cards { display: flex; gap: 0.5rem; }
+
+.opt-card {
+    flex: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 0.4rem; padding: 0.9rem 0.5rem;
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+    background: #fafafa;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #64748b;
+    font-size: 0.8rem; font-weight: 600;
+    text-align: center;
+    user-select: none;
+}
+.opt-card input[type="radio"] { display: none; }
+.opt-card:hover { border-color: var(--clr-primary); color: var(--clr-primary); background: #f0fdf4; }
+.opt-card:has(input:checked) {
+    border-color: var(--clr-primary);
+    background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+    color: var(--clr-primary-dark);
+    box-shadow: 0 3px 10px rgba(5,150,105,0.18);
+}
+.opt-card span { font-weight: 700; font-size: 0.82rem; }
+
+/* ── TOGGLE ASISTENCIA ─────────────────────────── */
+.asistencia-field .toggle-switch { margin-top: 0.4rem; }
+
+.toggle-switch {
+    display: inline-flex; align-items: center;
+    gap: 0.65rem; cursor: pointer;
+    margin: 0; user-select: none;
+}
+.toggle-switch input[type="checkbox"] { display: none; width: auto; }
+
+.toggle-track {
+    width: 46px; height: 26px;
+    background: #cbd5e1; border-radius: 999px;
+    position: relative; transition: background 0.25s;
+    flex-shrink: 0;
+}
+.toggle-switch input:checked ~ .toggle-track { background: var(--clr-primary); }
+.toggle-thumb {
+    position: absolute; top: 3px; left: 3px;
+    width: 20px; height: 20px;
+    background: white; border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    transition: transform 0.22s;
+}
+.toggle-switch input:checked ~ .toggle-track .toggle-thumb { transform: translateX(20px); }
+.toggle-label { font-size: 0.88rem; font-weight: 600; color: #475569; margin: 0; }
+
+/* ── ACCIONES ──────────────────────────────────── */
+.form-actions {
+    display: flex; justify-content: flex-end;
+    margin-top: 0.25rem;
+}
+
+.btn-submit {
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    padding: 0.85rem 2.5rem;
+    background: linear-gradient(135deg, var(--clr-primary), #10b981);
+    color: white; border: none; border-radius: 14px;
+    font-size: 1rem; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 6px 20px rgba(5,150,105,0.35);
+    letter-spacing: 0.01em;
+}
+.btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(5,150,105,0.4); }
+.btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+.form-group.full { grid-column: 1 / -1; }
 
 label {
     display: block;
@@ -220,6 +551,70 @@ input:focus, select:focus {
 
 /* Utilities */
 .hidden { display: none; }
+
+/* ── HAMBURGER BUTTON ─────────────────────────────── */
+.btn-hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+.btn-hamburger:hover { background: #f1f5f9; }
+.btn-hamburger span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--clr-text);
+    border-radius: 2px;
+    transition: all 0.25s;
+}
+
+/* Overlay */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 99;
+}
+.sidebar-overlay.active { display: block; }
+
+/* ── MOBILE RESPONSIVE ────────────────────────────── */
+@media (max-width: 768px) {
+    .btn-hamburger { display: flex; }
+
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.28s ease;
+        z-index: 100;
+    }
+    .sidebar.open { transform: translateX(0); }
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        padding: 1rem;
+    }
+
+    .form-row-3 {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .form-section { padding: 1.25rem; }
+}
 
 /* Report Styles (For Print View) */
 @media print {

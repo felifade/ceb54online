@@ -591,14 +591,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         const inputSearchName = document.getElementById('input-search-name');
         const container = document.getElementById('students-checkbox-list');
         const btnSelectAll = document.getElementById('btn-select-all');
-        
-        // Nuevos campos manuales
+
         const manualNameInput = document.getElementById('manual-name');
         const manualSexSelect = document.getElementById('manual-sex');
+        const btnManualSex = document.getElementById('btn-manual-sex');
         const btnAddManualDirect = document.getElementById('btn-add-manual-direct');
 
+        // Toggle del botón de sexo en entrada manual
+        btnManualSex.addEventListener('click', () => {
+            const newSexo = btnManualSex.dataset.sexo === 'H' ? 'F' : 'H';
+            btnManualSex.dataset.sexo = newSexo;
+            btnManualSex.textContent = newSexo === 'H' ? 'H' : 'M';
+            btnManualSex.className = `sexo-toggle-btn sexo-${newSexo}`;
+            manualSexSelect.value = newSexo;
+        });
+
         const renderTotalList = (searchResults = []) => {
-            // Unir seleccionados existentes + nuevos resultados (evitando duplicados por nombre)
             const combined = [...selectedStudentsState];
             searchResults.forEach(res => {
                 if (!combined.find(c => c.nombre === res.nombre)) {
@@ -607,65 +615,59 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             if (combined.length === 0) {
-                container.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; grid-column: 1/-1;">Los alumnos seleccionados o añadidos aparecerán aquí abajo...</p>';
+                container.innerHTML = '<p class="students-placeholder">Busca por grupo o nombre para ver los alumnos...</p>';
                 btnSelectAll.style.display = 'none';
                 return;
             }
 
-            btnSelectAll.style.display = 'block';
+            btnSelectAll.style.display = 'inline';
             container.innerHTML = combined.map(a => {
-                // Determinar sexo inicial
                 let initialSexo = a.sexo || "H";
                 if (initialSexo.toUpperCase().startsWith('M') || initialSexo.toUpperCase().startsWith('F')) initialSexo = "F";
-                
+                else initialSexo = "H";
+
                 return `
-                    <div class="student-item" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 6px 10px; border-bottom: 1px solid #f1f5f9; background: ${a.isSelected ? '#f0fdf4' : 'transparent'};">
-                        <label style="display: flex; align-items: center; gap: 0.8rem; font-size: 0.85rem; cursor: pointer; flex: 1; margin-bottom: 0;">
-                            <input type="checkbox" class="student-check" value="${a.nombre}" ${a.isSelected ? 'checked' : ''} style="width: auto;">
-                            <span style="font-weight: 500;">${a.nombre} <small style="color: #64748b;">${a.grupo ? '['+a.grupo+']' : '(Nuevo)'}</small></span>
-                        </label>
-                        <select class="student-sex-select" style="width: auto; padding: 2px 8px; font-size: 0.75rem; border-radius: 6px; background: #fff; border: 1px solid #cbd5e1;">
-                            <option value="H" ${initialSexo === 'H' ? 'selected' : ''}>H</option>
-                            <option value="F" ${initialSexo === 'F' ? 'selected' : ''}>M</option>
-                        </select>
+                    <div class="student-item ${a.isSelected ? 'selected' : ''}">
+                        <input type="checkbox" class="student-check" value="${a.nombre}" ${a.isSelected ? 'checked' : ''}>
+                        <div class="student-info">
+                            <span class="student-name">${a.nombre}</span>
+                            <span class="student-group-badge ${a.grupo ? '' : 'manual'}">${a.grupo || 'Manual'}</span>
+                        </div>
+                        <button type="button" class="sexo-badge sexo-${initialSexo}" data-sexo="${initialSexo}">${initialSexo === 'H' ? 'H' : 'M'}</button>
                     </div>
                 `;
             }).join('');
 
-            // Re-vincular eventos a los checkboxes y selects
-            container.querySelectorAll('.student-item').forEach((item, index) => {
+            container.querySelectorAll('.student-item').forEach((item) => {
                 const check = item.querySelector('.student-check');
-                const sexSelect = item.querySelector('.student-sex-select');
-                
+                const sexoBadge = item.querySelector('.sexo-badge');
+
                 check.addEventListener('change', () => {
                     const studentName = check.value;
                     const isChecked = check.checked;
-                    
-                    // Actualizar el estado persistente
                     const existingIdx = selectedStudentsState.findIndex(s => s.nombre === studentName);
                     if (isChecked) {
                         if (existingIdx === -1) {
-                            // Si no estaba en persistentes (era un resultado de búsqueda), lo añadimos
                             const found = searchResults.find(r => r.nombre === studentName);
-                            selectedStudentsState.push({ ...found, isSelected: true, sexo: sexSelect.value });
+                            selectedStudentsState.push({ ...found, isSelected: true, sexo: sexoBadge.dataset.sexo });
                         } else {
                             selectedStudentsState[existingIdx].isSelected = true;
                         }
-                        item.style.background = '#f0fdf4';
+                        item.classList.add('selected');
                     } else {
-                        // Si se deselecciona, lo marcamos como no seleccionado en el estado
-                        if (existingIdx !== -1) {
-                            selectedStudentsState[existingIdx].isSelected = false;
-                        }
-                        item.style.background = 'transparent';
+                        if (existingIdx !== -1) selectedStudentsState[existingIdx].isSelected = false;
+                        item.classList.remove('selected');
                     }
                 });
 
-                sexSelect.addEventListener('change', () => {
+                sexoBadge.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const newSexo = sexoBadge.dataset.sexo === 'H' ? 'F' : 'H';
+                    sexoBadge.dataset.sexo = newSexo;
+                    sexoBadge.textContent = newSexo === 'H' ? 'H' : 'M';
+                    sexoBadge.className = `sexo-badge sexo-${newSexo}`;
                     const existingIdx = selectedStudentsState.findIndex(s => s.nombre === check.value);
-                    if (existingIdx !== -1) {
-                        selectedStudentsState[existingIdx].sexo = sexSelect.value;
-                    }
+                    if (existingIdx !== -1) selectedStudentsState[existingIdx].sexo = newSexo;
                 });
             });
         };
@@ -696,11 +698,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         btnAddManualDirect.addEventListener('click', () => {
             const name = manualNameInput.value.trim();
             if (name.length < 5) {
-                alert("Por favor escribe el nombre completo.");
+                alert("Por favor escribe el nombre completo del alumno.");
                 return;
             }
             
-            const sex = manualSexSelect.value;
+            const sex = btnManualSex.dataset.sexo;
             const newStudent = {
                 nombre: name,
                 sexo: sex,
@@ -766,7 +768,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 alert("Tutoría registrada con éxito.");
                 form.reset();
                 selectedStudentsState = []; // Limpiar lista
-                document.getElementById('students-checkbox-list').innerHTML = '<p ...> Los alumnos seleccionados aparecerán aquí...</p>';
+                document.getElementById('students-checkbox-list').innerHTML = '<p class="students-placeholder">Busca por grupo o nombre para ver los alumnos...</p>';
                 loadInitialData(); // Recargar historial
             } else {
                 alert("Error: " + result.message);
@@ -776,8 +778,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         } finally {
             const btn = form.querySelector('button[type="submit"]');
             btn.disabled = false;
-            btn.textContent = "Registrar Sesión";
+            btn.innerHTML = '<i data-lucide="save" style="width:16px;height:16px;"></i> Guardar Tutoría';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
+    });
+
+    // --- SIDEBAR TOGGLE (MÓVIL) ---
+    const btnSidebarToggle = document.getElementById('btn-sidebar-toggle');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+    btnSidebarToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+        sidebarOverlay.classList.toggle('active');
+    });
+    sidebarOverlay.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        sidebarOverlay.classList.remove('active');
+    });
+    // Cerrar sidebar al navegar en móvil
+    document.querySelectorAll('.nav-link[data-view]').forEach(link => {
+        link.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('active');
+        });
     });
 
     // --- INITIALIZATION ---

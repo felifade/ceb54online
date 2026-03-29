@@ -1,5 +1,7 @@
 // pec/js/api.js
 
+window._log = location.hostname === 'localhost' ? console.log.bind(console) : () => {};
+
 const USE_MOCK = false;
 // La URL que te dará Google Apps Script cuando lo publiques
 const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbz4q9VlhAvvVJ1XYOwqNTJ9eMkVRm3HgoyFJNpEQaPJsDdK1JcfhbTX1CRfDg38x79fsA/exec";
@@ -13,6 +15,8 @@ const api = {
             return MOCK_DATA;
         }
 
+        if (this.cache) return this.cache;
+
         const userEmail = sessionStorage.getItem('user_email') || "";
         const userRole = sessionStorage.getItem('user_role') || "";
         // Cache buster + Redirect follow (v3.3 compatible)
@@ -24,7 +28,7 @@ const api = {
             redirect: 'follow'
         });
 
-        console.log(`DEBUG - API Status: ${response.status} ${response.statusText}`);
+        window._log(`DEBUG - API Status: ${response.status} ${response.statusText}`);
 
         if (!response.ok) {
             const text = await response.text();
@@ -33,7 +37,7 @@ const api = {
         }
 
         const data = await response.json();
-        console.log("DEBUG - Datos recibidos (Primeros 100 caracteres):", JSON.stringify(data).substring(0, 100));
+        window._log("DEBUG - Datos recibidos (Primeros 100 caracteres):", JSON.stringify(data).substring(0, 100));
 
         if (data.status === "error") throw new Error(data.message);
 

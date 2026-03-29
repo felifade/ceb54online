@@ -51,8 +51,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Navegación
     navItems.forEach(item => {
         item.addEventListener('click', (e) => {
-            e.preventDefault();
             const viewName = item.getAttribute('data-view');
+            if (!viewName) return; // Links con href real (ej. calificaciones.html) navegan normalmente
+            e.preventDefault();
             
             navItems.forEach(nav => nav.classList.remove('active'));
             item.classList.add('active');
@@ -105,7 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showLoader();
         try {
             const data = await api.getDashboardData();
-            console.log("DEBUG - Datos PEC Dashboard:", data); // Depuración preventiva
+            window._log("DEBUG - Datos PEC Dashboard:", data);
             if (!data || !data.equipos) throw new Error("Datos del dashboard incompletos");
             
             // Stats
@@ -121,12 +122,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const divFecha = document.getElementById('dash-fecha-entrega');
             if (spanParcial && divFecha) {
                 spanParcial.textContent = parElegidoStr;
-                const fechasCorte = {
-                    "1": "Por definir",
-                    "2": "24 de abril de 2026",
-                    "3": "Por definir"
-                };
-                divFecha.textContent = fechasCorte[parElegidoStr] || "Por definir";
+                const fechasDyn = data.fechas || {};
+                const fechaActiva = fechasDyn["p" + parElegidoStr] || "Por definir";
+                divFecha.textContent = fechaActiva;
             }
 
             // Grupos Lista (Equipos por grupo)
@@ -382,7 +380,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
                 
                 // Diagnóstico para consola
-                console.log(`DEBUG - Ponderaciones Parcial ${parcialPond}: ${progFiltrada.length} filas en Directorio`);
+                window._log(`DEBUG - Ponderaciones Parcial ${parcialPond}: ${progFiltrada.length} filas en Directorio`);
                 
                 const container = document.getElementById('pond-container');
                 if (!container) return;

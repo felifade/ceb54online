@@ -69,12 +69,20 @@
         </div>
     </aside>
 
+    <!-- Overlay para cerrar sidebar en móvil -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
     <!-- Main Content -->
     <main class="main-content">
         <header class="top-header">
-            <div>
-                <h1 id="view-title" class="view-title">Dashboard de Tutorías</h1>
-                <p style="color: var(--clr-text-light); font-size: 0.875rem; margin-top: 0.25rem;" id="current-date"></p>
+            <div style="display:flex; align-items:center; gap:0.75rem;">
+                <button id="btn-sidebar-toggle" class="btn-hamburger" aria-label="Menú">
+                    <span></span><span></span><span></span>
+                </button>
+                <div>
+                    <h1 id="view-title" class="view-title">Dashboard de Tutorías</h1>
+                    <p style="color: var(--clr-text-light); font-size: 0.875rem; margin-top: 0.25rem;" id="current-date"></p>
+                </div>
             </div>
             <div style="display: flex; gap: 1rem; align-items: center;">
                 <span id="user-name" style="font-weight: 600; font-size: 0.9rem;">Cargando...</span>
@@ -129,95 +137,172 @@
 
         <!-- VISTA 2: CAPTURA -->
         <section id="view-captura" class="view hidden">
-            <div class="form-container">
-                <form id="form-tutoria">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Parcial</label>
-                            <select name="parcial" required>
-                                <option value="1">Primer Parcial</option>
-                                <option value="2">Segundo Parcial</option>
-                                <option value="3">Tercer Parcial</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Grupo</label>
-                            <input type="text" name="grupo" id="input-grupo" placeholder="Ej: 210">
-                        </div>
-                        <div class="form-group">
-                            <label>O Buscar por Nombre</label>
-                            <input type="text" id="input-search-name" placeholder="Buscar en toda la escuela...">
-                        </div>
-                        <div class="form-group full">
-                            <label>Asignatura / Materia</label>
-                            <select name="asignatura" id="select-asignatura" required>
-                                <option value="">Cargando materias...</option>
-                            </select>
-                        </div>
+            <form id="form-tutoria" class="capture-form">
 
-                        <!-- Panel de Captura Manual Integrado -->
-                        <div class="form-group full" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px; margin-bottom:1rem;">
-                            <label style="font-size:0.75rem; color:#64748b; margin-bottom:8px;">+ AGREGAR ALUMNO MANUALMENTE</label>
-                            <div style="display:flex; gap:8px;">
-                                <input type="text" id="manual-name" placeholder="Nombre completo..." style="flex:1; font-size:0.85rem; padding:6px 10px;">
-                                <select id="manual-sex" style="width:80px; font-size:0.85rem; padding:6px;">
-                                    <option value="H">Hombre</option>
-                                    <option value="F">Mujer</option>
-                                </select>
-                                <button type="button" id="btn-add-manual-direct" class="btn btn-primary" style="padding:4px 15px; font-size:0.85rem; background:#10b981;">Añadir</button>
-                            </div>
+                <!-- TARJETA 1: PARCIAL -->
+                <div class="cap-card">
+                    <div class="cap-card-head">
+                        <div class="cap-icon" style="background:#fff7ed; color:#f59e0b;">
+                            <i data-lucide="calendar" style="width:18px;height:18px;"></i>
                         </div>
-
-                        <div class="form-group full" id="student-selection-area">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
-                                <label style="margin-bottom:0; font-weight:700;">Selección de Estudiante(s)</label>
-                                <button type="button" id="btn-select-all" class="btn" style="padding:4px 12px; font-size:0.75rem; background:#f1f5f9; display:none;">Seleccionar todos</button>
-                            </div>
-                            
-                            <div id="students-checkbox-list" style="max-height: 250px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; background: #fff; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px;">
-                                <p style="color: #94a3b8; font-size: 0.85rem; grid-column: 1/-1;">Los alumnos seleccionados o añadidos aparecerán aquí abajo...</p>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Tipo de Alumno</label>
-                            <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem;">
-                                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 500;">
-                                    <input type="radio" name="alumno_tipo" value="regular" checked style="width: auto;"> Regular
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 500;">
-                                    <input type="radio" name="alumno_tipo" value="intra" style="width: auto;"> Intra
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Modalidad de Tutoría</label>
-                            <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem;">
-                                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 500;">
-                                    <input type="radio" name="tutoria_tipo" value="individual" checked style="width: auto;"> Individual
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 500;">
-                                    <input type="radio" name="tutoria_tipo" value="grupal" style="width: auto;"> Grupal
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group" style="display: flex; align-items: center; gap: 1rem; background: #fdfdfd; border: 1px dashed #cbd5e1; padding: 10px; border-radius: 10px;">
-                            <label style="margin-bottom: 0; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
-                                <input type="checkbox" name="asistencia" id="check-asistencia" checked style="width: 20px; height: 20px; accent-color: #10b981;">
-                                <span style="font-size: 0.9rem; color: #1e293b;">El estudiante asistió</span>
-                            </label>
-                        </div>
-                        <div class="form-group full">
-                            <label>Tema / Asunto</label>
-                            <textarea name="tema" rows="3" placeholder="Describe brevemente el motivo de la tutoría..."></textarea>
+                        <div>
+                            <div class="cap-title">Parcial</div>
+                            <div class="cap-sub">¿A qué parcial corresponde esta sesión?</div>
                         </div>
                     </div>
-                    <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
-                        <button type="submit" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
-                            <i data-lucide="save"></i> Guardar Tutoría
+                    <div class="parcial-grid">
+                        <label class="parcial-card p1">
+                            <input type="radio" name="parcial" value="1" checked>
+                            <span class="parcial-num">1°</span>
+                            <span class="parcial-lbl">Primer Parcial</span>
+                        </label>
+                        <label class="parcial-card p2">
+                            <input type="radio" name="parcial" value="2">
+                            <span class="parcial-num">2°</span>
+                            <span class="parcial-lbl">Segundo Parcial</span>
+                        </label>
+                        <label class="parcial-card p3">
+                            <input type="radio" name="parcial" value="3">
+                            <span class="parcial-num">3°</span>
+                            <span class="parcial-lbl">Tercer Parcial</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- TARJETA 2: MATERIA Y GRUPO -->
+                <div class="cap-card">
+                    <div class="cap-card-head">
+                        <div class="cap-icon" style="background:#ecfdf5; color:#059669;">
+                            <i data-lucide="book-open" style="width:18px;height:18px;"></i>
+                        </div>
+                        <div>
+                            <div class="cap-title">Contexto</div>
+                            <div class="cap-sub">Materia y grupo de la sesión</div>
+                        </div>
+                    </div>
+                    <div class="cap-row-2">
+                        <div class="cap-field">
+                            <label>Asignatura / Materia <span class="req">*</span></label>
+                            <select name="asignatura" id="select-asignatura" required>
+                                <option value="">Selecciona una materia...</option>
+                            </select>
+                        </div>
+                        <div class="cap-field">
+                            <label>Grupo</label>
+                            <input type="text" name="grupo" id="input-grupo" placeholder="Ej: 210, 401..." autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TARJETA 3: ALUMNOS -->
+                <div class="cap-card">
+                    <div class="cap-card-head">
+                        <div class="cap-icon" style="background:#eff6ff; color:#3b82f6;">
+                            <i data-lucide="users" style="width:18px;height:18px;"></i>
+                        </div>
+                        <div style="flex:1;">
+                            <div class="cap-title">
+                                Alumnos
+                                <span id="selected-count-badge" class="count-badge" style="display:none;">0</span>
+                            </div>
+                            <div class="cap-sub">Busca por grupo o nombre — el género se detecta automáticamente</div>
+                        </div>
+                        <button type="button" id="btn-select-all" class="btn-sel-all" style="display:none;">Sel. todos</button>
+                    </div>
+
+                    <div class="search-bar-wrap">
+                        <div class="search-field">
+                            <i data-lucide="search" class="search-ico"></i>
+                            <input type="text" id="input-search-name" placeholder="Buscar alumno por nombre (mín. 3 letras)..." autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="manual-row">
+                        <i data-lucide="user-plus" class="manual-ico"></i>
+                        <input type="text" id="manual-name" placeholder="Añadir manualmente: nombre completo..." autocomplete="off">
+                        <button type="button" id="btn-manual-sex" class="sexo-toggle-btn sexo-H" data-sexo="H" title="Clic para cambiar género">H</button>
+                        <button type="button" id="btn-add-manual-direct" class="btn-add-manual">
+                            <i data-lucide="plus" style="width:14px;height:14px;"></i> Añadir
                         </button>
                     </div>
-                </form>
-            </div>
+                    <select id="manual-sex" style="display:none;"><option value="H">H</option><option value="F">F</option></select>
+
+                    <div id="students-checkbox-list" class="students-list">
+                        <div class="students-empty">
+                            <i data-lucide="user-search" style="width:36px;height:36px;color:#cbd5e1;"></i>
+                            <p>Ingresa el número de grupo o busca por nombre</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TARJETA 4: DETALLES -->
+                <div class="cap-card">
+                    <div class="cap-card-head">
+                        <div class="cap-icon" style="background:#f5f3ff; color:#7c3aed;">
+                            <i data-lucide="sliders-horizontal" style="width:18px;height:18px;"></i>
+                        </div>
+                        <div>
+                            <div class="cap-title">Detalles</div>
+                            <div class="cap-sub">Tipo, modalidad, asistencia y tema</div>
+                        </div>
+                    </div>
+
+                    <div class="details-grid">
+                        <div class="cap-field">
+                            <label>Tipo de alumno</label>
+                            <div class="option-cards">
+                                <label class="opt-card">
+                                    <input type="radio" name="alumno_tipo" value="regular" checked>
+                                    <i data-lucide="user-check" style="width:22px;height:22px;"></i>
+                                    <span>Regular</span>
+                                </label>
+                                <label class="opt-card">
+                                    <input type="radio" name="alumno_tipo" value="intra">
+                                    <i data-lucide="building-2" style="width:22px;height:22px;"></i>
+                                    <span>Intra</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="cap-field">
+                            <label>Modalidad</label>
+                            <div class="option-cards">
+                                <label class="opt-card">
+                                    <input type="radio" name="tutoria_tipo" value="individual" checked>
+                                    <i data-lucide="user" style="width:22px;height:22px;"></i>
+                                    <span>Individual</span>
+                                </label>
+                                <label class="opt-card">
+                                    <input type="radio" name="tutoria_tipo" value="grupal">
+                                    <i data-lucide="users" style="width:22px;height:22px;"></i>
+                                    <span>Grupal</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="cap-field asistencia-field">
+                            <label>Asistencia</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="check-asistencia" checked>
+                                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                <span class="toggle-label">El alumno asistió</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="cap-field" style="margin-top:1.25rem;">
+                        <label>Tema / Asunto de la sesión</label>
+                        <textarea name="tema" rows="3" placeholder="Describe el motivo o los temas tratados en esta sesión de tutoría..."></textarea>
+                    </div>
+                </div>
+
+                <!-- ACCIÓN -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-submit">
+                        <i data-lucide="save" style="width:18px;height:18px;"></i>
+                        Guardar Tutoría
+                    </button>
+                </div>
+
+            </form>
         </section>
 
         <!-- VISTA 3: HISTORIAL -->

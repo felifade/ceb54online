@@ -17,7 +17,7 @@ window.initAuditoriaView = async () => {
         showLoader();
         try {
             const data = await api.fetchAllData();
-            console.log("DEBUG - Datos para Auditoría:", data);
+            window._log("DEBUG - Datos para Auditoría:", data);
             
             const directorio = data.directorio || [];
             

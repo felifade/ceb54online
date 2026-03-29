@@ -28,7 +28,7 @@
         try {
             // Intentamos traer todos los datos (Directorio + Alumnos)
             allData = await api.fetchAllData();
-            console.log("DEBUG - Datos para Encuesta:", allData);
+            window._log("DEBUG - Datos para Encuesta:", allData);
             
             if(!allData.alumnosFull || allData.alumnosFull.length === 0) {
                 console.warn("No se encontró la lista 'alumnosFull'. Usando 'sinEquipo' como fallback.");
@@ -367,7 +367,7 @@
                 comentarios: document.getElementById('eval-comments').value
             };
 
-            console.log("DEBUG - Enviando Encuesta:", payload);
+            window._log("DEBUG - Enviando Encuesta:", payload);
 
             try {
                 // Usamos la API configurada
