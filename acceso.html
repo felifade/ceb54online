@@ -651,9 +651,9 @@
 
     // ── Configuración de toggles ──────────────────────────────────────────
     const TOGGLES = {
-      encuesta: { gasKey: 'eval_docentes', configKey: 'eval_docentes_activa', toolIds: ['tool-encuesta-alumnos'], badgeId: 'badge-encuesta' },
-      padres:   { gasKey: 'eval_padres',   configKey: 'eval_padres_activa',   toolIds: ['tool-encuesta-padres'],  badgeId: 'badge-padres'   },
-      pec:      { gasKey: 'eval_pec',      configKey: 'eval_pec_activa',      toolIds: ['tool-pec-eval'],         badgeId: 'badge-pec'      },
+      encuesta: { gasKey: 'eval_docentes', configKey: 'eval_docentes_activa', badgeId: 'badge-encuesta' },
+      padres:   { gasKey: 'eval_padres',   configKey: 'eval_padres_activa',   badgeId: 'badge-padres'   },
+      pec:      { gasKey: 'eval_pec',      configKey: 'eval_pec_activa',      badgeId: 'badge-pec'      },
     };
 
     function aplicarEstadoToggle(name, activo) {
@@ -672,10 +672,6 @@
         badge.textContent = activo ? 'Activa' : 'Inactiva';
         badge.className   = activo ? 'ctrl-badge-on' : 'ctrl-badge-off';
       }
-      cfg.toolIds.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = activo ? 'flex' : 'none';
-      });
     }
 
     async function cargarConfigToggle() {
@@ -692,15 +688,18 @@
     }
 
     async function ejecutarToggle(name) {
-      const btn = document.getElementById('toggle-' + name);
-      const actual = btn?.classList.contains('on');
+      const btn   = document.getElementById('toggle-' + name);
+      const nuevo = !btn?.classList.contains('on');
+      // Cambio visual inmediato
+      aplicarEstadoToggle(name, nuevo);
       if (btn) btn.disabled = true;
       try {
-        const res = await portalAPI.adminToggle(TOGGLES[name].gasKey, !actual);
+        const res = await portalAPI.adminToggle(TOGGLES[name].gasKey, nuevo);
         if (res && res.status !== 'success') throw new Error(res.message || 'Error desconocido');
-        await cargarConfigToggle();
       } catch(e) {
-        alert('Error al actualizar: ' + e.message);
+        // Revertir si falla el servidor
+        aplicarEstadoToggle(name, !nuevo);
+        alert('Error al guardar en servidor: ' + e.message);
       } finally {
         if (btn) btn.disabled = false;
       }
