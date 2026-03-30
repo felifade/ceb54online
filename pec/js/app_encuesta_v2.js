@@ -25,21 +25,75 @@
     // --- 1. INICIALIZACIÓN ---
     async function init() {
         showLoader();
+
+        // ── Detección de acceso desde el Portal Estudiantil ─────────
+        const params = new URLSearchParams(window.location.search);
+        const pNombre = (params.get("nombre") || "").trim();
+        const pGrupo  = (params.get("grupo")  || "").trim().toUpperCase();
+        const isPortalAccess = !!(pNombre && pGrupo);
+
+        // Si viene del portal y no hay sesión de docente, crear sesión invitada
+        // para que fetchAllData() pueda hacer la solicitud al backend
+        if (isPortalAccess && !sessionStorage.getItem('user_email')) {
+            sessionStorage.setItem('user_email', 'portal_guest@ceb54.online');
+        }
+
         try {
-            // Intentamos traer todos los datos (Directorio + Alumnos)
             allData = await api.fetchAllData();
             window._log("DEBUG - Datos para Encuesta:", allData);
-            
+
             if(!allData.alumnosFull || allData.alumnosFull.length === 0) {
                 console.warn("No se encontró la lista 'alumnosFull'. Usando 'sinEquipo' como fallback.");
-                allData.alumnosFull = data.sinEquipo || [];
+                allData.alumnosFull = allData.sinEquipo || [];
             }
 
             populateGroups();
             feather.replace();
+
+            // ── AUTO-LOGIN desde el Portal Estudiantil ──────────────
+            if (isPortalAccess) {
+                selectedStudent = { nombre: pNombre, grupo: pGrupo };
+                // Mostrar chip de identidad
+                const loginInfo = document.getElementById('portal-student-info');
+                if (loginInfo) {
+                    loginInfo.style.display = 'flex';
+                    document.getElementById('portal-student-name').textContent = pNombre;
+                    document.getElementById('portal-student-group').textContent = `Grupo ${pGrupo}`;
+                }
+                // Parámetro "ir" para ir directo a profesores o directivos
+                const ir = params.get("ir") || "";
+                if (ir === 'profesores') {
+                    loadTeachers(pGrupo);
+                    showStep('teachers');
+                } else if (ir === 'directivos') {
+                    loadDirectors();
+                    showStep('teachers');
+                } else {
+                    showStep('choice');
+                }
+            }
+            // ────────────────────────────────────────────────────────
+
         } catch (e) {
             console.error(e);
-            alert("No se pudieron cargar los datos de la encuesta. Verifica la conexión.");
+            // Si es acceso desde portal, intentar mostrar sin datos de directorio
+            if (isPortalAccess) {
+                allData = allData || { directorio: [], alumnosFull: [], feedbackHistory: [] };
+                selectedStudent = { nombre: pNombre, grupo: pGrupo };
+                feather.replace();
+                const ir = params.get("ir") || "";
+                if (ir === 'directivos') {
+                    loadDirectors();
+                    showStep('teachers');
+                } else if (ir === 'profesores') {
+                    loadTeachers(pGrupo);
+                    showStep('teachers');
+                } else {
+                    showStep('choice');
+                }
+            } else {
+                alert("No se pudieron cargar los datos de la encuesta. Verifica la conexión.");
+            }
         }
         hideLoader();
     }
@@ -378,8 +432,19 @@
                     body: JSON.stringify(payload)
                 });
                 
-                // Como usamos no-cors, no podemos leer el JSON de respuesta fácilmente, 
-                // pero si no hay error de red, asumimos éxito tras un delay.
+                // Como usamos no-cors, no podemos leer el JSON de respuesta fácilmente,
+                // pero si no hay error de red, asumimos éxito.
+                // Actualización optimista: marcar como evaluado en el historial local
+                // para que el badge "LISTO" aparezca inmediatamente al volver a la lista.
+                if (!allData.feedbackHistory) allData.feedbackHistory = [];
+                allData.feedbackHistory.push({
+                    parcial: 'Semestral',
+                    alumno: selectedStudent.nombre,
+                    docente: selectedTeacher.docente
+                });
+                // Limpiar caché para que el próximo reset() traiga datos frescos del servidor
+                api.cache = null;
+
                 setTimeout(() => {
                     showStep('success');
                 }, 1000);

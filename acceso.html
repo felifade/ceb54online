@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Comunidad | CEB 5/4</title>
+  <meta name="description" content="Portal de acceso a las herramientas digitales de la comunidad CEB 5/4. Secciones para alumnos, padres, docentes y administrativos.">
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ── Reset & Variables ── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --blue:   #3884C0;
+      --blue-d: #2d6fa5;
+      --green:  #059669;
+      --green-d:#047857;
+      --purple: #7c3aed;
+      --purple-d:#6d28d9;
+      --dark:   #0f172a;
+      --text:   #1e293b;
+      --muted:  #64748b;
+      --light:  #f8fafc;
+      --white:  #ffffff;
+      --r:      0.875rem;
+      --rLg:    1.25rem;
+      --sh:     0 4px 6px -1px rgba(0,0,0,.08), 0 2px 4px -1px rgba(0,0,0,.05);
+      --shMd:   0 10px 25px -5px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05);
+      --shLg:   0 20px 40px -10px rgba(0,0,0,.15);
+      --tr:     all 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--light);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    a { text-decoration: none; color: inherit; }
+    img { max-width: 100%; display: block; }
+
+    /* ── Header ── */
+    .site-header {
+      background: var(--dark);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,.3);
+    }
+    .header-brand {
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .header-logo-ring {
+      width: 40px; height: 40px;
+      background: rgba(56,132,192,0.2);
+      border: 1.5px solid rgba(56,132,192,0.5);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .header-logo-ring svg { width:20px; height:20px; }
+    .header-brand-name {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: #fff;
+    }
+    .header-brand-sub {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.45);
+      margin-top: -2px;
+    }
+    .header-back {
+      display: flex; align-items: center; gap: 0.4rem;
+      color: rgba(255,255,255,0.55);
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: color 0.2s;
+      white-space: nowrap;
+    }
+    .header-back:hover { color: #fff; }
+    .header-back svg { width:16px; height:16px; }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, var(--dark) 0%, #1a3a5e 55%, #2d6fa5 100%);
+      padding: 4rem 1.5rem 5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: radial-gradient(circle at 20% 50%, rgba(56,132,192,0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(124,58,237,0.1) 0%, transparent 40%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.75);
+      font-size: 0.8rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 1.5px;
+      padding: 0.4rem 1.25rem; border-radius: 9999px;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+    .hero-badge .dot {
+      width: 7px; height: 7px;
+      background: #4ade80; border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity:1; transform:scale(1); }
+      50% { opacity:.5; transform:scale(1.4); }
+    }
+    .hero-title {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: clamp(2rem, 5vw, 3.25rem);
+      color: #fff;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+    .hero-title span { color: #67A8DB; }
+    .hero-sub {
+      color: rgba(255,255,255,0.6);
+      font-size: clamp(1rem, 2.5vw, 1.2rem);
+      max-width: 560px;
+      margin: 0 auto 0;
+      position: relative;
+    }
+
+    /* ── Main container ── */
+    .main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 3.5rem 1.5rem 5rem;
+    }
+    .section-label {
+      display: flex; align-items: center; gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+    .section-label h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.6rem; font-weight: 800;
+      color: var(--dark);
+    }
+    .section-label p {
+      color: var(--muted); font-size: 0.95rem; margin-top: 0.2rem;
+    }
+
+    /* ── Audience Grid ── */
+    .audience-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.75rem;
+    }
+    @media (max-width: 900px) { .audience-grid { grid-template-columns: 1fr; } }
+    @media (min-width: 600px) and (max-width: 900px) {
+      .audience-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ── Audience Card ── */
+    .aud-card {
+      background: var(--white);
+      border-radius: var(--rLg);
+      box-shadow: var(--shMd);
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      transition: var(--tr);
+      border: 1.5px solid transparent;
+    }
+    .aud-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shLg);
+    }
+    .aud-card-header {
+      padding: 1.75rem 1.75rem 1.25rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .aud-icon {
+      width: 56px; height: 56px;
+      border-radius: var(--r);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      margin-bottom: 1rem;
+    }
+    .aud-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.3rem; font-weight: 800;
+      margin-bottom: 0.4rem;
+    }
+    .aud-desc { color: var(--muted); font-size: 0.9rem; line-height: 1.55; }
+
+    /* Card accent per audience */
+    .aud-card.green { border-top: 4px solid var(--green); }
+    .aud-card.green .aud-icon { background: #d1fae5; }
+    .aud-card.green .aud-title { color: var(--green-d); }
+
+    .aud-card.blue { border-top: 4px solid var(--blue); }
+    .aud-card.blue .aud-icon { background: #dbeafe; }
+    .aud-card.blue .aud-title { color: var(--blue-d); }
+
+    .aud-card.purple { border-top: 4px solid var(--purple); }
+    .aud-card.purple .aud-icon { background: #ede9fe; }
+    .aud-card.purple .aud-title { color: var(--purple-d); }
+
+    /* ── Tool List ── */
+    .tool-list {
+      flex: 1;
+      padding: 1.25rem 1.5rem 1.75rem;
+      display: flex; flex-direction: column; gap: 0.75rem;
+    }
+    .tool-item {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 0.9rem 1rem;
+      border-radius: var(--r);
+      border: 1.5px solid #e2e8f0;
+      cursor: pointer;
+      transition: var(--tr);
+      text-decoration: none;
+      color: inherit;
+      background: #fafafa;
+      position: relative;
+    }
+    .tool-item:hover {
+      border-color: transparent;
+      background: #fff;
+      box-shadow: var(--shMd);
+      transform: translateX(3px);
+    }
+    .aud-card.green .tool-item:hover { border-color: var(--green); background: #f0fdf4; }
+    .aud-card.blue  .tool-item:hover { border-color: var(--blue);  background: #eff6ff; }
+    .aud-card.purple .tool-item:hover { border-color: var(--purple); background: #f5f3ff; }
+
+    .tool-icon {
+      font-size: 1.35rem;
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .tool-info { flex: 1; min-width: 0; }
+    .tool-name {
+      font-weight: 700; font-size: 0.9rem;
+      color: var(--dark); margin-bottom: 0.15rem;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .tool-desc { font-size: 0.8rem; color: var(--muted); }
+    .tool-lock {
+      font-size: 0.75rem; font-weight: 700;
+      background: #fef3c7; color: #92400e;
+      border: 1px solid #fde68a;
+      padding: 0.15rem 0.5rem; border-radius: 9999px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .tool-arrow {
+      color: var(--muted); font-size: 1rem;
+      flex-shrink: 0; transition: transform 0.2s;
+    }
+    .tool-item:hover .tool-arrow { transform: translateX(3px); }
+
+    /* ── Version badge ── */
+    .version-bar {
+      text-align: center;
+      padding: 2rem 1.5rem 0;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+    .version-bar span {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: #e2e8f0; border-radius: 9999px;
+      padding: 0.35rem 1rem;
+    }
+    .v-dot { width:6px;height:6px;background:#4ade80;border-radius:50%; }
+
+    /* ── Footer ── */
+    .site-footer {
+      background: var(--dark);
+      color: rgba(255,255,255,0.45);
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.82rem;
+    }
+    .site-footer strong { color: rgba(255,255,255,0.7); }
+
+    /* ── Password Modal ── */
+    .modal-bg {
+      display: none;
+      position: fixed; inset: 0; z-index: 9000;
+      background: rgba(15,23,42,0.75);
+      backdrop-filter: blur(6px);
+      align-items: center; justify-content: center;
+      padding: 1rem;
+    }
+    .modal-bg.active { display: flex; }
+    .modal-card {
+      background: #fff;
+      border-radius: 1.5rem;
+      padding: 2.25rem 2rem;
+      width: 100%; max-width: 400px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+      animation: modalPop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes modalPop {
+      from { opacity:0; transform: scale(0.9) translateY(20px); }
+      to   { opacity:1; transform: scale(1) translateY(0); }
+    }
+    .modal-head {
+      display: flex; align-items: center; gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .modal-icon-ring {
+      width: 48px; height: 48px;
+      background: #dbeafe; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; flex-shrink: 0;
+    }
+    .modal-head-text h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.2rem; font-weight: 800; color: var(--dark);
+    }
+    .modal-head-text p { font-size: 0.82rem; color: var(--muted); margin-top: 0.1rem; }
+    .modal-error {
+      background: #fef2f2; border: 1px solid #fecaca;
+      color: #dc2626; padding: 0.6rem 0.875rem;
+      border-radius: 0.625rem; font-size: 0.82rem;
+      margin-bottom: 1rem; display: none;
+    }
+    .modal-label {
+      display: block; font-size: 0.82rem; font-weight: 600;
+      color: var(--text); margin-bottom: 0.45rem;
+    }
+    .modal-input-wrap { position: relative; margin-bottom: 1.25rem; }
+    .modal-input-wrap input {
+      width: 100%;
+      padding: 0.85rem 3rem 0.85rem 1rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 0.75rem;
+      font-size: 0.95rem; outline: none;
+      transition: border-color 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .modal-input-wrap input:focus { border-color: var(--blue); }
+    .modal-eye {
+      position: absolute; right: 0.875rem; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      font-size: 1rem; color: var(--muted); transition: color 0.2s;
+    }
+    .modal-eye:hover { color: var(--dark); }
+    .modal-actions { display: flex; gap: 0.75rem; }
+    .modal-cancel {
+      flex: 1; padding: 0.85rem;
+      background: #f1f5f9; border: none; border-radius: 0.75rem;
+      color: var(--muted); font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .modal-cancel:hover { background: #e2e8f0; color: var(--dark); }
+    .modal-enter {
+      flex: 2; padding: 0.85rem;
+      background: var(--blue); border: none; border-radius: 0.75rem;
+      color: #fff; font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; transition: background 0.2s, transform 0.1s;
+      font-family: 'Outfit', sans-serif;
+    }
+    .modal-enter:hover { background: var(--blue-d); }
+    .modal-enter:active { transform: scale(0.98); }
+
+    /* ── Panel de Control / Toggles ── */
+    .ctrl-panel {
+      margin: 0 1.5rem 1.5rem;
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: var(--r);
+      overflow: hidden;
+    }
+    .ctrl-title {
+      padding: 0.6rem 1rem;
+      font-size: 0.75rem; font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.8px;
+      background: #f1f5f9;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .ctrl-item {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 0.7rem 1rem; gap: 0.75rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .ctrl-item:last-child { border-bottom: none; }
+    .ctrl-name { font-size: 0.83rem; font-weight: 600; color: var(--text); display: block; }
+    .ctrl-desc { font-size: 0.73rem; color: var(--muted); }
+    .ctrl-toggle {
+      width: 44px; height: 24px;
+      background: #cbd5e1; border: none; border-radius: 9999px;
+      position: relative; cursor: pointer; flex-shrink: 0;
+      transition: background 0.25s; padding: 0;
+    }
+    .ctrl-toggle.on { background: #059669; }
+    .toggle-dot {
+      position: absolute; top: 3px; left: 3px;
+      width: 18px; height: 18px;
+      background: white; border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,.25);
+      transition: transform 0.25s; display: block;
+    }
+    .ctrl-toggle.on .toggle-dot { transform: translateX(20px); }
+    .ctrl-badge-on  { font-size:0.68rem;font-weight:700;color:#059669;background:#d1fae5;padding:0.1rem 0.45rem;border-radius:9999px; }
+    .ctrl-badge-off { font-size:0.68rem;font-weight:700;color:#64748b;background:#f1f5f9;padding:0.1rem 0.45rem;border-radius:9999px; }
+
+    /* ── Shake animation ── */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .shake { animation: shake 0.4s ease; }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .hero { padding: 3rem 1.25rem 4rem; }
+      .main { padding: 2.5rem 1.25rem 4rem; }
+      .aud-card-header { padding: 1.25rem 1.25rem 1rem; }
+      .tool-list { padding: 1rem 1rem 1.25rem; }
+      .modal-actions { flex-direction: column-reverse; }
+      .modal-enter, .modal-cancel { flex: none; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══ HEADER ══ -->
+  <header class="site-header">
+    <div class="header-brand">
+      <div class="header-logo-ring">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#67A8DB" stroke-width="1.5" stroke-linecap="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div>
+        <div class="header-brand-name">CEB 5/4</div>
+        <div class="header-brand-sub">Profr. Rafael Ramírez</div>
+      </div>
+    </div>
+    <a href="index.html" class="header-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M19 12H5M12 5l-7 7 7 7"/>
+      </svg>
+      Sitio público
+    </a>
+  </header>
+
+  <!-- ══ HERO ══ -->
+  <section class="hero">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      Portal Institucional — Versión 1.0
+    </div>
+    <h1 class="hero-title">Comunidad <span>CEB 5/4</span></h1>
+    <p class="hero-sub">Selecciona tu perfil para acceder a las herramientas digitales de nuestra institución.</p>
+  </section>
+
+  <!-- ══ MAIN ══ -->
+  <main class="main">
+
+    <div class="section-label">
+      <div>
+        <h2>¿Quién eres?</h2>
+        <p>Elige tu perfil y accede a las herramientas disponibles para ti</p>
+      </div>
+    </div>
+
+    <div class="audience-grid">
+
+      <!-- ── ALUMNOS Y PADRES ── -->
+      <div class="aud-card green">
+        <div class="aud-card-header">
+          <div class="aud-icon">🎒</div>
+          <div class="aud-title">Alumnos y Padres</div>
+          <div class="aud-desc">Consulta calificaciones, asistencias y participa en la evaluación educativa de forma segura.</div>
+        </div>
+        <div class="tool-list">
+          <a href="portal/index.html" class="tool-item">
+            <div class="tool-icon">📊</div>
+            <div class="tool-info">
+              <div class="tool-name">Portal de Calificaciones</div>
+              <div class="tool-desc">Consulta tus notas por materia y parcial</div>
+            </div>
+            <span class="tool-arrow">›</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- ── DOCENTES ── -->
+      <div class="aud-card blue">
+        <div class="aud-card-header">
+          <div class="aud-icon">👨‍🏫</div>
+          <div class="aud-title">Docentes</div>
+          <div class="aud-desc">Gestiona tutorías, accede al plan estratégico y consulta el desempeño académico de tus grupos.</div>
+        </div>
+        <div class="tool-list">
+          <a href="tutorias/index.html" class="tool-item">
+            <div class="tool-icon">📋</div>
+            <div class="tool-info">
+              <div class="tool-name">Sistema de Tutorías</div>
+              <div class="tool-desc">Registra y da seguimiento a tus alumnos</div>
+            </div>
+            <span class="tool-arrow">›</span>
+          </a>
+          <a href="pec/index.html" class="tool-item">
+            <div class="tool-icon">🎯</div>
+            <div class="tool-info">
+              <div class="tool-name">Plan Estratégico (PEC)</div>
+              <div class="tool-desc">Compromisos, metas y seguimiento institucional</div>
+            </div>
+            <span class="tool-arrow">›</span>
+          </a>
+          <button class="tool-item" onclick="abrirAccesoProtegido('academico/dashboard.html')">
+            <div class="tool-icon">📈</div>
+            <div class="tool-info">
+              <div class="tool-name">
+                Dashboard Académico
+                <span class="tool-lock">🔒 Clave</span>
+              </div>
+              <div class="tool-desc">Estadísticas de reprobación y desempeño</div>
+            </div>
+            <span class="tool-arrow">›</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ── ADMINISTRATIVOS ── -->
+      <div class="aud-card purple">
+        <div class="aud-card-header">
+          <div class="aud-icon">🏫</div>
+          <div class="aud-title">Administrativos</div>
+          <div class="aud-desc">Importa concentrados de calificaciones, genera reportes y gestiona el sistema académico institucional.</div>
+        </div>
+        <div class="tool-list">
+          <button class="tool-item" onclick="abrirAccesoProtegido('academico/dashboard.html')">
+            <div class="tool-icon">📈</div>
+            <div class="tool-info">
+              <div class="tool-name">
+                Dashboard Académico
+                <span class="tool-lock">🔒 Clave</span>
+              </div>
+              <div class="tool-desc">Análisis por semestre, turno, docente y materia</div>
+            </div>
+            <span class="tool-arrow">›</span>
+          </button>
+          <button class="tool-item" onclick="abrirAccesoProtegido('academico/upload.html')">
+            <div class="tool-icon">📤</div>
+            <div class="tool-info">
+              <div class="tool-name">
+                Importar Concentrados
+                <span class="tool-lock">🔒 Clave</span>
+              </div>
+              <div class="tool-desc">Carga PDFs de calificaciones al sistema</div>
+            </div>
+            <span class="tool-arrow">›</span>
+          </button>
+        </div>
+
+        <!-- Panel de activaciones — solo visible tras autenticación admin -->
+        <div class="ctrl-panel" id="ctrl-panel-main" style="display:none">
+          <div class="ctrl-title">🎛️ Activar / Desactivar accesos</div>
+
+          <div class="ctrl-item">
+            <div class="ctrl-info">
+              <span class="ctrl-name">Evaluación Docentes y Directivos</span>
+              <span class="ctrl-desc">Muestra encuesta a alumnos &nbsp;<span id="badge-encuesta" class="ctrl-badge-off">Inactiva</span></span>
+            </div>
+            <button class="ctrl-toggle" id="toggle-encuesta" onclick="activarToggle('encuesta')" title="Requiere contraseña"></button>
+          </div>
+
+          <div class="ctrl-item">
+            <div class="ctrl-info">
+              <span class="ctrl-name">Encuesta para Padres de Familia</span>
+              <span class="ctrl-desc">Muestra encuesta a padres &nbsp;<span id="badge-padres" class="ctrl-badge-off">Inactiva</span></span>
+            </div>
+            <button class="ctrl-toggle" id="toggle-padres" onclick="activarToggle('padres')" title="Requiere contraseña"></button>
+          </div>
+
+          <div class="ctrl-item">
+            <div class="ctrl-info">
+              <span class="ctrl-name">Evaluación Proceso PEC</span>
+              <span class="ctrl-desc">Muestra enlace a docentes &nbsp;<span id="badge-pec" class="ctrl-badge-off">Inactiva</span></span>
+            </div>
+            <button class="ctrl-toggle" id="toggle-pec" onclick="activarToggle('pec')" title="Requiere contraseña"></button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /audience-grid -->
+
+    <div class="version-bar">
+      <span>
+        <span class="v-dot"></span>
+        CEB 5/4 Sistema Digital — Versión 1.0 &nbsp;|&nbsp; 2025-2026 &nbsp;|&nbsp; Dr. Felipe López Salazar
+      </span>
+    </div>
+
+  </main>
+
+  <!-- ══ FOOTER ══ -->
+  <footer class="site-footer">
+    <strong>Centro de Estudios de Bachillerato CEB 5/4 "Profr. Rafael Ramírez"</strong><br>
+    Pachuca de Soto, Hidalgo &nbsp;·&nbsp; 771 711 0592 &nbsp;·&nbsp; direccion54@dgb.edu.mx
+  </footer>
+
+  <!-- ══ MODAL DE CONTRASEÑA ══ -->
+  <div class="modal-bg" id="auth-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card" id="modal-card">
+      <div class="modal-head">
+        <div class="modal-icon-ring">🔐</div>
+        <div class="modal-head-text">
+          <h3 id="modal-title">Área Académica</h3>
+          <p>Ingresa la contraseña institucional para continuar</p>
+        </div>
+      </div>
+      <div class="modal-error" id="modal-error">Contraseña incorrecta. Verifica e inténtalo de nuevo.</div>
+      <label class="modal-label" for="modal-pwd">Contraseña de acceso</label>
+      <div class="modal-input-wrap">
+        <input type="password" id="modal-pwd" placeholder="••••••••••••" autocomplete="current-password">
+        <button type="button" class="modal-eye" onclick="toggleModalPwd()" title="Mostrar/ocultar">👁</button>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="cerrarModal()">Cancelar</button>
+        <button class="modal-enter" onclick="verificarYNavegar()">Entrar →</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const KEY = 'cebAcadOk';
+    const OK  = 'Y2ViNTRhZG1pbjIwMjY=';
+    let destino       = null;
+    let accionPostAuth = null; // acción pendiente tras autenticar (para toggles)
+
+    // ── Configuración de toggles ──────────────────────────────────────────
+    const TOGGLES = {
+      encuesta: { lsKey: 'cebToggle_encuesta', toolIds: ['tool-encuesta-alumnos'], badgeId: 'badge-encuesta' },
+      padres:   { lsKey: 'cebToggle_padres',   toolIds: ['tool-encuesta-padres'],  badgeId: 'badge-padres'   },
+      pec:      { lsKey: 'cebToggle_pec',       toolIds: ['tool-pec-eval'],         badgeId: 'badge-pec'      },
+    };
+
+    function aplicarEstadoToggle(name) {
+      const cfg  = TOGGLES[name];
+      const activo = localStorage.getItem(cfg.lsKey) === '1';
+      // Botón
+      const btn = document.getElementById('toggle-' + name);
+      if (btn) {
+        btn.classList.toggle('on', activo);
+        // Inyectar el dot si no existe
+        if (!btn.querySelector('.toggle-dot')) {
+          const dot = document.createElement('span');
+          dot.className = 'toggle-dot';
+          btn.appendChild(dot);
+        }
+      }
+      // Badge de estado
+      const badge = document.getElementById(cfg.badgeId);
+      if (badge) {
+        badge.textContent = activo ? 'Activa' : 'Inactiva';
+        badge.className   = activo ? 'ctrl-badge-on' : 'ctrl-badge-off';
+      }
+      // Mostrar/ocultar herramientas
+      cfg.toolIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = activo ? 'flex' : 'none';
+      });
+    }
+
+    function ejecutarToggle(name) {
+      const cfg    = TOGGLES[name];
+      const actual = localStorage.getItem(cfg.lsKey) === '1';
+      localStorage.setItem(cfg.lsKey, actual ? '0' : '1');
+      aplicarEstadoToggle(name);
+    }
+
+    function activarToggle(name) {
+      if (sessionStorage.getItem(KEY) === '1') {
+        ejecutarToggle(name);
+        return;
+      }
+      // Requiere autenticación primero
+      destino        = null;
+      accionPostAuth = () => ejecutarToggle(name);
+      const modal    = document.getElementById('auth-modal');
+      modal.classList.add('active');
+      setTimeout(() => document.getElementById('modal-pwd').focus(), 100);
+    }
+
+    // Aplicar estados de los toggles al cargar
+    Object.keys(TOGGLES).forEach(aplicarEstadoToggle);
+
+    // Mostrar panel si el admin ya autenticó en esta sesión
+    function mostrarPanelAdmin() {
+      const panel = document.getElementById('ctrl-panel-main');
+      if (panel) panel.style.display = 'block';
+    }
+    if (sessionStorage.getItem(KEY) === '1') mostrarPanelAdmin();
+
+    // ── Acceso protegido (navegación) ─────────────────────────────────────
+    function abrirAccesoProtegido(url) {
+      if (sessionStorage.getItem(KEY) === '1') {
+        window.location.href = url;
+        return;
+      }
+      destino        = url;
+      accionPostAuth = null;
+      const modal    = document.getElementById('auth-modal');
+      modal.classList.add('active');
+      setTimeout(() => document.getElementById('modal-pwd').focus(), 100);
+    }
+
+    // ── Modal ─────────────────────────────────────────────────────────────
+    function cerrarModal() {
+      document.getElementById('auth-modal').classList.remove('active');
+      document.getElementById('modal-pwd').value = '';
+      document.getElementById('modal-error').style.display = 'none';
+      destino        = null;
+      accionPostAuth = null;
+    }
+
+    function toggleModalPwd() {
+      const inp = document.getElementById('modal-pwd');
+      inp.type  = inp.type === 'password' ? 'text' : 'password';
+    }
+
+    function verificarYNavegar() {
+      const inp = document.getElementById('modal-pwd');
+      const err = document.getElementById('modal-error');
+      const val = inp.value.trim();
+      if (!val) { inp.focus(); return; }
+
+      if (btoa(val) === OK) {
+        sessionStorage.setItem(KEY, '1');
+        mostrarPanelAdmin();
+        cerrarModal();
+        if (accionPostAuth) { accionPostAuth(); accionPostAuth = null; }
+        else if (destino)   { window.location.href = destino; }
+      } else {
+        err.style.display = 'block';
+        inp.value = '';
+        inp.focus();
+        const card = document.getElementById('modal-card');
+        card.classList.remove('shake');
+        void card.offsetWidth;
+        card.classList.add('shake');
+        setTimeout(() => card.classList.remove('shake'), 400);
+      }
+    }
+
+    document.addEventListener('keydown', function(e) {
+      const modal = document.getElementById('auth-modal');
+      if (!modal.classList.contains('active')) return;
+      if (e.key === 'Escape') cerrarModal();
+      if (e.key === 'Enter')  verificarYNavegar();
+    });
+
+    document.getElementById('auth-modal').addEventListener('click', function(e) {
+      if (e.target === this) cerrarModal();
+    });
+  </script>
+</body>
+</html>

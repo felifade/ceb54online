@@ -27,6 +27,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         const programacion = allData.programacion || [];
         const directorio = allData.directorio || [];
 
+        // 0. Agenda del Portal (Fechas Importantes)
+        const agendaBar = document.getElementById('agenda-portal');
+        if (agendaBar) {
+            const fCaptura = config.portal_fecha_captura;
+            const fAclaracion = config.portal_fecha_aclaracion;
+            const fCierre = config.portal_fecha_cierre;
+
+            if (fCaptura || fAclaracion || fCierre) {
+                if (fCaptura) document.getElementById('fecha-captura').textContent = fCaptura;
+                if (fAclaracion) document.getElementById('fecha-aclaracion').textContent = fAclaracion;
+                if (fCierre) document.getElementById('fecha-cierre').textContent = fCierre;
+                agendaBar.classList.remove('hidden');
+            }
+        }
+
         // 1. Poblado de Textos (Config dinámico) - 6 Proyectos
         const projectKeys = ['2m', '2v', '4m', '4v', '6'];
         projectKeys.forEach(key => {

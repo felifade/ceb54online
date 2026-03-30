@@ -280,6 +280,69 @@
             display: none !important;
         }
 
+        /* --- SCHEDULE BAR --- */
+        .schedule-bar {
+            max-width: 1200px;
+            margin: -2.5rem auto 1.5rem;
+            padding: 0 1.5rem;
+            position: relative;
+            z-index: 30;
+            display: flex;
+            justify-content: center;
+        }
+
+        .schedule-inner {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border: 1px solid white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .schedule-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .schedule-item i {
+            width: 18px;
+            color: var(--primary);
+        }
+
+        .date-label {
+            color: var(--gray);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+        }
+
+        .date-val {
+            color: var(--primary-dark);
+            font-weight: 800;
+        }
+
+        @media (max-width: 768px) {
+            .schedule-inner {
+                gap: 1rem;
+                padding: 15px;
+                border-radius: 20px;
+                justify-content: center;
+            }
+            .schedule-bar {
+                margin-top: -3.5rem;
+            }
+        }
+
         @media (max-width: 992px) {
             .project-grid {
                 grid-template-columns: 1fr;
@@ -302,6 +365,32 @@
             <button class="tab-btn" onclick="switchSemester('6')">6to Semestre</button>
         </nav>
     </header>
+
+    <div class="schedule-bar hidden" id="agenda-portal">
+        <div class="schedule-inner">
+            <div class="schedule-item">
+                <i data-lucide="edit-3"></i>
+                <div>
+                    <span class="date-label">Captura de Evaluación</span>
+                    <span class="date-val" id="fecha-captura">--</span>
+                </div>
+            </div>
+            <div class="schedule-item">
+                <i data-lucide="message-square"></i>
+                <div>
+                    <span class="date-label">Periodo de Aclaraciones</span>
+                    <span class="date-val" id="fecha-aclaracion">--</span>
+                </div>
+            </div>
+            <div class="schedule-item">
+                <i data-lucide="lock"></i>
+                <div>
+                    <span class="date-label">Cierre de Sistema</span>
+                    <span class="date-val" id="fecha-cierre">--</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="container">
         <!-- SEMESTRE 2 -->

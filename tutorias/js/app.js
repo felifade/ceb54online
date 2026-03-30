@@ -584,7 +584,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('report-parcial-filter').addEventListener('change', renderReporte);
 
     // --- AUTOMATION & GROUP SELECTION ---
-    let selectedStudentsState = []; // Almacena alumnos seleccionados PERSISTENTES
+    let selectedStudentsState = [];
+
+    function updateCountBadge() {
+        const count = selectedStudentsState.filter(s => s.isSelected).length;
+        const badge = document.getElementById('selected-count-badge');
+        if (!badge) return;
+        badge.textContent = count;
+        badge.style.display = count > 0 ? 'inline-flex' : 'none';
+    }
 
     function setupGroupSelection() {
         const inputGrupo = document.getElementById('input-grupo');
@@ -615,8 +623,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             if (combined.length === 0) {
-                container.innerHTML = '<p class="students-placeholder">Busca por grupo o nombre para ver los alumnos...</p>';
+                container.innerHTML = `<div class="students-empty"><i data-lucide="user-search" style="width:36px;height:36px;color:#cbd5e1;"></i><p>Ingresa el número de grupo o busca por nombre</p></div>`;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
                 btnSelectAll.style.display = 'none';
+                updateCountBadge();
                 return;
             }
 
@@ -626,14 +636,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (initialSexo.toUpperCase().startsWith('M') || initialSexo.toUpperCase().startsWith('F')) initialSexo = "F";
                 else initialSexo = "H";
 
+                // Avatar con iniciales y color basado en género
+                const initials = a.nombre.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+                const avatarStyle = initialSexo === 'F'
+                    ? 'background:#fce7f3; color:#be185d;'
+                    : 'background:#dbeafe; color:#1d4ed8;';
+                const sexoLabel = initialSexo === 'H' ? 'H' : 'M';
+
                 return `
                     <div class="student-item ${a.isSelected ? 'selected' : ''}">
                         <input type="checkbox" class="student-check" value="${a.nombre}" ${a.isSelected ? 'checked' : ''}>
+                        <div class="student-avatar" style="${avatarStyle}">${initials}</div>
                         <div class="student-info">
                             <span class="student-name">${a.nombre}</span>
                             <span class="student-group-badge ${a.grupo ? '' : 'manual'}">${a.grupo || 'Manual'}</span>
                         </div>
-                        <button type="button" class="sexo-badge sexo-${initialSexo}" data-sexo="${initialSexo}">${initialSexo === 'H' ? 'H' : 'M'}</button>
+                        <button type="button" class="sexo-badge sexo-${initialSexo}" data-sexo="${initialSexo}" title="Clic para cambiar género">${sexoLabel}</button>
                     </div>
                 `;
             }).join('');
@@ -641,6 +659,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             container.querySelectorAll('.student-item').forEach((item) => {
                 const check = item.querySelector('.student-check');
                 const sexoBadge = item.querySelector('.sexo-badge');
+                const avatar = item.querySelector('.student-avatar');
 
                 check.addEventListener('change', () => {
                     const studentName = check.value;
@@ -658,6 +677,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         if (existingIdx !== -1) selectedStudentsState[existingIdx].isSelected = false;
                         item.classList.remove('selected');
                     }
+                    updateCountBadge();
                 });
 
                 sexoBadge.addEventListener('click', (e) => {
@@ -666,6 +686,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     sexoBadge.dataset.sexo = newSexo;
                     sexoBadge.textContent = newSexo === 'H' ? 'H' : 'M';
                     sexoBadge.className = `sexo-badge sexo-${newSexo}`;
+                    // Actualizar color del avatar
+                    if (avatar) {
+                        avatar.style.background = newSexo === 'F' ? '#fce7f3' : '#dbeafe';
+                        avatar.style.color = newSexo === 'F' ? '#be185d' : '#1d4ed8';
+                    }
                     const existingIdx = selectedStudentsState.findIndex(s => s.nombre === check.value);
                     if (existingIdx !== -1) selectedStudentsState[existingIdx].sexo = newSexo;
                 });
@@ -715,9 +740,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 selectedStudentsState.unshift(newStudent);
             }
             
-            // Limpiar campos y refrescar
             manualNameInput.value = '';
             renderTotalList();
+            updateCountBadge();
         });
 
         btnSelectAll.addEventListener('click', () => {
@@ -767,8 +792,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (result.status === "success") {
                 alert("Tutoría registrada con éxito.");
                 form.reset();
-                selectedStudentsState = []; // Limpiar lista
-                document.getElementById('students-checkbox-list').innerHTML = '<p class="students-placeholder">Busca por grupo o nombre para ver los alumnos...</p>';
+                selectedStudentsState = [];
+                document.getElementById('students-checkbox-list').innerHTML = `<div class="students-empty"><i data-lucide="user-search" style="width:36px;height:36px;color:#cbd5e1;"></i><p>Ingresa el número de grupo o busca por nombre</p></div>`;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+                updateCountBadge();
                 loadInitialData(); // Recargar historial
             } else {
                 alert("Error: " + result.message);

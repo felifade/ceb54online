@@ -605,15 +605,26 @@ input:focus, select:focus {
         padding: 1rem;
     }
 
-    .form-row-3 {
-        grid-template-columns: 1fr;
-    }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
 
-    .stats-grid {
-        grid-template-columns: 1fr 1fr;
-    }
+    /* Formulario de captura móvil */
+    .cap-card { padding: 1.1rem; border-radius: 16px; }
+    .cap-card-head { margin-bottom: 1rem; }
 
-    .form-section { padding: 1.25rem; }
+    .parcial-grid { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+    .parcial-card { padding: 1rem 0.25rem 0.75rem; border-radius: 12px; }
+    .parcial-num { font-size: 1.7rem; }
+
+    .cap-row-2 { grid-template-columns: 1fr; }
+
+    .details-grid { grid-template-columns: 1fr; }
+    .option-cards { gap: 0.4rem; }
+    .opt-card { padding: 0.7rem 0.4rem; }
+
+    .manual-row { flex-wrap: wrap; }
+    .manual-row input { min-width: 0; }
+
+    .btn-submit { width: 100%; justify-content: center; }
 }
 
 /* Report Styles (For Print View) */

@@ -133,6 +133,24 @@ img { max-width: 100%; height: auto; display: block; }
 .navbar:not(.scrolled):not(.inner-nav) .nav-link-tutorias { background: rgba(255,255,255,0.12); color: #6ee7b7 !important; border-color: rgba(255,255,255,0.25); }
 .navbar:not(.scrolled):not(.inner-nav) .nav-link-tutorias:hover { background: #059669; color: white !important; border-color: #059669; }
 
+/* Portal link */
+.nav-link-portal {
+    border-radius: var(--radius-pill);
+    padding: 0.35rem 0.9rem !important;
+    font-weight: 700 !important;
+    font-size: 0.82rem !important;
+    background: rgba(124,58,237,0.12); color: #7c3aed !important;
+    border: 1px solid rgba(124,58,237,0.3);
+    transition: all 0.25s ease; margin: 0 0.1rem;
+}
+.nav-link-portal:hover { background: #7c3aed; color: white !important; box-shadow: 0 4px 12px rgba(124,58,237,.3); transform: translateY(-2px); }
+.navbar:not(.scrolled):not(.inner-nav) .nav-link-portal { background: rgba(255,255,255,0.12); color: #c4b5fd !important; border-color: rgba(255,255,255,0.25); }
+.navbar:not(.scrolled):not(.inner-nav) .nav-link-portal:hover { background: #7c3aed; color: white !important; }
+.nav-link-portal::after { display: none !important; }
+@media (max-width: 768px) {
+    .nav-link-portal { background: none !important; border: none !important; padding: 0 !important; box-shadow: none !important; color: #7c3aed !important; }
+}
+
 /* Quitar el underline animado en estos botones */
 .nav-link-pec::after, .nav-link-tutorias::after { display: none !important; }
 

@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Académico | CEB 5/4</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <script src="js/auth.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --blue: #3884C0;
+      --green: #059669;
+      --amber: #d97706;
+      --red: #dc2626;
+      --purple: #7c3aed;
+      --gray: #64748b;
+      --border: #e2e8f0;
+      --light: #f8fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 220px;
+      background: #0f172a;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      box-shadow: 2px 0 12px rgba(0, 0, 0, .2);
+    }
+
+    .sidebar-brand {
+      padding: 1.25rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, .1);
+    }
+
+    .sidebar-brand h1 {
+      font-family: 'Outfit';
+      font-weight: 800;
+      font-size: .95rem;
+      color: white;
+    }
+
+    .sidebar-brand p {
+      font-size: .72rem;
+      color: #94a3b8;
+      margin-top: .15rem;
+    }
+
+    .nav-group {
+      padding: .75rem 0;
+    }
+
+    .nav-label {
+      font-size: .65rem;
+      font-weight: 800;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      padding: .4rem 1rem;
+      margin-bottom: .25rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      padding: .6rem 1rem;
+      font-size: .83rem;
+      font-weight: 600;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all .15s;
+      border-radius: 0;
+    }
+
+    .nav-item:hover {
+      color: white;
+      background: rgba(255, 255, 255, .07);
+    }
+
+    .nav-item.active {
+      color: white;
+      background: var(--blue);
+      border-radius: 8px;
+      margin: 0 .5rem;
+    }
+
+    .nav-icon {
+      font-size: 1rem;
+      width: 18px;
+      text-align: center;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, .1);
+      font-size: .72rem;
+      color: #475569;
+    }
+
+    /* ── MAIN ── */
+    .main-wrap {
+      margin-left: 220px;
+      min-height: 100vh;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      padding: .85rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .05);
+    }
+
+    .topbar h2 {
+      font-family: 'Outfit';
+      font-weight: 800;
+      font-size: 1.1rem;
+      flex: 1;
+    }
+
+    /* Filtros */
+    .filters {
+      display: flex;
+      gap: .6rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .filter-select {
+      padding: .45rem .85rem;
+      border: 1.5px solid var(--border);
+      border-radius: 999px;
+      font-size: .82rem;
+      background: white;
+      outline: none;
+      cursor: pointer;
+      color: #334155;
+      font-weight: 600;
+    }
+
+    .filter-select:focus {
+      border-color: var(--blue);
+    }
+
+    .btn-refresh {
+      padding: .45rem .9rem;
+      background: var(--blue);
+      color: white;
+      border: none;
+      border-radius: 999px;
+      font-size: .82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+    }
+
+    .btn-refresh:hover {
+      background: #2b6fa0;
+    }
+
+    /* ── CONTENT ── */
+    .content {
+      padding: 1.5rem;
+    }
+
+    /* ── VISTA PANELS ── */
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    /* ── KPI GRID ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .kpi {
+      background: white;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 1.25rem 1rem;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, .04);
+    }
+
+    .kpi-icon {
+      font-size: 1.5rem;
+      margin-bottom: .5rem;
+    }
+
+    .kpi-num {
+      font-family: 'Outfit';
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .kpi-lbl {
+      font-size: .75rem;
+      color: var(--gray);
+      margin-top: .3rem;
+      font-weight: 600;
+    }
+
+    .kpi-num.blue {
+      color: var(--blue);
+    }
+
+    .kpi-num.green {
+      color: var(--green);
+    }
+
+    .kpi-num.red {
+      color: var(--red);
+    }
+
+    .kpi-num.amber {
+      color: var(--amber);
+    }
+
+    .kpi-num.purple {
+      color: var(--purple);
+    }
+
+    /* ── CARDS ROW ── */
+    .row2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .row3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+
+      .row2,
+      .row3 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, .04);
+      overflow: hidden;
+    }
+
+    .card-head {
+      padding: 1rem 1.25rem .5rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .card-head h3 {
+      font-family: 'Outfit';
+      font-weight: 800;
+      font-size: .95rem;
+      flex: 1;
+    }
+
+    .card-body {
+      padding: .5rem 1.25rem 1.25rem;
+    }
+
+    /* ── CHART ── */
+    .chart-wrap {
+      position: relative;
+    }
+
+    /* ── TABLA INTERNA ── */
+    .mini-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .8rem;
+    }
+
+    .mini-table th {
+      text-align: left;
+      padding: .4rem .6rem;
+      background: #f8fafc;
+      border-bottom: 2px solid var(--border);
+      font-weight: 700;
+      color: #475569;
+      font-size: .72rem;
+      text-transform: uppercase;
+    }
+
+    .mini-table td {
+      padding: .45rem .6rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .mini-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .mini-table tr:hover td {
+      background: #f8fafc;
+    }
+
+    /* Badges de calificación */
+    .cal-badge {
+      display: inline-block;
+      padding: .15rem .55rem;
+      border-radius: 999px;
+      font-size: .75rem;
+      font-weight: 800;
+    }
+
+    .cal-badge.alta {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .cal-badge.media {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .cal-badge.baja {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    /* ── BARRA HORIZONTAL ── */
+    .hbar-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+
+    .hbar-item {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      font-size: .8rem;
+    }
+
+    .hbar-label {
+      width: 140px;
+      flex-shrink: 0;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .hbar-track {
+      flex: 1;
+      height: 10px;
+      background: #f1f5f9;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .hbar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width .6s ease;
+    }
+
+    .hbar-val {
+      width: 36px;
+      text-align: right;
+      font-weight: 700;
+      font-size: .78rem;
+      flex-shrink: 0;
+    }
+
+    /* ── RIESGO LISTA ── */
+    .riesgo-row {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .6rem .5rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .riesgo-row:last-child {
+      border-bottom: none;
+    }
+
+    .av {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .72rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .av-m {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .av-f {
+      background: #fce7f3;
+      color: #be185d;
+    }
+
+    .riesgo-info {
+      flex: 1;
+    }
+
+    .riesgo-name {
+      font-weight: 700;
+      font-size: .85rem;
+    }
+
+    .riesgo-sub {
+      font-size: .72rem;
+      color: var(--gray);
+    }
+
+    .riesgo-prom {
+      font-family: 'Outfit';
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--red);
+    }
+
+    /* ── LOADING / EMPTY ── */
+    .loading-msg {
+      text-align: center;
+      padding: 2.5rem;
+      color: var(--gray);
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e2e8f0;
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      margin: 0 auto .75rem;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .empty-msg {
+      text-align: center;
+      padding: 2rem;
+      color: #94a3b8;
+      font-size: .85rem;
+    }
+
+    /* ── TABLA GRANDE (alumnos) ── */
+    .table-scroll {
+      overflow-x: auto;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .big-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .8rem;
+    }
+
+    .big-table thead {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .big-table thead th {
+      background: #1e293b;
+      color: white;
+      padding: .55rem .75rem;
+      text-align: left;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .big-table tbody tr:nth-child(even) {
+      background: #f8fafc;
+    }
+
+    .big-table tbody tr:hover {
+      background: #eff6ff;
+    }
+
+    .big-table tbody td {
+      padding: .5rem .75rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    /* ── BOTÓN IMPORTAR ── */
+    .btn-import {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .45rem .9rem;
+      background: #f1f5f9;
+      color: #334155;
+      border: 1.5px solid var(--border);
+      border-radius: 999px;
+      font-size: .82rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .btn-import:hover {
+      background: var(--border);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <h1>CEB 5/4 Académico</h1>
+      <p>Analítica y Control Escolar</p>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Principal</div>
+      <div class="nav-item active" onclick="showView('resumen')">
+        <span class="nav-icon">📊</span> Resumen General
+      </div>
+      <div class="nav-item" onclick="showView('alumnos')">
+        <span class="nav-icon">👤</span> Alumnos
+      </div>
+      <div class="nav-item" onclick="showView('materias')">
+        <span class="nav-icon">📚</span> Materias
+      </div>
+      <div class="nav-item" onclick="showView('docentes')">
+        <span class="nav-icon">🧑‍🏫</span> Docentes
+      </div>
+      <div class="nav-item" onclick="showView('riesgo')">
+        <span class="nav-icon">⚠️</span> En Riesgo
+      </div>
+      <div class="nav-item" onclick="showView('semestres')">
+        <span class="nav-icon">🎓</span> Por Semestre
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Herramientas</div>
+      <div class="nav-item" onclick="window.open('upload.html')">
+        <span class="nav-icon">📥</span> Importar PDF
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      v2.0 — Académico Dinámico (Antigravity)
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main-wrap">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <h2 id="topbar-title">Resumen General</h2>
+      <div class="filters">
+        <select class="filter-select" id="f-ciclo" onchange="cargarDatos()">
+          <option value="">Ciclo...</option>
+          <option value="2025-2026/2" selected>2025-2026/2</option>
+          <option value="2025-2026/1">2025-2026/1</option>
+        </select>
+        <select class="filter-select" id="f-parcial" onchange="cargarDatos()">
+          <option value="">Todos los parciales</option>
+          <option value="1">Parcial 1</option>
+          <option value="2">Parcial 2</option>
+          <option value="3">Parcial 3</option>
+        </select>
+        <select class="filter-select" id="f-grupo" onchange="cargarDatos()">
+          <option value="">Todos los grupos</option>
+        </select>
+        <button class="btn-refresh" onclick="cargarDatos()">↻ Actualizar</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ── VISTA: RESUMEN ── -->
+      <div class="view active" id="view-resumen">
+
+        <!-- KPIs -->
+        <div class="kpi-grid" id="kpi-grid">
+          <div class="loading-msg" style="grid-column:1/-1;">
+            <div class="spinner"></div>Cargando datos…
+          </div>
+        </div>
+
+        <!-- Gráficas fila 1 -->
+        <div class="row2">
+          <div class="card">
+            <div class="card-head">
+              <h3>📈 Promedio por Grupo</h3>
+            </div>
+            <div class="card-body chart-wrap" style="height:260px;">
+              <canvas id="chart-grupos"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <h3>📉 Tendencia por Parcial</h3>
+            </div>
+            <div class="card-body chart-wrap" style="height:260px;">
+              <canvas id="chart-tendencia"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fila 2 -->
+        <div class="row2">
+          <div class="card">
+            <div class="card-head">
+              <h3>🔴 % Reprobación por Materia</h3>
+            </div>
+            <div class="card-body" id="bars-materias">
+              <div class="empty-msg">Sin datos</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <h3>🏆 Top 10 Mejores Promedios</h3>
+            </div>
+            <div class="card-body" id="top-alumnos">
+              <div class="empty-msg">Sin datos</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /resumen -->
+
+      <!-- ── VISTA: ALUMNOS ── mejores promedios por semestre/turno -->
+      <div class="view" id="view-alumnos">
+        <div id="alumnos-sem-grid" style="display:flex;flex-direction:column;gap:1rem;">
+          <div class="loading-msg"><div class="spinner"></div>Cargando…</div>
+        </div>
+      </div>
+
+      <!-- ── VISTA: MATERIAS ── estadísticos por semestre/turno -->
+      <div class="view" id="view-materias">
+        <div id="materias-sem-grid" style="display:flex;flex-direction:column;gap:1rem;">
+          <div class="loading-msg"><div class="spinner"></div>Cargando…</div>
+        </div>
+      </div>
+
+      <!-- ── VISTA: DOCENTES ── por semestre/turno -->
+      <div class="view" id="view-docentes">
+        <div id="docentes-sem-grid" style="display:flex;flex-direction:column;gap:1rem;">
+          <div class="loading-msg"><div class="spinner"></div>Cargando…</div>
+        </div>
+      </div>
+
+      <!-- ── VISTA: EN RIESGO ── -->
+      <div class="view" id="view-riesgo">
+        <div class="kpi-grid" id="kpi-riesgo" style="grid-template-columns: repeat(3,1fr);"></div>
+        <div class="card">
+          <div class="card-head">
+            <h3>⚠️ Alumnos en Riesgo (promedio &lt; 6.0)</h3>
+          </div>
+          <div class="card-body" id="lista-riesgo">
+            <div class="empty-msg">Sin datos</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── VISTA: POR SEMESTRE ── -->
+      <div class="view" id="view-semestres">
+        <div id="semestres-grid" style="display:flex;flex-direction:column;gap:1.2rem;">
+          <div class="empty-msg">Sin datos</div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main-wrap -->
+
+  <script>
+    // ══════════════════════════════════════════════════════════════════════════
+    // CONFIGURACIÓN
+    // ══════════════════════════════════════════════════════════════════════════
+    const API_URL = "https://script.google.com/macros/s/AKfycbzl58nAF1ul_1Dg_LnYUoH7JH1hiSgLlUqNWXultNObVsepK0mEMOAAg7V8J9Rn9Hg0hg/exec"; // ← reemplaza con la URL de tu GAS deployment
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // ESTADO
+    // ══════════════════════════════════════════════════════════════════════════
+    let dashData = null;
+    let indData = null;
+    let alumData = [];
+
+    const chartInstances = {};
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // NAVEGACIÓN
+    // ══════════════════════════════════════════════════════════════════════════
+    const VIEW_TITLES = {
+      resumen: "Resumen General", alumnos: "Alumnos",
+      materias: "Materias", docentes: "Docentes",
+      riesgo: "En Riesgo", semestres: "Por Semestre y Turno"
+    };
+
+    function showView(name) {
+      document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+      document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+      document.getElementById(`view-${name}`).classList.add("active");
+      document.querySelector(`[onclick="showView('${name}')"]`).classList.add("active");
+      document.getElementById("topbar-title").textContent = VIEW_TITLES[name] || name;
+
+      // Cargar datos específicos de vista si aún no hay
+      if ((name === "alumnos") && alumData.length === 0) cargarAlumnos();
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // CARGA DE DATOS
+    // ══════════════════════════════════════════════════════════════════════════
+    async function cargarDatos() {
+      const ciclo = document.getElementById("f-ciclo").value;
+      const parcial = document.getElementById("f-parcial").value;
+      const grupo = document.getElementById("f-grupo").value;
+
+      mostrarCargando();
+
+      try {
+        const params = new URLSearchParams({ action: "getDashboard" });
+        if (ciclo) params.set("ciclo", ciclo);
+        if (parcial) params.set("parcial", parcial);
+        if (grupo) params.set("grupo", grupo);
+
+        const [dash, ind] = await Promise.all([
+          fetch(`${API_URL}?${params}&_t=${Date.now()}`).then(r => r.json()),
+          fetch(`${API_URL}?action=getIndicadores&${params}&_t=${Date.now()}`).then(r => r.json()),
+        ]);
+
+        dashData = dash;
+        indData = ind;
+
+        const pst = dash.porSemestreTurno || [];
+
+        renderKPIs(dash.resumen);
+        renderChartGrupos(dash.porGrupo);
+        renderChartTendencia(dash.tendencias);
+        renderBarsMaterias(dash.porMateria);
+        renderTopAlumnos(dash.topAlumnos);
+
+        renderAlumnosPorSemestre(pst);
+        renderMateriasPorSemestre(pst);
+        renderDocentesPorSemestre(pst);
+        renderRiesgo(dash.enRiesgo, dash.resumen);
+        renderSemestres(pst);
+        
+        // Solo renderizar gráfica de materias si existe el canvas
+        if (document.getElementById("chart-mat-rep")) {
+          renderMatRepChart(dash.porMateria);
+        }
+
+        // Poblar selector de grupos
+        const grupos = [...new Set((dash.porGrupo || []).map(g => g.grupo))].sort();
+        const sel = document.getElementById("f-grupo");
+        if (sel) {
+          const actual = sel.value;
+          sel.innerHTML = `<option value="">Todos los grupos</option>` +
+            grupos.map(g => `<option value="${g}" ${g === actual ? "selected" : ""}>${g}</option>`).join("");
+        }
+
+      } catch (e) {
+        console.error("Error en renderizado:", e);
+        // Solo mostrar error de URL si realmente falló el fetch (e.message contiene fetch o similar)
+        if (e.message && e.message.includes("fetch")) {
+          mostrarError("No se pudieron conectar con la API. Verifica la conexión.");
+        } else {
+          mostrarError("Error al procesar los datos: " + e.message);
+        }
+      }
+    }
+
+    async function cargarAlumnos() {
+      const grupo = document.getElementById("f-grupo").value;
+      const params = new URLSearchParams({ action: "getAlumnos" });
+      if (grupo) params.set("grupo", grupo);
+
+      try {
+        const res = await fetch(`${API_URL}?${params}&_t=${Date.now()}`).then(r => r.json());
+        alumData = res.alumnos || [];
+        renderTablaAlumnos(alumData);
+      } catch (e) {
+        console.error("Error cargando alumnos:", e);
+        const tb = document.getElementById("tbody-alumnos");
+        if (tb) tb.innerHTML = `<tr><td colspan="7" class="empty-msg">Error al cargar alumnos.</td></tr>`;
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // RENDERS — KPIs
+    // ══════════════════════════════════════════════════════════════════════════
+    function renderKPIs(res) {
+      if (!res) return;
+      document.getElementById("kpi-grid").innerHTML = `
+    <div class="kpi"><div class="kpi-icon">👥</div>
+      <div class="kpi-num blue">${res.totalAlumnos ?? "—"}</div>
+      <div class="kpi-lbl">Total Alumnos</div></div>
+    <div class="kpi"><div class="kpi-icon">✅</div>
+      <div class="kpi-num green">${res.totalAlumnos - res.alumnosEnRiesgo ?? "—"}</div>
+      <div class="kpi-lbl">Aprobados</div></div>
+    <div class="kpi"><div class="kpi-icon">⚠️</div>
+      <div class="kpi-num red">${res.alumnosEnRiesgo ?? "—"}</div>
+      <div class="kpi-lbl">En Riesgo</div></div>
+    <div class="kpi"><div class="kpi-icon">📊</div>
+      <div class="kpi-num blue">${res.promedioGeneral ?? "—"}</div>
+      <div class="kpi-lbl">Promedio General</div></div>
+    <div class="kpi"><div class="kpi-icon">📉</div>
+      <div class="kpi-num ${res.indiceReprobacion > 30 ? "red" : res.indiceReprobacion > 15 ? "amber" : "green"}">${res.indiceReprobacion ?? "—"}%</div>
+      <div class="kpi-lbl">Índice Reprobación</div></div>
+  `;
+    }
+
+    // ── Chart: Promedios por grupo ─────────────────────────────────────────────
+    function renderChartGrupos(porGrupo) {
+      if (!porGrupo || porGrupo.length === 0) return;
+      const ctx = document.getElementById("chart-grupos").getContext("2d");
+      if (chartInstances.grupos) chartInstances.grupos.destroy();
+
+      chartInstances.grupos = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: porGrupo.map(g => g.grupo),
+          datasets: [{
+            label: "Promedio",
+            data: porGrupo.map(g => g.promedio),
+            backgroundColor: porGrupo.map(g =>
+              g.promedio >= 8 ? "#d1fae5" : g.promedio >= 6 ? "#fef3c7" : "#fee2e2"),
+            borderColor: porGrupo.map(g =>
+              g.promedio >= 8 ? "#059669" : g.promedio >= 6 ? "#d97706" : "#dc2626"),
+            borderWidth: 2, borderRadius: 8,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { min: 0, max: 10, ticks: { font: { size: 11 } }, grid: { color: "#f1f5f9" } },
+            x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    // ── Chart: Tendencia por parcial ───────────────────────────────────────────
+    function renderChartTendencia(tendencias) {
+      if (!tendencias || tendencias.length === 0) return;
+      const ctx = document.getElementById("chart-tendencia").getContext("2d");
+      if (chartInstances.tendencia) chartInstances.tendencia.destroy();
+
+      chartInstances.tendencia = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: tendencias.map(t => `Parcial ${t.parcial}`),
+          datasets: [{
+            label: "Promedio General",
+            data: tendencias.map(t => t.promedio),
+            borderColor: "#3884C0", backgroundColor: "rgba(56,132,192,.1)",
+            tension: .4, fill: true, pointRadius: 5, pointBackgroundColor: "#3884C0",
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { min: 0, max: 10, grid: { color: "#f1f5f9" }, ticks: { font: { size: 11 } } },
+            x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+          }
+        }
+      });
+    }
+
+    // ── Barras horizontales: reprobación por materia agrupadas por semestre ──────
+    function renderBarsMaterias(porMateria) {
+      const el = document.getElementById("bars-materias");
+      if (!porMateria || porMateria.length === 0) { el.innerHTML = '<div class="empty-msg">Sin datos</div>'; return; }
+
+      // porMateria puede ser array plano {semestre,turno,materia,reprobacion}
+      // o el formato anterior sin semestre — normalizar
+      const tieneAgrupacion = porMateria[0] && porMateria[0].semestre !== undefined;
+
+      if (!tieneAgrupacion) {
+        // formato antiguo: lista simple
+        el.innerHTML = `<div class="hbar-wrap">` +
+          porMateria.map(m => {
+            const color = m.reprobacion > 30 ? "#dc2626" : m.reprobacion > 15 ? "#d97706" : "#059669";
+            return `<div class="hbar-item">
+              <div class="hbar-label" title="${m.materia}">${m.materia.split(" ").slice(0,3).join(" ")}</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:${m.reprobacion}%;background:${color};"></div></div>
+              <div class="hbar-val" style="color:${color};">${m.reprobacion}%</div>
+            </div>`;
+          }).join("") + `</div>`;
+        return;
+      }
+
+      // Agrupar por semestre
+      const bySem = {};
+      porMateria.forEach(m => {
+        const k = m.semestre || "—";
+        if (!bySem[k]) bySem[k] = [];
+        bySem[k].push(m);
+      });
+
+      el.innerHTML = Object.entries(bySem)
+        .sort(([a],[b]) => a - b)
+        .map(([sem, mats]) => `
+          <div style="margin-bottom:.8rem;">
+            <div style="font-size:.75rem;font-weight:800;color:var(--blue);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.04em;">
+              ${sem}° Semestre
+            </div>
+            <div class="hbar-wrap">${mats.map(m => {
+              const color = m.reprobacion > 30 ? "#dc2626" : m.reprobacion > 15 ? "#d97706" : "#059669";
+              return `<div class="hbar-item">
+                <div class="hbar-label" title="${m.materia}">${m.materia.split(" ").slice(0,3).join(" ")}</div>
+                <div class="hbar-track"><div class="hbar-fill" style="width:${m.reprobacion}%;background:${color};"></div></div>
+                <div class="hbar-val" style="color:${color};">${m.reprobacion}%</div>
+              </div>`;
+            }).join("")}</div>
+          </div>`).join("");
+    }
+
+    // ── Top alumnos ─────────────────────────────────────────────────────────────
+    function renderTopAlumnos(top) {
+      const el = document.getElementById("top-alumnos");
+      if (!top || top.length === 0) { el.innerHTML = '<div class="empty-msg">Sin datos</div>'; return; }
+
+      el.innerHTML = `<table class="mini-table">
+    <thead><tr><th>#</th><th>Alumno</th><th>Grupo</th><th>Promedio</th></tr></thead>
+    <tbody>` +
+        top.map((a, i) => `
+      <tr>
+        <td style="color:var(--gray);font-weight:700;">${i + 1}</td>
+        <td style="font-weight:600;">${a.nombre}</td>
+        <td>${a.grupo}</td>
+        <td><span class="cal-badge alta">${a.promedio}</span></td>
+      </tr>`).join("") +
+        `</tbody></table>`;
+    }
+
+    // ── helpers compartidos ────────────────────────────────────────────────────
+    const SEM_COLOR  = { "2":"#3884C0","4":"#059669","6":"#7c3aed" };
+    const TURNO_ICON = { "Matutino":"☀️","Vespertino":"🌤️" };
+    function semHeader(b) {
+      const c = SEM_COLOR[String(b.semestre)] || "#64748b";
+      return `<div style="font-weight:800;font-size:.92rem;color:${c};padding:.4rem .75rem;
+        background:${c}12;border-radius:6px;margin-bottom:.6rem;border-left:4px solid ${c};">
+        ${TURNO_ICON[b.turno]||"🎓"} ${b.semestre}° Semestre &nbsp;·&nbsp; ${b.turno}
+        <span style="font-size:.72rem;font-weight:500;color:var(--gray);margin-left:.5rem;">
+          Grupos: ${(b.grupos||[]).join(", ")||"—"}
+        </span>
+      </div>`;
+    }
+
+    // ── ALUMNOS: mejores promedios por semestre/turno ──────────────────────────
+    function renderAlumnosPorSemestre(bloques) {
+      const el = document.getElementById("alumnos-sem-grid");
+      if (!bloques || bloques.length === 0) {
+        el.innerHTML = '<div class="empty-msg">Sin datos</div>'; return;
+      }
+      el.innerHTML = bloques.map(b => {
+        const c = SEM_COLOR[String(b.semestre)] || "#64748b";
+        const topRows = (b.topAlumnos||[]).map((a,i) => `
+          <tr>
+            <td style="color:var(--gray);font-weight:700;text-align:center;width:32px;">${i+1}</td>
+            <td style="font-weight:700;">${a.nombre}</td>
+            <td style="color:var(--gray);font-size:.78rem;">${a.grupo}</td>
+            <td><span class="cal-badge ${a.promedio>=8?"alta":a.promedio>=6?"media":"baja"}">${a.promedio}</span></td>
+          </tr>`).join("") || '<tr><td colspan="4" class="empty-msg">Sin datos</td></tr>';
+
+        const riesgoRows = (b.enRiesgo||[]).slice(0,8).map(a => {
+          const ini = a.nombre.split(" ").slice(0,2).map(w=>w[0]).join("");
+          const mats = (a.materiasBajas||[]).map(m=>m.materia.split(" ")[0]+"("+m.cal+")").join(", ");
+          return `<div style="display:flex;align-items:center;gap:.5rem;padding:.3rem 0;border-bottom:1px solid #f1f5f9;">
+            <div style="width:28px;height:28px;border-radius:50%;background:#fee2e2;color:#dc2626;
+              font-weight:800;font-size:.7rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${ini}</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;font-size:.8rem;">${a.nombre}</div>
+              <div style="font-size:.7rem;color:var(--gray);">${a.grupo}${mats?" · "+mats:""}</div>
+            </div>
+            <div style="font-weight:800;color:#dc2626;">${a.promedio??'SD'}</div>
+          </div>`;
+        }).join("") || '<div style="color:var(--green);font-size:.8rem;padding:.3rem 0;">✓ Ninguno en riesgo</div>';
+
+        return `<div class="card" style="border-top:3px solid ${c};">
+          <div class="card-head" style="flex-wrap:wrap;gap:.5rem;">
+            ${semHeader(b)}
+            <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+              ${[["👥",b.totalAlumnos,"Alumnos","var(--blue)"],
+                 ["📊",b.promedio??"—","Promedio",c],
+                 ["📉",b.reprobacion+"%","Reprobación",b.reprobacion>30?"var(--red)":b.reprobacion>15?"var(--amber)":"var(--green)"],
+                 ["⚠️",b.alumnosEnRiesgo,"En Riesgo","var(--red)"]
+              ].map(([ic,v,l,col])=>`<div style="text-align:center;">
+                <div style="font-size:1.3rem;font-weight:800;color:${col};">${ic} ${v}</div>
+                <div style="font-size:.68rem;color:var(--gray);">${l}</div>
+              </div>`).join("")}
+            </div>
+          </div>
+          <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;">
+            <div>
+              <div style="font-size:.72rem;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem;">🏆 Mejores Promedios</div>
+              <table class="mini-table">
+                <thead><tr><th>#</th><th>Alumno</th><th>Grupo</th><th>Prom.</th></tr></thead>
+                <tbody>${topRows}</tbody>
+              </table>
+            </div>
+            <div>
+              <div style="font-size:.72rem;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem;">⚠️ En Riesgo</div>
+              ${riesgoRows}
+            </div>
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    // ── MATERIAS: estadísticos completos por semestre/turno (AGRUPADO) ────────
+    function renderMateriasPorSemestre(bloques) {
+      const el = document.getElementById("materias-sem-grid");
+      if (!bloques || bloques.length === 0) {
+        el.innerHTML = '<div class="empty-msg">Sin datos</div>'; return;
+      }
+
+      // Agrupar por semestre
+      const semestres = {};
+      bloques.forEach(b => {
+        if (!semestres[b.semestre]) semestres[b.semestre] = { num: b.semestre, turnos: [] };
+        semestres[b.semestre].turnos.push(b);
+      });
+
+      el.innerHTML = Object.values(semestres).sort((a,b) => a.num - b.num).map(s => {
+        const c = SEM_COLOR[String(s.num)] || "#64748b";
+        
+        const turnosHtml = s.turnos.map(b => {
+          const matRows = (b.materias||[]).map(m => {
+            const rc = m.reprobacion > 30 ? "var(--red)" : m.reprobacion > 15 ? "var(--amber)" : "var(--green)";
+            const cls = m.promedio >= 8 ? "alta" : m.promedio >= 6 ? "media" : "baja";
+            return `<tr>
+              <td style="font-weight:700;font-size:.82rem;">${m.materia}</td>
+              <td style="font-size:.72rem;color:var(--gray);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.docente||"—"}</td>
+              <td><span class="cal-badge ${cls}">${m.promedio}</span></td>
+              <td style="color:${rc};font-weight:700;">${m.reprobacion}%</td>
+              <td style="color:var(--gray);font-size:.75rem;text-align:center;">${m.total}</td>
+            </tr>`;
+          }).join("") || '<tr><td colspan="5" class="empty-msg">Sin datos</td></tr>';
+
+          return `
+            <div style="flex:1; min-width:300px;">
+              <div style="font-weight:800;font-size:.8rem;color:var(--gray);margin-bottom:.5rem;display:flex;align-items:center;gap:.4rem;">
+                ${TURNO_ICON[b.turno]||"🎓"} ${String(b.turno).toUpperCase()}
+              </div>
+              <table class="mini-table">
+                <thead><tr>
+                  <th>Materia</th><th>Docente</th><th>Prom</th><th>% Rep</th><th>Evals</th>
+                </tr></thead>
+                <tbody>${matRows}</tbody>
+              </table>
+            </div>`;
+        }).join("");
+
+        return `
+          <div class="card" style="border-top:5px solid ${c}; margin-bottom:1.5rem;">
+            <div class="card-head" style="background:${c}08;">
+              <h3 style="color:${c}; letter-spacing:.05em;">${s.num}° SEMESTRE</h3>
+            </div>
+            <div class="card-body" style="display:flex; flex-wrap:wrap; gap:2rem; padding-top:1rem;">
+              ${turnosHtml}
+            </div>
+          </div>`;
+      }).join("");
+    }
+
+    // ── DOCENTES: por semestre/turno (AGRUPADO) ────────────────────────────────
+    function renderDocentesPorSemestre(bloques) {
+      const el = document.getElementById("docentes-sem-grid");
+      if (!bloques || bloques.length === 0) {
+        el.innerHTML = '<div class="empty-msg">Sin datos</div>'; return;
+      }
+
+      // Agrupar por semestre
+      const semestres = {};
+      bloques.forEach(b => {
+        if (!semestres[b.semestre]) semestres[b.semestre] = { num: b.semestre, turnos: [] };
+        semestres[b.semestre].turnos.push(b);
+      });
+
+      el.innerHTML = Object.values(semestres).sort((a,b) => a.num - b.num).map(s => {
+        const c = SEM_COLOR[String(s.num)] || "#64748b";
+        
+        const turnosHtml = s.turnos.map(b => {
+          const docRows = (b.docentes||[]).map(d => {
+            const rc  = d.reprobacion > 30 ? "var(--red)" : d.reprobacion > 15 ? "var(--amber)" : "var(--green)";
+            const cls = d.promedio >= 8 ? "alta" : d.promedio >= 6 ? "media" : "baja";
+            const mats = (d.materias||[]).map(m => m.split(" ").slice(0,2).join(" ")).join(" · ") || "—";
+            return `<tr>
+              <td style="font-weight:800;font-size:.85rem;">${d.docente}</td>
+              <td style="font-size:.72rem;color:var(--gray);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${mats}</td>
+              <td><span class="cal-badge ${cls}">${d.promedio}</span></td>
+              <td style="color:${rc};font-weight:700;">${d.reprobacion}%</td>
+            </tr>`;
+          }).join("") || '<tr><td colspan="4" class="empty-msg">Sin datos</td></tr>';
+
+          return `
+            <div style="flex:1; min-width:300px;">
+              <div style="font-weight:800;font-size:.8rem;color:var(--gray);margin-bottom:.5rem;display:flex;align-items:center;gap:.4rem;">
+                ${TURNO_ICON[b.turno]||"🎓"} ${String(b.turno).toUpperCase()}
+              </div>
+              <table class="mini-table">
+                <thead><tr>
+                  <th>Docente</th><th>Materias</th><th>Prom</th><th>% Rep</th>
+                </tr></thead>
+                <tbody>${docRows}</tbody>
+              </table>
+            </div>`;
+        }).join("");
+
+        return `
+          <div class="card" style="border-top:5px solid ${c}; margin-bottom:1.5rem;">
+            <div class="card-head" style="background:${c}08;">
+              <h3 style="color:${c}; letter-spacing:.05em;">${s.num}° SEMESTRE</h3>
+            </div>
+            <div class="card-body" style="display:flex; flex-wrap:wrap; gap:2rem; padding-top:1rem;">
+              ${turnosHtml}
+            </div>
+          </div>`;
+      }).join("");
+    }
+
+    // ── Materias: tabla agrupada por semestre y turno (vista resumen lateral) ──
+    function renderMaterias(mat) {
+      const el = document.getElementById("mat-promedios");
+      // mat puede ser array plano con {semestre, turno, materia, docente, promedio, reprobacion}
+      const filas = Array.isArray(mat) ? mat : (mat && mat.promedios ? mat.promedios : []);
+      if (!filas || filas.length === 0) {
+        el.innerHTML = '<div class="empty-msg">Sin datos</div>'; return;
+      }
+
+      // Agrupar por semestre+turno
+      const grupos = {};
+      filas.forEach(m => {
+        const key = `${m.semestre ?? "—"}|${m.turno ?? "—"}`;
+        if (!grupos[key]) grupos[key] = { semestre: m.semestre ?? "—", turno: m.turno ?? "—", filas: [] };
+        grupos[key].filas.push(m);
+      });
+
+      const TURNO_LABEL = { Matutino: "☀️ Matutino", Vespertino: "🌤 Vespertino", "—": "—" };
+
+      el.innerHTML = Object.values(grupos).map(g => `
+        <div style="margin-bottom:1.2rem;">
+          <div style="font-weight:800;font-size:.85rem;color:var(--blue);margin-bottom:.4rem;padding:.3rem .6rem;background:#eff6ff;border-radius:6px;">
+            ${g.semestre}° Semestre · ${TURNO_LABEL[g.turno] || g.turno}
+          </div>
+          <table class="mini-table">
+            <thead><tr><th>Materia</th><th>Docente</th><th>Promedio</th><th>% Rep.</th></tr></thead>
+            <tbody>${g.filas.map(m => {
+              const cls = m.promedio >= 8 ? "alta" : m.promedio >= 6 ? "media" : "baja";
+              return `<tr>
+                <td style="font-weight:600;">${m.materia}</td>
+                <td style="color:var(--gray);font-size:.78rem;">${m.docente || "—"}</td>
+                <td><span class="cal-badge ${cls}">${m.promedio ?? "—"}</span></td>
+                <td style="color:${m.reprobacion > 30 ? "var(--red)" : m.reprobacion > 15 ? "var(--amber)" : "var(--green)"};font-weight:700;">${m.reprobacion}%</td>
+              </tr>`;
+            }).join("")}</tbody>
+          </table>
+        </div>`).join("");
+    }
+
+    function renderMatRepChart(porMateria) {
+      if (!porMateria || porMateria.length === 0) return;
+      const ctx = document.getElementById("chart-mat-rep").getContext("2d");
+      if (chartInstances.matRep) chartInstances.matRep.destroy();
+
+      // Agrupar por semestre si el dato lo trae
+      const tieneAgrupacion = porMateria[0] && porMateria[0].semestre !== undefined;
+      const COLORES_SEM = ["#3884C0","#059669","#d97706","#7c3aed","#dc2626","#0891b2"];
+
+      let datasets, labels;
+      if (tieneAgrupacion) {
+        const bySem = {};
+        porMateria.forEach(m => {
+          const k = String(m.semestre || "—");
+          if (!bySem[k]) bySem[k] = {};
+          bySem[k][m.materia] = m.reprobacion;
+        });
+        // Todas las materias únicas como labels
+        labels = [...new Set(porMateria.map(m => m.materia.split(" ").slice(0,3).join(" ")))];
+        const allMats = [...new Set(porMateria.map(m => m.materia))];
+        datasets = Object.entries(bySem).sort(([a],[b])=>a-b).map(([sem, mats], i) => ({
+          label: `${sem}° Sem.`,
+          data: allMats.map(mat => mats[mat] ?? null),
+          backgroundColor: COLORES_SEM[i % COLORES_SEM.length] + "33",
+          borderColor:     COLORES_SEM[i % COLORES_SEM.length],
+          borderWidth: 2, borderRadius: 4,
+        }));
+        labels = allMats.map(m => m.split(" ").slice(0,3).join(" "));
+      } else {
+        labels = porMateria.map(m => m.materia.split(" ").slice(0,3).join(" "));
+        datasets = [{
+          label: "% Reprobación",
+          data: porMateria.map(m => m.reprobacion),
+          backgroundColor: porMateria.map(m => m.reprobacion > 30 ? "#fee2e2" : m.reprobacion > 15 ? "#fef3c7" : "#d1fae5"),
+          borderColor:     porMateria.map(m => m.reprobacion > 30 ? "#dc2626" : m.reprobacion > 15 ? "#d97706" : "#059669"),
+          borderWidth: 2, borderRadius: 6,
+        }];
+      }
+
+      chartInstances.matRep = new Chart(ctx, {
+        type: "bar",
+        data: { labels, datasets },
+        options: {
+          indexAxis: "y", responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: tieneAgrupacion, position: "top", labels: { font: { size: 11 } } } },
+          scales: {
+            x: { min: 0, max: 100, ticks: { callback: v => v + "%" } },
+            y: { ticks: { font: { size: 10 } } }
+          }
+        }
+      });
+    }
+
+    // renderDocentes ya no se usa — reemplazado por renderDocentesPorSemestre
+    function renderDocentes() {}
+
+    // ── Alumnos en riesgo ─────────────────────────────────────────────────────────
+    function renderRiesgo(enRiesgo, resumen) {
+      // KPIs riesgo
+      document.getElementById("kpi-riesgo").innerHTML = `
+    <div class="kpi"><div class="kpi-icon">⚠️</div>
+      <div class="kpi-num red">${enRiesgo ? enRiesgo.length : 0}</div>
+      <div class="kpi-lbl">En Riesgo</div></div>
+    <div class="kpi"><div class="kpi-icon">📉</div>
+      <div class="kpi-num amber">${resumen ? resumen.indiceReprobacion : 0}%</div>
+      <div class="kpi-lbl">Índice Reprobación</div></div>
+    <div class="kpi"><div class="kpi-icon">📊</div>
+      <div class="kpi-num blue">${resumen ? resumen.promedioGeneral : "—"}</div>
+      <div class="kpi-lbl">Promedio General</div></div>
+  `;
+
+      const el = document.getElementById("lista-riesgo");
+      if (!enRiesgo || enRiesgo.length === 0) {
+        el.innerHTML = `<div class="empty-msg" style="color:var(--green);font-weight:700;">
+      ✓ Ningún alumno en riesgo en este filtro</div>`;
+        return;
+      }
+
+      el.innerHTML = enRiesgo.map(a => {
+        const ini = a.nombre.split(" ").slice(0, 2).map(w => w[0]).join("");
+        const esH = a.curp ? a.curp[10] === "H" : false;
+        const mats = a.materiasBajas.map(m => m.materia.split(" ")[0] + "(" + m.cal + ")").join(", ");
+        return `
+      <div class="riesgo-row">
+        <div class="av ${esH ? "av-m" : "av-f"}">${ini}</div>
+        <div class="riesgo-info">
+          <div class="riesgo-name">${a.nombre}</div>
+          <div class="riesgo-sub">Grupo ${a.grupo} · Reprobando: ${mats || "—"}</div>
+        </div>
+        <div class="riesgo-prom">${a.promedio ?? "SD"}</div>
+      </div>`;
+      }).join("");
+    }
+
+    // ── Tabla alumnos ─────────────────────────────────────────────────────────────
+    function renderTablaAlumnos(data) {
+      const tbody = document.getElementById("tbody-alumnos");
+      if (!data || data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-msg">Sin alumnos</td></tr>`; return;
+      }
+      tbody.innerHTML = data.map((a, i) => `
+    <tr>
+      <td style="color:var(--gray);">${i + 1}</td>
+      <td style="font-weight:700;">${a.nombre}</td>
+      <td style="font-family:monospace;font-size:.72rem;color:var(--gray);">${a.curp}</td>
+      <td>${a.grupo}</td>
+      <td>${a.sexo || "—"}</td>
+      <td>—</td>
+      <td><span style="font-size:.75rem;color:var(--green);font-weight:700;">Activo</span></td>
+    </tr>`).join("");
+    }
+
+    // ── Por Semestre y Turno ──────────────────────────────────────────────────
+    function renderSemestres(bloques) {
+      const el = document.getElementById("semestres-grid");
+      if (!bloques || bloques.length === 0) {
+        el.innerHTML = '<div class="empty-msg">Sin datos. Importa PDFs de todos los semestres.</div>';
+        return;
+      }
+
+      const TURNO_ICON = { Matutino: "☀️", Vespertino: "🌤️" };
+      const SEM_COLOR  = { "2":"#3884C0", "4":"#059669", "6":"#7c3aed" };
+
+      el.innerHTML = bloques.map(b => {
+        const color    = SEM_COLOR[String(b.semestre)] || "#64748b";
+        const repColor = b.reprobacion > 30 ? "#dc2626" : b.reprobacion > 15 ? "#d97706" : "#059669";
+
+        // ── KPIs
+        const kpis = [
+          { n: b.totalAlumnos,    lbl: "Alumnos",     c: "var(--blue)" },
+          { n: b.promedio ?? "—", lbl: "Promedio",    c: color },
+          { n: b.reprobacion+"%", lbl: "Reprobación", c: repColor },
+          { n: b.alumnosEnRiesgo, lbl: "En Riesgo",   c: "var(--red)" },
+        ].map(k => `
+          <div style="text-align:center;min-width:70px;">
+            <div style="font-size:1.5rem;font-weight:800;color:${k.c};">${k.n}</div>
+            <div style="font-size:.7rem;color:var(--gray);">${k.lbl}</div>
+          </div>`).join("");
+
+        // ── Top 5 mejores
+        const topRows = (b.topAlumnos||[]).map((a,i) => `
+          <tr>
+            <td style="color:var(--gray);font-weight:700;text-align:center;">${i+1}</td>
+            <td style="font-weight:600;">${a.nombre}</td>
+            <td style="color:var(--gray);font-size:.78rem;">${a.grupo}</td>
+            <td><span class="cal-badge ${a.promedio>=8?"alta":a.promedio>=6?"media":"baja"}">${a.promedio}</span></td>
+          </tr>`).join("") || '<tr><td colspan="4" class="empty-msg">Sin datos</td></tr>';
+
+        // ── En riesgo
+        const riesgoRows = (b.enRiesgo||[]).map(a => {
+          const ini  = a.nombre.split(" ").slice(0,2).map(w=>w[0]).join("");
+          const mats = (a.materiasBajas||[]).map(m=>m.materia.split(" ")[0]+"("+m.cal+")").join(", ");
+          return `
+          <div style="display:flex;align-items:center;gap:.6rem;padding:.4rem 0;border-bottom:1px solid #f1f5f9;">
+            <div style="width:30px;height:30px;border-radius:50%;background:#fee2e2;color:#dc2626;
+              font-weight:800;font-size:.72rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              ${ini}
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.nombre}</div>
+              <div style="font-size:.72rem;color:var(--gray);">${a.grupo}${mats?" · "+mats:""}</div>
+            </div>
+            <div style="font-weight:800;color:#dc2626;font-size:.9rem;">${a.promedio??'SD'}</div>
+          </div>`;
+        }).join("") || '<div class="empty-msg" style="color:var(--green);padding:.5rem 0;">✓ Ningún alumno en riesgo</div>';
+
+        // ── Materias
+        const matRows = (b.materias||[]).map(m => {
+          const rc = m.reprobacion>30?"#dc2626":m.reprobacion>15?"#d97706":"#059669";
+          return `<tr>
+            <td style="font-weight:600;font-size:.78rem;">${m.materia}</td>
+            <td style="font-size:.72rem;color:var(--gray);">${m.docente||"—"}</td>
+            <td><span class="cal-badge ${m.promedio>=8?"alta":m.promedio>=6?"media":"baja"}">${m.promedio}</span></td>
+            <td style="color:${rc};font-weight:700;">${m.reprobacion}%</td>
+          </tr>`;
+        }).join("") || '<tr><td colspan="4" class="empty-msg">Sin datos</td></tr>';
+
+        // ── Docentes
+        const docRows = (b.docentes||[]).map(d => {
+          const rc = d.reprobacion>30?"#dc2626":d.reprobacion>15?"#d97706":"#059669";
+          const mats = (d.materias||[]).map(m=>m.split(" ")[0]).join(", ");
+          return `<tr>
+            <td style="font-weight:700;font-size:.82rem;">${d.docente}</td>
+            <td style="font-size:.72rem;color:var(--gray);">${mats||"—"}</td>
+            <td><span class="cal-badge ${d.promedio>=8?"alta":d.promedio>=6?"media":"baja"}">${d.promedio}</span></td>
+            <td style="color:${rc};font-weight:700;">${d.reprobacion}%</td>
+          </tr>`;
+        }).join("") || '<tr><td colspan="4" class="empty-msg">Sin datos de directorio</td></tr>';
+
+        const sec = (icon, title, content) => `
+          <div style="margin-bottom:1.2rem;">
+            <div style="font-size:.75rem;font-weight:800;color:var(--gray);text-transform:uppercase;
+              letter-spacing:.06em;margin-bottom:.5rem;">${icon} ${title}</div>
+            ${content}
+          </div>`;
+
+        return `
+        <div class="card" style="border-top:4px solid ${color};">
+          <!-- Cabecera -->
+          <div class="card-head" style="flex-wrap:wrap;gap:.75rem;">
+            <div>
+              <h3 style="color:${color};font-size:1.15rem;margin-bottom:.15rem;">
+                ${TURNO_ICON[b.turno]||"🎓"} ${b.semestre}° Semestre &nbsp;·&nbsp; ${b.turno}
+              </h3>
+              <div style="font-size:.78rem;color:var(--gray);">Grupos: ${(b.grupos||[]).join(", ")||"—"}</div>
+            </div>
+            <div style="display:flex;gap:1.2rem;flex-wrap:wrap;margin-left:auto;">${kpis}</div>
+          </div>
+          <!-- Contenido en 2 columnas -->
+          <div class="card-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+              <!-- Col izquierda: Top + Riesgo -->
+              <div>
+                ${sec("🏆","Top 5 Mejores Promedios",`
+                  <table class="mini-table">
+                    <thead><tr><th>#</th><th>Alumno</th><th>Grupo</th><th>Prom.</th></tr></thead>
+                    <tbody>${topRows}</tbody>
+                  </table>`)}
+                ${sec("⚠️","Alumnos en Riesgo",`<div>${riesgoRows}</div>`)}
+              </div>
+              <!-- Col derecha: Materias + Docentes -->
+              <div>
+                ${sec("📚","Materias",`
+                  <table class="mini-table">
+                    <thead><tr><th>Materia</th><th>Docente</th><th>Prom.</th><th>Rep.</th></tr></thead>
+                    <tbody>${matRows}</tbody>
+                  </table>`)}
+                ${sec("🧑‍🏫","Docentes",`
+                  <table class="mini-table">
+                    <thead><tr><th>Docente</th><th>Materias</th><th>Prom.</th><th>Rep.</th></tr></thead>
+                    <tbody>${docRows}</tbody>
+                  </table>`)}
+              </div>
+            </div>
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    function filtrarAlumnos() {
+      const q = document.getElementById("buscar-alumno").value.toLowerCase();
+      renderTablaAlumnos(alumData.filter(a =>
+        a.nombre.toLowerCase().includes(q) || (a.curp || "").toLowerCase().includes(q)
+      ));
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // LOADING / ERROR
+    // ══════════════════════════════════════════════════════════════════════════
+    function mostrarCargando() {
+      document.getElementById("kpi-grid").innerHTML =
+        `<div class="loading-msg" style="grid-column:1/-1;"><div class="spinner"></div>Cargando datos…</div>`;
+    }
+
+    function mostrarError(msg) {
+      document.getElementById("kpi-grid").innerHTML =
+        `<div class="loading-msg" style="grid-column:1/-1;color:var(--red);">⚠️ ${msg}</div>`;
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // MODO DEMO (sin API) — para probar el dashboard antes de conectar GAS
+    // ══════════════════════════════════════════════════════════════════════════
+    function cargarDemoLocal() {
+      // Datos del PDF que ya parseamos (M201, Parcial 1)
+      const demo = {
+        resumen: {
+          totalAlumnos: 33, alumnosEnRiesgo: 6, promedioGeneral: 7.8, indiceReprobacion: 18,
+          totalCalificaciones: 297, calificacionesRep: 54
+        },
+        porGrupo: [{ grupo: "M201", totalAlumnos: 33, enRiesgo: 6, promedio: 7.8, reprobacion: 18 }],
+        tendencias: [{ parcial: 1, promedio: 7.8, total: 297 }],
+        porMateria: [
+          { materia: "Lengua y Comunicación", promedio: 7.9, reprobacion: 12 },
+          { materia: "Pensamiento Matemático", promedio: 7.4, reprobacion: 18 },
+          { materia: "Ciencias Naturales", promedio: 7.7, reprobacion: 15 },
+          { materia: "Taller de Ciencias", promedio: 6.8, reprobacion: 27 },
+          { materia: "Ciencias Sociales", promedio: 9.0, reprobacion: 3 },
+          { materia: "Pensamiento Filosófico", promedio: 7.8, reprobacion: 9 },
+          { materia: "Cultura Digital", promedio: 8.5, reprobacion: 6 },
+          { materia: "Inglés II", promedio: 7.0, reprobacion: 21 },
+          { materia: "Formación Social", promedio: 8.9, reprobacion: 6 },
+        ],
+        topAlumnos: [
+          { nombre: "Ramirez Salgado Paulina", grupo: "M201", promedio: 9.5 },
+          { nombre: "Valencia Olguin Monserrat", grupo: "M201", promedio: 9.3 },
+          { nombre: "Sosa Ortiz Kimberly", grupo: "M201", promedio: 9.3 },
+          { nombre: "Aculteco Toto Yamilet", grupo: "M201", promedio: 9.4 },
+          { nombre: "Hernandez Alvarez Abraham", grupo: "M201", promedio: 9.2 },
+        ],
+        enRiesgo: [
+          {
+            nombre: "Tolentino Leon Diego", grupo: "M201", promedio: 5.4, curp: "TOLD100521HHGLNGA0",
+            materiasBajas: [{ materia: "Lengua", cal: 5 }, { materia: "Mat.", cal: 5 }]
+          },
+          {
+            nombre: "Galindo Ortiz Humberto", grupo: "M201", promedio: 5.8, curp: "GAOH090806HHGLRMA4",
+            materiasBajas: [{ materia: "Lengua", cal: 5 }, { materia: "Mat.", cal: 5 }]
+          },
+          {
+            nombre: "Perez OmaÑa Mariajose", grupo: "M201", promedio: 5.6, curp: "PEOM100801MHGRMRA0",
+            materiasBajas: [{ materia: "Lengua", cal: 5 }, { materia: "Mat.", cal: 5 }]
+          },
+        ],
+      };
+
+      dashData = demo;
+      renderKPIs(demo.resumen);
+      renderChartGrupos(demo.porGrupo);
+      renderChartTendencia(demo.tendencias);
+      renderBarsMaterias(demo.porMateria);
+      renderTopAlumnos(demo.topAlumnos);
+      renderRiesgo(demo.enRiesgo, demo.resumen);
+      renderMatRepChart(demo.porMateria);
+
+      document.getElementById("f-grupo").innerHTML =
+        `<option value="">Todos los grupos</option><option value="M201">M201</option>`;
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // INICIO
+    // ══════════════════════════════════════════════════════════════════════════
+    window.addEventListener("DOMContentLoaded", () => {
+      // Si no hay URL de API configurada, carga datos de demo
+      if (API_URL === "TU_GAS_URL_AQUI") {
+        cargarDemoLocal();
+      } else {
+        cargarDatos();
+      }
+    });
+  </script>
+
+</body>
+
+</html>

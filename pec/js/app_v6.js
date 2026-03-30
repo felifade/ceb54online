@@ -115,17 +115,23 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById('dash-evaluaciones').textContent = (data.evaluaciones || []).length;
             document.getElementById('dash-avance').textContent = `${data.avance || 0}%`;
 
-            // Fecha de Entrega Dinámica
+            // 0. Agenda del Ciclo Dinámica
             const pActivoFecha = (data.config && data.config.parcialActivo) || "1";
             const parElegidoStr = normalizeParcial(pActivoFecha);
             const spanParcial = document.getElementById('dash-fecha-parcial');
-            const divFecha = document.getElementById('dash-fecha-entrega');
-            if (spanParcial && divFecha) {
-                spanParcial.textContent = parElegidoStr;
-                const fechasDyn = data.fechas || {};
-                const fechaActiva = fechasDyn["p" + parElegidoStr] || "Por definir";
-                divFecha.textContent = fechaActiva;
+            if (spanParcial) spanParcial.textContent = parElegidoStr;
+
+            const fCaptura = document.getElementById('dash-fecha-captura');
+            const fAclaracion = document.getElementById('dash-fecha-aclaracion');
+            const fCierre = document.getElementById('dash-fecha-cierre');
+
+            if (fCaptura) {
+                // Prioridad: portal_fecha_captura > cal_px_fecha
+                const fechaC = data.config.portal_fecha_captura || (data.fechas && data.fechas["p" + parElegidoStr]) || "Por definir";
+                fCaptura.textContent = fechaC;
             }
+            if (fAclaracion) fAclaracion.textContent = data.config.portal_fecha_aclaracion || "--";
+            if (fCierre) fCierre.textContent = data.config.portal_fecha_cierre || "--";
 
             // Grupos Lista (Equipos por grupo)
             const listGrupos = document.getElementById('dash-lista-grupos');
