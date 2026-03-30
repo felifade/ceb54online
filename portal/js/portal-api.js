@@ -31,6 +31,8 @@ const portalAPI = {
     portalAPI._post({ action: "encuestaAlumno", curp, grupo, respuestas }),
   saveEncPadre: (folio, respuestas) =>
     portalAPI._post({ action: "encuestaPadre", folio, respuestas }),
+  adminToggle: (key, value) =>
+    portalAPI._post({ action: "adminPortal", adminKey: "CEB54_ADMIN_PORTAL", [key]: value }),
 };
 
 // ── Utilidades de sesión ────────────────────────────────────────────

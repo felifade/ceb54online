@@ -55,7 +55,10 @@ function readConfig(ss) {
     portal_p1_activa: false, portal_p2_activa: false, portal_p3_activa: false,
     portal_enc_abierta: true,
     portal_fecha_captura: "", portal_fecha_aclaracion: "", portal_fecha_cierre: "",
-    directivo_director: "", directivo_subdirector: "", directivo_plantel: "CEB 5/4"
+    directivo_director: "", directivo_subdirector: "", directivo_plantel: "CEB 5/4",
+    eval_docentes_activa: false,
+    eval_pec_activa:      false,
+    eval_padres_activa:   false,
   };
   const s = getSheet(ss, SH_CONF);
   if (!s) return cfg;
@@ -73,6 +76,9 @@ function readConfig(ss) {
     if (k === "directivo_director")     cfg.directivo_director     = String(v || "").trim();
     if (k === "directivo_subdirector")  cfg.directivo_subdirector  = String(v || "").trim();
     if (k === "directivo_plantel")      cfg.directivo_plantel      = String(v || "").trim();
+    if (k === "eval_docentes_activa")   cfg.eval_docentes_activa   = norm(String(v)) === "si";
+    if (k === "eval_pec_activa")        cfg.eval_pec_activa        = norm(String(v)) === "si";
+    if (k === "eval_padres_activa")     cfg.eval_padres_activa     = norm(String(v)) === "si";
   });
   return cfg;
 }
@@ -316,6 +322,9 @@ function adminPortal(body, ss) {
   if (body.p3_activa       !== undefined) updates["portal_p3_activa"]        = body.p3_activa ? "si":"no";
   if (body.director        !== undefined) updates["directivo_director"]       = body.director;
   if (body.subdirector     !== undefined) updates["directivo_subdirector"]    = body.subdirector;
+  if (body.eval_docentes   !== undefined) updates["eval_docentes_activa"]     = body.eval_docentes ? "si":"no";
+  if (body.eval_pec        !== undefined) updates["eval_pec_activa"]          = body.eval_pec      ? "si":"no";
+  if (body.eval_padres     !== undefined) updates["eval_padres_activa"]       = body.eval_padres   ? "si":"no";
 
   const rows = sConf.getDataRange().getValues();
   Object.entries(updates).forEach(([key, val]) => {

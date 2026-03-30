@@ -54,9 +54,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         portalAPI.getCalAlumno(usuario.curp),
         portalAPI.getEncuestaStatus(usuario.curp, "alumno"),
       ]);
-      renderFechas(dataCal.config || {});
-      renderCalificaciones(dataCal.calificaciones || {}, dataCal.config || {});
+      const cfg = dataCal.config || {};
+      renderFechas(cfg);
+      renderCalificaciones(dataCal.calificaciones || {}, cfg);
       if (dataEnc.respondido) mostrarEncuestaEnviada();
+      // Mostrar/ocultar secciones según config del servidor
+      const secDoc = document.getElementById("section-evaluacion-docentes");
+      const secPec = document.getElementById("section-pec-encuesta");
+      if (secDoc) secDoc.style.display = cfg.eval_docentes_activa ? '' : 'none';
+      if (secPec) secPec.style.display = cfg.eval_pec_activa      ? '' : 'none';
     } catch(e) {
       console.error(e);
     }

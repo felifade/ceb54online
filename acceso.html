@@ -642,51 +642,68 @@
     </div>
   </div>
 
+  <script src="portal/js/portal-api.js"></script>
   <script>
     const KEY = 'cebAcadOk';
     const OK  = 'Y2ViNTRhZG1pbjIwMjY=';
     let destino       = null;
-    let accionPostAuth = null; // acción pendiente tras autenticar (para toggles)
+    let accionPostAuth = null;
 
     // ── Configuración de toggles ──────────────────────────────────────────
     const TOGGLES = {
-      encuesta: { lsKey: 'cebToggle_encuesta', toolIds: ['tool-encuesta-alumnos'], badgeId: 'badge-encuesta' },
-      padres:   { lsKey: 'cebToggle_padres',   toolIds: ['tool-encuesta-padres'],  badgeId: 'badge-padres'   },
-      pec:      { lsKey: 'cebToggle_pec',       toolIds: ['tool-pec-eval'],         badgeId: 'badge-pec'      },
+      encuesta: { gasKey: 'eval_docentes', configKey: 'eval_docentes_activa', toolIds: ['tool-encuesta-alumnos'], badgeId: 'badge-encuesta' },
+      padres:   { gasKey: 'eval_padres',   configKey: 'eval_padres_activa',   toolIds: ['tool-encuesta-padres'],  badgeId: 'badge-padres'   },
+      pec:      { gasKey: 'eval_pec',      configKey: 'eval_pec_activa',      toolIds: ['tool-pec-eval'],         badgeId: 'badge-pec'      },
     };
 
-    function aplicarEstadoToggle(name) {
-      const cfg  = TOGGLES[name];
-      const activo = localStorage.getItem(cfg.lsKey) === '1';
-      // Botón
+    function aplicarEstadoToggle(name, activo) {
+      const cfg = TOGGLES[name];
       const btn = document.getElementById('toggle-' + name);
       if (btn) {
         btn.classList.toggle('on', activo);
-        // Inyectar el dot si no existe
         if (!btn.querySelector('.toggle-dot')) {
           const dot = document.createElement('span');
           dot.className = 'toggle-dot';
           btn.appendChild(dot);
         }
       }
-      // Badge de estado
       const badge = document.getElementById(cfg.badgeId);
       if (badge) {
         badge.textContent = activo ? 'Activa' : 'Inactiva';
         badge.className   = activo ? 'ctrl-badge-on' : 'ctrl-badge-off';
       }
-      // Mostrar/ocultar herramientas
       cfg.toolIds.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = activo ? 'flex' : 'none';
       });
     }
 
-    function ejecutarToggle(name) {
-      const cfg    = TOGGLES[name];
-      const actual = localStorage.getItem(cfg.lsKey) === '1';
-      localStorage.setItem(cfg.lsKey, actual ? '0' : '1');
-      aplicarEstadoToggle(name);
+    async function cargarConfigToggle() {
+      try {
+        const data = await portalAPI.getConfig();
+        if (data && data.config) {
+          Object.keys(TOGGLES).forEach(name => {
+            aplicarEstadoToggle(name, !!data.config[TOGGLES[name].configKey]);
+          });
+        }
+      } catch(e) {
+        console.error("No se pudo cargar configuración:", e);
+      }
+    }
+
+    async function ejecutarToggle(name) {
+      const btn = document.getElementById('toggle-' + name);
+      const actual = btn?.classList.contains('on');
+      if (btn) btn.disabled = true;
+      try {
+        const res = await portalAPI.adminToggle(TOGGLES[name].gasKey, !actual);
+        if (res && res.status !== 'success') throw new Error(res.message || 'Error desconocido');
+        await cargarConfigToggle();
+      } catch(e) {
+        alert('Error al actualizar: ' + e.message);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
     }
 
     function activarToggle(name) {
@@ -694,7 +711,6 @@
         ejecutarToggle(name);
         return;
       }
-      // Requiere autenticación primero
       destino        = null;
       accionPostAuth = () => ejecutarToggle(name);
       const modal    = document.getElementById('auth-modal');
@@ -702,13 +718,11 @@
       setTimeout(() => document.getElementById('modal-pwd').focus(), 100);
     }
 
-    // Aplicar estados de los toggles al cargar
-    Object.keys(TOGGLES).forEach(aplicarEstadoToggle);
-
-    // Mostrar panel si el admin ya autenticó en esta sesión
+    // Mostrar panel y cargar config del servidor
     function mostrarPanelAdmin() {
       const panel = document.getElementById('ctrl-panel-main');
       if (panel) panel.style.display = 'block';
+      cargarConfigToggle();
     }
     if (sessionStorage.getItem(KEY) === '1') mostrarPanelAdmin();
 

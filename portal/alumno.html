@@ -141,16 +141,5 @@
 
 <script src="js/portal-api.js"></script>
 <script src="js/alumno.js"></script>
-<script>
-  // Leer toggles del admin (localStorage compartido con acceso.html)
-  (function aplicarTogglePortal() {
-    var mostrarDocentes = localStorage.getItem('cebToggle_encuesta') === '1';
-    var mostrarPEC      = localStorage.getItem('cebToggle_pec')      === '1';
-    var secDoc = document.getElementById('section-evaluacion-docentes');
-    var secPec = document.getElementById('section-pec-encuesta');
-    if (secDoc) secDoc.style.display = mostrarDocentes ? '' : 'none';
-    if (secPec) secPec.style.display = mostrarPEC      ? '' : 'none';
-  })();
-</script>
 </body>
 </html>
