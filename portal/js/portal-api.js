@@ -3,7 +3,7 @@
  * Reemplaza PORTAL_API_URL con la URL de tu deployment de GAS
  */
 
-const PORTAL_API_URL = "https://script.google.com/macros/s/AKfycbz_lyHqCLs8q2zRf6ne5ubf4vU6bV5Evh8YcoOkKTMG-KiNVF1_-YF2hCFpTiOkOTYXnA/exec";
+const PORTAL_API_URL = "https://script.google.com/macros/s/AKfycbwqT7gO_vF_V20F0kFvQdIwQslBuLqc5_wVtiNU_lfsDN5l3kMp3AV1uN9423eG0TyLNw/exec";
 
 const portalAPI = {
   async _get(params) {
@@ -15,7 +15,8 @@ const portalAPI = {
     const res = await fetch(PORTAL_API_URL, {
       method: "POST",
       body: JSON.stringify(body),
-      headers: { "Content-Type": "text/plain;charset=utf-8" }
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      redirect: "follow"
     });
     return res.json();
   },
@@ -32,7 +33,7 @@ const portalAPI = {
   saveEncPadre: (folio, respuestas) =>
     portalAPI._post({ action: "encuestaPadre", folio, respuestas }),
   adminToggle: (key, value) =>
-    portalAPI._post({ action: "adminPortal", adminKey: "CEB54_ADMIN_PORTAL", [key]: value }),
+    portalAPI._get({ action: "adminPortal", adminKey: "CEB54_ADMIN_PORTAL", [key]: value ? "si" : "no" }),
 };
 
 // ── Utilidades de sesión ────────────────────────────────────────────

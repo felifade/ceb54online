@@ -429,7 +429,7 @@ header.top-header {
 /* ── OPTION CARDS (Tipo / Modalidad) ───────────── */
 .details-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 1rem;
     align-items: start;
 }
@@ -462,12 +462,14 @@ header.top-header {
 .opt-card span { font-weight: 700; font-size: 0.82rem; }
 
 /* ── TOGGLE ASISTENCIA ─────────────────────────── */
-.asistencia-field .toggle-switch { margin-top: 0.4rem; }
+.asistencia-field { grid-column: 1 / -1; }
+.asistencia-field .toggle-switch { margin-top: 0.4rem; display: flex; align-items: center; gap: 0.75rem; }
 
 .toggle-switch {
     display: inline-flex; align-items: center;
     gap: 0.65rem; cursor: pointer;
     margin: 0; user-select: none;
+    flex-wrap: nowrap; white-space: nowrap;
 }
 .toggle-switch input[type="checkbox"] { display: none; width: auto; }
 
@@ -475,7 +477,8 @@ header.top-header {
     width: 46px; height: 26px;
     background: #cbd5e1; border-radius: 999px;
     position: relative; transition: background 0.25s;
-    flex-shrink: 0;
+    flex-shrink: 0; overflow: hidden;
+    display: inline-block;
 }
 .toggle-switch input:checked ~ .toggle-track { background: var(--clr-primary); }
 .toggle-thumb {

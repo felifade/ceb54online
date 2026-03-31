@@ -151,6 +151,7 @@ function doGet(e) {
     if (act === "getCalPadre")       return getCalPadre(e, ss);
     if (act === "getConfig")         return ok({ status:"success", config: readConfig(ss) });
     if (act === "getEncuestaStatus") return getEncuestaStatus(e, ss);
+    if (act === "adminPortal")       return adminPortalGet(e, ss);
     return err("Acción no válida");
   } catch(ex) { return err(ex.toString()); }
 }
@@ -304,6 +305,24 @@ function saveEncPadre(body, ss) {
     q.s1||"",q.s2||"",q.s3||"",q.s4||"",
     q.cal_general||"",q.comentarios||"",q.sugerencias||""
   ]);
+  return ok({ status:"success" });
+}
+
+// ── ADMIN VÍA GET (toggles desde acceso.html) ──────────────────────
+function adminPortalGet(e, ss) {
+  if (e.parameter.adminKey !== "CEB54_ADMIN_PORTAL") return err("No autorizado");
+  const sConf = getSheet(ss, SH_CONF) || ss.insertSheet(SH_CONF);
+  const updates = {};
+  const p = e.parameter;
+  if (p.eval_docentes !== undefined) updates["eval_docentes_activa"] = p.eval_docentes;
+  if (p.eval_pec      !== undefined) updates["eval_pec_activa"]      = p.eval_pec;
+  if (p.eval_padres   !== undefined) updates["eval_padres_activa"]   = p.eval_padres;
+  const rows = sConf.getDataRange().getValues();
+  Object.entries(updates).forEach(([key, val]) => {
+    const idx = rows.findIndex(r => norm(String(r[0])) === key);
+    if (idx >= 0) sConf.getRange(idx + 1, 2).setValue(val);
+    else          sConf.appendRow([key, val]);
+  });
   return ok({ status:"success" });
 }
 
