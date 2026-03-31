@@ -1230,6 +1230,28 @@ document.addEventListener("DOMContentLoaded", () => {
                                         ${eq.integrantes.map(i => `<span style="font-size:0.75rem; background:#f8fafc; color:#475569; padding:4px 10px; border-radius:6px; border:1px solid #e2e8f0; font-weight:500;">${i}</span>`).join('')}
                                     </div>
 
+                                    ${uniqueAsignadas.length > 0 ? `
+                                    <div style="margin-top:10px; padding:8px; background:#f8fafc; border-radius:8px; border:1px solid #f1f5f9;">
+                                        <div style="font-size:0.58rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Evaluaciones P${pActivo}</div>
+                                        <div style="display:flex; flex-direction:column; gap:2px;">
+                                            ${uniqueAsignadas.map(mat => {
+                                                const evMat = evalsEqP.filter(ev => ev.materia === mat);
+                                                const evaluado = evMat.length > 0;
+                                                const docente = evaluado ? evMat[0].docente : null;
+                                                return evaluado
+                                                    ? `<div style="display:flex; align-items:center; gap:4px; font-size:0.62rem;">
+                                                          <span style="color:#10b981; flex-shrink:0;">✓</span>
+                                                          <span style="font-weight:600; color:#1e293b;">${mat}</span>
+                                                          <span style="color:#64748b; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">· ${docente}</span>
+                                                       </div>`
+                                                    : `<div style="display:flex; align-items:center; gap:4px; font-size:0.62rem; opacity:0.5;">
+                                                          <span style="color:#f59e0b; flex-shrink:0;">○</span>
+                                                          <span style="color:#64748b;">${mat}</span>
+                                                       </div>`;
+                                            }).join('')}
+                                        </div>
+                                    </div>` : ''}
+
                                     <div style="display:flex; gap:6px; margin-top:12px; padding-top:10px; border-top:1px dashed #e2e8f0;">
                                         ${['1', '2', '3'].map(p => {
                                             const evs = (data.evaluaciones || []).filter(ev => ev.equipoId === eq.id && String(ev.parcial) === p);
