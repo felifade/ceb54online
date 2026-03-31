@@ -1135,7 +1135,6 @@ document.addEventListener("DOMContentLoaded", () => {
     async function initVistaRapida() {
         showLoader();
         try {
-            api.cache = null; // Forzar datos frescos del servidor
             const data = await api.getDashboardData();
             const container = document.getElementById('lista-rapida-container');
             const stats = document.getElementById('rapida-stats');
@@ -1193,7 +1192,8 @@ document.addEventListener("DOMContentLoaded", () => {
                                 }).map(d => d.materia);
                                 
                                 const uniqueAsignadas = [...new Set(materiasAsignadas)];
-                                const evalsEqP = (data.evaluaciones || []).filter(ev => ev.equipoId === eq.id && String(ev.parcial) === String(pActivo));
+                                const todasEvals = data.todasEvaluaciones || data.evaluaciones || [];
+                                const evalsEqP = todasEvals.filter(ev => String(ev.equipoId) === String(eq.id) && String(ev.parcial) === String(pActivo));
                                 const materiasEvaluadas = [...new Set(evalsEqP.map(ev => ev.materia))];
                                 
                                 const countAsign = uniqueAsignadas.length;
@@ -1255,7 +1255,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                                     <div style="display:flex; gap:6px; margin-top:12px; padding-top:10px; border-top:1px dashed #e2e8f0;">
                                         ${['1', '2', '3'].map(p => {
-                                            const evs = (data.evaluaciones || []).filter(ev => ev.equipoId === eq.id && String(ev.parcial) === p);
+                                            const evs = todasEvals.filter(ev => String(ev.equipoId) === String(eq.id) && String(ev.parcial) === p);
                                             if (evs.length === 0) {
                                                 return `<div style="flex:1; text-align:center; padding:4px; background:#f8fafc; color:#cbd5e1; border-radius:8px; font-size:0.7rem; font-weight:700; border:1px solid #e2e8f0; opacity:0.6;">P${p} -</div>`;
                                             }

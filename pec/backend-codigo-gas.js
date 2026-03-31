@@ -207,6 +207,7 @@ function doGet(e) {
     // 7. EVALUACIONES PEC
     const sEv = getSheet(ss, S_EVALUACIONES);
     let evaluaciones = [];
+    let todasEvaluaciones = [];
     if (sEv) {
       const d = sEv.getDataRange().getValues(); d.shift();
       const evRaw = d.map(r => ({
@@ -222,6 +223,7 @@ function doGet(e) {
         alumno: String(r[9] || ''),
         docenteEmail: normalizeText(r[10])
       }));
+      todasEvaluaciones = [...evRaw]; // Sin filtro — para Vista Rápida y avance global
       evaluaciones = [...evRaw];
       if (!isAdmin && userEmail !== "") evaluaciones = evaluaciones.filter(x => x.docenteEmail === userEmail);
     }
@@ -269,6 +271,7 @@ function doGet(e) {
       grupos: [...gruposConEquipos],
       equipos: listaEquipos,
       evaluaciones: evaluaciones,
+      todasEvaluaciones: todasEvaluaciones || evaluaciones,
       tutorias: tutoriasData,
       alumnosFull: alumnosFull,
       directorio: directorio,

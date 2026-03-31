@@ -56,6 +56,7 @@ const api = {
             totalGrupos: db.grupos ? db.grupos.length : 0,
             totalEquipos: db.equipos ? db.equipos.length : 0,
             evaluaciones: db.evaluaciones || [],
+            todasEvaluaciones: db.todasEvaluaciones || db.evaluaciones || [],
             grupos: db.grupos || [],
             equipos: db.equipos || [],
             avance: avancePorcentaje,
