@@ -433,8 +433,34 @@ function doPost(e) {
     }
 
     // PEC: GUARDAR EVALUACIÓN
+    // Validación backend: verificar que el docente tiene asignada esta materia
+    const emailCaptura = normalizeText(body.docente_email || "");
+    if (emailCaptura) {
+      const sDir = getSheet(ss, S_DIRECTORIO);
+      if (sDir) {
+        const dirRows = sDir.getDataRange().getValues(); dirRows.shift();
+        const asignacion = dirRows.find(r =>
+          normalizeText(r[3]) === emailCaptura &&
+          normalizeText(r[1]) === normalizeText(body.materia)
+        );
+        // Verificar si es admin
+        const sUsrV = getSheet(ss, S_USUARIOS);
+        let esAdmin = false;
+        if (sUsrV) {
+          const uRows = sUsrV.getDataRange().getValues();
+          const uRow = uRows.find(r => normalizeText(r[0]) === emailCaptura);
+          if (uRow && String(uRow[3] || "").toLowerCase() === "admin") esAdmin = true;
+        }
+        if (!esAdmin && !asignacion) {
+          return ContentService.createTextOutput(JSON.stringify({
+            status: "error",
+            message: "No tienes permiso para capturar esta materia. Contacta al administrador."
+          })).setMimeType(ContentService.MimeType.JSON);
+        }
+      }
+    }
     const sEv = getSheet(ss, S_EVALUACIONES);
-    const base = [new Date(), body.parcial, body.grupoId, body.equipoId, body.equipoNombre, body.materia, body.docente, "", body.observaciones || "", "", normalizeText(body.docente_email)];
+    const base = [new Date(), body.parcial, body.grupoId, body.equipoId, body.equipoNombre, body.materia, body.docente, "", body.observaciones || "", "", emailCaptura];
     if (body.integrantes && body.integrantes.length > 0) {
       body.integrantes.forEach(i => { const r = [...base]; r[7] = i.puntaje; r[9] = i.alumno; sEv.appendRow(r); });
     } else {

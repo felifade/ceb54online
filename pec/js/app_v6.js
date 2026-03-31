@@ -883,8 +883,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         const opt = document.createElement('option');
                         opt.value = m.materia;
                         opt.textContent = m.materia;
-                        opt.dataset.docente = m.docente; 
-                        opt.dataset.ponderacion = getPonderacionParaParcial(m, parcialElegido); 
+                        opt.dataset.docente = m.docente;
+                        opt.dataset.correo = m.correo || "";
+                        opt.dataset.ponderacion = getPonderacionParaParcial(m, parcialElegido);
                         selectMateria.appendChild(opt);
                     });
                 }
@@ -905,20 +906,44 @@ document.addEventListener("DOMContentLoaded", () => {
         selectMateria.onchange = (e) => {
             const selectedOpt = e.target.options[e.target.selectedIndex];
             const hintDiv = document.getElementById('eval-ponderacion-hint');
-            
+            const currentUserEmail = sessionStorage.getItem('user_email') || "";
+            const currentIsAdmin = sessionStorage.getItem('user_role') === 'admin';
+
+            // Verificar si el correo del docente logueado coincide con la materia seleccionada
+            const correoMateria = selectedOpt?.dataset.correo || "";
+            const norm = s => String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
+            const puedeCapturar = currentIsAdmin || !correoMateria || norm(correoMateria) === norm(currentUserEmail);
+
+            // Bloquear o habilitar campos de captura
+            const inputPuntaje = document.getElementById('eval-puntaje');
+            const inputObs = document.getElementById('eval-obs');
+            const btnGuardar = document.getElementById('btn-guardar-eval') || formEval.querySelector('button[type="submit"]');
+            document.querySelectorAll('.eval-indiv-input').forEach(inp => inp.disabled = !puedeCapturar);
+            if (inputPuntaje) inputPuntaje.disabled = !puedeCapturar;
+            if (inputObs) inputObs.disabled = !puedeCapturar;
+            if (btnGuardar) btnGuardar.disabled = !puedeCapturar;
+
+            if (!puedeCapturar) {
+                hintDiv.innerHTML = `<div style="background:#fef2f2; border:1px solid #fecaca; color:#dc2626; padding:10px 14px; border-radius:8px; font-size:0.85rem; margin-top:8px;">⛔ Esta materia no te corresponde. Solo puede capturarla <strong>${selectedOpt.dataset.docente}</strong>.</div>`;
+            } else {
+                hintDiv.innerHTML = '';
+            }
+
             if (selectedOpt && selectedOpt.dataset.docente) {
                 document.getElementById('eval-docente').value = selectedOpt.dataset.docente.toUpperCase();
-                
-                const pond = parseFloat(selectedOpt.dataset.ponderacion);
-                if (pond > 0) {
-                    hintDiv.innerHTML = `
-                        <div style="background:#EEF2FF; border:1px solid #C7D2FE; color:#4338CA; padding:10px 14px; border-radius:8px; font-size:0.85rem; margin-top:8px;">
-                            📌 <strong>${selectedOpt.value}</strong> tiene una ponderación de <strong>${pond} punto(s)</strong> sobre los 2 puntos totales del PEC.
-                            <br><span style="font-size:0.8rem; color:#6366f1;">Calificación sugerida: de 0 a ${pond}</span>
-                        </div>
-                    `;
-                } else {
-                    hintDiv.innerHTML = '';
+
+                if (puedeCapturar) {
+                    const pond = parseFloat(selectedOpt.dataset.ponderacion);
+                    if (pond > 0) {
+                        hintDiv.innerHTML = `
+                            <div style="background:#EEF2FF; border:1px solid #C7D2FE; color:#4338CA; padding:10px 14px; border-radius:8px; font-size:0.85rem; margin-top:8px;">
+                                📌 <strong>${selectedOpt.value}</strong> tiene una ponderación de <strong>${pond} punto(s)</strong> sobre los 2 puntos totales del PEC.
+                                <br><span style="font-size:0.8rem; color:#6366f1;">Calificación sugerida: de 0 a ${pond}</span>
+                            </div>
+                        `;
+                    } else {
+                        hintDiv.innerHTML = '';
+                    }
                 }
             } else {
                 document.getElementById('eval-docente').value = '';
@@ -964,6 +989,18 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
+        // Validación de correo antes de enviar
+        const submitEmail = sessionStorage.getItem('user_email') || "";
+        const submitIsAdmin = sessionStorage.getItem('user_role') === 'admin';
+        const selectMat = document.getElementById('eval-materia');
+        const selectedOpt = selectMat?.options[selectMat.selectedIndex];
+        const correoMateria = selectedOpt?.dataset.correo || "";
+        const normS = s => String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
+        if (!submitIsAdmin && correoMateria && normS(correoMateria) !== normS(submitEmail)) {
+            alert("⛔ No puedes guardar esta evaluación. La materia seleccionada no te corresponde.");
+            return;
+        }
+
         const payload = {
             equipoId: document.getElementById('eval-equipo-id').value,
             equipoNombre: document.getElementById('eval-equipo-nombre').value,
@@ -971,7 +1008,7 @@ document.addEventListener("DOMContentLoaded", () => {
             parcial: document.getElementById('eval-parcial').value,
             materia: document.getElementById('eval-materia').value,
             docente: document.getElementById('eval-docente').value,
-            puntaje: parseFloat(document.getElementById('eval-puntaje').value), // Sirve como general fallback
+            puntaje: parseFloat(document.getElementById('eval-puntaje').value),
             observaciones: document.getElementById('eval-obs').value,
             integrantes: individual
         };
