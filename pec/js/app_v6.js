@@ -1135,6 +1135,7 @@ document.addEventListener("DOMContentLoaded", () => {
     async function initVistaRapida() {
         showLoader();
         try {
+            api.cache = null; // Forzar datos frescos del servidor
             const data = await api.getDashboardData();
             const container = document.getElementById('lista-rapida-container');
             const stats = document.getElementById('rapida-stats');
