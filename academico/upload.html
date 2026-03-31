@@ -360,6 +360,7 @@
 
 </div><!-- /main -->
 
+<script src="js/normalizer.js"></script>
 <script src="js/parser.js"></script>
 <script>
 // ── Configurar worker de PDF.js ────────────────────────────────────────────
@@ -415,6 +416,9 @@ async function procesarTodo() {
     setStatus(i, "procesando");
     try {
       const res = await PDFParser.parsearArchivo(archivos[i].file);
+      // Normalizar materias contra catálogo maestro
+      const pending = Normalizer.normalizarResultado(res);
+      _pendingTotal += pending;
       // Merge: metadata del primero, alumnos acumulados
       if (i === 0) resultadoTotal.meta = res.meta;
       resultadoTotal.alumnos.push(...res.alumnos);
@@ -470,6 +474,32 @@ function mostrarResultados() {
     <div class="stat-box"><div class="stat-num blue">${promedioGrupo}</div><div class="stat-lbl">Promedio grupo</div></div>
   `;
 
+  // Alerta de materias sin resolver en catálogo
+  let alertaEl = document.getElementById("alertaNorm");
+  if (!alertaEl) {
+    alertaEl = document.createElement("div");
+    alertaEl.id = "alertaNorm";
+    alertaEl.style.cssText = "margin-top:.75rem;padding:.65rem 1rem;border-radius:.75rem;font-size:.82rem;font-weight:600;";
+    document.getElementById("statsRow").after(alertaEl);
+  }
+  if (_pendingTotal > 0) {
+    alertaEl.style.background = "#fef3c7";
+    alertaEl.style.color = "#92400e";
+    alertaEl.style.border = "1px solid #fde68a";
+    alertaEl.textContent = `⚠️ ${_pendingTotal} materia(s) no se encontraron en el catálogo y se guardaron con el nombre del PDF. Revisa Acad_Materias en Google Sheets y agrega las abreviaturas faltantes, luego usa "Limpiar y Reimportar".`;
+  } else if (Normalizer.listo) {
+    alertaEl.style.background = "#d1fae5";
+    alertaEl.style.color = "#065f46";
+    alertaEl.style.border = "1px solid #6ee7b7";
+    alertaEl.textContent = `✓ Todas las materias fueron normalizadas correctamente contra el catálogo.`;
+  } else {
+    alertaEl.style.background = "#f1f5f9";
+    alertaEl.style.color = "#64748b";
+    alertaEl.style.border = "1px solid #e2e8f0";
+    alertaEl.textContent = `ℹ️ Catálogo de materias no disponible. Se usaron los nombres del PDF directamente.`;
+  }
+  _pendingTotal = 0; // reset para la próxima carga
+
   // ── Alumnos en riesgo
   const enRiesgoList = alumnos.filter(a => a.enRiesgo).sort((a,b)=>(a.promedio||0)-(b.promedio||0));
   document.getElementById("riesgoList").innerHTML = enRiesgoList.length
@@ -516,7 +546,11 @@ function renderTabla(data) {
   }
 
   // 1. Reconstruir headers dinámicamente según las materias detectadas
-  const materias = data[0].calificaciones.map(c => c.materia);
+  const materias = data[0].calificaciones.map(c => ({
+    display:  c.materiaNormalizada || c.materia,
+    original: c.materia,
+    pending:  c.pendingReview || false,
+  }));
   thead.innerHTML = `
     <tr>
       <th>#</th>
@@ -524,7 +558,10 @@ function renderTabla(data) {
       <th>CURP</th>
       <th>Grupo</th>
       <th>Sexo</th>
-      ${materias.map(m => `<th title="${m}">${m.split(" ").slice(0,2).join(" ")}…</th>`).join("")}
+      ${materias.map(m => `
+        <th title="PDF: ${m.original}" style="${m.pending ? 'background:#fef3c7;color:#92400e' : ''}">
+          ${m.display.split(" ").slice(0,3).join(" ")}${m.pending ? ' ⚠' : ''}
+        </th>`).join("")}
       <th>Prom.</th>
       <th>Estado</th>
     </tr>
@@ -593,6 +630,10 @@ function descargar(blob, nombre) {
 
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzl58nAF1ul_1Dg_LnYUoH7JH1hiSgLlUqNWXultNObVsepK0mEMOAAg7V8J9Rn9Hg0hg/exec";
 const CLAVE_ADMIN = "ceb54admin2026";
+
+// Cargar catálogo de materias al iniciar la página (no bloquea la UI)
+let _pendingTotal = 0;
+Normalizer.cargarCatalogo(GAS_URL);
 
 async function limpiarYReimportar() {
   const { meta, alumnos } = resultadoTotal;

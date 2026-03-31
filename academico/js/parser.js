@@ -67,7 +67,7 @@ window.PDFParser = (function () {
     }
 
     meta.totalAlumnos = alumnos.length;
-    return { meta, alumnos };
+    return { meta, alumnos, columnas: columnasX || [] };
   }
 
   // ────────────────────────────────────────────────────────────────────────────
@@ -110,13 +110,12 @@ window.PDFParser = (function () {
   // DETECCIÓN DE COLUMNAS — usa los "Cal/Fal" del encabezado de tabla
   // ────────────────────────────────────────────────────────────────────────────
 
+  // Textos del encabezado institucional que NO son nombres de materias
+  const RUIDO_HEADER = /^(SEP|SEPH|DGB|DGETI|COBACH|CONALEP|BACHILLERES|SUBSECRETARIA|SECRETARIA|EDUCACION|PUBLICA|SISTEMA|NACIONAL|COLEGIO|BACHILLERATO|CONCENTRADO|CALIFICACIONES|PARCIAL|PERIODO|GRUPO|TURNO|SEMESTRE|CICLO|ESCOLAR|PLANTEL|MUNICIPIO|ESTADO|HIDALGO|PACHUCA|CIUDAD|HGO|MEX|FECHA|DOCENTE|FIRMA|FOLIO|HOJA|NOMBRE|CURP|NO\.?|NUM\.?|ASIGNATURA|Cal\/Fal|PROMEDIO|TOTAL|\d{1,2}\/\d{1,2}\/\d{4}|[\d]{4}-[\d]{4}).*$/i;
+
   /**
-   * Encuentra los X de todos los "Cal/Fal" en el header de la tabla.
-   * Esos son los centros de cada columna de materia.
-   */
-  /**
-   * Encuentra los X de todos los "Cal/Fal" en el header de la tabla.
-   * Y busca hacia arriba los nombres de las materias.
+   * Encuentra los X de todos los "Cal/Fal" en el header de la tabla
+   * y busca los nombres de materias en los 200px inmediatos superiores.
    */
   function detectarColumnasMateria(items, semestre) {
     // 1. Encontrar los centros de cada columna (Cal/Fal)
@@ -138,20 +137,25 @@ window.PDFParser = (function () {
     }
 
     // 2. Para cada columna, buscar texto arriba (nombres de materias)
-    // Los nombres suelen estar en un rango de X similar y Y menor al Cal/Fal
+    // Solo miramos los 200px inmediatos sobre el "Cal/Fal" → excluye el encabezado institucional
     return cols.map(c => {
-      // Ancho real del texto "Cal/Fal"; si no se detectó, asumimos 40px (típico en estos PDFs)
       const colWidth = c.w > 10 ? c.w : 40;
       const TOL = 15;
+      const yMin = c.y - 200;   // ventana de 200px — evita capturar PACHUCA, HGO, etc.
+
       const textArriba = items
-        .filter(i => Math.abs(i.x - c.x) <= TOL && i.y < c.y && i.y > 50)
-        .sort((a,b) => a.y - b.y)
+        .filter(i =>
+          Math.abs(i.x - c.x) <= TOL &&
+          i.y < c.y &&
+          i.y > yMin &&             // ← FIX 1a: ventana acotada
+          !RUIDO_HEADER.test(i.str) // ← FIX 1b: descarta tokens institucionales
+        )
+        .sort((a, b) => a.y - b.y)
         .map(i => i.str)
         .join(" ")
         .trim();
 
       let nombre = textArriba || "Materia Desconocida";
-      // Limpiar nombres comunes que no son materias
       if (nombre.includes("ASIGNATURA")) nombre = nombre.replace(/.*ASIGNATURA\s+/i, "");
 
       return {
@@ -282,8 +286,23 @@ window.PDFParser = (function () {
 
       // Usualmente el primer número es la calificación y el segundo las faltas
       const numeros = [];
-      
-      colItems.forEach(i => {
+
+      // Primero: fusionar tokens consecutivos "8" + ".1" → 8.1
+      // PDF.js a veces parte el decimal en dos ítems separados
+      const colItemsFused = [];
+      for (let k = 0; k < colItems.length; k++) {
+        const s = colItems[k].str.trim();
+        const sNext = k + 1 < colItems.length ? colItems[k + 1].str.trim() : "";
+        // Si el token actual es un entero y el siguiente es un decimal huérfano ".X"
+        if (/^\d+$/.test(s) && /^\.\d+$/.test(sNext)) {
+          colItemsFused.push({ ...colItems[k], str: s + sNext });
+          k++; // saltar el token del decimal
+        } else {
+          colItemsFused.push(colItems[k]);
+        }
+      }
+
+      colItemsFused.forEach(i => {
         const s = i.str.trim();
         if (/^\d+(\.\d+)?$/.test(s)) {
           numeros.push(parseFloat(s));
@@ -326,20 +345,22 @@ window.PDFParser = (function () {
     resultado.alumnos.forEach(al => {
       al.calificaciones.forEach(c => {
         filas.push({
-          curp:       al.curp,
-          nombre:     al.nombre,
-          grupo:      al.grupo,
-          semestre:   al.semestre,
-          turno:      al.turno,
-          ciclo:      al.ciclo,
-          parcial:    al.parcial,
-          sexo:       al.sexo,
-          materia:    c.materia,
-          calificacion: c.cal,
-          faltas:     c.faltas,
-          sinDatos:   c.sinDatos,
-          promedio:   al.promedio,
-          enRiesgo:   al.enRiesgo,
+          curp:                 al.curp,
+          nombre:               al.nombre,
+          grupo:                al.grupo,
+          semestre:             al.semestre,
+          turno:                al.turno,
+          ciclo:                al.ciclo,
+          parcial:              al.parcial,
+          sexo:                 al.sexo,
+          materia_pdf_original: c.materia,
+          materia:              c.materiaNormalizada || c.materia,
+          calificacion:         c.cal,
+          faltas:               c.faltas,
+          sinDatos:             c.sinDatos,
+          promedio:             al.promedio,
+          enRiesgo:             al.enRiesgo,
+          pending_review:       c.pendingReview || false,
         });
       });
     });

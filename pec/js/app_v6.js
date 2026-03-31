@@ -49,11 +49,20 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentView = 'pecportal';
 
     // Navegación
+    const _isAdminRole = () => (sessionStorage.getItem('user_role') || '').toLowerCase() === 'admin';
+    const _vistasRestringidas = ['directorio', 'auditoria'];
+
     navItems.forEach(item => {
         item.addEventListener('click', (e) => {
             const viewName = item.getAttribute('data-view');
             if (!viewName) return; // Links con href real (ej. calificaciones.html) navegan normalmente
             e.preventDefault();
+
+            // Control de acceso por rol
+            if (!_isAdminRole() && _vistasRestringidas.includes(viewName)) {
+                alert('⛔ No tienes permiso para acceder a esta sección.');
+                return;
+            }
             
             navItems.forEach(nav => nav.classList.remove('active'));
             item.classList.add('active');

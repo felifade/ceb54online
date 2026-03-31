@@ -28,8 +28,9 @@ function doGet(e) {
       case "getAlumnos":    return json(getAlumnos(p));
       case "getGrupos":     return json(getGrupos());
       case "getMaterias":   return json(getMaterias());
-      case "getIndicadores":return json(getIndicadores(p));
-      default:              return json({ status: "ok", sistema: "CEB54 Academico v1" });
+      case "getIndicadores":  return json(getIndicadores(p));
+      case "getAlumnosGrupo": return json(getAlumnosGrupo(p));
+      default:                return json({ status: "ok", sistema: "CEB54 Academico v1" });
     }
   } catch (err) {
     return json({ status: "error", message: err.message });
@@ -61,6 +62,7 @@ function importarDesdeParser(data) {
 
   const shAlumnos = getOrCreateSheet(ss, "Acad_Alumnos");
   const shCals    = getOrCreateSheet(ss, "Acad_Calificaciones");
+  const shNorm    = getOrCreateSheet(ss, "calificaciones_normalizadas");
 
   // Encabezados si la hoja está vacía
   if (shAlumnos.getLastRow() === 0) {
@@ -71,6 +73,14 @@ function importarDesdeParser(data) {
                       "parcial","materia","calificacion","faltas","sinDatos",
                       "promedio","enRiesgo","fuente","timestamp"]);
   }
+  if (shNorm.getLastRow() === 0) {
+    shNorm.appendRow([
+      "id","ciclo","parcial","semestre","turno","grupo","curp","nombre_alumno","sexo",
+      "materia_pdf_original","materia_normalizada","posicion_columna",
+      "docente","correo_docente","calificacion","faltas","sd",
+      "promedio_alumno","en_riesgo","pending_review","archivo_origen","fecha_importacion"
+    ]);
+  }
 
   // ── Leer CURPs ya registrados ────────────────────────────────────────────
   const curpsExistentes = new Set(
@@ -79,18 +89,34 @@ function importarDesdeParser(data) {
       : []
   );
 
-  // ── Leer combinaciones curp+parcial+materia+ciclo ya guardadas ───────────
+  // ── Leer combinaciones ya guardadas en Acad_Calificaciones ───────────────
   let calsExistentes = new Set();
   if (shCals.getLastRow() > 1) {
     const calsData = shCals.getRange(2, 2, shCals.getLastRow() - 1, 8).getValues();
     calsData.forEach(r => {
-      // curp | nombre | grupo | semestre | turno | ciclo | parcial | materia
+      // r: curp|nombre|grupo|semestre|turno|ciclo|parcial|materia
       calsExistentes.add(`${r[0]}|${r[5]}|${r[6]}|${r[7]}`);
     });
   }
 
+  // ── Leer combinaciones ya guardadas en calificaciones_normalizadas ────────
+  // Cols (0-based desde B): B=ciclo, C=parcial, D=semestre, E=turno, F=grupo,
+  //                          G=curp, H=nombre, I=sexo, J=mat_orig, K=mat_norm
+  let normExistentes = new Set();
+  if (shNorm.getLastRow() > 1) {
+    const normData = shNorm.getRange(2, 2, shNorm.getLastRow() - 1, 10).getValues();
+    normData.forEach(r => {
+      // key: curp(r[5]) | ciclo(r[0]) | parcial(r[1]) | materia_normalizada(r[9])
+      normExistentes.add(`${r[5]}|${r[0]}|${r[1]}|${r[9]}`);
+    });
+  }
+
+  // ── Directorio para lookup docente/correo ────────────────────────────────
+  const dir = leerDirectorioPEC();
+
   let insertadosAlumnos = 0;
   let insertadasCals    = 0;
+  let insertadasNorm    = 0;
   let duplicados        = 0;
   const errores         = [];
 
@@ -99,10 +125,12 @@ function importarDesdeParser(data) {
 
   const rowsAlumnos = [];
   const rowsCals    = [];
-  let idBase        = shCals.getLastRow(); // ID incremental
+  const rowsNorm    = [];
+  let idBase        = shCals.getLastRow();
+  let idNorm        = shNorm.getLastRow();
 
   data.alumnos.forEach(al => {
-    // ── Upsert Alumnos (si no existe, agregar) ─────────────────────────────
+    // ── Upsert Alumnos ─────────────────────────────────────────────────────
     if (!curpsExistentes.has(al.curp)) {
       rowsAlumnos.push([al.curp, al.nombre, al.grupo, al.semestre,
                         al.turno, al.ciclo, al.sexo, true]);
@@ -111,30 +139,59 @@ function importarDesdeParser(data) {
     }
 
     // ── Insertar Calificaciones ────────────────────────────────────────────
-    al.calificaciones.forEach(c => {
-      const key = `${al.curp}|${al.ciclo}|${al.parcial}|${c.materia}`;
-      if (calsExistentes.has(key)) {
+    al.calificaciones.forEach((c, colIdx) => {
+      // Usar nombre normalizado si el frontend lo envió, si no usar el del PDF
+      const materiaNorm = c.materiaNormalizada || c.materia;
+      const materiaOrig = c.materia;
+
+      // ── Acad_Calificaciones (tabla existente, sin cambio de estructura) ──
+      const keyC = `${al.curp}|${al.ciclo}|${al.parcial}|${materiaNorm}`;
+      if (calsExistentes.has(keyC)) {
         duplicados++;
-        return;
+      } else {
+        idBase++;
+        rowsCals.push([
+          idBase,
+          al.curp, al.nombre, al.grupo, al.semestre, al.turno, al.ciclo,
+          al.parcial, materiaNorm,
+          c.cal !== null ? c.cal : "",
+          c.faltas || 0,
+          c.sinDatos ? "SI" : "NO",
+          al.promedio || "",
+          al.enRiesgo ? "SI" : "NO",
+          fuente, timestamp
+        ]);
+        calsExistentes.add(keyC);
+        insertadasCals++;
       }
-      idBase++;
-      rowsCals.push([
-        idBase,
-        al.curp, al.nombre, al.grupo, al.semestre, al.turno, al.ciclo,
-        al.parcial, c.materia,
-        c.cal !== null ? c.cal : "",
-        c.faltas || 0,
-        c.sinDatos ? "SI" : "NO",
-        al.promedio || "",
-        al.enRiesgo ? "SI" : "NO",
-        fuente, timestamp
-      ]);
-      calsExistentes.add(key);
-      insertadasCals++;
+
+      // ── calificaciones_normalizadas (tabla nueva, enriquecida con docente) ─
+      const keyN = `${al.curp}|${al.ciclo}|${al.parcial}|${materiaNorm}`;
+      if (!normExistentes.has(keyN)) {
+        const docente = buscarDocente(dir, materiaNorm, al.grupo);
+        const correo  = buscarCorreo(dir, materiaNorm, al.grupo);
+        idNorm++;
+        rowsNorm.push([
+          idNorm,
+          al.ciclo, al.parcial, al.semestre, al.turno, al.grupo,
+          al.curp, al.nombre, al.sexo || "",
+          materiaOrig, materiaNorm, colIdx + 1,
+          docente, correo,
+          c.cal !== null ? c.cal : "",
+          c.faltas || 0,
+          c.sinDatos ? "SI" : "NO",
+          al.promedio || "",
+          al.enRiesgo ? "SI" : "NO",
+          c.pendingReview ? "SI" : "NO",
+          fuente, timestamp
+        ]);
+        normExistentes.add(keyN);
+        insertadasNorm++;
+      }
     });
   });
 
-  // Escritura en bloque (más rápido que appendRow en loop)
+  // ── Escritura en bloque ──────────────────────────────────────────────────
   if (rowsAlumnos.length > 0) {
     shAlumnos.getRange(shAlumnos.getLastRow() + 1, 1, rowsAlumnos.length, rowsAlumnos[0].length)
              .setValues(rowsAlumnos);
@@ -143,11 +200,16 @@ function importarDesdeParser(data) {
     shCals.getRange(shCals.getLastRow() + 1, 1, rowsCals.length, rowsCals[0].length)
           .setValues(rowsCals);
   }
+  if (rowsNorm.length > 0) {
+    shNorm.getRange(shNorm.getLastRow() + 1, 1, rowsNorm.length, rowsNorm[0].length)
+          .setValues(rowsNorm);
+  }
 
   return {
     status: "success",
     insertadosAlumnos,
     insertadasCals,
+    insertadasNorm,
     duplicados,
     errores,
     grupo:   data.meta.grupo,
@@ -179,6 +241,22 @@ function limpiarParcial(grupo, parcial, ciclo) {
     if (matchParcial && matchCiclo && matchGrupo) {
       sh.deleteRow(i + 1);
       borradas++;
+    }
+  }
+
+  // Limpiar calificaciones_normalizadas (mismos filtros)
+  const shN = ss.getSheetByName("calificaciones_normalizadas");
+  if (shN && shN.getLastRow() > 1) {
+    const dataN   = shN.getDataRange().getValues();
+    const hdrsN   = dataN[0];
+    const iGN     = hdrsN.indexOf("grupo");
+    const iPN     = hdrsN.indexOf("parcial");
+    const iCN     = hdrsN.indexOf("ciclo");
+    for (let i = dataN.length - 1; i >= 1; i--) {
+      const matchP = String(dataN[i][iPN]) === String(parcial);
+      const matchC = String(dataN[i][iCN]) === String(ciclo);
+      const matchG = !grupo || grupo === "TODOS" || String(dataN[i][iGN]) === String(grupo);
+      if (matchP && matchC && matchG) shN.deleteRow(i + 1);
     }
   }
 
@@ -261,6 +339,55 @@ function getIndicadores(p) {
       rankingGrupos:     calcRankingGrupos(cals),
     },
   };
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  ALUMNOS POR GRUPO — tabla detallada alumno × materia
+// ════════════════════════════════════════════════════════════════════════════
+function getAlumnosGrupo(p) {
+  const ciclo   = p.ciclo   || getCicloActivo();
+  const parcial = p.parcial ? parseInt(p.parcial) : null;
+  const grupo   = p.grupo   || null;
+
+  if (!grupo) return { status: "error", message: "Parámetro 'grupo' requerido" };
+
+  const cals = leerCalificaciones(ciclo, parcial, grupo);
+  if (!cals.length) return { status: "success", grupo, materias: [], alumnos: [] };
+
+  // Ordenar materias por orden de aparición (primera vez que aparecen)
+  const materias = [];
+  const matSet   = new Set();
+  cals.forEach(c => {
+    if (c.materia && !matSet.has(c.materia)) {
+      matSet.add(c.materia);
+      materias.push(c.materia);
+    }
+  });
+
+  // Agrupar por alumno
+  const mapaAlumnos = {};
+  cals.forEach(c => {
+    if (!mapaAlumnos[c.curp]) {
+      mapaAlumnos[c.curp] = {
+        curp:     c.curp,
+        nombre:   c.nombre,
+        grupo:    c.grupo,
+        promedio: c.promedio,
+        enRiesgo: c.enRiesgo,
+        cals:     {}   // materia → {cal, faltas, sinDatos}
+      };
+    }
+    mapaAlumnos[c.curp].cals[c.materia] = {
+      cal:      c.calificacion,
+      faltas:   c.faltas,
+      sinDatos: c.sinDatos,
+    };
+  });
+
+  const alumnos = Object.values(mapaAlumnos)
+    .sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""));
+
+  return { status: "success", grupo, ciclo, parcial, materias, alumnos };
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -477,21 +604,25 @@ function norm(s) {
 
 // Lee el Directorio y devuelve estructura para búsqueda flexible
 function leerDirectorioPEC() {
-  const docMap  = {}; // norm(materia)|norm(grupo) → docente
-  const docMapM = {}; // norm(materia) → docente (fallback sin grupo)
+  const docMap   = {}; // norm(materia)|norm(grupo) → docente
+  const docMapM  = {}; // norm(materia) → docente (fallback sin grupo)
+  const correoMap = {}; // norm(materia)|norm(grupo) → correo
   const ss = SpreadsheetApp.openById(SS_ID);
   const sh = ss.getSheetByName("Directorio");
-  if (!sh || sh.getLastRow() <= 1) return { docMap, docMapM, rows: [] };
+  if (!sh || sh.getLastRow() <= 1) return { docMap, docMapM, correoMap, rows: [] };
   const rows = sh.getDataRange().getValues().slice(1);
   rows.forEach(r => {
     const grupo   = String(r[0] || "").trim();
     const materia = String(r[1] || "").trim();
     const docente = String(r[2] || "").trim();
+    const correo  = String(r[3] || "").trim();
     if (!materia || !docente) return;
-    docMap[`${norm(materia)}|${norm(grupo)}`] = docente;
+    const key = `${norm(materia)}|${norm(grupo)}`;
+    docMap[key]    = docente;
+    correoMap[key] = correo;
     if (!docMapM[norm(materia)]) docMapM[norm(materia)] = docente;
   });
-  return { docMap, docMapM, rows };
+  return { docMap, docMapM, correoMap, rows };
 }
 
 // Busca docente con matching flexible: exacto → contiene → contenido en
@@ -505,6 +636,18 @@ function buscarDocente(dir, materia, grupo) {
   // 3. Materia del directorio empieza con el nombre del parser (o viceversa)
   for (const key of Object.keys(dir.docMapM)) {
     if (key.startsWith(nm) || nm.startsWith(key)) return dir.docMapM[key];
+  }
+  return "—";
+}
+
+// Busca correo docente con la misma lógica flexible que buscarDocente
+function buscarCorreo(dir, materia, grupo) {
+  const nm = norm(materia);
+  const ng = norm(grupo);
+  if (dir.correoMap[`${nm}|${ng}`]) return dir.correoMap[`${nm}|${ng}`];
+  // fallback sin grupo
+  for (const key of Object.keys(dir.correoMap)) {
+    if (key.startsWith(`${nm}|`)) return dir.correoMap[key];
   }
   return "—";
 }
