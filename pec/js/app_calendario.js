@@ -1,162 +1,128 @@
 /* pec/js/app_calendario.js */
 
 /**
- * CONFIGURACIÓN DE FECHAS CLAVE - SEMESTRE B 2026
- * Edita esta constante para agregar o modificar eventos sin tocar el backend.
+ * CONFIGURACIÓN GLOBAL DEL CALENDARIO ESCOLAR
+ */
+const CONFIG_CALENDARIO = {
+    fechaInicioSemana1: "2026-02-11", // Miércoles
+    fechaFinSemestre: "2026-07-10",  // Límite para el cálculo de semanas
+    mostrarRangoFechas: true,
+};
+
+/**
+ * EVENTOS PUNTUALES
+ * Agregue aquí los eventos específicos por fecha.
  */
 const FECHAS_CLAVE = [
-  { 
-    id: "fc001",
-    titulo: "Inicio de clases", 
-    fecha: "2026-02-11", 
-    categoria: "academico", 
-    prioridad: "alta",
-    descripcion: "Arranque oficial del semestre B 2026.",
-    visible: true 
-  },
-  { 
-    id: "fc002",
-    titulo: "Inicio primer parcial", 
-    fecha: "2026-02-11", 
-    categoria: "evaluacion", 
-    visible: true 
-  },
-  { 
-    id: "fc003",
-    titulo: "Fin primer parcial", 
-    fecha: "2026-03-20", 
-    categoria: "evaluacion", 
-    visible: true 
-  },
-  { 
-    id: "fc004",
-    titulo: "Inicio segundo parcial", 
-    fecha: "2026-03-23", 
-    categoria: "evaluacion", 
-    visible: true 
-  },
-  { 
-    id: "fc005",
-    titulo: "Fin segundo parcial", 
-    fecha: "2026-05-08", 
-    categoria: "evaluacion", 
-    visible: true 
-  },
-  { 
-    id: "fc006",
-    titulo: "Inicio tercer parcial", 
-    fecha: "2026-05-11", 
-    categoria: "evaluacion", 
-    visible: true 
-  },
-  { 
-    id: "fc007",
-    titulo: "No realizar modificaciones", 
-    fecha: "2026-05-12", 
-    categoria: "restriccion", 
-    prioridad: "alta",
-    descripcion: "Día bloqueado para evitar cambios en el sistema.",
-    estadoManual: "restriccion",
-    visible: true,
-    observaciones: "Respetar fecha institucional."
-  },
-  { 
-    id: "fc008",
-    titulo: "Reunión con padres", 
-    fecha: "2026-05-13", 
-    hora: "07:00", 
-    categoria: "reunion", 
-    prioridad: "alta",
-    descripcion: "Entrega de boletas y reunión con padres.",
-    visible: true 
-  },
-  { 
-    id: "fc009",
-    titulo: "Entrega de calificaciones segundo parcial", 
-    fecha: "2026-05-13", 
-    categoria: "control", 
-    visible: true 
-  },
-  { 
-    id: "fc010",
-    titulo: "Entrega de calificaciones intrasemestrales", 
-    fecha: "2026-05-20", 
-    categoria: "control", 
-    visible: true 
-  },
-  { 
-    id: "fc011",
-    titulo: "Fin tercer parcial", 
-    fecha: "2026-06-11", 
-    categoria: "evaluacion", 
-    visible: true 
-  },
-  { 
-    id: "fc012",
-    titulo: "Inicio evaluación final", 
-    fecha: "2026-06-12", 
-    categoria: "evaluacion", 
-    visible: true 
-  },
-  { 
-    id: "fc013",
-    titulo: "Fin de clases", 
-    fecha: "2026-06-19", 
-    categoria: "academico", 
-    visible: true 
-  },
-  { 
-    id: "fc014",
-    titulo: "Captura de actas finales", 
-    fecha: "2026-06-22", 
-    categoria: "control", 
-    visible: true 
-  },
-  { 
-    id: "fc015",
-    titulo: "Reunión previa intersemestral", 
-    fecha: "2026-06-25", 
-    categoria: "academico", 
-    visible: true 
-  },
-  { 
-    id: "fc016",
-    titulo: "Inicio intersemestral", 
-    fecha: "2026-06-26", 
-    categoria: "academico", 
-    visible: true 
-  },
-  { 
-    id: "fc017",
-    titulo: "Entrega de calificaciones intersemestral", 
-    fecha: "2026-07-10", 
-    categoria: "control", 
-    visible: true 
-  }
+    { id: "fc001", titulo: "Inicio de clases", fecha: "2026-02-11", categoria: "academico", prioridad: "alta" },
+    { id: "fc002", titulo: "Inicio primer parcial", fecha: "2026-02-11", categoria: "evaluacion" },
+    { id: "fc003", titulo: "Fin primer parcial", fecha: "2026-03-20", categoria: "evaluacion" },
+    { id: "fc004", titulo: "Inicio segundo parcial", fecha: "2026-03-23", categoria: "evaluacion" },
+    { id: "fc004", titulo: "Entrega PEC Estudiantes", fecha: "2026-04-24", categoria: "evaluacion" },
+    { id: "fc004", titulo: "Captura PEC Docentes", fecha: "2026-04-28", categoria: "evaluacion" },
+    { id: "fc005", titulo: "Revisión y aclaraciones PEC", fecha: "2026-04-29", categoria: "evaluacion" },
+    { id: "fc005", titulo: "Fin segundo parcial", fecha: "2026-05-08", categoria: "evaluacion" },
+    { id: "fc006", titulo: "Inicio tercer parcial", fecha: "2026-05-11", categoria: "evaluacion" },
+    { id: "fc007", titulo: "No realizar modificaciones", fecha: "2026-05-12", categoria: "restriccion", estadoManual: "restriccion", prioridad: "alta" },
+    { id: "fc008", titulo: "Reunión con padres", fecha: "2026-05-13", hora: "07:00", categoria: "reunion", prioridad: "alta" },
+    { id: "fc009", titulo: "Entrega de calificaciones segundo parcial", fecha: "2026-05-13", categoria: "control" },
+    { id: "fc010", titulo: "Entrega de calificaciones intrasemestrales", fecha: "2026-05-20", categoria: "control" },
+    { id: "fc011", titulo: "Fin tercer parcial", fecha: "2026-06-11", categoria: "evaluacion" },
+    { id: "fc012", titulo: "Inicio evaluación final", fecha: "2026-06-12", categoria: "evaluacion" },
+    { id: "fc013", titulo: "Fin de clases", fecha: "2026-06-19", categoria: "academico" },
+    { id: "fc014", titulo: "Captura de actas finales", fecha: "2026-06-22", categoria: "control" },
+    { id: "fc015", titulo: "Reunión previa intersemestral", fecha: "2026-06-25", categoria: "academico" },
+    { id: "fc016", titulo: "Inicio intersemestral", fecha: "2026-06-26", categoria: "academico" },
+    { id: "fc017", titulo: "Entrega de calificaciones intersemestral", fecha: "2026-07-10", categoria: "control" }
 ];
 
-// Estado global del componente
-let viewMode = 'grouped'; // 'grouped' o 'list'
+/**
+ * PERIODOS ESPECIALES (Vacaciones, Festivos, Suspensiones)
+ */
+const PERIODOS_ESPECIALES = [
+    { titulo: "Suspensión de labores", fecha: "2026-05-01", categoria: "festivo", tipo: "dia" },
+    { titulo: "Batalla de Puebla", fecha: "2026-05-05", categoria: "festivo", tipo: "dia" },
+    { titulo: "Día del Maestro", fecha: "2026-05-15", categoria: "festivo", tipo: "dia" },
+    { titulo: "Receso escolar (Vacaciones)", inicio: "2026-03-30", fin: "2026-04-10", categoria: "vacaciones", tipo: "periodo" },
+    { titulo: "Semana de Evaluación Primera Vuelta", inicio: "2026-06-12", fin: "2026-06-18", categoria: "evaluacion", tipo: "periodo" },
+];
+
+let viewMode = 'grouped';
+let cronogramaMap = null;
 
 document.addEventListener("DOMContentLoaded", () => {
     if (window.feather) feather.replace();
-
     const userName = sessionStorage.getItem('user_name');
-    if (userName) {
-        const userNameEl = document.getElementById('topbar-user-name');
-        if (userNameEl) userNameEl.textContent = userName;
+    if (userName && document.getElementById('topbar-user-name')) {
+        document.getElementById('topbar-user-name').textContent = userName;
     }
-
     const menuToggle = document.getElementById('menu-toggle');
-    const sidebar = document.getElementById('sidebar');
-    if (menuToggle && sidebar) {
-        menuToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
-        });
+    if (menuToggle) {
+        menuToggle.addEventListener('click', () => document.getElementById('sidebar').classList.toggle('open'));
     }
 
+    // Generar el cronograma cronológico primero
+    cronogramaMap = generarCronogramaEfectivo();
     initCalendario();
 });
+
+/**
+ * Genera el mapa cronológico completo de semanas del semestre
+ */
+function generarCronogramaEfectivo() {
+    const cronograma = [];
+    const fechaInicio = new Date(CONFIG_CALENDARIO.fechaInicioSemana1 + 'T00:00:00');
+    const fechaFin = new Date(CONFIG_CALENDARIO.fechaFinSemestre + 'T23:59:59');
+
+    let curIni = new Date(fechaInicio);
+    let curFin = new Date(fechaInicio);
+    curFin.setDate(fechaInicio.getDate() + (7 - fechaInicio.getDay()) % 7);
+    curFin.setHours(23, 59, 59, 999);
+
+    let numSemanaActiva = 0;
+
+    while (curIni <= fechaFin) {
+        const esVacaciones = esSemanaDePausa(curIni, curFin);
+        let label = "RECESO / VACACIONES";
+        let num = null;
+
+        if (!esVacaciones) {
+            numSemanaActiva++;
+            num = numSemanaActiva;
+            label = `SEMANA ${num}`;
+        }
+
+        cronograma.push({
+            num: num,
+            label: label,
+            start: new Date(curIni),
+            end: new Date(curFin),
+            esVacaciones: esVacaciones
+        });
+
+        curIni = new Date(curFin);
+        curIni.setDate(curFin.getDate() + 1);
+        curIni.setHours(0, 0, 0, 0);
+        curFin = new Date(curIni);
+        curFin.setDate(curIni.getDate() + 6);
+        curFin.setHours(23, 59, 59, 999);
+    }
+    return cronograma;
+}
+
+function esSemanaDePausa(start, end) {
+    return PERIODOS_ESPECIALES.some(p => {
+        if (p.categoria !== 'vacaciones') return false;
+        const pStart = new Date(p.inicio + 'T00:00:00');
+        const pEnd = new Date(p.fin + 'T23:59:59');
+        return (start <= pEnd && end >= pStart);
+    });
+}
+
+function getInfoSemana(fechaStr) {
+    const d = new Date(fechaStr + 'T00:00:00');
+    return cronogramaMap.find(s => d >= s.start && d <= s.end);
+}
 
 function initCalendario() {
     const container = document.getElementById('calendario-container');
@@ -165,38 +131,34 @@ function initCalendario() {
     container.innerHTML = `
         <div class="calendario-header">
             <div>
-                <h2>📅 Calendario Institucional 2026-B</h2>
-                <p style="margin: 5px 0 0; opacity: 0.8; font-size: 0.9rem;">Fechas clave, cierres y eventos administrativos</p>
+                <h2>📅 Planeación Semestral 2026-B</h2>
+                <p style="margin: 5px 0 0; opacity: 0.8; font-size: 0.9rem;">Todas las semanas escolares disponibles para planeación</p>
             </div>
             <div class="view-type-toggle">
-                <button class="view-btn ${viewMode === 'grouped' ? 'active' : ''}" id="view-grouped">Tarjetas</button>
-                <button class="view-btn ${viewMode === 'list' ? 'active' : ''}" id="view-list">Lista</button>
+                <button class="view-btn ${viewMode === 'grouped' ? 'active' : ''}" id="view-grouped">Calendario</button>
+                <button class="view-btn ${viewMode === 'list' ? 'active' : ''}" id="view-list">Sólo Eventos</button>
             </div>
         </div>
-        <div id="calendario-content">
-            <!-- Eventos inyectados -->
-        </div>
+        <div id="calendario-content"></div>
     `;
 
     renderEventos();
 
-    // Eventos de toggle
     document.getElementById('view-grouped').addEventListener('click', () => {
         if (viewMode === 'grouped') return;
         viewMode = 'grouped';
-        updateToggleButtons();
         renderEventos();
+        updateToggles();
     });
-    
     document.getElementById('view-list').addEventListener('click', () => {
         if (viewMode === 'list') return;
         viewMode = 'list';
-        updateToggleButtons();
         renderEventos();
+        updateToggles();
     });
-};
+}
 
-function updateToggleButtons() {
+function updateToggles() {
     document.getElementById('view-grouped').classList.toggle('active', viewMode === 'grouped');
     document.getElementById('view-list').classList.toggle('active', viewMode === 'list');
 }
@@ -207,108 +169,189 @@ function renderEventos() {
 
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
-    const proximos7Dias = new Date(hoy);
-    proximos7Dias.setDate(hoy.getDate() + 7);
 
-    // Filtrar y ordenar cronológicamente
-    let eventos = FECHAS_CLAVE
-        .filter(ev => ev.visible !== false)
-        .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+    let items = [
+        ...FECHAS_CLAVE.map(ev => ({ ...ev, tipo: 'evento' })),
+        ...PERIODOS_ESPECIALES.map(p => ({ ...p, tipo: p.tipo || 'periodo' }))
+    ].sort((a, b) => new Date(a.fecha || a.inicio) - new Date(b.fecha || b.inicio));
 
-    if (eventos.length === 0) {
-        content.innerHTML = '<p style="text-align:center; padding: 3rem; color: #64748b;">No hay eventos programados.</p>';
-        return;
-    }
-
-    if (viewMode === 'grouped') {
-        const agrupar = agruparPorMes(eventos);
-        content.innerHTML = Object.keys(agrupar).map(mesKey => {
-            const [year, month] = mesKey.split('-');
-            const nombreMes = obtenerNombreMes(month);
-            return `
-                <div class="mes-seccion">
-                    <h3 class="mes-titulo">${nombreMes} ${year}</h3>
-                    <div class="calendario-grid">
-                        ${agrupar[mesKey].map(ev => renderEventoCard(ev, hoy, proximos7Dias)).join('')}
-                    </div>
-                </div>
-            `;
-        }).join('');
+    if (viewMode === 'list') {
+        // En vista lista plana, sí filtramos solo por eventos reales existentes
+        content.innerHTML = `<div class="calendario-grid">${items.map(item => renderItem(item, hoy)).join('')}</div>`;
     } else {
-        content.innerHTML = `<div class="calendario-grid">${eventos.map(ev => renderEventoCard(ev, hoy, proximos7Dias)).join('')}</div>`;
+        const agrupar = agruparJerarquiaCompleta(items);
+        content.innerHTML = renderJerarquiaCompleta(agrupar, hoy);
     }
 
     if (window.feather) feather.replace();
 }
 
-function renderEventoCard(ev, hoy, proximos7Dias) {
-    const fechaEv = new Date(ev.fecha + 'T00:00:00');
-    const estadoObj = calcularEstado(ev, fechaEv, hoy, proximos7Dias);
-    
+/**
+ * Organiza TODAS las semanas del semestre en meses, rellenando con eventos donde existan.
+ */
+function agruparJerarquiaCompleta(items) {
+    const meses = {};
+
+    // 1. Pre-poblar con TODAS las semanas del cronograma cronológico
+    cronogramaMap.forEach(s => {
+        const dStr = s.start.toISOString().split('T')[0];
+        const [year, month] = dStr.split('-');
+        const mesKey = `${year}-${month}`;
+
+        if (!meses[mesKey]) meses[mesKey] = { semanas: {} };
+        const sKey = `W-${s.start.getTime()}`;
+        meses[mesKey].semanas[sKey] = { info: s, items: [] };
+    });
+
+    // 2. Inyectar eventos en las semanas pre-existentes
+    items.forEach(item => {
+        const semanasAfectadas = [];
+        if (item.tipo === 'periodo') {
+            let cur = new Date(item.inicio + 'T00:00:00');
+            const fin = new Date(item.fin + 'T00:00:00');
+            while (cur <= fin) {
+                const s = getInfoSemana(cur.toISOString().split('T')[0]);
+                if (s && !semanasAfectadas.find(x => x.start.getTime() === s.start.getTime())) {
+                    semanasAfectadas.push(s);
+                }
+                cur.setDate(cur.getDate() + 1);
+            }
+        } else {
+            const s = getInfoSemana(item.fecha);
+            if (s) semanasAfectadas.push(s);
+        }
+
+        semanasAfectadas.forEach(s => {
+            const sKey = `W-${s.start.getTime()}`;
+            // Encontrar en qué mes pusimos esta semana
+            const dStr = s.start.toISOString().split('T')[0];
+            const [year, month] = dStr.split('-');
+            const mesKey = `${year}-${month}`;
+
+            if (meses[mesKey] && meses[mesKey].semanas[sKey]) {
+                const yaExiste = meses[mesKey].semanas[sKey].items.find(x => (x.id || x.titulo) === (item.id || item.titulo));
+                if (!yaExiste) meses[mesKey].semanas[sKey].items.push(item);
+            }
+        });
+    });
+
+    return meses;
+}
+
+function renderJerarquiaCompleta(meses, hoy) {
+    return Object.keys(meses).sort().map(mesKey => {
+        const [year, month] = mesKey.split('-');
+        const nombreMes = obtenerNombreMes(month);
+        const semanas = meses[mesKey].semanas;
+
+        const semanasOrdenadas = Object.keys(semanas).sort((a, b) => semanas[a].info.start - semanas[b].info.start);
+
+        return `
+            <div class="mes-seccion">
+                <h3 class="mes-titulo">${nombreMes} ${year}</h3>
+                ${semanasOrdenadas.map(sKey => {
+            const sem = semanas[sKey];
+            const sInfo = sem.info;
+            const tipoSemana = detectarTipoSemana(sem.items, sInfo);
+            const tieneEventos = sem.items.length > 0;
+
+            return `
+                        <div class="semana-bloque ${tipoSemana.clase} ${!tieneEventos ? 'semana-vacia' : ''}">
+                            <div class="semana-header">
+                                <span class="semana-num">${sInfo.label}</span>
+                                <span class="semana-rango">${formatearRango(sInfo.start, sInfo.end)}</span>
+                                ${tipoSemana.tag ? `<span class="semana-tipo-badge">${tipoSemana.tag}</span>` : ''}
+                            </div>
+                            <div class="calendario-grid">
+                                ${tieneEventos ?
+                    sem.items.map(item => renderItem(item, hoy)).join('') :
+                    `<p class="semana-sin-eventos">Sin eventos programados</p>`
+                }
+                            </div>
+                        </div>
+                    `;
+        }).join('')}
+            </div>
+        `;
+    }).join('');
+}
+
+function detectarTipoSemana(items, info) {
+    if (info.esVacaciones) return { tag: 'VACACIONAL', clase: 'semana-vacacional' };
+    if (items.some(i => i.categoria === 'evaluacion')) return { tag: 'EVALUACIÓN', clase: 'semana-evaluacion' };
+    if (items.some(i => i.categoria === 'restriccion')) return { tag: 'RESTRICCIÓN', clase: 'semana-restriccion' };
+    return { tag: '', clase: '' };
+}
+
+function renderItem(item, hoy) {
+    const fechaBase = item.fecha || item.inicio;
+    const fechaEv = new Date(fechaBase + 'T00:00:00');
+    const proximos7Dias = new Date(hoy);
+    proximos7Dias.setDate(hoy.getDate() + 7);
+
+    const estadoObj = calcularEstado(item, fechaEv, hoy, proximos7Dias);
+    const esPeriodo = item.tipo === 'periodo';
+
     return `
-        <div class="evento-card ${estadoObj.clase}">
+        <div class="evento-card ${estadoObj.clase} ${esPeriodo ? 'card-periodo' : ''}">
             <div class="evento-header">
                 <span class="evento-badge badge-${estadoObj.valor}">${estadoObj.label}</span>
-                ${ev.prioridad === 'alta' ? '<i data-feather="alert-circle" style="color:#ef4444; width:18px;"></i>' : ''}
+                ${item.prioridad === 'alta' ? '<i data-feather="alert-circle" style="color:#ef4444; width:16px;"></i>' : ''}
+                ${esPeriodo ? '<i data-feather="layers" style="color:var(--clr-primary); width:16px;"></i>' : ''}
             </div>
             <div class="evento-info">
-                <h3 class="evento-titulo">${ev.titulo}</h3>
+                <h3 class="evento-titulo">${item.titulo}</h3>
                 <div class="evento-meta">
                     <i data-feather="calendar"></i>
-                    <span>${formatearFecha(ev.fecha)}</span>
+                    <span>${esPeriodo ? `${formatearFechaSimple(item.inicio)} al ${formatearFechaSimple(item.fin)}` : formatearFechaLarga(item.fecha)}</span>
                 </div>
-                ${ev.hora ? `
-                <div class="evento-meta">
-                    <i data-feather="clock"></i>
-                    <span>${ev.hora} hrs</span>
-                </div>` : ''}
-                ${ev.descripcion ? `<p class="evento-desc">${ev.descripcion}</p>` : ''}
+                ${item.hora ? `<div class="evento-meta"><i data-feather="clock"></i><span>${item.hora} hrs</span></div>` : ''}
+                ${item.descripcion ? `<p class="evento-desc">${item.descripcion}</p>` : ''}
             </div>
             <div class="evento-footer">
-                <span class="evento-categoria">${ev.categoria}</span>
-                ${ev.observaciones ? `<span class="evento-obs">${ev.observaciones}</span>` : ''}
+                <span class="evento-categoria">${item.categoria}</span>
             </div>
         </div>
     `;
 }
 
-function agruparPorMes(eventos) {
-    const grupos = {};
-    eventos.forEach(ev => {
-        const [year, month, day] = ev.fecha.split('-');
-        const key = `${year}-${month}`;
-        if (!grupos[key]) grupos[key] = [];
-        grupos[key].push(ev);
-    });
-    return grupos;
-}
+function calcularEstado(item, fechaEv, hoy, proximos7Dias) {
+    if (item.estadoManual) return { valor: item.estadoManual, label: item.estadoManual.toUpperCase(), clase: item.estadoManual };
+    if (item.categoria === 'vacaciones') return { valor: 'vacaciones', label: 'VACACIONES', clase: 'vacaciones' };
+    if (item.categoria === 'festivo') return { valor: 'festivo', label: 'FESTIVO', clase: 'restriccion' };
 
-function obtenerNombreMes(monthNumber) {
-    const meses = [
-        "ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO",
-        "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"
-    ];
-    return meses[parseInt(monthNumber, 10) - 1];
-}
-
-function calcularEstado(ev, fechaEv, hoy, proximos7Dias) {
-    if (ev.estadoManual) {
-        let label = ev.estadoManual.charAt(0).toUpperCase() + ev.estadoManual.slice(1);
-        if (ev.estadoManual === 'restriccion') label = 'RESTRICCIÓN';
-        return { valor: ev.estadoManual, label: label, clase: ev.estadoManual };
-    }
     if (fechaEv < hoy) return { valor: "realizado", label: "REALIZADO", clase: "realizado" };
-    if (fechaEv <= proximos7Dias) return { valor: "proximo", label: "PRÓXIMO", clase: "proximo" };
+    const dateE = new Date(fechaEv);
+    dateE.setHours(0, 0, 0, 0);
+    if (dateE.getTime() === hoy.getTime() || (dateE > hoy && dateE <= proximos7Dias)) return { valor: "proximo", label: "PRÓXIMO", clase: "proximo" };
     return { valor: "pendiente", label: "PENDIENTE", clase: "pendiente" };
 }
 
-function formatearFecha(fechaStr) {
+function formatearRango(start, end) {
+    const d1 = start.getDate();
+    const m1 = obtenerNombreMes(start.getMonth() + 1).toLowerCase();
+    const d2 = end.getDate();
+    const m2 = obtenerNombreMes(end.getMonth() + 1).toLowerCase();
+    return m1 === m2 ? `${d1} al ${d2} de ${m1}` : `${d1} de ${m1} al ${d2} de ${m2}`;
+}
+
+function formatearFechaSimple(fechaStr) {
+    const [y, m, d] = fechaStr.split('-');
+    return `${parseInt(d)} de ${obtenerNombreMes(m).toLowerCase()}`;
+}
+
+function formatearFechaLarga(fechaStr) {
     const opciones = { weekday: 'long', day: 'numeric', month: 'long' };
     const date = new Date(fechaStr + 'T00:00:00');
     return date.toLocaleDateString('es-MX', opciones).toUpperCase();
 }
 
-window.logout = function() {
+function obtenerNombreMes(monthNumber) {
+    const meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+    return meses[parseInt(monthNumber, 10) - 1];
+}
+
+window.logout = function () {
     sessionStorage.clear();
     window.location.href = 'login.html';
 };
