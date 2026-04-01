@@ -45,25 +45,47 @@ const api = {
         return data;
     },
 
+    // Caché separada para datos globales (sin filtro por docente)
+    _globalCache: null,
+
+    // Fetch SIN userEmail: el GAS no aplica filtro de docente cuando userEmail=""
+    // Usado exclusivamente por Dashboard y Vista Rápida para métricas globales
+    async fetchAllDataGlobal() {
+        if (USE_MOCK) return MOCK_DATA;
+        if (this._globalCache) return this._globalCache;
+
+        const url = `${GOOGLE_SHEETS_API_URL}?_t=${Date.now()}`;
+        const response = await fetch(url, { method: 'GET', redirect: 'follow' });
+        if (!response.ok) throw new Error(`Error de red (${response.status})`);
+        const data = await response.json();
+        if (data.status === "error") throw new Error(data.message);
+
+        this._globalCache = data;
+        return data;
+    },
+
     async getDashboardData() {
-        const db = await this.fetchAllData();
+        // Datos globales (sin filtro docente) para métricas de Dashboard y Vista Rápida
+        const db = await this.fetchAllDataGlobal();
 
         const materiasPorEquipo = 7;
-        const totalEsperado = db.equipos.length * materiasPorEquipo;
-        const avancePorcentaje = totalEsperado === 0 ? 0 : Math.round((db.evaluaciones.length / totalEsperado) * 100);
+        const totalEsperado = (db.equipos || []).length * materiasPorEquipo;
+        // db.evaluaciones aquí ya es global porque fetchAllDataGlobal no envía userEmail
+        const evGlobal = db.evaluaciones || [];
+        const avancePorcentaje = totalEsperado === 0 ? 0 : Math.round((evGlobal.length / totalEsperado) * 100);
 
         return {
             totalGrupos: db.grupos ? db.grupos.length : 0,
             totalEquipos: db.equipos ? db.equipos.length : 0,
-            evaluaciones: db.evaluaciones || [],
-            todasEvaluaciones: db.todasEvaluaciones || db.evaluaciones || [],
-            grupos: db.grupos || [],
-            equipos: db.equipos || [],
-            avance: avancePorcentaje,
-            directorio: db.directorio || [],
+            evaluaciones:       evGlobal,
+            todasEvaluaciones:  evGlobal,
+            grupos:       db.grupos       || [],
+            equipos:      db.equipos      || [],
+            avance:       avancePorcentaje,
+            directorio:   db.directorio   || [],
             programacion: db.programacion || [],
-            sinEquipo: db.sinEquipo || [],
-            config: db.config || {}
+            sinEquipo:    db.sinEquipo    || [],
+            config:       db.config       || {}
         };
     },
 
@@ -110,8 +132,9 @@ const api = {
 
         const result = await response.json();
 
-        // Limpiamos la caché para que la próxima lectura obligue a traer los datos nuevos
+        // Limpiar ambas cachés para que la próxima lectura traiga datos frescos
         this.cache = null;
+        this._globalCache = null;
 
         return result;
     },
@@ -161,7 +184,8 @@ const api = {
             body: JSON.stringify(payload),
             headers: { "Content-Type": "text/plain;charset=utf-8" }
         });
-        this.cache = null;  // invalidar caché para reflejar el cambio
+        this.cache = null;
+        this._globalCache = null;  // invalidar también caché global
         return await res.json();
     },
 

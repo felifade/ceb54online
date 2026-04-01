@@ -122,7 +122,8 @@ document.addEventListener("DOMContentLoaded", () => {
             // Stats
             document.getElementById('dash-grupos').textContent = data.totalGrupos || 0;
             document.getElementById('dash-equipos').textContent = data.totalEquipos || 0;
-            document.getElementById('dash-evaluaciones').textContent = (data.evaluaciones || []).length;
+            // Mostrar total global, no solo las del docente autenticado
+            document.getElementById('dash-evaluaciones').textContent = (data.todasEvaluaciones || data.evaluaciones || []).length;
             document.getElementById('dash-avance').textContent = `${data.avance || 0}%`;
 
             // 0. Agenda del Ciclo Dinámica
