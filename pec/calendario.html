@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fechas Clave | CEB 5/4</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/calendario.css">
+    <script src="js/auth.js"></script>
+</head>
+<body>
+    <div id="app" class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-text">PEC 5/4</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="index.html" class="nav-item">
+                    <i data-feather="info"></i>
+                    <span>Portal Proyectos (PEC)</span>
+                </a>
+                <a href="index.html#dashboard" class="nav-item">
+                    <i data-feather="grid"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="index.html#grupos" class="nav-item">
+                    <i data-feather="users"></i>
+                    <span>Grupos y Equipos</span>
+                </a>
+                <a href="index.html#directorio" class="nav-item">
+                    <i data-feather="map"></i>
+                    <span>Directorio Escolar</span>
+                </a>
+                <a href="calendario.html" class="nav-item active" style="background: rgba(56, 132, 192, 0.1); border-left: 3px solid var(--clr-primary-light);">
+                    <i data-feather="calendar"></i>
+                    <span>Fechas Clave</span>
+                </a>
+                <a href="index.html#rapida" class="nav-item">
+                    <i data-feather="eye"></i>
+                    <span>Vista Rápida</span>
+                </a>
+                <a href="calificaciones.html" class="nav-item">
+                    <i data-feather="star"></i>
+                    <span>Calificaciones PEC</span>
+                </a>
+                <a href="#" class="nav-item" onclick="logout()" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; color: #fda4af;">
+                    <i data-feather="log-out"></i>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <p>Centro de Estudios de Bachillerato<br>CEB 5/4</p>
+                <a href="../index.html" style="color: #67A8DB; font-weight: 600; margin-top: 15px; display: inline-block; font-size: 0.85rem;">Volver al Sitio Web Principal</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="topbar">
+                <button id="menu-toggle" class="btn-icon">
+                    <i data-feather="menu"></i>
+                </button>
+                <div class="topbar-title">
+                    <h1 class="page-title">Fechas Clave</h1>
+                </div>
+                <div class="user-info">
+                    <div class="topbar-user">
+                        <div class="avatar">
+                            <i data-feather="user"></i>
+                        </div>
+                        <span id="topbar-user-name">Docente PEC</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="views-wrapper">
+                <div id="calendario-container">
+                    <!-- Renderizado por app_calendario.js -->
+                    <div style="text-align:center; padding:50px; color:#64748b;">
+                        <div class="spinner" style="margin:0 auto 20px;"></div>
+                        <p>Cargando información institucional...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/app_calendario.js"></script>
+</body>
+</html>

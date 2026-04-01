@@ -1,0 +1,200 @@
+/* pec/css/calendario.css */
+
+#calendario-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.calendario-header {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    color: white;
+    padding: 2rem;
+    border-radius: 20px;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.calendario-header h2 {
+    color: #38bdf8;
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+/* Agrupado por Mes */
+.mes-seccion {
+    margin-bottom: 3.5rem;
+    position: relative;
+}
+
+.mes-titulo {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--clr-secondary);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 3px solid var(--clr-primary-light);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    letter-spacing: 1px;
+}
+
+.mes-titulo::before {
+    content: '';
+    width: 8px;
+    height: 24px;
+    background: var(--clr-primary);
+    border-radius: 4px;
+}
+
+.calendario-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.evento-card {
+    background: var(--clr-surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--clr-border);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.evento-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--clr-primary-light);
+}
+
+.evento-card.realizado {
+    opacity: 0.8;
+    background: #f8fafc;
+}
+
+.evento-card.proximo {
+    border-left: 5px solid #3b82f6;
+    background: #eff6ff;
+}
+
+.evento-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.evento-titulo {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--clr-secondary);
+    line-height: 1.2;
+}
+
+.evento-badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+/* Badge colors */
+.badge-pendiente { background: #FEF3C7; color: #D97706; border: 1px solid #FCD34D; }
+.badge-proximo { background: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+.badge-realizado { background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0; }
+.badge-restriccion { background: #FEE2E2; color: #B91C1C; border: 1px solid #FECACA; }
+.badge-cancelado { background: #F1F5F9; color: #475569; border: 1px solid #E2E8F0; }
+
+.evento-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.evento-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--clr-text-light);
+    font-weight: 600;
+}
+
+.evento-meta i {
+    width: 14px;
+    height: 14px;
+}
+
+.evento-desc {
+    font-size: 0.9rem;
+    color: #475569;
+    line-height: 1.4;
+    margin-top: 5px;
+}
+
+.evento-footer {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid var(--clr-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.evento-categoria {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--clr-primary);
+}
+
+.evento-obs {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* Timeline Layout (Optional Enhancement) */
+.view-type-toggle {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.view-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.view-btn.active {
+    background: #38bdf8;
+    color: #0f172a;
+    font-weight: 700;
+}
+
+@media (max-width: 600px) {
+    .calendario-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+}

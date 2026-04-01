@@ -989,7 +989,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     formEval.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
         const individual = [];
         document.querySelectorAll('.eval-indiv-input').forEach(inp => {
             if (inp.value !== "") {
@@ -999,6 +999,38 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             }
         });
+
+        // VALIDACIÓN ANTI-DUPLICADO (cliente, usando caché)
+        // El backend hace la validación definitiva; esta solo mejora la UX
+        try {
+            const cacheData = await api.fetchAllData();
+            const todasEvs  = cacheData.todasEvaluaciones || cacheData.evaluaciones || [];
+            const eqId      = document.getElementById('eval-equipo-id').value;
+            const parcialV  = document.getElementById('eval-parcial').value;
+            const materiaV  = document.getElementById('eval-materia').value;
+            const normStr   = s => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+            const normP     = v => { const m = String(v).match(/\d+/); return m ? m[0] : String(v).trim(); };
+
+            const alumnosAEvaluar = individual.length > 0
+                ? individual.map(i => i.alumno)
+                : [""]; // equipo completo
+
+            const duplicado = alumnosAEvaluar.some(alum =>
+                todasEvs.some(ev =>
+                    normP(ev.parcial)   === normP(parcialV) &&
+                    String(ev.equipoId) === String(eqId)    &&
+                    normStr(ev.materia) === normStr(materiaV) &&
+                    String(ev.alumno || "").trim() === String(alum || "").trim()
+                )
+            );
+
+            if (duplicado) {
+                alert("⛔ Este equipo ya fue capturado para esta materia y parcial.\n\nUtiliza el módulo de Edición para realizar cambios.");
+                return;
+            }
+        } catch (_) {
+            // Si la caché falla, continuar — el backend hará la validación definitiva
+        }
 
         // Validación de correo antes de enviar
         const submitEmail = sessionStorage.getItem('user_email') || "";
@@ -1031,7 +1063,11 @@ document.addEventListener("DOMContentLoaded", () => {
         showLoader();
         
         try {
-            await api.guardarEvaluacion(payload);
+            const resultado = await api.guardarEvaluacion(payload);
+            if (resultado && resultado.status === "duplicado") {
+                alert("⛔ " + resultado.message);
+                return;
+            }
             alert("Evaluación guardada exitosamente en Google Sheets.");
             formEval.reset();
             // Refrescar equipos si seguimos en la vista

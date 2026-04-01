@@ -473,7 +473,49 @@ function doPost(e) {
       }
     }
     const sEv = getSheet(ss, S_EVALUACIONES);
-    const base = [new Date(), body.parcial, body.grupoId, body.equipoId, body.equipoNombre, body.materia, body.docente, "", body.observaciones || "", "", emailCaptura];
+
+    // VALIDACIÓN ANTI-DUPLICADO: buscar si ya existe (parcial, equipoId, materia, alumno)
+    const evRows = sEv.getDataRange().getValues();
+    evRows.shift(); // quitar encabezado
+    const parcialNorm = normalizeParcial(body.parcial);
+    const equipoIdStr = String(body.equipoId || "");
+    const materiaNorm = normalizeText(body.materia || "");
+
+    if (body.integrantes && body.integrantes.length > 0) {
+      // Validar cada integrante individualmente
+      const intDuplicados = body.integrantes.filter(integ => {
+        const alumnoStr = String(integ.alumno || "").trim();
+        return evRows.some(r =>
+          normalizeParcial(r[1]) === parcialNorm &&
+          String(r[3])           === equipoIdStr &&
+          normalizeText(r[5])    === materiaNorm &&
+          String(r[9] || "").trim() === alumnoStr
+        );
+      });
+      if (intDuplicados.length > 0) {
+        return ContentService.createTextOutput(JSON.stringify({
+          status: "duplicado",
+          message: "Este equipo ya fue capturado para esta materia y parcial. Utiliza el módulo de Edición para realizar cambios."
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+    } else {
+      // Evaluación de equipo completo (sin alumno individual)
+      const yaDuplica = evRows.some(r =>
+        normalizeParcial(r[1]) === parcialNorm &&
+        String(r[3])           === equipoIdStr &&
+        normalizeText(r[5])    === materiaNorm &&
+        String(r[9] || "").trim() === ""
+      );
+      if (yaDuplica) {
+        return ContentService.createTextOutput(JSON.stringify({
+          status: "duplicado",
+          message: "Este equipo ya fue capturado para esta materia y parcial. Utiliza el módulo de Edición para realizar cambios."
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+
+    // Col L: tipo_registro = "CAPTURA" en registro nuevo
+    const base = [new Date(), body.parcial, body.grupoId, body.equipoId, body.equipoNombre, body.materia, body.docente, "", body.observaciones || "", "", emailCaptura, "CAPTURA"];
     if (body.integrantes && body.integrantes.length > 0) {
       body.integrantes.forEach(i => { const r = [...base]; r[7] = i.puntaje; r[9] = i.alumno; sEv.appendRow(r); });
     } else {
@@ -713,42 +755,46 @@ function _esAdmin(ss, userEmail) {
 }
 
 // Helper: leer fecha_cierre desde Configuracion
+// Devuelve siempre un objeto Date o null
 function _getFechaCierre(ss) {
   const sConf = getSheet(ss, S_CONFIGURACION);
-  if (!sConf) return "";
-  let fechaCierre = "";
-  sConf.getDataRange().getValues().forEach(r => {
-    if (normalizeText(String(r[0])) === "portal_fecha_cierre") fechaCierre = String(r[1] || "").trim();
-  });
-  return fechaCierre;
+  if (!sConf) return null;
+  const rows = sConf.getDataRange().getValues();
+  for (let i = 0; i < rows.length; i++) {
+    if (normalizeText(String(rows[i][0])) !== "portal_fecha_cierre") continue;
+    const val = rows[i][1];
+    if (!val) return null;
+    // Si Sheets ya lo convirtió a Date (formato fecha en la celda)
+    if (val instanceof Date && !isNaN(val.getTime())) return val;
+    // Si está como texto "DD/MM/YYYY"
+    const txt = String(val).trim();
+    const partes = txt.split('/');
+    if (partes.length === 3) {
+      const d = new Date(parseInt(partes[2]), parseInt(partes[1]) - 1, parseInt(partes[0]));
+      if (!isNaN(d.getTime())) return d;
+    }
+    // Si está como texto "YYYY-MM-DD"
+    const d2 = new Date(txt);
+    if (!isNaN(d2.getTime())) return d2;
+    return null;
+  }
+  return null;
 }
 
 // GET: Devuelve registros de Evaluaciones filtrados para el módulo de edición
 function getEdicionData(e, ss) {
   const userEmail = normalizeText(e.parameter.userEmail || "");
   const isAdmin   = _esAdmin(ss, userEmail);
-  const fechaCierre = _getFechaCierre(ss);
-
-  // Determinar si el periodo de edición está abierto
-  let edicionAbierta = true;
-  if (fechaCierre) {
-    // Intentar parsear formato DD/MM/YYYY o YYYY-MM-DD
-    let partes = fechaCierre.split('/');
-    let dCierre;
-    if (partes.length === 3) {
-      dCierre = new Date(partes[2], partes[1] - 1, partes[0]);
-    } else {
-      dCierre = new Date(fechaCierre);
-    }
-    if (!isNaN(dCierre.getTime())) {
-      edicionAbierta = new Date() <= dCierre;
-    }
-  }
+  const dCierre = _getFechaCierre(ss);
+  const edicionAbierta = dCierre ? new Date() <= dCierre : true;
+  const fechaCierreStr = dCierre
+    ? Utilities.formatDate(dCierre, Session.getScriptTimeZone(), "dd/MM/yyyy")
+    : "";
 
   const sEv = getSheet(ss, S_EVALUACIONES);
   if (!sEv) {
     return ContentService.createTextOutput(JSON.stringify({
-      status: "success", evaluaciones: [], fechaCierre, edicionAbierta, isAdmin
+      status: "success", evaluaciones: [], fechaCierre: fechaCierreStr, edicionAbierta, isAdmin
     })).setMimeType(ContentService.MimeType.JSON);
   }
 
@@ -767,7 +813,10 @@ function getEdicionData(e, ss) {
     puntaje:        Number(r[7] || 0),
     observaciones:  String(r[8] || ""),
     alumno:         String(r[9] || ""),
-    docenteEmail:   normalizeText(r[10] || "")
+    docenteEmail:   normalizeText(r[10] || ""),
+    tipoRegistro:   String(r[11] || "CAPTURA"),   // "" en filas antiguas → se lee como CAPTURA
+    fechaEdicion:   r[12] ? Utilities.formatDate(new Date(r[12]), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm") : "",
+    usuarioEdicion: String(r[13] || "")
   })).filter(r => r.equipoId !== ""); // quitar filas vacías
 
   // Docentes solo ven sus propios registros
@@ -825,25 +874,16 @@ function getBitacoraData(e, ss) {
 
 // POST action="editarEvaluacion": modifica puntaje/observaciones y registra en bitácora
 function editarEvaluacion(ss, body) {
-  const userEmail   = normalizeText(body.userEmail || "");
-  const isAdmin     = _esAdmin(ss, userEmail);
-  const fechaCierre = _getFechaCierre(ss);
+  const userEmail = normalizeText(body.userEmail || "");
+  const isAdmin   = _esAdmin(ss, userEmail);
+  const dCierre   = _getFechaCierre(ss);
 
   // --- REGLA DE EDICIÓN CONTROLADA ---
-  if (!isAdmin && fechaCierre) {
-    let partes = fechaCierre.split('/');
-    let dCierre;
-    if (partes.length === 3) {
-      dCierre = new Date(partes[2], partes[1] - 1, partes[0]);
-    } else {
-      dCierre = new Date(fechaCierre);
-    }
-    if (!isNaN(dCierre.getTime()) && new Date() > dCierre) {
-      return ContentService.createTextOutput(JSON.stringify({
-        status: "error",
-        message: "El periodo de edición ha cerrado. Solo el administrador puede modificar registros."
-      })).setMimeType(ContentService.MimeType.JSON);
-    }
+  if (!isAdmin && dCierre && new Date() > dCierre) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error",
+      message: "El periodo de edición ha cerrado. Solo el administrador puede modificar registros."
+    })).setMimeType(ContentService.MimeType.JSON);
   }
 
   // --- LOCALIZAR FILA por clave compuesta ---
@@ -894,8 +934,11 @@ function editarEvaluacion(ss, body) {
   }
 
   // --- ACTUALIZAR FILA ---
-  sEv.getRange(rowFound + 1, 8).setValue(nuevoPuntaje);           // Col H: puntaje
-  if (nuevaObs !== "") sEv.getRange(rowFound + 1, 9).setValue(nuevaObs); // Col I: observaciones
+  sEv.getRange(rowFound + 1, 8).setValue(nuevoPuntaje);                        // Col H: puntaje
+  if (nuevaObs !== "") sEv.getRange(rowFound + 1, 9).setValue(nuevaObs);       // Col I: observaciones
+  sEv.getRange(rowFound + 1, 12).setValue("EDICION");                          // Col L: tipo_registro
+  sEv.getRange(rowFound + 1, 13).setValue(new Date());                         // Col M: fecha_edicion
+  sEv.getRange(rowFound + 1, 14).setValue(userEmail);                          // Col N: usuario_edicion
 
   // --- REGISTRAR EN BITÁCORA ---
   let sBit = getSheet(ss, S_BITACORA);
