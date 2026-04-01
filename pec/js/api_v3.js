@@ -132,6 +132,46 @@ const api = {
         });
 
         return await response.json();
+    },
+
+    // ── MÓDULO DE EDICIÓN POSTERIOR ─────────────────────────────────────────
+
+    async buscarParaEditar(filtros = {}) {
+        const userEmail = sessionStorage.getItem('user_email') || "";
+        const params = new URLSearchParams({
+            action: "getEdicion",
+            userEmail,
+            _t: Date.now()
+        });
+        if (filtros.parcial)  params.set('parcial',  filtros.parcial);
+        if (filtros.grupo)    params.set('grupo',     filtros.grupo);
+        if (filtros.materia)  params.set('materia',   filtros.materia);
+
+        const res = await fetch(`${GOOGLE_SHEETS_API_URL}?${params}`, { redirect: 'follow' });
+        const data = await res.json();
+        if (data.status === "error") throw new Error(data.message);
+        return data;  // { evaluaciones, fechaCierre, edicionAbierta, isAdmin }
+    },
+
+    async editarEvaluacion(datos) {
+        const userEmail = sessionStorage.getItem('user_email') || "";
+        const payload = { action: "editarEvaluacion", userEmail, ...datos };
+        const res = await fetch(GOOGLE_SHEETS_API_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: { "Content-Type": "text/plain;charset=utf-8" }
+        });
+        this.cache = null;  // invalidar caché para reflejar el cambio
+        return await res.json();
+    },
+
+    async getBitacora() {
+        const userEmail = sessionStorage.getItem('user_email') || "";
+        const url = `${GOOGLE_SHEETS_API_URL}?action=getBitacora&userEmail=${encodeURIComponent(userEmail)}&_t=${Date.now()}`;
+        const res = await fetch(url, { redirect: 'follow' });
+        const data = await res.json();
+        if (data.status === "error") throw new Error(data.message);
+        return data.bitacora || [];
     }
 };
 

@@ -12,6 +12,7 @@ const S_TUTORIAS = "Tutorias";
 const S_CONFIGURACION = "Configuracion";
 const S_USUARIOS = "Usuarios";
 const S_FEEDBACK = "Retroalimentacion"; // Nueva pestaña para evitar mezclar datos
+const S_BITACORA = "PEC_Bitacora";      // Bitácora de ediciones posteriores
 
 // --- FUNCIONES DE NORMALIZACIÓN ---
 function normalizeText(val) {
@@ -44,6 +45,13 @@ function doGet(e) {
     // Acción especial: calificaciones por parcial
     if (e.parameter.action === "getCalificaciones") {
       return doGetCalificaciones(e, ss);
+    }
+    // Módulo de edición posterior (aislado del flujo de captura)
+    if (e.parameter.action === "getEdicion") {
+      return getEdicionData(e, ss);
+    }
+    if (e.parameter.action === "getBitacora") {
+      return getBitacoraData(e, ss);
     }
     const userEmail = normalizeText(e.parameter.userEmail || "");
 
@@ -432,6 +440,11 @@ function doPost(e) {
       return ContentService.createTextOutput(JSON.stringify({ status: "success" }));
     }
 
+    // EDICIÓN POSTERIOR (módulo aislado — no afecta flujo de captura)
+    if (action === "editarEvaluacion") {
+      return editarEvaluacion(ss, body);
+    }
+
     // PEC: GUARDAR EVALUACIÓN
     // Validación backend: verificar que el docente tiene asignada esta materia
     const emailCaptura = normalizeText(body.docente_email || "");
@@ -681,4 +694,235 @@ function generarConcentradoDeAsignaturas(ss) {
     sR.setColumnWidth(1, 65); sR.setColumnWidth(2, 280);
     sR.setFrozenRows(2); sR.setFrozenColumns(2);
   }
+}
+
+// ============================================================
+// MÓDULO DE EDICIÓN POSTERIOR — v1.0
+// Aislado del flujo de captura. No modifica doPost principal.
+// ============================================================
+
+// Helper: verificar admin reutilizable
+function _esAdmin(ss, userEmail) {
+  if (!userEmail) return false;
+  if (userEmail === normalizeText("admin@ceb54.online")) return true;
+  const sUsr = getSheet(ss, S_USUARIOS);
+  if (!sUsr) return false;
+  const rows = sUsr.getDataRange().getValues();
+  const found = rows.find(r => r[0] && normalizeText(r[0]) === userEmail);
+  return !!(found && String(found[3] || "").toLowerCase() === "admin");
+}
+
+// Helper: leer fecha_cierre desde Configuracion
+function _getFechaCierre(ss) {
+  const sConf = getSheet(ss, S_CONFIGURACION);
+  if (!sConf) return "";
+  let fechaCierre = "";
+  sConf.getDataRange().getValues().forEach(r => {
+    if (normalizeText(String(r[0])) === "portal_fecha_cierre") fechaCierre = String(r[1] || "").trim();
+  });
+  return fechaCierre;
+}
+
+// GET: Devuelve registros de Evaluaciones filtrados para el módulo de edición
+function getEdicionData(e, ss) {
+  const userEmail = normalizeText(e.parameter.userEmail || "");
+  const isAdmin   = _esAdmin(ss, userEmail);
+  const fechaCierre = _getFechaCierre(ss);
+
+  // Determinar si el periodo de edición está abierto
+  let edicionAbierta = true;
+  if (fechaCierre) {
+    // Intentar parsear formato DD/MM/YYYY o YYYY-MM-DD
+    let partes = fechaCierre.split('/');
+    let dCierre;
+    if (partes.length === 3) {
+      dCierre = new Date(partes[2], partes[1] - 1, partes[0]);
+    } else {
+      dCierre = new Date(fechaCierre);
+    }
+    if (!isNaN(dCierre.getTime())) {
+      edicionAbierta = new Date() <= dCierre;
+    }
+  }
+
+  const sEv = getSheet(ss, S_EVALUACIONES);
+  if (!sEv) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "success", evaluaciones: [], fechaCierre, edicionAbierta, isAdmin
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  const d = sEv.getDataRange().getValues();
+  d.shift(); // quitar encabezado
+
+  const evaluaciones = d.map((r, idx) => ({
+    rowIndex: idx + 2,      // fila real en Sheets (1-based + 1 por header)
+    fecha:          r[0] ? Utilities.formatDate(new Date(r[0]), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm") : "",
+    parcial:        normalizeParcial(r[1]),
+    grupoId:        String(r[2] || ""),
+    equipoId:       String(r[3] || ""),
+    equipoNombre:   String(r[4] || ""),
+    materia:        String(r[5] || ""),
+    docente:        String(r[6] || ""),
+    puntaje:        Number(r[7] || 0),
+    observaciones:  String(r[8] || ""),
+    alumno:         String(r[9] || ""),
+    docenteEmail:   normalizeText(r[10] || "")
+  })).filter(r => r.equipoId !== ""); // quitar filas vacías
+
+  // Docentes solo ven sus propios registros
+  const resultado = isAdmin ? evaluaciones : evaluaciones.filter(ev => ev.docenteEmail === userEmail);
+
+  return ContentService.createTextOutput(JSON.stringify({
+    status: "success",
+    evaluaciones: resultado,
+    fechaCierre,
+    edicionAbierta,
+    isAdmin
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+// GET: Devuelve la bitácora de cambios (solo admin)
+function getBitacoraData(e, ss) {
+  const userEmail = normalizeText(e.parameter.userEmail || "");
+  if (!_esAdmin(ss, userEmail)) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error", message: "Acceso restringido a administradores."
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  const sBit = getSheet(ss, S_BITACORA);
+  if (!sBit) {
+    return ContentService.createTextOutput(JSON.stringify({ status: "success", bitacora: [] }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  const d = sBit.getDataRange().getValues();
+  if (d.length <= 1) {
+    return ContentService.createTextOutput(JSON.stringify({ status: "success", bitacora: [] }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  d.shift();
+
+  const bitacora = d.map(r => ({
+    fechaCambio:      r[0] ? Utilities.formatDate(new Date(r[0]), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss") : "",
+    usuarioEmail:     String(r[1] || ""),
+    parcial:          String(r[2] || ""),
+    equipoId:         String(r[3] || ""),
+    equipoNombre:     String(r[4] || ""),
+    materia:          String(r[5] || ""),
+    alumno:           String(r[6] || ""),
+    puntajeAnterior:  r[7],
+    puntajeNuevo:     r[8],
+    obsAnterior:      String(r[9] || ""),
+    obsNueva:         String(r[10] || ""),
+    motivo:           String(r[11] || "")
+  })).reverse(); // más reciente primero
+
+  return ContentService.createTextOutput(JSON.stringify({ status: "success", bitacora }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// POST action="editarEvaluacion": modifica puntaje/observaciones y registra en bitácora
+function editarEvaluacion(ss, body) {
+  const userEmail   = normalizeText(body.userEmail || "");
+  const isAdmin     = _esAdmin(ss, userEmail);
+  const fechaCierre = _getFechaCierre(ss);
+
+  // --- REGLA DE EDICIÓN CONTROLADA ---
+  if (!isAdmin && fechaCierre) {
+    let partes = fechaCierre.split('/');
+    let dCierre;
+    if (partes.length === 3) {
+      dCierre = new Date(partes[2], partes[1] - 1, partes[0]);
+    } else {
+      dCierre = new Date(fechaCierre);
+    }
+    if (!isNaN(dCierre.getTime()) && new Date() > dCierre) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "error",
+        message: "El periodo de edición ha cerrado. Solo el administrador puede modificar registros."
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  // --- LOCALIZAR FILA por clave compuesta ---
+  const sEv = getSheet(ss, S_EVALUACIONES);
+  if (!sEv) return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Hoja Evaluaciones no encontrada." })).setMimeType(ContentService.MimeType.JSON);
+
+  const d        = sEv.getDataRange().getValues();
+  const parcial  = normalizeParcial(body.parcial);
+  const equipoId = String(body.equipoId || "");
+  const materia  = normalizeText(body.materia || "");
+  const alumno   = String(body.alumno || "").trim();
+
+  let rowFound = -1;
+  for (let i = 1; i < d.length; i++) {
+    if (
+      normalizeParcial(d[i][1])       === parcial  &&
+      String(d[i][3])                  === equipoId &&
+      normalizeText(d[i][5] || "")    === materia  &&
+      String(d[i][9] || "").trim()    === alumno
+    ) {
+      // Docentes solo pueden editar sus propias filas
+      if (!isAdmin && normalizeText(d[i][10] || "") !== userEmail) {
+        return ContentService.createTextOutput(JSON.stringify({
+          status: "error", message: "No puedes editar registros de otra persona."
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+      rowFound = i;
+      break;
+    }
+  }
+
+  if (rowFound === -1) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error", message: "Registro no encontrado. Verifica los filtros."
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  const puntajeAnterior = d[rowFound][7];
+  const obsAnterior     = String(d[rowFound][8] || "");
+  const nuevoPuntaje    = parseFloat(body.nuevoPuntaje);
+  const nuevaObs        = String(body.nuevaObs || "").trim();
+  const motivo          = String(body.motivo || "Sin motivo especificado").trim();
+
+  if (isNaN(nuevoPuntaje) || nuevoPuntaje < 0 || nuevoPuntaje > 10) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error", message: "El nuevo puntaje debe ser un número entre 0 y 10."
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // --- ACTUALIZAR FILA ---
+  sEv.getRange(rowFound + 1, 8).setValue(nuevoPuntaje);           // Col H: puntaje
+  if (nuevaObs !== "") sEv.getRange(rowFound + 1, 9).setValue(nuevaObs); // Col I: observaciones
+
+  // --- REGISTRAR EN BITÁCORA ---
+  let sBit = getSheet(ss, S_BITACORA);
+  if (!sBit) {
+    sBit = ss.insertSheet(S_BITACORA);
+    sBit.appendRow([
+      "Fecha Cambio", "Usuario Email", "Parcial", "Equipo ID", "Equipo Nombre",
+      "Materia", "Alumno", "Puntaje Anterior", "Puntaje Nuevo",
+      "Obs Anterior", "Obs Nueva", "Motivo"
+    ]);
+    sBit.getRange(1, 1, 1, 12).setBackground('#fef3c7').setFontWeight('bold');
+  }
+  sBit.appendRow([
+    new Date(),
+    userEmail,
+    body.parcial,
+    body.equipoId,
+    String(body.equipoNombre || ""),
+    body.materia,
+    body.alumno,
+    puntajeAnterior,
+    nuevoPuntaje,
+    obsAnterior,
+    nuevaObs,
+    motivo
+  ]);
+
+  return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
+    .setMimeType(ContentService.MimeType.JSON);
 }

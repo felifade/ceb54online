@@ -106,6 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (view === 'directorio') await window.initDirectorioV2();
         if (view === 'rapida') await initVistaRapida();
         if (view === 'auditoria' && window.initAuditoriaView) await window.initAuditoriaView();
+        if (view === 'edicion'   && window.initEdicionView)  await window.initEdicionView();
     };
 
     /* =======================================
