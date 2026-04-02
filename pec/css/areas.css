@@ -1,0 +1,291 @@
+/* pec/css/areas.css */
+
+.area-layout {
+    max-width: 1000px;
+    margin: 3rem auto;
+    padding: 0 1.5rem;
+}
+
+.area-header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: white;
+    padding: 3rem 2rem;
+    border-radius: 24px;
+    margin-bottom: 3rem;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.area-header::after {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 200px;
+    height: 200px;
+    background: rgba(56,132,192,0.1);
+    border-radius: 50%;
+}
+
+.area-badge {
+    background: rgba(56,132,192,0.2);
+    color: #93c5fd;
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: inline-block;
+    margin-bottom: 1rem;
+}
+
+.area-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.area-subtitle {
+    opacity: 0.8;
+    font-size: 1.1rem;
+    line-height: 1.4;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    background: white;
+    color: #1e293b;
+    border-radius: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1.5px solid #e2e8f0;
+}
+
+.btn-back:hover {
+    background: #f8fafc;
+    transform: translateX(-4px);
+    border-color: #cbd5e1;
+}
+
+.section-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.04);
+    border: 1px solid #f1f5f9;
+}
+
+.section-head {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1.5px dashed #e2e8f0;
+}
+
+.section-icon {
+    width: 48px;
+    height: 48px;
+    background: #eff6ff;
+    color: #2563eb;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.section-name {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+/* ══ OPCIÓN A: Tarjetas Elegantes ══ */
+.funciones-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+}
+
+.funcion-item {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.25rem 1.5rem;
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.funcion-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(0,0,0,0.05);
+    border-color: #e2e8f0;
+}
+
+.funcion-icon-mini {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    background: #f8fafc;
+    color: #64748b;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.funcion-item:hover .funcion-icon-mini {
+    background: #0f172a;
+    color: #ffffff;
+}
+
+.funcion-icon-mini i {
+    width: 18px;
+    height: 18px;
+}
+
+.funcion-text {
+    color: #334155;
+    font-size: 1rem;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+/* ══ Academia/Reuniones ══ */
+.reunion-card {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    position: relative;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border-radius: 16px;
+}
+
+.reunion-index {
+    width: 36px;
+    height: 36px;
+    background: #0f172a;
+    color: white;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.reunion-info h4 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.2rem;
+    color: #1e293b;
+    margin-bottom: 0.4rem;
+}
+
+.reunion-meta {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+}
+
+.reunion-info p {
+    color: #475569;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* ══ Documentos ══ */
+.docs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.doc-card {
+    background: #ffffff;
+    border: 1.5px solid #f1f5f9;
+    border-radius: 18px;
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    transition: all 0.3s;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+}
+
+.doc-card:hover {
+    border-color: #ef4444;
+    transform: translateY(-3px);
+    box-shadow: 0 12px 20px -8px rgba(239, 68, 68, 0.1);
+}
+
+.doc-icon-wrap {
+    width: 44px;
+    height: 44px;
+    background: #fee2e2;
+    color: #ef4444;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.doc-body h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.15rem;
+    margin-bottom: 0.5rem;
+    color: #0f172a;
+}
+
+.doc-body p {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+}
+
+.btn-doc {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 700;
+    color: #ef4444;
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-top: auto;
+    transition: gap 0.2s;
+}
+
+.btn-doc:hover {
+    gap: 0.8rem;
+    text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+    .area-title { font-size: 1.85rem; }
+    .section-card { padding: 1.5rem; }
+    .area-header { padding: 2rem 1.5rem; }
+}

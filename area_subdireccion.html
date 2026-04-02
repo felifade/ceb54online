@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subdirección | CEB 5/4</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="pec/css/areas.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body style="background-color: #f1f5f9; font-family: 'Inter', sans-serif;">
+
+    <div class="area-layout">
+        <a href="acceso.html" class="btn-back">
+            <i data-lucide="arrow-left"></i> Regresar a Comunidad
+        </a>
+
+        <header class="area-header" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
+            <span class="area-badge">Área Institucional</span>
+            <h1 class="area-title">Subdirección</h1>
+            <p class="area-subtitle">Gestión Académica y Coordinación de Servicios Docentes</p>
+        </header>
+
+        <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
+            <!-- REUNIONES DE ACADEMIA -->
+            <section class="section-card">
+                <div class="section-head">
+                    <div class="section-icon" style="background: #eef2ff; color: #4338ca;"><i data-lucide="users"></i></div>
+                    <h2 class="section-name">Reuniones de Academia</h2>
+                </div>
+                <div id="reuniones-container" class="reuniones-list">
+                    <!-- Se llena desde app_areas.js -->
+                    <p style="color: #64748b;">Cargando reuniones...</p>
+                </div>
+            </section>
+
+            <!-- FUNCIONES -->
+            <section class="section-card">
+                <div class="section-head">
+                    <div class="section-icon"><i data-lucide="clipboard-list"></i></div>
+                    <h2 class="section-name">Funciones del Área</h2>
+                </div>
+                <div id="funciones-container" class="funciones-grid">
+                    <p style="color: #64748b;">Cargando funciones...</p>
+                </div>
+            </section>
+
+            <!-- DOCUMENTOS -->
+            <section class="section-card">
+                <div class="section-head">
+                    <div class="section-icon" style="background: #fee2e2; color: #ef4444;"><i data-lucide="file-text"></i></div>
+                    <h2 class="section-name">Documentos de Subdirección</h2>
+                </div>
+                <div id="documentos-container" class="docs-grid">
+                    <!-- Se llena desde app_areas.js -->
+                    <p style="color: #64748b;">Cargando documentos...</p>
+                </div>
+            </section>
+        </div>
+
+        <footer style="text-align: center; margin-top: 4rem; padding-bottom: 3rem; color: #94a3b8; font-size: 0.85rem;">
+            <p>&copy; 2026 Centro de Estudios de Bachillerato 5/4 "Profr. Rafael Ramírez"</p>
+        </footer>
+    </div>
+
+    <script src="pec/js/app_areas.js"></script>
+</body>
+</html>
