@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Tutorías | CEB 5/4</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="js/auth.js"></script>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="logo-area">
+            <div style="background: var(--clr-primary); color: white; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800;">T</div>
+            <span class="logo-text">TUTORÍAS</span>
+        </div>
+        <nav class="nav-menu">
+            <div class="nav-item">
+                <a href="#" class="nav-link active" data-view="dashboard">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#" class="nav-link" data-view="captura">
+                    <i data-lucide="user-plus"></i>
+                    <span>Registrar Sesión</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#" class="nav-link" data-view="historial">
+                    <i data-lucide="clipboard-list"></i>
+                    <span>Historial</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#" class="nav-link" data-view="reporte">
+                    <i data-lucide="printer"></i>
+                    <span>Generar Reporte</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#" class="nav-link" data-view="encuesta">
+                    <i data-lucide="star"></i>
+                    <span>Opinión Estudiantil</span>
+                </a>
+            </div>
+            <div class="nav-item" style="margin-top: 2rem; border-top: 1px solid #f1f5f9; padding-top: 1rem;">
+                <a href="#" class="nav-link" onclick="logout()" style="color: var(--clr-danger);">
+                    <i data-lucide="log-out"></i>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </div>
+        </nav>
+        <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid #f1f5f9;">
+            <a href="../index.html" class="nav-link" style="color: var(--clr-text-light);">
+                <i data-lucide="arrow-left"></i>
+                <span>Volver al Portal</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Overlay para cerrar sidebar en móvil -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-header">
+            <div style="display:flex; align-items:center; gap:0.75rem;">
+                <button id="btn-sidebar-toggle" class="btn-hamburger" aria-label="Menú">
+                    <span></span><span></span><span></span>
+                </button>
+                <div>
+                    <h1 id="view-title" class="view-title">Dashboard de Tutorías</h1>
+                    <p style="color: var(--clr-text-light); font-size: 0.875rem; margin-top: 0.25rem;" id="current-date"></p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <span id="user-name" style="font-weight: 600; font-size: 0.9rem;">Cargando...</span>
+                <div id="user-initials" style="width: 40px; height: 40px; background: #e0f2fe; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #0369a1; font-weight: 700;">??</div>
+            </div>
+        </header>
+
+        <!-- VISTA 1: DASHBOARD -->
+        <section id="view-dashboard" class="view">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #ecfdf5; color: #059669;"><i data-lucide="users"></i></div>
+                    <div class="stat-info">
+                        <span id="stat-total" class="stat-value">0</span>
+                        <span class="stat-label">Total Tutorías</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #eff6ff; color: #2563eb;"><i data-lucide="user"></i></div>
+                    <div class="stat-info">
+                        <span id="stat-individual" class="stat-value">0</span>
+                        <span class="stat-label">Individuales</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #fdf2f8; color: #db2777;"><i data-lucide="users-2"></i></div>
+                    <div class="stat-info">
+                        <span id="stat-grupal" class="stat-value">0</span>
+                        <span class="stat-label">Grupales</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #f7fee7; color: #4d7c0f;"><i data-lucide="venus-mars"></i></div>
+                    <div class="stat-info">
+                        <div style="display:flex; gap:1rem;">
+                            <div><span id="stat-hombres" style="font-weight:800; color:#1e293b;">0</span> <small style="color:#64748b;">H</small></div>
+                            <div><span id="stat-mujeres" style="font-weight:800; color:#1e293b;">0</span> <small style="color:#64748b;">M</small></div>
+                        </div>
+                        <span class="stat-label">Por Sexo</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: white; padding: 2rem; border-radius: var(--radius-lg); border: 1px solid #f1f5f9;">
+                <h3 style="margin-bottom: 1.5rem;">Últimas Actividades</h3>
+                <div id="recent-activity-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <!-- Actividades dinámicas -->
+                    <p style="color: var(--clr-text-light); text-align: center; padding: 2rem;">No hay registros recientes.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA 2: CAPTURA -->
+        <section id="view-captura" class="view hidden">
+            <form id="form-tutoria" class="capture-form">
+
+                <!-- TARJETA 1: PARCIAL -->
+                <div class="cap-card">
+                    <div class="cap-card-head">
+                        <div class="cap-icon" style="background:#fff7ed; color:#f59e0b;">
+                            <i data-lucide="calendar" style="width:18px;height:18px;"></i>
+                        </div>
+                        <div>
+                            <div class="cap-title">Parcial</div>
+                            <div class="cap-sub">¿A qué parcial corresponde esta sesión?</div>
+                        </div>
+                    </div>
+                    <div class="parcial-grid">
+                        <label class="parcial-card p1">
+                            <input type="radio" name="parcial" value="1" checked>
+                            <span class="parcial-num">1°</span>
+                            <span class="parcial-lbl">Primer Parcial</span>
+                        </label>
+                        <label class="parcial-card p2">
+                            <input type="radio" name="parcial" value="2">
+                            <span class="parcial-num">2°</span>
+                            <span class="parcial-lbl">Segundo Parcial</span>
+                        </label>
+                        <label class="parcial-card p3">
+                            <input type="radio" name="parcial" value="3">
+                            <span class="parcial-num">3°</span>
+                            <span class="parcial-lbl">Tercer Parcial</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- TARJETA 2: MATERIA Y GRUPO -->
+                <div class="cap-card">
+                    <div class="cap-card-head">
+                        <div class="cap-icon" style="background:#ecfdf5; color:#059669;">
+                            <i data-lucide="book-open" style="width:18px;height:18px;"></i>
+                        </div>
+                        <div>
+                            <div class="cap-title">Contexto</div>
+                            <div class="cap-sub">Materia y grupo de la sesión</div>
+                        </div>
+                    </div>
+                    <div class="cap-row-2">
+                        <div class="cap-field">
+                            <label>Asignatura / Materia <span class="req">*</span></label>
+                            <select name="asignatura" id="select-asignatura" required>
+                                <option value="">Selecciona una materia...</option>
+                            </select>
+                        </div>
+                        <div class="cap-field">
+                            <label>Grupo</label>
+                            <input type="text" name="grupo" id="input-grupo" placeholder="Ej: 210, 401..." autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TARJETA 3: ALUMNOS -->
+                <div class="cap-card">
+                    <div class="cap-card-head">
+                        <div class="cap-icon" style="background:#eff6ff; color:#3b82f6;">
+                            <i data-lucide="users" style="width:18px;height:18px;"></i>
+                        </div>
+                        <div style="flex:1;">
+                            <div class="cap-title">
+                                Alumnos
+                                <span id="selected-count-badge" class="count-badge" style="display:none;">0</span>
+                            </div>
+                            <div class="cap-sub">Busca por grupo o nombre — el género se detecta automáticamente</div>
+                        </div>
+                        <button type="button" id="btn-select-all" class="btn-sel-all" style="display:none;">Sel. todos</button>
+                    </div>
+
+                    <div class="search-bar-wrap">
+                        <div class="search-field">
+                            <i data-lucide="search" class="search-ico"></i>
+                            <input type="text" id="input-search-name" placeholder="Buscar alumno por nombre (mín. 3 letras)..." autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="manual-row">
+                        <i data-lucide="user-plus" class="manual-ico"></i>
+                        <input type="text" id="manual-name" placeholder="Añadir manualmente: nombre completo..." autocomplete="off">
+                        <button type="button" id="btn-manual-sex" class="sexo-toggle-btn sexo-H" data-sexo="H" title="Clic para cambiar género">H</button>
+                        <button type="button" id="btn-add-manual-direct" class="btn-add-manual">
+                            <i data-lucide="plus" style="width:14px;height:14px;"></i> Añadir
+                        </button>
+                    </div>
+                    <select id="manual-sex" style="display:none;"><option value="H">H</option><option value="F">F</option></select>
+
+                    <div id="students-checkbox-list" class="students-list">
+                        <div class="students-empty">
+                            <i data-lucide="user-search" style="width:36px;height:36px;color:#cbd5e1;"></i>
+                            <p>Ingresa el número de grupo o busca por nombre</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TARJETA 4: DETALLES -->
+                <div class="cap-card">
+                    <div class="cap-card-head">
+                        <div class="cap-icon" style="background:#f5f3ff; color:#7c3aed;">
+                            <i data-lucide="sliders-horizontal" style="width:18px;height:18px;"></i>
+                        </div>
+                        <div>
+                            <div class="cap-title">Detalles</div>
+                            <div class="cap-sub">Tipo, modalidad, asistencia y tema</div>
+                        </div>
+                    </div>
+
+                    <div class="details-grid">
+                        <div class="cap-field">
+                            <label>Tipo de alumno</label>
+                            <div class="option-cards">
+                                <label class="opt-card">
+                                    <input type="radio" name="alumno_tipo" value="regular" checked>
+                                    <i data-lucide="user-check" style="width:22px;height:22px;"></i>
+                                    <span>Regular</span>
+                                </label>
+                                <label class="opt-card">
+                                    <input type="radio" name="alumno_tipo" value="intra">
+                                    <i data-lucide="building-2" style="width:22px;height:22px;"></i>
+                                    <span>Intra</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="cap-field">
+                            <label>Modalidad</label>
+                            <div class="option-cards">
+                                <label class="opt-card">
+                                    <input type="radio" name="tutoria_tipo" value="individual" checked>
+                                    <i data-lucide="user" style="width:22px;height:22px;"></i>
+                                    <span>Individual</span>
+                                </label>
+                                <label class="opt-card">
+                                    <input type="radio" name="tutoria_tipo" value="grupal">
+                                    <i data-lucide="users" style="width:22px;height:22px;"></i>
+                                    <span>Grupal</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="cap-field asistencia-field">
+                            <label>Asistencia</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="check-asistencia" checked>
+                                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                <span class="toggle-label">El alumno asistió</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="cap-field" style="margin-top:1.25rem;">
+                        <label>Tema / Asunto de la sesión</label>
+                        <textarea name="tema" rows="3" placeholder="Describe el motivo o los temas tratados en esta sesión de tutoría..."></textarea>
+                    </div>
+                </div>
+
+                <!-- ACCIÓN -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-submit">
+                        <i data-lucide="save" style="width:18px;height:18px;"></i>
+                        Guardar Tutoría
+                    </button>
+                </div>
+
+            </form>
+        </section>
+
+        <!-- VISTA 3: HISTORIAL -->
+        <section id="view-historial" class="view hidden">
+            <div id="admin-controls-historial" style="display:none; background:#f8fafc; padding:1.2rem; border-radius:12px; border:1px solid #e2e8f0; margin-bottom:1.5rem; flex-wrap:wrap; align-items:center; gap:1rem;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <i data-lucide="filter" style="width:18px; color:#059669;"></i>
+                    <span style="font-weight:700; font-size:0.9rem; color:#1e293b;">Filtrar por Docente:</span>
+                </div>
+                <select id="admin-teacher-select" style="max-width:350px; background:white;">
+                    <option value="all">-- Todos los Docentes (Global) --</option>
+                </select>
+            </div>
+
+            <div style="background: white; padding: 1rem; border-radius: var(--radius-lg); border: 1px solid #f1f5f9; overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; min-width: 900px;" id="table-historial">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #f1f5f9; text-align: left;">
+                            <th style="padding: 1rem;">Fecha</th>
+                            <th style="padding: 1rem;">Parcial</th>
+                            <th style="padding: 1rem;">Grupo</th>
+                            <th style="padding: 1rem;">Estudiante</th>
+                            <th class="admin-only-col" style="padding: 1rem; display:none;">Docente</th>
+                            <th style="padding: 1rem;">Materia</th>
+                            <th style="padding: 1rem; text-align: center;">Asis.</th>
+                            <th style="padding: 1rem;">Tipo</th>
+                            <th style="padding: 1rem;">Tema</th>
+                            <th style="padding: 1rem;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historial-tbody">
+                        <!-- Registros dinámicos -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- VISTA 4: REPORTE -->
+        <section id="view-reporte" class="view hidden">
+            <div style="background: white; padding: 2rem; border-radius: var(--radius-md); box-shadow: var(--shadow-md); margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h3>Vista Previa del Reporte Oficial</h3>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <!-- Filtro Admin (Solo visible en JS por Admin) -->
+                        <div id="admin-report-filter" style="display:none; align-items:center; gap:8px;">
+                            <span style="font-size:0.75rem; font-weight:700; color:#64748b;">DOCENTE:</span>
+                            <select id="report-teacher-select" style="width: 250px; font-size:0.8rem;"></select>
+                        </div>
+
+                        <select id="report-parcial-filter" style="width: 150px;">
+                            <option value="1">Primer Parcial</option>
+                            <option value="2">Segundo Parcial</option>
+                            <option value="3">Tercer Parcial</option>
+                        </select>
+                        <button onclick="window.print()" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-lucide="printer"></i> Imprimir PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Reporte Estilo Excel -->
+                <div id="report-print-area" style="background: white; padding: 1rem; color: #000; border: 1px solid #000;">
+                    <div style="text-align: center; font-weight: 800; font-size: 1.25rem; text-transform: uppercase;">
+                        Reporte de Área de Tutorías
+                    </div>
+                    <div id="report-period" style="text-align: center; font-weight: 600; margin-bottom: 1rem;">
+                        SEMESTRE FEBRERO-JULIO 2026
+                    </div>
+                    <div style="border: 2px solid blue; padding: 5px; text-align: center; font-weight: 800; margin-bottom: 1.5rem; color: blue;">
+                        NOMBRE DEL DOCENTE: <span id="report-teacher-name">...</span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                        <!-- Tabla Resumen -->
+                        <table style="width: 100%; border: 1px solid #000; font-size: 0.8rem; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #e2e8f0;">
+                                    <th style="border: 1px solid #000; padding: 4px;">Parciales</th>
+                                    <th style="border: 1px solid #000; padding: 4px;">Hombres</th>
+                                    <th style="border: 1px solid #000; padding: 4px;">Mujeres</th>
+                                    <th style="border: 1px solid #000; padding: 4px;">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 4px;">Primer parcial</td>
+                                    <td id="rep-p1-h" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                    <td id="rep-p1-m" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                    <td id="rep-p1-t" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 4px;">Segundo parcial</td>
+                                    <td id="rep-p2-h" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                    <td id="rep-p2-m" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                    <td id="rep-p2-t" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 4px;">Tercer parcial</td>
+                                    <td id="rep-p3-h" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                    <td id="rep-p3-m" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                    <td id="rep-p3-t" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <table style="width: 100%; border: 1px solid #000; font-size: 0.8rem; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #e2e8f0;">
+                                    <th style="border: 1px solid #000; padding: 4px;">Categoría</th>
+                                    <th style="border: 1px solid #000; padding: 4px;">Parcial 1</th>
+                                    <th style="border: 1px solid #000; padding: 4px;">Parcial 2</th>
+                                    <th style="border: 1px solid #000; padding: 4px;">Parcial 3</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 4px;">Tutoría Grupal</td>
+                                    <td id="rep-g-p1" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                    <td id="rep-g-p2" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                    <td id="rep-g-p3" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 4px;">Tutoría Individual</td>
+                                    <td id="rep-i-p1" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                    <td id="rep-i-p2" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                    <td id="rep-i-p3" style="border: 1px solid #000; padding: 4px; text-align:center;">0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <table id="report-data-table" style="width: 100%; border-collapse: collapse; font-size: 0.75rem;">
+                        <thead>
+                            <tr style="background: #bae6fd; font-weight:bold;">
+                                <td style="border: 1px solid #000; padding: 4px;">Grupo</td>
+                                <td style="border: 1px solid #000; padding: 4px;">Nombre del Estudiante</td>
+                                <td style="border: 1px solid #000; padding: 4px;">Sexo</td>
+                                <td style="border: 1px solid #000; padding: 4px;">Asignatura</td>
+                                <td style="border: 1px solid #000; padding: 4px; text-align:center;">Asis.</td>
+                                <td style="border: 1px solid #000; padding: 4px;">T. Grupal</td>
+                                <td style="border: 1px solid #000; padding: 4px;">T. Individual</td>
+                                <td style="border: 1px solid #000; padding: 4px;">Fecha</td>
+                            </tr>
+                        </thead>
+                        <tbody id="report-tbody">
+                            <!-- Datos del reporte filtrado -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA 5: ENCUESTA (RESULTADOS DOCENTE) -->
+        <section id="view-encuesta" class="view hidden">
+            <div id="encuesta-local-banner" style="display:none; background:#fff7ed; border:1px solid #fed7aa; padding:12px; border-radius:12px; margin-bottom:1.5rem; color:#9a3412; font-size:0.85rem;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <i data-lucide="alert-triangle" style="width:16px;"></i>
+                    <span><strong>Modo de Prueba:</strong> No has iniciado sesión real. Usa el selector abajo para simular a un docente.</span>
+                </div>
+            </div>
+
+            <!-- PANEL ADMINISTRATIVO (CONTEXTO GLOBAL) -->
+            <div id="encuesta-admin-dashboard" style="display:none; margin-bottom: 2rem;">
+                <!-- KPIs Globales Institucionales -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="background:#065f46; color:white; padding:1rem; border-radius:16px; text-align:center; box-shadow: var(--shadow-sm);">
+                        <div style="font-size:0.65rem; font-weight:800; opacity:0.8; text-transform:uppercase;">Media Institucional</div>
+                        <div id="encuesta-kpi-global" style="font-size:1.5rem; font-weight:800;">0.0</div>
+                    </div>
+                    <div style="background:white; padding:1rem; border-radius:16px; text-align:center; border:1px solid #e2e8f0;">
+                        <div style="font-size:0.65rem; color:#64748b; font-weight:800; text-transform:uppercase;">Claridad</div>
+                        <div id="encuesta-kpi-c1" style="font-size:1.2rem; font-weight:800; color:#065f46;">0.0</div>
+                    </div>
+                    <div style="background:white; padding:1rem; border-radius:16px; text-align:center; border:1px solid #e2e8f0;">
+                        <div style="font-size:0.65rem; color:#64748b; font-weight:800; text-transform:uppercase;">Respeto</div>
+                        <div id="encuesta-kpi-c2" style="font-size:1.2rem; font-weight:800; color:#065f46;">0.0</div>
+                    </div>
+                    <div style="background:white; padding:1rem; border-radius:16px; text-align:center; border:1px solid #e2e8f0;">
+                        <div style="font-size:0.65rem; color:#64748b; font-weight:800; text-transform:uppercase;">Dominio</div>
+                        <div id="encuesta-kpi-c3" style="font-size:1.2rem; font-weight:800; color:#065f46;">0.0</div>
+                    </div>
+                    <div style="background:white; padding:1rem; border-radius:16px; text-align:center; border:1px solid #e2e8f0;">
+                        <div style="font-size:0.65rem; color:#64748b; font-weight:800; text-transform:uppercase;">Organización</div>
+                        <div id="encuesta-kpi-c4" style="font-size:1.2rem; font-weight:800; color:#065f46;">0.0</div>
+                    </div>
+                </div>
+
+                <!-- Selector de Espejo para Admin -->
+                <div style="background:white; padding:1.2rem; border-radius:16px; border:1px solid #059669; display:flex; align-items:center; gap:15px; box-shadow: var(--shadow-md);">
+                    <div style="background:#ecfdf5; color:#059669; padding:10px; border-radius:12px;">
+                        <i data-lucide="users" style="width:20px;"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-size:0.75rem; font-weight:800; color:#065f46; margin-bottom:4px;">VISTA ESPEJO: SUPERVISIÓN INDIVIDUAL</div>
+                        <select id="encuesta-admin-mirror-select" style="width:100%; border:none; background:transparent; font-weight:700; color:#1e293b; cursor:pointer; font-size:1rem; padding:0;">
+                            <option value="global">-- Ver Promedio Global Institucional --</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DASHBOARD DE ESTRELLAS (VISTA PRINCIPAL) -->
+            <div id="encuesta-main-dashboard">
+                <div class="panel" style="margin-bottom: 2rem; border-left: 8px solid #059669; background: white; padding: 1.5rem; border-radius: 16px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h2 id="encuesta-teacher-name" style="margin:0; font-family:'Outfit', sans-serif;">Cargando Perfil...</h2>
+                        <p id="encuesta-subtitle" style="color:#64748b; font-size:0.875rem; margin-top:5px;">Evaluación Semestral Única (Basado en Retroalimentación Estudiantil)</p>
+                    </div>
+                    <div style="background:#f59e0b; color:white; padding:10px 20px; border-radius:12px; text-align:center;">
+                        <div style="font-size:0.7rem; font-weight:800; opacity:0.9;">PROMEDIO</div>
+                        <div id="encuesta-global-avg" style="font-size:1.8rem; font-weight:800; font-family:'Outfit', sans-serif;">0.0</div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div style="background:white; padding:1.5rem; border-radius:16px; border:1px solid #f1f5f9; text-align:center; box-shadow: var(--shadow-sm);">
+                        <h4 style="font-size:0.8rem; color:#64748b; text-transform:uppercase; margin-bottom:10px;">Claridad</h4>
+                        <div id="encuesta-val-c1" style="font-size:2rem; font-weight:800; margin-bottom:10px; color:#1e293b;">0.0</div>
+                        <div id="encuesta-stars-c1" style="display:flex; justify-content:center; gap:2px; color:#f59e0b; margin-bottom:10px;"></div>
+                        <div style="height:6px; background:#f1f5f9; border-radius:3px; overflow:hidden;"><div id="encuesta-bar-c1" style="height:100%; background:#059669; width:0%; transition:width 0.5s;"></div></div>
+                    </div>
+                    <div style="background:white; padding:1.5rem; border-radius:16px; border:1px solid #f1f5f9; text-align:center; box-shadow: var(--shadow-sm);">
+                        <h4 style="font-size:0.8rem; color:#64748b; text-transform:uppercase; margin-bottom:10px;">Respeto</h4>
+                        <div id="encuesta-val-c2" style="font-size:2rem; font-weight:800; margin-bottom:10px; color:#1e293b;">0.0</div>
+                        <div id="encuesta-stars-c2" style="display:flex; justify-content:center; gap:2px; color:#f59e0b; margin-bottom:10px;"></div>
+                        <div style="height:6px; background:#f1f5f9; border-radius:3px; overflow:hidden;"><div id="encuesta-bar-c2" style="height:100%; background:#059669; width:0%; transition:width 0.5s;"></div></div>
+                    </div>
+                    <div style="background:white; padding:1.5rem; border-radius:16px; border:1px solid #f1f5f9; text-align:center; box-shadow: var(--shadow-sm);">
+                        <h4 style="font-size:0.8rem; color:#64748b; text-transform:uppercase; margin-bottom:10px;">Dominio</h4>
+                        <div id="encuesta-val-c3" style="font-size:2rem; font-weight:800; margin-bottom:10px; color:#1e293b;">0.0</div>
+                        <div id="encuesta-stars-c3" style="display:flex; justify-content:center; gap:2px; color:#f59e0b; margin-bottom:10px;"></div>
+                        <div style="height:6px; background:#f1f5f9; border-radius:3px; overflow:hidden;"><div id="encuesta-bar-c3" style="height:100%; background:#059669; width:0%; transition:width 0.5s;"></div></div>
+                    </div>
+                    <div style="background:white; padding:1.5rem; border-radius:16px; border:1px solid #f1f5f9; text-align:center; box-shadow: var(--shadow-sm);">
+                        <h4 style="font-size:0.8rem; color:#64748b; text-transform:uppercase; margin-bottom:10px;">Organización</h4>
+                        <div id="encuesta-val-c4" style="font-size:2rem; font-weight:800; margin-bottom:10px; color:#1e293b;">0.0</div>
+                        <div id="encuesta-stars-c4" style="display:flex; justify-content:center; gap:2px; color:#f59e0b; margin-bottom:10px;"></div>
+                        <div style="height:6px; background:#f1f5f9; border-radius:3px; overflow:hidden;"><div id="encuesta-bar-c4" style="height:100%; background:#059669; width:0%; transition:width 0.5s;"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
+                <!-- Comentarios -->
+                <div style="background:white; padding:2rem; border-radius:16px; border:1px solid #f1f5f9;">
+                    <h3 style="margin-bottom:1.5rem; font-size:1.1rem; display:flex; align-items:center; gap:8px;">
+                        <i data-lucide="message-square" style="color:#059669;"></i> Comentarios Anónimos del Estudiante
+                    </h3>
+                    <div id="encuesta-comment-list" style="max-height:400px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding-right:10px;">
+                        <!-- Inyectado por JS -->
+                    </div>
+                </div>
+
+                <!-- Admin Global (Ranking & Leaderboard) -->
+                <div id="encuesta-admin-panel" style="display:none; background:white; padding:2rem; border-radius:16px; border:1px solid #f1f5f9; box-shadow: var(--shadow-sm);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                        <h3 style="margin:0; font-size:1.1rem; display:flex; align-items:center; gap:8px;">
+                            <i data-lucide="award" style="color:#f59e0b;"></i> Ranking de Desempeño Institucional
+                        </h3>
+                        <div style="font-size:0.75rem; color:#64748b;">Actualizado en tiempo real</div>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%; border-collapse:collapse; font-size:0.9rem;" id="encuesta-admin-table">
+                            <thead>
+                                <tr style="background:#f8fafc; text-align:left; border-bottom:2px solid #e2e8f0;">
+                                    <th style="padding:12px; border-radius:12px 0 0 12px;">Rank</th>
+                                    <th style="padding:12px;">Docente</th>
+                                    <th style="padding:12px; text-align:center;">Promedio</th>
+                                    <th style="padding:12px;">Desglose (C | R | D | O)</th>
+                                    <th style="padding:12px; border-radius:0 12px 12px 0;">Estatus</th>
+                                </tr>
+                            </thead>
+                            <tbody id="encuesta-admin-tbody">
+                                <!-- Generado por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Selector de Prueba (Local) -->
+                <div id="encuesta-test-selector" style="display:none; background:#f8fafc; border:2px dashed #059669; padding:2rem; border-radius:16px; text-align:center;">
+                    <label style="display:block; font-weight:800; margin-bottom:15px; color:#065f46;">SIMULADOR DE DOCENTE (MODO PRUEBA)</label>
+                    <select id="encuesta-debug-select" style="padding:12px; width:100%; max-width:400px; border-radius:12px; border:1px solid #059669; background:white;">
+                        <option value="">-- Elige un nombre para probar reporte --</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal de Padres | CEB 5/4</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="css/portal.css">
+</head>
+<body>
+
+<!-- Loading -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner-ring"></div>
+  <div class="loading-text">Cargando información...</div>
+</div>
+
+<!-- Header -->
+<header class="portal-header blue">
+  <div class="header-brand">
+    <div class="header-badge" style="background:rgba(255,255,255,0.2);">PADRE/TUTOR</div>
+    <div>
+      <div class="header-name" id="h-nombre">—</div>
+      <div class="header-group" id="h-hijo">Alumno: —</div>
+    </div>
+  </div>
+  <div class="header-user">
+    <div class="header-avatar" id="h-avatar" style="background:rgba(255,255,255,0.2);">?</div>
+    <button class="btn-logout" onclick="logout()">
+      <i data-lucide="log-out"></i><span>Salir</span>
+    </button>
+  </div>
+</header>
+
+<main class="portal-main">
+
+  <!-- FECHAS -->
+  <div class="dates-banner">
+    <div class="date-chip captura">
+      <div class="date-chip-icon">
+        <i data-lucide="timer"></i>
+        <span class="date-chip-label">Límite de captura</span>
+      </div>
+      <div class="date-chip-value" id="fecha-captura">Cargando...</div>
+    </div>
+    <div class="date-chip aclaracion">
+      <div class="date-chip-icon">
+        <i data-lucide="message-circle-question"></i>
+        <span class="date-chip-label">Período de aclaraciones</span>
+      </div>
+      <div class="date-chip-value" id="fecha-aclaracion">Cargando...</div>
+    </div>
+    <div class="date-chip cierre">
+      <div class="date-chip-icon">
+        <i data-lucide="award"></i>
+        <span class="date-chip-label">Publicación final</span>
+      </div>
+      <div class="date-chip-value" id="fecha-cierre">Cargando...</div>
+    </div>
+  </div>
+
+  <!-- INFO HIJO + CALIFICACIÓN -->
+  <div class="section-header">
+    <div class="section-header-icon" style="background:#dbeafe;">
+      <i data-lucide="user-check" style="color:#1d4ed8;"></i>
+    </div>
+    <div>
+      <div class="section-title">Calificación PEC de <span id="hijo-nombre">tu hijo/a</span></div>
+      <div class="section-sub">Grupo <span id="hijo-grupo">—</span> · Escala 0 – 2 puntos por parcial</div>
+    </div>
+  </div>
+
+  <div class="grades-grid" id="grades-grid">
+    <div class="grade-card locked"><div class="locked-msg"><i data-lucide="lock"></i><span>Cargando...</span></div></div>
+    <div class="grade-card locked"><div class="locked-msg"><i data-lucide="lock"></i><span>Cargando...</span></div></div>
+    <div class="grade-card locked"><div class="locked-msg"><i data-lucide="lock"></i><span>Cargando...</span></div></div>
+  </div>
+
+  <!-- CUESTIONARIO PADRES — WIZARD 4 PASOS -->
+  <div class="section-header">
+    <div class="section-header-icon" style="background:#dbeafe;">
+      <i data-lucide="clipboard-list" style="color:#1d4ed8;"></i>
+    </div>
+    <div>
+      <div class="section-title">Evaluación Institucional</div>
+      <div class="section-sub">4 secciones · Tu opinión es confidencial y muy valiosa</div>
+    </div>
+  </div>
+
+  <div class="survey-card" id="survey-card">
+
+    <!-- Estado: ya enviado -->
+    <div class="survey-done" id="survey-done" style="display:none;">
+      <div class="survey-done-icon" style="background:#dbeafe;">
+        <i data-lucide="check-circle-2" style="color:#1d4ed8;"></i>
+      </div>
+      <h3>¡Gracias por tu participación!</h3>
+      <p>Tu evaluación fue registrada correctamente. Tu retroalimentación ayuda a mejorar el plantel para todos.</p>
+    </div>
+
+    <!-- Formulario wizard -->
+    <div id="survey-form">
+      <div class="survey-head">
+        <h3>Cuestionario para Padres y Tutores</h3>
+        <p>Escala: 1 (Muy deficiente) — 5 (Excelente) · Responde con sinceridad</p>
+      </div>
+
+      <!-- Barra de progreso -->
+      <div class="survey-progress">
+        <div class="progress-steps">
+          <div class="progress-step active"  id="prog-1"></div>
+          <div class="progress-step"         id="prog-2"></div>
+          <div class="progress-step"         id="prog-3"></div>
+          <div class="progress-step"         id="prog-4"></div>
+        </div>
+        <div class="progress-label">
+          Sección <span id="prog-current">1</span> de 4 — <span id="prog-name">Institución</span>
+        </div>
+      </div>
+
+      <!-- PASO 1: Institución -->
+      <div class="survey-step active" id="step-1">
+        <div class="step-title" style="color:#059669;">
+          <i data-lucide="building-2"></i> A. Institución / Plantel
+        </div>
+      </div>
+
+      <!-- PASO 2: Director -->
+      <div class="survey-step" id="step-2">
+        <div class="step-title" style="color:#1d4ed8;">
+          <i data-lucide="briefcase"></i> B. Director/a — <span id="nombre-director">Director General</span>
+        </div>
+      </div>
+
+      <!-- PASO 3: Subdirector -->
+      <div class="survey-step" id="step-3">
+        <div class="step-title" style="color:#7c3aed;">
+          <i data-lucide="user-cog"></i> C. Subdirector/a — <span id="nombre-subdirector">Subdirector Académico</span>
+        </div>
+      </div>
+
+      <!-- PASO 4: General -->
+      <div class="survey-step" id="step-4">
+        <div class="step-title" style="color:#d97706;">
+          <i data-lucide="star"></i> D. Evaluación General
+        </div>
+      </div>
+
+      <!-- Navegación -->
+      <div class="survey-nav">
+        <button class="btn-back" id="btn-back" onclick="prevStep()" disabled>
+          <i data-lucide="arrow-left"></i> Anterior
+        </button>
+        <button class="btn-next" id="btn-next" onclick="nextStep()">
+          Siguiente <i data-lucide="arrow-right"></i>
+        </button>
+        <button class="btn-send" id="btn-send" style="display:none;" onclick="enviarEncuesta()">
+          <i data-lucide="send"></i> Enviar evaluación
+        </button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script src="js/portal-api.js"></script>
+<script src="js/padre.js"></script>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Estudiantil | CEB 5/4</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="css/portal.css">
+</head>
+<body>
+
+<div class="login-page">
+  <div class="login-card">
+
+    <!-- Cabecera -->
+    <div class="login-header">
+      <div class="login-logo">
+        <i data-lucide="school" style="width:32px;height:32px;color:white;"></i>
+      </div>
+      <div class="login-title">Portal Estudiantil</div>
+      <div class="login-subtitle">Centro de Estudios de Bachillerato 5/4</div>
+    </div>
+
+    <!-- Cuerpo -->
+    <div class="login-body">
+
+      <!-- Error -->
+      <div class="login-error" id="login-error">
+        <i data-lucide="alert-circle" style="width:16px;height:16px;flex-shrink:0;"></i>
+        <span id="login-error-text"></span>
+      </div>
+
+      <!-- Tabs de tipo de usuario -->
+      <div class="type-tabs">
+        <button class="type-tab active-alumno" id="tab-alumno" onclick="setTipo('alumno')">
+          <i data-lucide="graduation-cap" style="width:20px;height:20px;"></i>
+          Soy Alumno
+        </button>
+        <button class="type-tab" id="tab-padre" onclick="setTipo('padre')">
+          <i data-lucide="users" style="width:20px;height:20px;"></i>
+          Soy Padre/Tutor
+        </button>
+      </div>
+
+      <!-- Campo CURP (alumno) -->
+      <div id="field-alumno" class="login-field">
+        <label>CURP del alumno</label>
+        <div class="login-input-wrap">
+          <i data-lucide="fingerprint" style="width:18px;height:18px;"></i>
+          <input type="text" id="input-curp" class="login-input"
+            placeholder="LOSL940101HDFNRS09"
+            maxlength="18" autocomplete="off" autocorrect="off"
+            oninput="this.value=this.value.toUpperCase()"
+            onkeydown="if(event.key==='Enter') doLogin()">
+        </div>
+        <p class="login-hint">
+          <i data-lucide="info" style="width:12px;height:12px;"></i>
+          18 caracteres · Sin espacios · Puedes encontrarlo en tu credencial escolar
+        </p>
+      </div>
+
+      <!-- Campo Folio (padre) -->
+      <div id="field-padre" class="login-field" style="display:none;">
+        <label>Folio de padre/tutor</label>
+        <div class="login-input-wrap">
+          <i data-lucide="hash" style="width:18px;height:18px;"></i>
+          <input type="text" id="input-folio" class="login-input blue"
+            placeholder="Ej: PAD-2026-001"
+            maxlength="20" autocomplete="off"
+            oninput="this.value=this.value.toUpperCase()"
+            onkeydown="if(event.key==='Enter') doLogin()">
+        </div>
+        <p class="login-hint">
+          <i data-lucide="info" style="width:12px;height:12px;"></i>
+          Folio entregado por Control Escolar al inicio del ciclo
+        </p>
+      </div>
+
+      <!-- Botón -->
+      <button class="login-btn green" id="login-btn" onclick="doLogin()">
+        <i data-lucide="log-in" style="width:18px;height:18px;"></i>
+        <span id="login-btn-text">Ingresar al Portal</span>
+      </button>
+
+      <!-- Qué puedo ver -->
+      <div class="access-chips" id="chips-alumno">
+        <div class="access-chip">
+          <i data-lucide="check-circle-2" style="color:#059669;"></i>
+          Ver mis calificaciones PEC por parcial
+        </div>
+        <div class="access-chip">
+          <i data-lucide="check-circle-2" style="color:#059669;"></i>
+          Participar en el cuestionario de evaluación
+        </div>
+        <div class="access-chip">
+          <i data-lucide="check-circle-2" style="color:#059669;"></i>
+          Consultar fechas importantes del ciclo
+        </div>
+      </div>
+
+      <div class="access-chips" id="chips-padre" style="display:none;">
+        <div class="access-chip">
+          <i data-lucide="check-circle-2" style="color:#1d4ed8;"></i>
+          Ver calificación PEC de tu hijo/a
+        </div>
+        <div class="access-chip">
+          <i data-lucide="check-circle-2" style="color:#1d4ed8;"></i>
+          Evaluar institución, director y subdirector
+        </div>
+        <div class="access-chip">
+          <i data-lucide="check-circle-2" style="color:#1d4ed8;"></i>
+          Consultar fechas de aclaración y cierre
+        </div>
+      </div>
+
+    </div><!-- /login-body -->
+
+    <div class="login-footer">
+      Portal confidencial &nbsp;·&nbsp; CEB 5/4 &nbsp;·&nbsp;
+      <a href="../index.html" style="color:#94a3b8;">Sitio Web</a>
+    </div>
+  </div><!-- /login-card -->
+</div>
+
+<!-- Loading -->
+<div class="loading-overlay hidden" id="loading">
+  <div class="spinner-ring"></div>
+  <div class="loading-text">Verificando acceso...</div>
+</div>
+
+<script src="js/portal-api.js"></script>
+<script>
+  let tipoActual = "alumno";
+
+  function setTipo(tipo) {
+    tipoActual = tipo;
+    const isAlu = tipo === "alumno";
+
+    document.getElementById("tab-alumno").className = "type-tab " + (isAlu ? "active-alumno" : "");
+    document.getElementById("tab-padre").className  = "type-tab " + (!isAlu ? "active-padre" : "");
+
+    document.getElementById("field-alumno").style.display = isAlu ? "block" : "none";
+    document.getElementById("field-padre").style.display  = isAlu ? "none" : "block";
+    document.getElementById("chips-alumno").style.display = isAlu ? "flex" : "none";
+    document.getElementById("chips-padre").style.display  = isAlu ? "none" : "flex";
+
+    const btn = document.getElementById("login-btn");
+    btn.className = "login-btn " + (isAlu ? "green" : "blue");
+
+    clearError();
+  }
+
+  function showError(msg) {
+    document.getElementById("login-error-text").textContent = msg;
+    document.getElementById("login-error").classList.add("show");
+  }
+  function clearError() {
+    document.getElementById("login-error").classList.remove("show");
+  }
+
+  async function doLogin() {
+    clearError();
+    const isAlu = tipoActual === "alumno";
+    const val   = isAlu
+      ? document.getElementById("input-curp").value.trim().toUpperCase()
+      : document.getElementById("input-folio").value.trim().toUpperCase();
+
+    if (!val) { showError(isAlu ? "Ingresa tu CURP" : "Ingresa tu folio"); return; }
+    if (isAlu && val.length < 10) { showError("El CURP debe tener 18 caracteres"); return; }
+
+    const btn = document.getElementById("login-btn");
+    const txt = document.getElementById("login-btn-text");
+    btn.disabled = true;
+    txt.textContent = "Verificando...";
+    document.getElementById("loading").classList.remove("hidden");
+
+    try {
+      const data = isAlu
+        ? await portalAPI.loginAlumno(val)
+        : await portalAPI.loginPadre(val);
+
+      if (data.status !== "success") { showError(data.message); return; }
+
+      portalSession.save(data);
+      window.location.href = isAlu ? "alumno.html" : "padre.html";
+
+    } catch(e) {
+      showError("Error de conexión. Intenta de nuevo.");
+    } finally {
+      btn.disabled = false;
+      txt.textContent = "Ingresar al Portal";
+      document.getElementById("loading").classList.add("hidden");
+    }
+  }
+
+  // Si ya hay sesión, redirigir
+  const s = portalSession.load();
+  if (s?.tipo === "alumno") window.location.href = "alumno.html";
+  if (s?.tipo === "padre")  window.location.href = "padre.html";
+
+  lucide.createIcons();
+</script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Alumno | CEB 5/4</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="css/portal.css">
+</head>
+<body>
+
+<!-- Loading -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner-ring"></div>
+  <div class="loading-text">Cargando tu información...</div>
+</div>
+
+<!-- Header -->
+<header class="portal-header green" id="header">
+  <div class="header-brand">
+    <div class="header-badge">ALUMNO</div>
+    <div>
+      <div class="header-name" id="h-nombre">—</div>
+      <div class="header-group" id="h-grupo">—</div>
+    </div>
+  </div>
+  <div class="header-user">
+    <div class="header-avatar" id="h-avatar">?</div>
+    <button class="btn-logout" onclick="logout()">
+      <i data-lucide="log-out"></i><span>Salir</span>
+    </button>
+  </div>
+</header>
+
+<main class="portal-main">
+
+  <!-- FECHAS -->
+  <div class="dates-banner" id="dates-banner">
+    <div class="date-chip captura">
+      <div class="date-chip-icon">
+        <i data-lucide="timer"></i>
+        <span class="date-chip-label">Límite de captura</span>
+      </div>
+      <div class="date-chip-value" id="fecha-captura">Cargando...</div>
+    </div>
+    <div class="date-chip aclaracion">
+      <div class="date-chip-icon">
+        <i data-lucide="message-circle-question"></i>
+        <span class="date-chip-label">Período de aclaraciones</span>
+      </div>
+      <div class="date-chip-value" id="fecha-aclaracion">Cargando...</div>
+    </div>
+    <div class="date-chip cierre">
+      <div class="date-chip-icon">
+        <i data-lucide="award"></i>
+        <span class="date-chip-label">Publicación final</span>
+      </div>
+      <div class="date-chip-value" id="fecha-cierre">Cargando...</div>
+    </div>
+  </div>
+
+  <!-- CALIFICACIONES PEC -->
+  <div class="section-header">
+    <div class="section-header-icon" style="background:#d1fae5;">
+      <i data-lucide="bar-chart-2" style="color:#059669;"></i>
+    </div>
+    <div>
+      <div class="section-title">Mis Calificaciones PEC</div>
+      <div class="section-sub">Evaluación por parcial · Escala 0 – 2 puntos</div>
+    </div>
+  </div>
+
+  <div class="grades-grid" id="grades-grid">
+    <!-- Se renderizan desde JS -->
+    <div class="grade-card locked"><div class="locked-msg"><i data-lucide="lock"></i><span>Cargando...</span></div></div>
+    <div class="grade-card locked"><div class="locked-msg"><i data-lucide="lock"></i><span>Cargando...</span></div></div>
+    <div class="grade-card locked"><div class="locked-msg"><i data-lucide="lock"></i><span>Cargando...</span></div></div>
+  </div>
+
+  <!-- EVALUACIÓN DOCENTES/DIRECTIVOS — visible solo cuando el admin lo activa -->
+  <div id="section-evaluacion-docentes" style="display:none">
+    <div class="section-header">
+      <div class="section-header-icon" style="background:#fef3c7;">
+        <i data-lucide="star" style="color:#d97706;"></i>
+      </div>
+      <div>
+        <div class="section-title">Evalúa a tus Docentes y Directivos</div>
+        <div class="section-sub">Accede directamente con tu información ya cargada</div>
+      </div>
+    </div>
+
+    <div id="encuesta-docentes-card" class="info-card" style="background:white; border-radius:20px; padding:1.5rem; margin-bottom:1.75rem; box-shadow:0 2px 8px rgba(0,0,0,.06); border:1px solid #f1f5f9; flex-direction:column; gap:1rem;">
+      <div style="display:flex; align-items:center; gap:1rem;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.6rem; flex:1;">
+          <a id="link-profesores" href="#" class="encuesta-quick-btn" style="background:linear-gradient(135deg,#ede9fe,#ddd6fe); border:1.5px solid #c4b5fd; border-radius:14px; padding:1.1rem; display:flex; flex-direction:column; align-items:center; gap:0.4rem; text-decoration:none; transition:all 0.2s;">
+            <i data-lucide="users" style="width:24px;height:24px;color:#7c3aed;"></i>
+            <span style="font-weight:800;font-size:0.88rem;color:#4c1d95;">Evaluar Profesores</span>
+            <span style="font-size:0.72rem;color:#7c3aed;">Tus materias del ciclo</span>
+          </a>
+          <a id="link-directivos" href="#" class="encuesta-quick-btn" style="background:linear-gradient(135deg,#fff7ed,#fef3c7); border:1.5px solid #fde68a; border-radius:14px; padding:1.1rem; display:flex; flex-direction:column; align-items:center; gap:0.4rem; text-decoration:none; transition:all 0.2s;">
+            <i data-lucide="briefcase" style="width:24px;height:24px;color:#d97706;"></i>
+            <span style="font-weight:800;font-size:0.88rem;color:#92400e;">Evaluar Directivos</span>
+            <span style="font-size:0.72rem;color:#d97706;">Director y Subdirector</span>
+          </a>
+        </div>
+      </div>
+      <p style="font-size:0.78rem;color:#94a3b8;display:flex;align-items:center;gap:0.4rem;margin:0;">
+        <i data-lucide="shield-check" style="width:13px;height:13px;"></i>
+        Tu identidad se transfiere automáticamente — no necesitas volver a identificarte
+      </p>
+    </div>
+  </div>
+
+  <!-- CUESTIONARIO PEC — visible solo cuando el admin lo activa, se muestra como ficha -->
+  <div id="section-pec-encuesta" style="display:none">
+    <div class="section-header">
+      <div class="section-header-icon" style="background:#ede9fe;">
+        <i data-lucide="clipboard-check" style="color:#7c3aed;"></i>
+      </div>
+      <div>
+        <div class="section-title">Cuestionario de Evaluación PEC</div>
+        <div class="section-sub">Tu opinión mejora el proceso educativo</div>
+      </div>
+    </div>
+
+    <div style="background:white; border-radius:20px; padding:1.5rem; margin-bottom:1.75rem; box-shadow:0 2px 8px rgba(0,0,0,.06); border:1px solid #f1f5f9;">
+      <a href="../pec/encuesta.html" style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;background:linear-gradient(135deg,#ede9fe,#ddd6fe);border:1.5px solid #c4b5fd;border-radius:14px;padding:1.4rem;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+        <i data-lucide="clipboard-list" style="width:28px;height:28px;color:#7c3aed;"></i>
+        <span style="font-weight:800;font-size:0.95rem;color:#4c1d95;">Responder Cuestionario PEC</span>
+        <span style="font-size:0.78rem;color:#7c3aed;text-align:center;">Evaluación del proceso educativo · Confidencial</span>
+      </a>
+      <p style="font-size:0.78rem;color:#94a3b8;display:flex;align-items:center;gap:0.4rem;margin:1rem 0 0;">
+        <i data-lucide="shield-check" style="width:13px;height:13px;"></i>
+        Tu participación es anónima y voluntaria
+      </p>
+    </div>
+  </div>
+
+</main>
+
+<script src="js/portal-api.js"></script>
+<script src="js/alumno.js"></script>
+</body>
+</html>

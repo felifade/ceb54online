@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Propuesta Nuevo Formulario | CEB 5/4</title>
+    <link rel="stylesheet" href="css/test_form_v1.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Estilos extra para el botón de sexo toggle e íconos */
+        .icon-box.emerald { background: #ecfdf5; color: #059669; }
+        .icon-box.sky { background: #f0f9ff; color: #0ea5e9; }
+        .icon-box.violet { background: #f5f3ff; color: #8b5cf6; }
+        .icon-box.amber { background: #fffbeb; color: #f59e0b; }
+        
+        .sexo-toggle-btn {
+            width: 44px; height: 44px; border-radius: 12px; border: 2.5px solid;
+            font-weight: 800; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .sexo-toggle-btn.sexo-H { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+        .sexo-toggle-btn.sexo-F { background: #fdf2f8; color: #be185d; border-color: #fbcfe8; }
+        
+        .manual-add-row { display: flex; gap: 0.75rem; align-items: center; margin-bottom: 1rem; }
+        .manual-name-input { flex: 1; border-radius: 12px; }
+    </style>
+</head>
+<body>
+    <div class="proposal-container">
+        <header>
+            <h1>Nuevo Registro de Tutoría</h1>
+            <p class="subtitle">Propuesta de interfaz intuitiva y elegante para docentes</p>
+        </header>
+
+        <form id="proposal-form">
+            <!-- TARJETA 1: PARCIAL -->
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon-box amber"><i data-lucide="calendar-days"></i></div>
+                    Período Escolar
+                </div>
+                <div class="parcial-grid">
+                    <label class="parcial-option">
+                        <input type="radio" name="parcial" value="1" checked>
+                        <div class="parcial-content">
+                            <span class="parcial-val">1°</span>
+                            <span class="subtitle">Parcial</span>
+                        </div>
+                    </label>
+                    <label class="parcial-option">
+                        <input type="radio" name="parcial" value="2">
+                        <div class="parcial-content">
+                            <span class="parcial-val">2°</span>
+                            <span class="subtitle">Parcial</span>
+                        </div>
+                    </label>
+                    <label class="parcial-option">
+                        <input type="radio" name="parcial" value="3">
+                        <div class="parcial-content">
+                            <span class="parcial-val">3°</span>
+                            <span class="subtitle">Parcial</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- TARJETA 2: DATOS GENERALES -->
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon-box emerald"><i data-lucide="book-open"></i></div>
+                    Contexto Académico
+                </div>
+                <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 1rem;">
+                    <div class="field-group">
+                        <label>Asignatura / Materia</label>
+                        <select name="asignatura" id="select-asignatura" required>
+                            <option value="">Cargando materias...</option>
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label>Grupo</label>
+                        <input type="text" name="grupo" placeholder="Ej: 210, 403" autocomplete="off">
+                    </div>
+                </div>
+            </div>
+
+            <!-- TARJETA 3: ALUMNO -->
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon-box sky"><i data-lucide="user-plus"></i></div>
+                    Identificación del Alumno
+                </div>
+                <div class="manual-add-row">
+                    <input type="text" id="manual-name" class="manual-name-input" placeholder="Nombre completo del alumno..." autocomplete="off" required>
+                    <button type="button" id="btn-manual-sex" class="sexo-toggle-btn sexo-H" data-sexo="H">H</button>
+                </div>
+                <p class="subtitle" style="font-size: 0.8rem; margin-top: -0.5rem; margin-bottom: 1rem;">Haz clic en 'H/F' para alternar el género del alumno.</p>
+                
+                <div class="field-group">
+                    <label>Tema / Asunto de la sesión</label>
+                    <textarea name="tema" rows="3" placeholder="Describe brevemente el motivo de la sesión..."></textarea>
+                </div>
+            </div>
+
+            <!-- TARJETA 4: ASISTENCIA (FIXED TOGGLE) -->
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon-box violet"><i data-lucide="check-circle-2"></i></div>
+                    Confirmación
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div class="toggle-text">Registro de Asistencia</div>
+                        <p class="subtitle" style="font-size: 0.8rem;">¿El alumno asistió físicamente a la sesión?</p>
+                    </div>
+                    <label class="attendance-toggle">
+                        <div class="switch">
+                            <input type="checkbox" id="check-asistencia" checked>
+                            <span class="slider"></span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-modern">
+                    <i data-lucide="save"></i>
+                    <span>Guardar Propuesta</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/test_form_v1.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

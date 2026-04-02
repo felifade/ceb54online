@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Importar Concentrado PDF | CEB 5/4</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="js/auth.js"></script>
+  <!-- PDF.js desde CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <style>
+    :root {
+      --blue:   #3884C0;
+      --green:  #059669;
+      --amber:  #d97706;
+      --red:    #dc2626;
+      --gray:   #64748b;
+      --light:  #f8fafc;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    .top-bar {
+      background: var(--blue);
+      color: white;
+      padding: .9rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: 0 2px 8px rgba(56,132,192,.3);
+    }
+    .top-bar h1 { font-family: 'Outfit'; font-weight: 800; font-size: 1.1rem; }
+    .top-bar p  { font-size: .8rem; opacity: .85; }
+    .version-tag { 
+      margin-left: auto; background: rgba(255,255,255,.15); 
+      padding: .2rem .6rem; border-radius: 4px; font-size: .7rem; 
+      font-weight: 700; color: white; letter-spacing: .05rem; 
+    }
+
+    /* ── LAYOUT ── */
+    .main { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+    /* ── STEP BADGE ── */
+    .step-badge {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: white; border: 1.5px solid var(--border);
+      border-radius: 999px; padding: .35rem .9rem;
+      font-size: .78rem; font-weight: 700; color: var(--gray);
+      margin-bottom: 1rem;
+    }
+    .step-badge span {
+      background: var(--blue); color: white;
+      width: 20px; height: 20px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .72rem;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: white; border-radius: 18px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.06);
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .card-title {
+      font-family: 'Outfit'; font-weight: 800; font-size: 1rem;
+      color: #0f172a; margin-bottom: .25rem;
+    }
+    .card-sub { font-size: .8rem; color: var(--gray); margin-bottom: 1.25rem; }
+
+    /* ── DROP ZONE ── */
+    .drop-zone {
+      border: 2.5px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 2.5rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+      background: #f8fafc;
+    }
+    .drop-zone:hover, .drop-zone.over {
+      border-color: var(--blue);
+      background: #eff6ff;
+    }
+    .drop-icon {
+      font-size: 2.5rem; margin-bottom: .75rem;
+    }
+    .drop-text { font-weight: 700; font-size: .95rem; color: #334155; }
+    .drop-sub  { font-size: .78rem; color: var(--gray); margin-top: .3rem; }
+    .drop-zone input[type=file] { display: none; }
+
+    .btn-select {
+      display: inline-block; margin-top: 1rem;
+      background: var(--blue); color: white;
+      border: none; border-radius: 10px;
+      padding: .6rem 1.4rem; font-size: .85rem; font-weight: 700;
+      cursor: pointer; transition: background .2s;
+    }
+    .btn-select:hover { background: #2b6fa0; }
+
+    /* ── FILES LIST ── */
+    .files-list { margin-top: 1rem; display: flex; flex-direction: column; gap: .5rem; }
+    .file-item {
+      display: flex; align-items: center; gap: .75rem;
+      background: #f8fafc; border: 1px solid var(--border);
+      border-radius: 10px; padding: .65rem .9rem;
+    }
+    .file-icon { font-size: 1.3rem; }
+    .file-name { font-weight: 600; font-size: .85rem; flex: 1; }
+    .file-status {
+      font-size: .75rem; font-weight: 700; padding: .25rem .65rem;
+      border-radius: 999px;
+    }
+    .file-status.pendiente { background: #fef3c7; color: #92400e; }
+    .file-status.procesando { background: #dbeafe; color: #1e40af; }
+    .file-status.listo     { background: #d1fae5; color: #065f46; }
+    .file-status.error     { background: #fee2e2; color: #991b1b; }
+
+    /* ── BOTÓN PROCESAR ── */
+    .btn-process {
+      width: 100%; padding: .9rem;
+      background: var(--blue); color: white; border: none;
+      border-radius: 12px; font-size: .95rem; font-weight: 800;
+      cursor: pointer; transition: background .2s; margin-top: 1rem;
+      font-family: 'Outfit';
+    }
+    .btn-process:hover:not(:disabled) { background: #2b6fa0; }
+    .btn-process:disabled { opacity: .5; cursor: default; }
+
+    /* ── META INFO ── */
+    .meta-chips { display: flex; flex-wrap: wrap; gap: .5rem; }
+    .chip {
+      background: #f1f5f9; border: 1px solid var(--border);
+      border-radius: 999px; padding: .3rem .8rem;
+      font-size: .78rem; font-weight: 600; color: #334155;
+    }
+    .chip strong { color: var(--blue); }
+
+    /* ── STATS BAR ── */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: .75rem; margin: 1rem 0;
+    }
+    .stat-box {
+      background: #f8fafc; border: 1px solid var(--border);
+      border-radius: 12px; padding: .9rem; text-align: center;
+    }
+    .stat-num { font-family: 'Outfit'; font-size: 1.6rem; font-weight: 800; }
+    .stat-lbl { font-size: .72rem; color: var(--gray); margin-top: .2rem; font-weight: 600; }
+    .stat-num.green  { color: var(--green); }
+    .stat-num.red    { color: var(--red); }
+    .stat-num.amber  { color: var(--amber); }
+    .stat-num.blue   { color: var(--blue); }
+
+    /* ── TABLA PREVIEW ── */
+    .table-wrap {
+      overflow-x: auto; border-radius: 12px;
+      border: 1px solid var(--border);
+      max-height: 480px; overflow-y: auto;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: .78rem; }
+    thead { position: sticky; top: 0; z-index: 2; }
+    thead th {
+      background: #1e293b; color: white;
+      padding: .6rem .75rem; text-align: left;
+      font-weight: 700; white-space: nowrap;
+    }
+    tbody tr:nth-child(even) { background: #f8fafc; }
+    tbody tr:hover { background: #eff6ff; }
+    tbody td { padding: .5rem .75rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .td-curp { font-family: monospace; font-size: .72rem; color: var(--gray); }
+    .badge-riesgo {
+      background: #fee2e2; color: #991b1b;
+      font-size: .65rem; font-weight: 800; padding: .15rem .5rem;
+      border-radius: 999px; white-space: nowrap;
+    }
+    .badge-sd {
+      background: #fef3c7; color: #92400e;
+      font-size: .65rem; font-weight: 800; padding: .15rem .5rem;
+      border-radius: 999px; white-space: nowrap;
+    }
+    .cal { font-weight: 700; }
+    .cal.alta  { color: var(--green); }
+    .cal.media { color: var(--amber); }
+    .cal.baja  { color: var(--red);   }
+    .cal.nd    { color: #94a3b8; font-size: .72rem; }
+
+    /* ── RIESGO PANEL ── */
+    .riesgo-list { display: flex; flex-direction: column; gap: .5rem; }
+    .riesgo-item {
+      display: flex; align-items: center; gap: .75rem;
+      background: #fff1f2; border: 1px solid #fecaca;
+      border-radius: 10px; padding: .65rem .9rem;
+    }
+    .riesgo-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: #fee2e2; display: flex; align-items: center;
+      justify-content: center; font-weight: 800; font-size: .78rem; color: #b91c1c;
+      flex-shrink: 0;
+    }
+    .riesgo-name { font-weight: 700; font-size: .85rem; }
+    .riesgo-detail { font-size: .75rem; color: var(--gray); }
+    .riesgo-prom {
+      margin-left: auto; font-family: 'Outfit'; font-size: 1.3rem;
+      font-weight: 800; color: var(--red);
+    }
+
+    /* ── BOTÓN EXPORTAR ── */
+    .export-row { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1rem; }
+    .btn-export {
+      flex: 1; min-width: 160px; padding: .8rem 1rem;
+      border: none; border-radius: 12px; font-size: .88rem; font-weight: 800;
+      cursor: pointer; display: flex; align-items: center;
+      justify-content: center; gap: .5rem; font-family: 'Outfit';
+      transition: filter .2s;
+    }
+    .btn-export:hover { filter: brightness(.92); }
+    .btn-json  { background: #f1f5f9; color: #334155; border: 1.5px solid var(--border); }
+    .btn-csv   { background: #d1fae5; color: #065f46; }
+    .btn-sheets  { background: var(--green); color: white; }
+    .btn-sheets:disabled  { opacity: .5; cursor: default; }
+    .btn-limpiar { background: #fef2f2; color: var(--red); border: 1.5px solid #fecaca; }
+    .btn-limpiar:disabled { opacity: .5; cursor: default; }
+
+    /* ── LOADER ── */
+    .loader-wrap { text-align: center; padding: 2rem; }
+    .spinner {
+      width: 36px; height: 36px; border: 4px solid #e2e8f0;
+      border-top-color: var(--blue); border-radius: 50%;
+      animation: spin .8s linear infinite; margin: 0 auto .75rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div style="flex-grow:1;">
+    <h1>📊 Importar Concentrado de Calificaciones</h1>
+    <p>CEB 5/4 "Profr. Rafael Ramírez" — Sistema de Analítica Académica</p>
+  </div>
+  <div class="version-tag">v2.0 — Académico Dinámico</div>
+</div>
+
+<div class="main">
+
+  <!-- PASO 1: CARGA DE ARCHIVOS -->
+  <div class="step-badge"><span>1</span> Cargar archivos PDF</div>
+  <div class="card">
+    <div class="card-title">Selecciona los concentrados de calificaciones</div>
+    <div class="card-sub">Puedes cargar varios PDFs a la vez (uno por grupo). Formatos: PDF con texto seleccionable.</div>
+
+    <div class="drop-zone" id="dropZone">
+      <div class="drop-icon">📄</div>
+      <div class="drop-text">Arrastra aquí los archivos PDF</div>
+      <div class="drop-sub">o haz clic para seleccionarlos desde tu computadora</div>
+      <button class="btn-select" onclick="document.getElementById('fileInput').click()">
+        Seleccionar archivos
+      </button>
+      <input type="file" id="fileInput" accept=".pdf" multiple>
+    </div>
+
+    <div class="files-list" id="filesList"></div>
+
+    <button class="btn-process" id="btnProcesar" disabled onclick="procesarTodo()">
+      ⚙️ Extraer datos de los PDFs
+    </button>
+  </div>
+
+  <!-- PASO 2: RESULTADOS (oculto hasta procesar) -->
+  <div id="resultados" class="hidden">
+
+    <!-- Meta -->
+    <div class="step-badge"><span>2</span> Información detectada</div>
+    <div class="card">
+      <div class="card-title">Datos del concentrado</div>
+      <div class="card-sub">Verificar que el sistema detectó correctamente la información del encabezado.</div>
+      <div class="meta-chips" id="metaChips"></div>
+
+      <div class="stats-row" id="statsRow"></div>
+    </div>
+
+    <!-- Alumnos en riesgo -->
+    <div class="step-badge"><span>3</span> Alumnos en riesgo</div>
+    <div class="card" id="riesgoCard">
+      <div class="card-title">⚠️ Alumnos con promedio menor a 6.0</div>
+      <div class="card-sub">Estos alumnos requieren atención prioritaria.</div>
+      <div class="riesgo-list" id="riesgoList"></div>
+    </div>
+
+    <!-- Tabla completa -->
+    <div class="step-badge"><span>4</span> Vista previa completa</div>
+    <div class="card">
+      <div class="card-title">Todos los alumnos</div>
+      <div class="card-sub">Revisa que los datos sean correctos antes de exportar.</div>
+
+      <!-- Filtros -->
+      <div style="display:flex; gap:.75rem; margin-bottom:1rem; flex-wrap:wrap;">
+        <input type="text" id="filtroNombre" placeholder="🔍 Buscar alumno..."
+          oninput="filtrarTabla()"
+          style="flex:1; min-width:160px; padding:.5rem .9rem; border:1.5px solid var(--border); border-radius:999px; font-size:.85rem; outline:none;">
+        <select id="filtroGrupo" onchange="filtrarTabla()"
+          style="padding:.5rem .9rem; border:1.5px solid var(--border); border-radius:999px; font-size:.85rem; background:white;">
+          <option value="">Todos los grupos</option>
+        </select>
+        <label style="display:flex;align-items:center;gap:.4rem;font-size:.82rem;font-weight:600;cursor:pointer;">
+          <input type="checkbox" id="filtroRiesgo" onchange="filtrarTabla()"> Solo en riesgo
+        </label>
+      </div>
+
+      <div class="table-wrap">
+        <table id="tablaAlumnos">
+          <thead id="tablaHead">
+            <tr>
+              <th>#</th>
+              <th>Nombre</th>
+              <th>CURP</th>
+              <th>Grupo</th>
+              <th>Sexo</th>
+              <!-- Materias dinámicas aquí -->
+              <th>Prom.</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="tablaBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Exportar -->
+    <div class="step-badge"><span>5</span> Exportar</div>
+    <div class="card">
+      <div class="card-title">Guardar o enviar los datos</div>
+      <div class="card-sub">Descarga los datos o envíalos directamente a Google Sheets.</div>
+      <div class="export-row">
+        <button class="btn-export btn-json" onclick="exportarJSON()">⬇️ Descargar JSON</button>
+        <button class="btn-export btn-csv"  onclick="exportarCSV()">⬇️ Descargar CSV</button>
+        <button class="btn-export btn-sheets" id="btnSheets" onclick="enviarSheets()">
+          ☁️ Enviar a Google Sheets
+        </button>
+        <button class="btn-export btn-limpiar" id="btnLimpiar" onclick="limpiarYReimportar()"
+          title="Borra TODOS los grupos de este parcial/ciclo y reimporta los PDFs procesados">
+          🗑️ Limpiar todo el parcial y Reimportar
+        </button>
+      </div>
+      <p id="sheetsMsg" style="font-size:.78rem;color:var(--gray);margin-top:.75rem;"></p>
+    </div>
+
+  </div><!-- /resultados -->
+
+</div><!-- /main -->
+
+<script src="js/normalizer.js"></script>
+<script src="js/parser.js"></script>
+<script>
+// ── Configurar worker de PDF.js ────────────────────────────────────────────
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+// ── Estado global ──────────────────────────────────────────────────────────
+let archivos     = [];   // { file, nombre, status }
+let resultadoTotal = { meta: {}, alumnos: [] };
+
+// ── DROP ZONE ──────────────────────────────────────────────────────────────
+const dropZone = document.getElementById("dropZone");
+
+dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("over"); });
+dropZone.addEventListener("dragleave", () => dropZone.classList.remove("over"));
+dropZone.addEventListener("drop", e => {
+  e.preventDefault(); dropZone.classList.remove("over");
+  agregarArchivos([...e.dataTransfer.files]);
+});
+document.getElementById("fileInput").addEventListener("change", e => {
+  agregarArchivos([...e.target.files]);
+});
+
+function agregarArchivos(files) {
+  files.filter(f => f.type === "application/pdf").forEach(f => {
+    if (!archivos.find(a => a.nombre === f.name)) {
+      archivos.push({ file: f, nombre: f.name, status: "pendiente" });
+    }
+  });
+  renderFilesList();
+  document.getElementById("btnProcesar").disabled = archivos.length === 0;
+}
+
+function renderFilesList() {
+  const list = document.getElementById("filesList");
+  list.innerHTML = archivos.map((a, i) => `
+    <div class="file-item" id="fi-${i}">
+      <span class="file-icon">📑</span>
+      <span class="file-name">${a.nombre}</span>
+      <span class="file-status ${a.status}" id="fs-${i}">
+        ${{ pendiente:"Pendiente", procesando:"Procesando…", listo:"✓ Listo", error:"Error" }[a.status]}
+      </span>
+    </div>`).join("");
+}
+
+// ── PROCESAR ───────────────────────────────────────────────────────────────
+async function procesarTodo() {
+  document.getElementById("btnProcesar").disabled = true;
+  document.getElementById("resultados").classList.add("hidden");
+  resultadoTotal = { meta: {}, alumnos: [] };
+
+  for (let i = 0; i < archivos.length; i++) {
+    setStatus(i, "procesando");
+    try {
+      const res = await PDFParser.parsearArchivo(archivos[i].file);
+      // Normalizar materias contra catálogo maestro
+      const pending = Normalizer.normalizarResultado(res);
+      _pendingTotal += pending;
+      // Merge: metadata del primero, alumnos acumulados
+      if (i === 0) resultadoTotal.meta = res.meta;
+      resultadoTotal.alumnos.push(...res.alumnos);
+      setStatus(i, "listo");
+    } catch (e) {
+      console.error(e);
+      setStatus(i, "error");
+    }
+  }
+
+  mostrarResultados();
+  document.getElementById("btnProcesar").disabled = false;
+}
+
+function setStatus(i, s) {
+  archivos[i].status = s;
+  const el = document.getElementById(`fs-${i}`);
+  if (el) {
+    el.className = `file-status ${s}`;
+    el.textContent = { pendiente:"Pendiente", procesando:"Procesando…", listo:"✓ Listo", error:"Error" }[s];
+  }
+}
+
+// ── MOSTRAR RESULTADOS ─────────────────────────────────────────────────────
+function mostrarResultados() {
+  const { meta, alumnos } = resultadoTotal;
+  document.getElementById("resultados").classList.remove("hidden");
+
+  // ── Meta chips
+  const m = meta;
+  document.getElementById("metaChips").innerHTML = [
+    ["Grupo",    m.grupo    || "—"],
+    ["Parcial",  m.parcial  ? `${m.parcial}°` : "—"],
+    ["Semestre", m.semestre ? `${m.semestre}°` : "—"],
+    ["Turno",    m.turno    || "—"],
+    ["Ciclo",    m.ciclo    || "—"],
+    ["Fecha",    m.fecha    || "—"],
+  ].map(([l,v]) => `<div class="chip">${l}: <strong>${v}</strong></div>`).join("");
+
+  // ── Stats
+  const total    = alumnos.length;
+  const enRiesgo = alumnos.filter(a => a.enRiesgo).length;
+  const conSD    = alumnos.filter(a => a.tieneSd).length;
+  const promedioGrupo = alumnos.filter(a=>a.promedio).length
+    ? (alumnos.reduce((s,a) => s + (a.promedio||0), 0) / alumnos.filter(a=>a.promedio).length).toFixed(1)
+    : "—";
+
+  document.getElementById("statsRow").innerHTML = `
+    <div class="stat-box"><div class="stat-num blue">${total}</div><div class="stat-lbl">Alumnos</div></div>
+    <div class="stat-box"><div class="stat-num green">${total - enRiesgo}</div><div class="stat-lbl">Aprobados</div></div>
+    <div class="stat-box"><div class="stat-num red">${enRiesgo}</div><div class="stat-lbl">En riesgo (&lt;6)</div></div>
+    <div class="stat-box"><div class="stat-num amber">${conSD}</div><div class="stat-lbl">Con datos pendientes</div></div>
+    <div class="stat-box"><div class="stat-num blue">${promedioGrupo}</div><div class="stat-lbl">Promedio grupo</div></div>
+  `;
+
+  // Alerta de materias sin resolver en catálogo
+  let alertaEl = document.getElementById("alertaNorm");
+  if (!alertaEl) {
+    alertaEl = document.createElement("div");
+    alertaEl.id = "alertaNorm";
+    alertaEl.style.cssText = "margin-top:.75rem;padding:.65rem 1rem;border-radius:.75rem;font-size:.82rem;font-weight:600;";
+    document.getElementById("statsRow").after(alertaEl);
+  }
+  if (_pendingTotal > 0) {
+    alertaEl.style.background = "#fef3c7";
+    alertaEl.style.color = "#92400e";
+    alertaEl.style.border = "1px solid #fde68a";
+    alertaEl.textContent = `⚠️ ${_pendingTotal} materia(s) no se encontraron en el catálogo y se guardaron con el nombre del PDF. Revisa Acad_Materias en Google Sheets y agrega las abreviaturas faltantes, luego usa "Limpiar y Reimportar".`;
+  } else if (Normalizer.listo) {
+    alertaEl.style.background = "#d1fae5";
+    alertaEl.style.color = "#065f46";
+    alertaEl.style.border = "1px solid #6ee7b7";
+    alertaEl.textContent = `✓ Todas las materias fueron normalizadas correctamente contra el catálogo.`;
+  } else {
+    alertaEl.style.background = "#f1f5f9";
+    alertaEl.style.color = "#64748b";
+    alertaEl.style.border = "1px solid #e2e8f0";
+    alertaEl.textContent = `ℹ️ Catálogo de materias no disponible. Se usaron los nombres del PDF directamente.`;
+  }
+  _pendingTotal = 0; // reset para la próxima carga
+
+  // ── Alumnos en riesgo
+  const enRiesgoList = alumnos.filter(a => a.enRiesgo).sort((a,b)=>(a.promedio||0)-(b.promedio||0));
+  document.getElementById("riesgoList").innerHTML = enRiesgoList.length
+    ? enRiesgoList.map(a => {
+        const ini = a.nombre.split(" ").slice(0,2).map(w=>w[0]).join("");
+        const matsBajas = a.calificaciones.filter(c=>c.cal!==null && c.cal<6).map(c=>c.materia.split(" ")[0]);
+        return `
+          <div class="riesgo-item">
+            <div class="riesgo-avatar">${ini}</div>
+            <div>
+              <div class="riesgo-name">${a.nombre}</div>
+              <div class="riesgo-detail">${a.grupo} · Reprobando: ${matsBajas.join(", ") || "—"}</div>
+            </div>
+            <div class="riesgo-prom">${a.promedio ?? "SD"}</div>
+          </div>`;
+      }).join("")
+    : `<p style="color:var(--green);font-weight:600;padding:.5rem;">✓ Ningún alumno en riesgo</p>`;
+
+  // ── Filtro grupos
+  const grupos = [...new Set(alumnos.map(a=>a.grupo))].sort();
+  const selGrupo = document.getElementById("filtroGrupo");
+  selGrupo.innerHTML = `<option value="">Todos los grupos</option>` +
+    grupos.map(g=>`<option value="${g}">${g}</option>`).join("");
+
+  renderTabla(alumnos);
+  document.getElementById("resultados").scrollIntoView({ behavior: "smooth" });
+}
+
+// ── TABLA ──────────────────────────────────────────────────────────────────
+function calColor(v) {
+  if (v === null || v === undefined) return "nd";
+  if (v >= 8) return "alta";
+  if (v >= 6) return "media";
+  return "baja";
+}
+
+function renderTabla(data) {
+  const thead = document.getElementById("tablaHead");
+  const tbody = document.getElementById("tablaBody");
+  
+  if (!data || data.length === 0) {
+    tbody.innerHTML = "";
+    return;
+  }
+
+  // 1. Reconstruir headers dinámicamente según las materias detectadas
+  const materias = data[0].calificaciones.map(c => ({
+    display:  c.materiaNormalizada || c.materia,
+    original: c.materia,
+    pending:  c.pendingReview || false,
+  }));
+  thead.innerHTML = `
+    <tr>
+      <th>#</th>
+      <th>Nombre</th>
+      <th>CURP</th>
+      <th>Grupo</th>
+      <th>Sexo</th>
+      ${materias.map(m => `
+        <th title="PDF: ${m.original}" style="${m.pending ? 'background:#fef3c7;color:#92400e' : ''}">
+          ${m.display.split(" ").slice(0,3).join(" ")}${m.pending ? ' ⚠' : ''}
+        </th>`).join("")}
+      <th>Prom.</th>
+      <th>Estado</th>
+    </tr>
+  `;
+
+  // 2. Renderizar filas
+  tbody.innerHTML = data.map((a, i) => {
+    const cals = a.calificaciones.map(c =>
+      `<td class="cal ${calColor(c.cal)}" title="${c.materia}">${c.sinDatos ? "SD" : (c.cal ?? "—")}</td>`
+    ).join("");
+    const promCls = calColor(a.promedio);
+    const badges = [
+      a.enRiesgo  ? `<span class="badge-riesgo">⚠ Riesgo</span>` : "",
+      a.tieneSd   ? `<span class="badge-sd">SD pendiente</span>` : "",
+    ].filter(Boolean).join(" ");
+
+    return `<tr>
+      <td>${i + 1}</td>
+      <td style="font-weight:600;white-space:nowrap;">${a.nombre}</td>
+      <td class="td-curp">${a.curp}</td>
+      <td>${a.grupo}</td>
+      <td>${a.sexo === "Masculino" ? "♂" : "♀"} ${a.sexo}</td>
+      ${cals}
+      <td class="cal ${promCls}" style="font-size:.88rem;">${a.promedio ?? "—"}</td>
+      <td>${badges || "✓"}</td>
+    </tr>`;
+  }).join("");
+}
+
+function filtrarTabla() {
+  const txt    = document.getElementById("filtroNombre").value.toLowerCase();
+  const grupo  = document.getElementById("filtroGrupo").value;
+  const riesgo = document.getElementById("filtroRiesgo").checked;
+
+  const filtrados = resultadoTotal.alumnos.filter(a =>
+    (!txt   || a.nombre.toLowerCase().includes(txt) || a.curp.toLowerCase().includes(txt)) &&
+    (!grupo || a.grupo === grupo) &&
+    (!riesgo || a.enRiesgo)
+  );
+  renderTabla(filtrados);
+}
+
+// ── EXPORTAR ───────────────────────────────────────────────────────────────
+function exportarJSON() {
+  const blob = new Blob([JSON.stringify(resultadoTotal, null, 2)], { type: "application/json" });
+  descargar(blob, `academico_${resultadoTotal.meta.grupo || "grupo"}_p${resultadoTotal.meta.parcial}.json`);
+}
+
+function exportarCSV() {
+  const filas = PDFParser.aFilasPlanas(resultadoTotal);
+  const headers = Object.keys(filas[0] || {});
+  const csv = [
+    headers.join(","),
+    ...filas.map(f => headers.map(h => `"${f[h] ?? ""}"`).join(","))
+  ].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  descargar(blob, `academico_${resultadoTotal.meta.grupo || "grupo"}_p${resultadoTotal.meta.parcial}.csv`);
+}
+
+function descargar(blob, nombre) {
+  const url = URL.createObjectURL(blob);
+  const a   = document.createElement("a");
+  a.href = url; a.download = nombre; a.click();
+  URL.revokeObjectURL(url);
+}
+
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzl58nAF1ul_1Dg_LnYUoH7JH1hiSgLlUqNWXultNObVsepK0mEMOAAg7V8J9Rn9Hg0hg/exec";
+const CLAVE_ADMIN = "ceb54admin2026";
+
+// Cargar catálogo de materias al iniciar la página (no bloquea la UI)
+let _pendingTotal = 0;
+Normalizer.cargarCatalogo(GAS_URL);
+
+async function limpiarYReimportar() {
+  const { meta, alumnos } = resultadoTotal;
+  if (!alumnos || alumnos.length === 0) {
+    document.getElementById("sheetsMsg").textContent = "⚠️ Primero procesa un PDF.";
+    return;
+  }
+
+  const grupo   = meta.grupo   || "—";
+  const parcial = meta.parcial || "—";
+  const ciclo   = meta.ciclo   || "—";
+
+  if (!confirm(`¿Borrar TODOS los grupos del Parcial ${parcial} · ${ciclo} en Google Sheets y reimportar los ${resultadoTotal.alumnos.length} alumnos procesados?\n\nEsto corregirá los nombres de materias.`)) return;
+
+  const btn = document.getElementById("btnLimpiar");
+  const msg = document.getElementById("sheetsMsg");
+  btn.disabled = true;
+  document.getElementById("btnSheets").disabled = true;
+  msg.style.color = "var(--amber)";
+  msg.textContent = "⏳ Limpiando todos los grupos del parcial…";
+
+  try {
+    // 1. Limpiar TODO el parcial/ciclo (grupo = "TODOS")
+    const resLimpiar = await fetch(GAS_URL, {
+      method: "POST", redirect: "follow",
+      body: JSON.stringify({ clave: CLAVE_ADMIN, action: "limpiarParcial", grupo: "TODOS", parcial, ciclo })
+    }).then(r => r.json());
+
+    if (resLimpiar.status !== "success") throw new Error(resLimpiar.message || "Error al limpiar");
+
+    msg.textContent = `✅ Borradas ${resLimpiar.borradas} filas. Reimportando…`;
+
+    // 2. Reimportar
+    const resImport = await fetch(GAS_URL, {
+      method: "POST", redirect: "follow",
+      body: JSON.stringify({ clave: CLAVE_ADMIN, action: "importarPDF", data: resultadoTotal })
+    }).then(r => r.json());
+
+    if (resImport.status === "ok" || resImport.status === "success") {
+      msg.style.color = "var(--green)";
+      msg.innerHTML = `✅ <strong>Listo.</strong> Borradas: ${resLimpiar.borradas} · Nuevas calificaciones: ${resImport.insertadasCals} · Alumnos: ${resImport.insertadosAlumnos}`;
+    } else {
+      throw new Error(resImport.message || "Error al reimportar");
+    }
+  } catch (e) {
+    msg.style.color = "var(--red)";
+    msg.textContent = `❌ ${e.message}`;
+  } finally {
+    btn.disabled = false;
+    document.getElementById("btnSheets").disabled = false;
+  }
+}
+
+async function enviarSheets() {
+  if (!resultadoTotal.alumnos || resultadoTotal.alumnos.length === 0) {
+    document.getElementById("sheetsMsg").textContent = "⚠️ Primero procesa un PDF.";
+    return;
+  }
+
+  const btn = document.getElementById("btnSheets");
+  const msg = document.getElementById("sheetsMsg");
+
+  btn.disabled = true;
+  msg.textContent = "⏳ Enviando datos a Google Sheets…";
+
+  try {
+    const payload = {
+      clave:  CLAVE_ADMIN,
+      action: "importarPDF",
+      data:   resultadoTotal
+    };
+
+    // GAS no admite preflight → enviamos sin Content-Type explícito
+    const res = await fetch(GAS_URL, {
+      method:   "POST",
+      redirect: "follow",
+      body:     JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (data.status === "ok" || data.status === "success") {
+      msg.innerHTML = `✅ <strong>Guardado correctamente.</strong> ` +
+        `Alumnos nuevos: ${data.insertadosAlumnos ?? "—"} · ` +
+        `Calificaciones escritas: ${data.insertadasCals ?? "—"} · ` +
+        `Duplicados omitidos: ${data.duplicados ?? "—"}`;
+      msg.style.color = "var(--green)";
+    } else {
+      msg.textContent = `❌ Error del servidor: ${data.message || "desconocido"}`;
+      msg.style.color = "var(--red)";
+    }
+  } catch (e) {
+    console.error(e);
+    msg.textContent = `❌ No se pudo conectar con Google Sheets. Revisa la consola.`;
+    msg.style.color = "var(--red)";
+  } finally {
+    btn.disabled = false;
+  }
+}
+</script>
+
+</body>
+</html>

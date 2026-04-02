@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calificaciones PEC | CEB 5/4</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/auth.js"></script>
+    <style>
+        /* ── TABS DE PARCIAL ─────────────────────────────── */
+        .tabs-header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+            padding: 0.75rem 1.25rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+
+        .tab-btn .tab-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover:not(:disabled) { border-color: #059669; color: #059669; }
+
+        .tab-btn.tab-selected { border-color: #059669; background: #ecfdf5; color: #059669; }
+        .tab-btn.tab-bloqueada { opacity: 0.55; cursor: not-allowed; }
+        .tab-btn:disabled { cursor: not-allowed; }
+
+        .tab-badge {
+            font-size: 0.72rem;
+            font-weight: 500;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+        .badge-activa   { background: #d1fae5; color: #065f46; }
+        .badge-bloqueada{ background: #f1f5f9; color: #94a3b8; }
+
+        /* ── ADMIN CONTROLES ─────────────────────────────── */
+        .admin-panel {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .admin-panel h4 {
+            font-size: 0.85rem;
+            color: #92400e;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .admin-controles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .btn-toggle {
+            padding: 0.4rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-activar  { background: #059669; color: white; }
+        .btn-activar:hover { background: #047857; }
+        .btn-bloquear { background: #e2e8f0; color: #475569; }
+        .btn-bloquear:hover { background: #cbd5e1; }
+
+        #admin-stats {
+            display: none;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+        #admin-stats span {
+            font-size: 0.8rem;
+            color: #78350f;
+            background: #fef3c7;
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+
+        /* ── FILTROS ─────────────────────────────────────── */
+        .filtros-bar {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filtros-bar label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .filtros-bar select {
+            padding: 0.4rem 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            color: #1e293b;
+            background: white;
+            cursor: pointer;
+        }
+
+        /* ── TABLA ───────────────────────────────────────── */
+        #tabla-calificaciones {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+
+        #tabla-calificaciones thead tr {
+            background: #f8fafc;
+        }
+
+        #tabla-calificaciones th {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        #tabla-calificaciones td {
+            padding: 0.65rem 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            color: #1e293b;
+        }
+
+        #tabla-calificaciones tbody tr:hover { background: #f8fafc; }
+        #tabla-calificaciones tbody tr:last-child td { border-bottom: none; }
+
+        /* ── ESTADO BLOQUEADO ────────────────────────────── */
+        .estado-bloqueado {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            padding: 4rem 2rem;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        /* ── CONTENEDOR TABLA ───────────────────────────────── */
+        #contenido-tabla {
+            max-height: calc(100vh - 320px);
+            overflow-y: auto;
+            border-radius: 12px;
+            padding-bottom: 16px;
+        }
+
+        /* ── BOTÓN COPIAR ────────────────────────────────────── */
+        .btn-copiar {
+            padding: 0.4rem 1rem;
+            background: #1d4ed8;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+        .btn-copiar:hover { background: #1e40af; }
+        .btn-copiar.copiado { background: #059669; }
+
+        /* ── LOADING ─────────────────────────────────────── */
+        #loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 4rem;
+            color: #64748b;
+        }
+
+        .spinner {
+            width: 24px; height: 24px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #059669;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div id="app" class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-text">PEC 5/4</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="index.html" class="nav-item">
+                    <i data-lucide="info"></i>
+                    <span>Portal Proyectos (PEC)</span>
+                </a>
+                <a href="index.html#dashboard" class="nav-item">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="index.html#grupos" class="nav-item">
+                    <i data-lucide="users"></i>
+                    <span>Grupos y Equipos</span>
+                </a>
+                <a href="index.html#concentrado" class="nav-item">
+                    <i data-lucide="file-text"></i>
+                    <span>Concentrado</span>
+                </a>
+                <a href="index.html#directorio" class="nav-item">
+                    <i data-lucide="map"></i>
+                    <span>Directorio Escolar</span>
+                </a>
+                <a href="index.html#rapida" class="nav-item">
+                    <i data-lucide="eye"></i>
+                    <span>Vista Rápida</span>
+                </a>
+                <a href="index.html#auditoria" class="nav-item">
+                    <i data-lucide="shield"></i>
+                    <span>Auditoría Academia</span>
+                </a>
+                <a href="calificaciones.html" class="nav-item active" style="background:rgba(5,150,105,0.1);border-left:3px solid #059669;">
+                    <i data-lucide="star"></i>
+                    <span>Calificaciones PEC</span>
+                </a>
+
+                <a href="#" class="nav-item" onclick="logout()" style="margin-top:1rem;border-top:1px solid rgba(255,255,255,0.1);padding-top:1rem;color:#fda4af;">
+                    <i data-lucide="log-out"></i>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <p>Centro de Estudios de Bachillerato<br>CEB 5/4</p>
+                <a href="../index.html" style="color:#67A8DB;font-weight:600;margin-top:15px;display:inline-block;font-size:0.85rem;">Volver al Sitio Web Principal</a>
+            </div>
+        </aside>
+
+        <!-- Contenido principal -->
+        <main class="main-content">
+            <header class="topbar">
+                <button id="menu-toggle" class="btn-icon">
+                    <i data-lucide="menu"></i>
+                </button>
+                <div class="topbar-title">
+                    <h1 class="page-title">Calificaciones PEC</h1>
+                </div>
+                <div class="user-info">
+                    <div class="topbar-user">
+                        <div class="avatar">
+                            <i data-lucide="user"></i>
+                        </div>
+                        <span id="topbar-user-name">Docente PEC</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="view-content" style="padding:1.5rem;">
+
+                <!-- Loading -->
+                <div id="loading">
+                    <div class="spinner"></div>
+                    <span>Cargando calificaciones...</span>
+                </div>
+
+                <!-- Contenido principal -->
+                <div id="contenido" style="display:none;">
+
+                    <!-- Banner fecha límite -->
+                    <div id="banner-fecha" style="display:none; background:linear-gradient(135deg,#1d4ed8,#2563eb); color:white; border-radius:12px; padding:1rem 1.5rem; margin-bottom:1.25rem; display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+                        <i data-lucide="calendar-clock" style="width:22px;height:22px;flex-shrink:0;"></i>
+                        <div style="flex:1;">
+                            <div style="font-weight:700;font-size:0.95rem;">Fecha límite de entrega de calificaciones</div>
+                            <div id="banner-fecha-texto" style="font-size:0.88rem;opacity:0.9;margin-top:2px;"></div>
+                        </div>
+                        <div id="banner-fecha-admin" style="display:none;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+                            <input id="input-fecha" type="text" placeholder="Ej: 15 de abril de 2026" style="padding:0.35rem 0.75rem;border-radius:8px;border:none;font-size:0.85rem;color:#1e293b;width:200px;">
+                            <button onclick="guardarFechaLimite()" style="padding:0.35rem 0.9rem;background:white;color:#1d4ed8;border:none;border-radius:8px;font-weight:700;font-size:0.85rem;cursor:pointer;">Guardar</button>
+                        </div>
+                    </div>
+
+                    <!-- Panel admin -->
+                    <div class="admin-panel" id="panel-admin">
+                        <h4>Panel de Administrador — Activación de Calificaciones</h4>
+                        <div class="admin-controles">
+                            <div>
+                                <span style="font-size:0.8rem;font-weight:600;color:#92400e;display:block;margin-bottom:4px;">Parcial 1</span>
+                                <button id="toggle-p1" class="btn-toggle" style="display:none;"></button>
+                            </div>
+                            <div>
+                                <span style="font-size:0.8rem;font-weight:600;color:#92400e;display:block;margin-bottom:4px;">Parcial 2</span>
+                                <button id="toggle-p2" class="btn-toggle" style="display:none;"></button>
+                            </div>
+                            <div>
+                                <span style="font-size:0.8rem;font-weight:600;color:#92400e;display:block;margin-bottom:4px;">Parcial 3</span>
+                                <button id="toggle-p3" class="btn-toggle" style="display:none;"></button>
+                            </div>
+                        </div>
+                        <div id="admin-stats">
+                            <span id="stat-p2"></span>
+                            <span id="stat-p3"></span>
+                        </div>
+                    </div>
+
+                    <!-- Tabs de parcial -->
+                    <div class="tabs-header">
+                        <button class="tab-btn tab-selected" id="tab-p1" onclick="cambiarTab(1)">
+                            <div class="tab-top">
+                                <i data-lucide="lock" class="tab-icon" style="width:16px;height:16px;"></i>
+                                Parcial 1
+                            </div>
+                            <span class="tab-badge badge-bloqueada" id="badge-p1">No disponible</span>
+                        </button>
+                        <button class="tab-btn" id="tab-p2" onclick="cambiarTab(2)">
+                            <div class="tab-top">
+                                <i data-lucide="lock" class="tab-icon" style="width:16px;height:16px;"></i>
+                                Parcial 2
+                            </div>
+                            <span class="tab-badge badge-bloqueada" id="badge-p2">No disponible</span>
+                        </button>
+                        <button class="tab-btn" id="tab-p3" onclick="cambiarTab(3)">
+                            <div class="tab-top">
+                                <i data-lucide="lock" class="tab-icon" style="width:16px;height:16px;"></i>
+                                Parcial 3
+                            </div>
+                            <span class="tab-badge badge-bloqueada" id="badge-p3">No disponible</span>
+                        </button>
+                    </div>
+
+                    <!-- Filtros -->
+                    <div class="filtros-bar">
+                        <label for="filtro-grupo">Grupo:</label>
+                        <select id="filtro-grupo">
+                            <option value="todos">Todos los grupos</option>
+                        </select>
+                        <button class="btn-copiar" id="btn-copiar" onclick="copiarDatos()">
+                            <i data-lucide="copy" style="width:14px;height:14px;"></i>
+                            Copiar todo
+                        </button>
+                        <button class="btn-copiar" id="btn-copiar-cal" onclick="copiarSoloCalificaciones()" style="background:#7c3aed;">
+                            <i data-lucide="hash" style="width:14px;height:14px;"></i>
+                            Solo calificaciones
+                        </button>
+                    </div>
+
+                    <!-- Tabla -->
+                    <div id="contenido-tabla"></div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/api_v3.js"></script>
+    <script src="js/app_calificaciones.js"></script>
+</body>
+</html>

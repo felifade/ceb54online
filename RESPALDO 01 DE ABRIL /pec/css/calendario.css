@@ -1,0 +1,390 @@
+/* pec/css/calendario.css */
+
+#calendario-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.calendario-header {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    color: white;
+    padding: 2rem;
+    border-radius: 20px;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.calendario-header h2 {
+    color: #38bdf8;
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+/* Agrupado por Mes */
+.mes-seccion {
+    margin-bottom: 3.5rem;
+    position: relative;
+}
+
+.mes-titulo {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--clr-secondary);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 3px solid var(--clr-primary-light);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    letter-spacing: 1px;
+}
+
+.mes-titulo::before {
+    content: '';
+    width: 8px;
+    height: 24px;
+    background: var(--clr-primary);
+    border-radius: 4px;
+}
+
+/* Semanas Escolares */
+.semana-bloque {
+    background: #ffffff;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--clr-border);
+    padding: 1.25rem;
+    margin-bottom: 2rem;
+    transition: all 0.3s;
+}
+
+.semana-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px dashed var(--clr-border);
+    flex-wrap: wrap;
+}
+
+.semana-num {
+    font-weight: 800;
+    color: var(--clr-primary);
+    font-size: 0.9rem;
+    background: #e0f2fe;
+    padding: 2px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+}
+
+.semana-parcial-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.semana-id {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+
+.semana-rango {
+    font-size: 0.85rem;
+    color: var(--clr-text-light);
+    font-weight: 600;
+}
+
+.semana-tipo-badge {
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+}
+
+/* Tematización de Semanas */
+.semana-vacacional {
+    background: #f0fdf4;
+    border-left: 6px solid #22c55e;
+}
+.semana-vacacional .semana-num { background: #dcfce7; color: #166534; }
+.semana-vacacional .semana-tipo-badge { background: #22c55e; color: white; }
+
+.semana-evaluacion {
+    background: #fffbeb;
+    border-left: 6px solid #f59e0b;
+}
+.semana-evaluacion .semana-num { background: #fef3c7; color: #92400e; }
+.semana-evaluacion .semana-tipo-badge { background: #f59e0b; color: white; }
+
+.semana-restriccion {
+    background: #fef2f2;
+    border-left: 6px solid #ef4444;
+}
+.semana-restriccion .semana-num { background: #fee2e2; color: #991b1b; }
+.semana-restriccion .semana-tipo-badge { background: #ef4444; color: white; }
+
+/* Estilos de Card */
+.card-periodo {
+    background: #f8fafc;
+    border-style: solid;
+    border-width: 1px 1px 1px 8px;
+    border-color: var(--clr-border) var(--clr-border) var(--clr-border) var(--clr-primary);
+}
+
+/* Semanas Vacías */
+.semana-vacia {
+    border-style: dashed;
+    background: #fcfcfc;
+    opacity: 0.85;
+}
+
+.vacio-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px dashed #e2e8f0;
+}
+
+.semana-sin-eventos {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin: 0;
+}
+
+
+.calendario-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.evento-card {
+    background: var(--clr-surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--clr-border);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.evento-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--clr-primary-light);
+}
+
+.evento-card.realizado {
+    opacity: 0.8;
+    background: #f8fafc;
+}
+
+.evento-card.proximo {
+    border-left: 5px solid #3b82f6;
+    background: #eff6ff;
+}
+
+.evento-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.evento-titulo {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--clr-secondary);
+    line-height: 1.2;
+}
+
+.evento-badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+/* Badge colors */
+.badge-pendiente { background: #FEF3C7; color: #D97706; border: 1px solid #FCD34D; }
+.badge-proximo { background: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+.badge-realizado { background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0; }
+.badge-restriccion { background: #FEE2E2; color: #B91C1C; border: 1px solid #FECACA; }
+.badge-cancelado { background: #F1F5F9; color: #475569; border: 1px solid #E2E8F0; }
+
+.evento-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.evento-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--clr-text-light);
+    font-weight: 600;
+}
+
+.evento-meta i {
+    width: 14px;
+    height: 14px;
+}
+
+.evento-desc {
+    font-size: 0.9rem;
+    color: #475569;
+    line-height: 1.4;
+    margin-top: 5px;
+}
+
+.evento-footer {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid var(--clr-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.evento-categoria {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--clr-primary);
+}
+
+.evento-obs {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* Timeline Layout (Optional Enhancement) */
+.view-type-toggle {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.view-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+/* Cumpleaños integrados en Grid */
+.cumple-mini-card {
+    padding: 10px 12px !important;
+    min-height: auto !important;
+    background: #fffef2 !important;
+    border: 1px solid #fde68a !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02) !important;
+    gap: 0 !important;
+}
+
+.cumple-mini-card:hover {
+    border-color: #f59e0b !important;
+    background: #fffbeb !important;
+}
+
+.cumple-mini-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.cumple-icon {
+    font-size: 1rem;
+}
+
+.cumple-nombre {
+    color: #92400e;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cumple-dia {
+    color: #d97706;
+    opacity: 0.8;
+    font-size: 0.75rem;
+}
+
+.cumple-hoy-resaltado {
+    background: #fef3c7 !important;
+    border: 2px solid #f59e0b !important;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.2) !important;
+    transform: scale(1.02);
+}
+
+.view-btn.active {
+    background: #38bdf8;
+    color: #0f172a;
+    font-weight: 700;
+}
+
+
+/* Cumpleaños */
+.cumple-card {
+    background: #fffcf9;
+    border-color: #ffedd5;
+}
+
+.cumple-card:hover {
+    border-color: #fb923c;
+}
+
+.cumple-hoy {
+    background: #fff7ed;
+    border: 2px solid #fb923c;
+    box-shadow: 0 0 15px rgba(251, 146, 60, 0.2);
+}
+
+.cumple-container {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+
+@media (max-width: 600px) {
+    .calendario-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+}

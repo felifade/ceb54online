@@ -1,0 +1,95 @@
+// tutorias/js/test_form_v1.js
+
+const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbz4q9VlhAvvVJ1XYOwqNTJ9eMkVRm3HgoyFJNpEQaPJsDdK1JcfhbTX1CRfDg38x79fsA/exec";
+
+document.addEventListener('DOMContentLoaded', () => {
+    initForm();
+    loadContextData();
+});
+
+async function loadContextData() {
+    console.log("Cargando materias y alumnos...");
+    try {
+        // En un entorno real, usaría api.fetchAllData()
+        // Aquí simulamos para el documento de pruebas
+        const response = await fetch(`${GOOGLE_SHEETS_API_URL}?action=getDashboardData`);
+        const data = await response.json();
+        
+        if (data.status === "success") {
+            populateSubjects(data.materias || []);
+            window.allStudents = data.alumnosFull || [];
+        }
+    } catch (e) {
+        console.warn("Fallo al cargar datos reales, usando mocks para la propuesta.");
+        populateSubjects(["Matemáticas II", "Química I", "Ética", "Inglés II"]);
+    }
+}
+
+function populateSubjects(subjects) {
+    const select = document.getElementById('select-asignatura');
+    if (!select) return;
+    
+    select.innerHTML = '<option value="">Selecciona una materia...</option>';
+    subjects.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = s;
+        select.appendChild(opt);
+    });
+}
+
+function initForm() {
+    const form = document.getElementById('proposal-form');
+    
+    // Toggle manual gender
+    const btnSexo = document.getElementById('btn-manual-sex');
+    if (btnSexo) {
+        btnSexo.addEventListener('click', () => {
+            const current = btnSexo.getAttribute('data-sexo');
+            const next = current === 'H' ? 'F' : 'H';
+            btnSexo.setAttribute('data-sexo', next);
+            btnSexo.textContent = next;
+            btnSexo.className = `sexo-toggle-btn sexo-${next}`;
+        });
+    }
+
+    // Form Submission
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const btnSubmit = form.querySelector('button[type="submit"]');
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<span>Enviando...</span>';
+
+        const formData = new FormData(form);
+        const payload = {
+            action: "saveTutoria",
+            parcial: formData.get('parcial'),
+            asignatura: formData.get('asignatura'),
+            grupo: formData.get('grupo'),
+            tema: formData.get('tema'),
+            asistencia: document.getElementById('check-asistencia').checked,
+            alumnos: [document.getElementById('manual-name').value], // Simplificado para la prueba
+            sexos: [btnSexo.getAttribute('data-sexo')],
+            fecha: new Date().toISOString()
+        };
+
+        console.log("Enviando propuesta:", payload);
+
+        try {
+            // Simulación de envío exitoso
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            alert("¡Propuesta enviada con éxito! (Simulado)");
+            form.reset();
+            btnSexo.setAttribute('data-sexo', 'H');
+            btnSexo.textContent = 'H';
+            btnSexo.className = `sexo-toggle-btn sexo-H`;
+        } catch (error) {
+            alert("Error al enviar: " + error.message);
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<i data-lucide="save"></i> Guardar Sesión';
+            if (window.lucide) lucide.createIcons();
+        }
+    });
+}

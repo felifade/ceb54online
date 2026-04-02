@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comunidad | CEB 5/4</title>
+  <meta name="description" content="Acceso a los portales de la comunidad CEB 5/4. Padres, alumnos y personal institucional.">
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --blue:   #3884C0;
+      --blue-d: #2d6fa5;
+      --green:  #059669;
+      --green-d:#047857;
+      --dark:   #0f172a;
+      --text:   #1e293b;
+      --muted:  #64748b;
+      --light:  #f8fafc;
+      --white:  #ffffff;
+      --rLg:    1.25rem;
+      --shMd:   0 10px 25px -5px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05);
+      --shLg:   0 20px 40px -10px rgba(0,0,0,.15);
+      --tr:     all 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--light);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* ── Header ── */
+    .site-header {
+      background: var(--dark);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,.3);
+    }
+    .header-brand { display: flex; align-items: center; gap: 0.75rem; }
+    .header-logo-ring {
+      width: 40px; height: 40px;
+      background: rgba(56,132,192,0.2);
+      border: 1.5px solid rgba(56,132,192,0.5);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .header-logo-ring svg { width:20px; height:20px; }
+    .header-brand-name {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800; font-size: 1.1rem; color: #fff;
+    }
+    .header-brand-sub { font-size: 0.72rem; color: rgba(255,255,255,0.45); margin-top: -2px; }
+    .header-back {
+      display: flex; align-items: center; gap: 0.4rem;
+      color: rgba(255,255,255,0.55); font-size: 0.85rem; font-weight: 500;
+      transition: color 0.2s; white-space: nowrap;
+    }
+    .header-back:hover { color: #fff; }
+    .header-back svg { width:16px; height:16px; }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, var(--dark) 0%, #1a3a5e 55%, #2d6fa5 100%);
+      padding: 4rem 1.5rem 5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        radial-gradient(circle at 20% 50%, rgba(56,132,192,0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(5,150,105,0.1) 0%, transparent 40%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.75);
+      font-size: 0.8rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 1.5px;
+      padding: 0.4rem 1.25rem; border-radius: 9999px;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+    .hero-badge .dot {
+      width: 7px; height: 7px;
+      background: #4ade80; border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity:1; transform:scale(1); }
+      50% { opacity:.5; transform:scale(1.4); }
+    }
+    .hero-title {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: clamp(2rem, 5vw, 3.25rem);
+      color: #fff; line-height: 1.15;
+      margin-bottom: 1rem; position: relative;
+    }
+    .hero-title span { color: #67A8DB; }
+    .hero-sub {
+      color: rgba(255,255,255,0.6);
+      font-size: clamp(1rem, 2.5vw, 1.2rem);
+      max-width: 520px; margin: 0 auto;
+      position: relative;
+    }
+    .hero-wave {
+      position: absolute; bottom: -1px; left: 0; width: 100%;
+      line-height: 0; pointer-events: none;
+    }
+    .hero-wave svg { width: 100%; height: 60px; display: block; }
+
+    /* ── Main ── */
+    .main {
+      flex: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 4rem 1.5rem 5rem;
+      width: 100%;
+    }
+
+    /* ── Choice Grid ── */
+    .choice-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+    @media (max-width: 680px) { .choice-grid { grid-template-columns: 1fr; } }
+
+    /* ── Choice Card ── */
+    .choice-card {
+      background: var(--white);
+      border-radius: var(--rLg);
+      box-shadow: var(--shMd);
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      transition: var(--tr);
+      border: 2px solid transparent;
+      text-decoration: none; color: inherit;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+      font-family: inherit;
+      width: 100%;
+      text-align: left;
+    }
+    .choice-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shLg);
+    }
+    .choice-card.green { border-top: 5px solid var(--green); }
+    .choice-card.green:hover { border-color: var(--green); }
+    .choice-card.blue  { border-top: 5px solid var(--blue); }
+    .choice-card.blue:hover  { border-color: var(--blue); }
+
+    .choice-card-body {
+      padding: 2.5rem 2rem 2rem;
+      flex: 1;
+      display: flex; flex-direction: column; align-items: flex-start;
+      gap: 1rem;
+    }
+    .choice-icon {
+      width: 72px; height: 72px;
+      border-radius: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+    }
+    .choice-card.green .choice-icon { background: #d1fae5; }
+    .choice-card.blue  .choice-icon { background: #dbeafe; }
+
+    .choice-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem; font-weight: 800;
+      line-height: 1.2;
+    }
+    .choice-card.green .choice-title { color: var(--green-d); }
+    .choice-card.blue  .choice-title { color: var(--blue-d); }
+
+    .choice-desc { color: var(--muted); font-size: 0.95rem; line-height: 1.6; }
+
+    .choice-who {
+      display: flex; flex-wrap: wrap; gap: 0.5rem;
+      margin-top: 0.25rem;
+    }
+    .who-tag {
+      font-size: 0.78rem; font-weight: 600;
+      padding: 0.25rem 0.7rem; border-radius: 9999px;
+    }
+    .choice-card.green .who-tag { background: #d1fae5; color: var(--green-d); }
+    .choice-card.blue  .who-tag { background: #dbeafe; color: var(--blue-d); }
+
+    .choice-footer {
+      padding: 1.25rem 2rem;
+      border-top: 1px solid #f1f5f9;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .choice-cta {
+      font-weight: 700; font-size: 0.92rem;
+    }
+    .choice-card.green .choice-cta { color: var(--green-d); }
+    .choice-card.blue  .choice-cta { color: var(--blue-d); }
+    .choice-arrow {
+      font-size: 1.3rem; transition: transform 0.2s;
+    }
+    .choice-card:hover .choice-arrow { transform: translateX(5px); }
+
+    /* ── Lock badge on card ── */
+    .choice-lock-badge {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      background: #dbeafe; color: var(--blue-d);
+      font-size: 0.73rem; font-weight: 700;
+      padding: 0.2rem 0.6rem; border-radius: 9999px;
+    }
+
+    /* ── Version ── */
+    .version-bar {
+      text-align: center; padding: 2rem 1.5rem 0;
+      color: var(--muted); font-size: 0.8rem;
+    }
+    .version-bar span {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: #e2e8f0; border-radius: 9999px;
+      padding: 0.35rem 1rem;
+    }
+    .v-dot { width:6px; height:6px; background:#4ade80; border-radius:50%; }
+
+    /* ── Footer ── */
+    .site-footer {
+      background: var(--dark);
+      color: rgba(255,255,255,0.45);
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.82rem;
+    }
+    .site-footer strong { color: rgba(255,255,255,0.7); }
+
+    /* ══ Password Modal ══ */
+    .modal-bg {
+      display: none;
+      position: fixed; inset: 0; z-index: 9000;
+      background: rgba(15,23,42,0.8);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      align-items: center; justify-content: center;
+      padding: 1rem;
+    }
+    .modal-bg.active { display: flex; }
+
+    .modal-card {
+      background: #fff;
+      border-radius: 1.5rem;
+      padding: 2.5rem 2rem 2rem;
+      width: 100%; max-width: 420px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.35);
+      animation: modalPop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes modalPop {
+      from { opacity:0; transform: scale(0.88) translateY(24px); }
+      to   { opacity:1; transform: scale(1)    translateY(0); }
+    }
+
+    .modal-icon {
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+      border-radius: 1.25rem;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem;
+      margin: 0 auto 1.5rem;
+    }
+
+    .modal-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.4rem; font-weight: 800;
+      color: var(--dark);
+      text-align: center; margin-bottom: 0.35rem;
+    }
+    .modal-subtitle {
+      text-align: center; color: var(--muted);
+      font-size: 0.88rem; margin-bottom: 1.75rem;
+      line-height: 1.5;
+    }
+
+    .modal-error {
+      background: #fef2f2; border: 1px solid #fecaca;
+      color: #dc2626;
+      padding: 0.65rem 1rem;
+      border-radius: 0.75rem; font-size: 0.85rem;
+      margin-bottom: 1rem; display: none;
+      align-items: center; gap: 0.5rem;
+    }
+    .modal-error.visible { display: flex; }
+
+    .modal-label {
+      display: block; font-size: 0.82rem; font-weight: 600;
+      color: var(--text); margin-bottom: 0.45rem;
+    }
+    .modal-input-wrap { position: relative; margin-bottom: 1.5rem; }
+    .modal-input-wrap input {
+      width: 100%;
+      padding: 0.9rem 3rem 0.9rem 1rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 0.75rem;
+      font-size: 1rem; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      font-family: 'Inter', sans-serif;
+      background: #fafafa;
+    }
+    .modal-input-wrap input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(56,132,192,0.15);
+      background: #fff;
+    }
+    .modal-input-wrap input.error { border-color: #f87171; }
+    .modal-eye {
+      position: absolute; right: 0.875rem; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      font-size: 1rem; color: var(--muted); transition: color 0.2s; padding: 0;
+    }
+    .modal-eye:hover { color: var(--dark); }
+
+    .modal-actions { display: flex; gap: 0.75rem; }
+    .modal-cancel {
+      flex: 1; padding: 0.9rem;
+      background: #f1f5f9; border: none; border-radius: 0.75rem;
+      color: var(--muted); font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .modal-cancel:hover { background: #e2e8f0; color: var(--dark); }
+    .modal-btn {
+      flex: 2; padding: 0.9rem;
+      background: var(--blue); border: none; border-radius: 0.75rem;
+      color: #fff; font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; transition: background 0.2s, transform 0.1s;
+      font-family: 'Outfit', sans-serif;
+      display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+    }
+    .modal-btn:hover { background: var(--blue-d); }
+    .modal-btn:active { transform: scale(0.98); }
+    .modal-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-7px); }
+      40%, 80% { transform: translateX(7px); }
+    }
+    .shake { animation: shake 0.4s ease; }
+
+    @media (max-width: 480px) {
+      .modal-card { padding: 2rem 1.25rem 1.5rem; }
+      .modal-actions { flex-direction: column-reverse; }
+      .modal-cancel, .modal-btn { flex: none; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══ HEADER ══ -->
+  <header class="site-header">
+    <div class="header-brand">
+      <div class="header-logo-ring">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#67A8DB" stroke-width="1.5" stroke-linecap="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div>
+        <div class="header-brand-name">CEB 5/4</div>
+        <div class="header-brand-sub">Profr. Rafael Ramírez</div>
+      </div>
+    </div>
+    <a href="index.html" class="header-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M19 12H5M12 5l-7 7 7 7"/>
+      </svg>
+      Sitio público
+    </a>
+  </header>
+
+  <!-- ══ HERO ══ -->
+  <section class="hero">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      Portal Institucional
+    </div>
+    <h1 class="hero-title">Comunidad <span>CEB 5/4</span></h1>
+    <p class="hero-sub">Selecciona tu tipo de acceso para continuar.</p>
+    <div class="hero-wave">
+      <svg viewBox="0 0 1440 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0,30 C480,65 960,0 1440,35 L1440,60 L0,60 Z" fill="#f8fafc"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ══ MAIN ══ -->
+  <main class="main">
+
+    <div class="choice-grid">
+
+      <!-- ── PADRES Y ALUMNOS (acceso directo, sin contraseña) ── -->
+      <a href="portal/index.html" class="choice-card green">
+        <div class="choice-card-body">
+          <div class="choice-icon">🎒</div>
+          <div class="choice-title">Padres y Alumnos</div>
+          <p class="choice-desc">Consulta calificaciones y asistencias de forma rápida y segura.</p>
+          <div class="choice-who">
+            <span class="who-tag">Alumnos</span>
+            <span class="who-tag">Madres y Padres</span>
+            <span class="who-tag">Tutores</span>
+          </div>
+        </div>
+        <div class="choice-footer">
+          <span class="choice-cta">Entrar al Portal</span>
+          <span class="choice-arrow">→</span>
+        </div>
+      </a>
+
+      <!-- ── COMUNIDAD EDUCATIVA (requiere contraseña) ── -->
+      <button type="button" class="choice-card blue" onclick="abrirAccesoComunidad()">
+        <div class="choice-card-body">
+          <div class="choice-icon">🏫</div>
+          <div class="choice-title">Comunidad Educativa</div>
+          <p class="choice-desc">Acceso al portal institucional para docentes, administrativos y directivos.</p>
+          <div class="choice-who">
+            <span class="who-tag">Docentes</span>
+            <span class="who-tag">Directivos</span>
+            <span class="who-tag">Administrativos</span>
+          </div>
+          <span class="choice-lock-badge">🔒 Acceso restringido</span>
+        </div>
+        <div class="choice-footer">
+          <span class="choice-cta">Portal Institucional</span>
+          <span class="choice-arrow">→</span>
+        </div>
+      </button>
+
+    </div>
+
+    <div class="version-bar">
+      <span>
+        <span class="v-dot"></span>
+        CEB 5/4 Sistema Digital — Versión 1.0 &nbsp;|&nbsp; 2025-2026 &nbsp;|&nbsp; Dr. Felipe López Salazar
+      </span>
+    </div>
+
+  </main>
+
+  <!-- ══ FOOTER ══ -->
+  <footer class="site-footer">
+    <strong>Centro de Estudios de Bachillerato CEB 5/4 "Profr. Rafael Ramírez"</strong><br>
+    Pachuca de Soto, Hidalgo &nbsp;·&nbsp; 771 711 0592 &nbsp;·&nbsp; direccion54@dgb.edu.mx
+  </footer>
+
+  <!-- ══ MODAL DE CONTRASEÑA ══ -->
+  <div class="modal-bg" id="pwd-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card" id="modal-card">
+
+      <div class="modal-icon">🏫</div>
+      <h2 class="modal-title" id="modal-title">Comunidad Educativa</h2>
+      <p class="modal-subtitle">Ingresa la contraseña institucional para acceder al portal del personal.</p>
+
+      <div class="modal-error" id="modal-error" role="alert">
+        <span>⚠️</span> Contraseña incorrecta. Verifica e inténtalo de nuevo.
+      </div>
+
+      <label class="modal-label" for="modal-pwd">Contraseña de acceso</label>
+      <div class="modal-input-wrap">
+        <input type="password" id="modal-pwd" placeholder="••••••••••" autocomplete="current-password">
+        <button type="button" class="modal-eye" id="eye-btn" onclick="toggleEye()" aria-label="Mostrar u ocultar contraseña">👁</button>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="modal-cancel" onclick="cerrarModal()">Cancelar</button>
+        <button type="button" class="modal-btn" id="enter-btn" onclick="verificar()">
+          <span>Ingresar</span> <span>→</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // ── Contraseña institucional (capa de acceso simple, sin backend) ──────
+    const PASSWORD_COMUNIDAD = "ceb54";
+    const SESSION_KEY        = "ceb_comunidad_ok";
+
+    // ── Abrir modal o pasar directo si ya autenticó en esta sesión ──────────
+    function abrirAccesoComunidad() {
+      if (sessionStorage.getItem(SESSION_KEY) === "1") {
+        window.location.href = "acceso.html";
+        return;
+      }
+      document.getElementById('pwd-modal').classList.add('active');
+      document.getElementById('modal-pwd').value = '';
+      document.getElementById('modal-error').classList.remove('visible');
+      document.getElementById('modal-pwd').classList.remove('error');
+      setTimeout(() => document.getElementById('modal-pwd').focus(), 80);
+    }
+
+    // ── Cerrar modal ────────────────────────────────────────────────────────
+    function cerrarModal() {
+      document.getElementById('pwd-modal').classList.remove('active');
+      document.getElementById('modal-pwd').value = '';
+      document.getElementById('modal-error').classList.remove('visible');
+      document.getElementById('modal-pwd').classList.remove('error');
+    }
+
+    // ── Mostrar/ocultar contraseña ──────────────────────────────────────────
+    function toggleEye() {
+      const inp = document.getElementById('modal-pwd');
+      inp.type = inp.type === 'password' ? 'text' : 'password';
+    }
+
+    // ── Verificar contraseña ────────────────────────────────────────────────
+    function verificar() {
+      const inp  = document.getElementById('modal-pwd');
+      const err  = document.getElementById('modal-error');
+      const card = document.getElementById('modal-card');
+      const val  = inp.value;
+
+      if (!val) { inp.focus(); return; }
+
+      if (val === PASSWORD_COMUNIDAD) {
+        sessionStorage.setItem(SESSION_KEY, "1");
+        cerrarModal();
+        window.location.href = "acceso.html";
+      } else {
+        err.classList.add('visible');
+        inp.classList.add('error');
+        inp.value = '';
+        inp.focus();
+        card.classList.remove('shake');
+        void card.offsetWidth;   // reflow para reiniciar animación
+        card.classList.add('shake');
+        setTimeout(() => card.classList.remove('shake'), 400);
+      }
+    }
+
+    // ── Teclado ─────────────────────────────────────────────────────────────
+    document.addEventListener('keydown', function(e) {
+      const modal = document.getElementById('pwd-modal');
+      if (!modal.classList.contains('active')) return;
+      if (e.key === 'Escape') cerrarModal();
+      if (e.key === 'Enter')  verificar();
+    });
+
+    // Cerrar al hacer clic fuera del card
+    document.getElementById('pwd-modal').addEventListener('click', function(e) {
+      if (e.target === this) cerrarModal();
+    });
+
+    // Limpiar error al escribir
+    document.getElementById('modal-pwd').addEventListener('input', function() {
+      this.classList.remove('error');
+      document.getElementById('modal-error').classList.remove('visible');
+    });
+  </script>
+
+</body>
+</html>

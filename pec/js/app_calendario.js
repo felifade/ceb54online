@@ -5,7 +5,7 @@
  */
 const CONFIG_CALENDARIO = {
     fechaInicioSemana1: "2026-02-11", // Miércoles
-    fechaFinSemestre: "2026-07-10",  // Límite para el cálculo de semanas
+    fechaFinSemestre: "2026-07-30",  // Límite para el cálculo de semanas
     mostrarRangoFechas: true,
 };
 
@@ -34,6 +34,101 @@ const FECHAS_CLAVE = [
     { id: "fc015", titulo: "Reunión previa intersemestral", fecha: "2026-06-25", categoria: "academico" },
     { id: "fc016", titulo: "Inicio intersemestral", fecha: "2026-06-26", categoria: "academico" },
     { id: "fc017", titulo: "Entrega de calificaciones intersemestral", fecha: "2026-07-10", categoria: "control" }
+];
+
+/**
+ * CUMPLEANOS (Personalizable)
+ * Agregue aquí los nombres y fechas de cumpleaños.
+ */
+const CUMPLEANOS = [
+    { nombre: "José Alfredo Agudo García", fecha: "2026-11-29", cargo: "Docente" },
+    { nombre: "Irma Alvarez Pérez", fecha: "2026-05-20", cargo: "Docente" },
+    { nombre: "Elvia Abigail Arenas Orozco", fecha: "2026-07-29", cargo: "Docente" },
+    { nombre: "Alicia Arias Licea", fecha: "2026-01-21", cargo: "Docente" },
+    { nombre: "Alicia Arteaga Badillo", fecha: "2026-06-23", cargo: "Docente" },
+    { nombre: "Fabiola Alejandra Becerra Hernández", fecha: "2026-08-09", cargo: "Docente" },
+    { nombre: "Felipe López Salazar", fecha: "2026-03-22", cargo: "Docente" },
+    { nombre: "Coord. Académica", fecha: "2026-05-10", cargo: "Coordinación" },
+    { nombre: "Depto. Servicios Docentes", fecha: "2026-06-23", cargo: "Servicios" },
+    { nombre: "Antolín Blancas Hernández", fecha: "2026-09-02", cargo: "Docente" },
+    { nombre: "Yessica Yoselin Blancas Ventura", fecha: "2026-03-21", cargo: "Docente" },
+    { nombre: "Leticia Servanda Briceño Zamudio", fecha: "2026-10-23", cargo: "Docente" },
+    { nombre: "José Mauro Roberto Bustamante Abonce", fecha: "2026-11-21", cargo: "Docente" },
+    { nombre: "Laura María Cadena Galindo", fecha: "2026-04-08", cargo: "Docente" },
+    { nombre: "Rosalia Camargo Azpeitia", fecha: "2026-05-09", cargo: "Docente" },
+    { nombre: "Pedro Camargo Contreras", fecha: "2026-03-30", cargo: "Docente" },
+    { nombre: "Teresa Cano López", fecha: "2026-05-03", cargo: "Docente" },
+    { nombre: "Ángela Gabriela Canseco Prado", fecha: "2026-07-06", cargo: "Docente" },
+    { nombre: "Gabriel Canseco Prado", fecha: "2026-01-04", cargo: "Docente" },
+    { nombre: "Germán Canuto Chávez", fecha: "2026-05-28", cargo: "Docente" },
+    { nombre: "Claudia Carranza Quíroz", fecha: "2026-01-15", cargo: "Docente" },
+    { nombre: "Javier Castillo Cruz", fecha: "2026-10-03", cargo: "Docente" },
+    { nombre: "Verónica Dolores Castillo Moreno", fecha: "2026-03-24", cargo: "Docente" },
+    { nombre: "Miguel Ángel Cervantes Guevara", fecha: "2026-10-31", cargo: "Docente" },
+    { nombre: "Luis Antonio Covarrubias Sánchez", fecha: "2026-12-04", cargo: "Docente" },
+    { nombre: "Ma. Martha Dorantes Flores", fecha: "2026-12-06", cargo: "Docente" },
+    { nombre: "Leticia Enriquez Aguilar", fecha: "2026-01-09", cargo: "Docente" },
+    { nombre: "Ignacio Escamilla Trejo", fecha: "2026-07-31", cargo: "Docente" },
+    { nombre: "Martín Espinosa Arteaga", fecha: "2026-02-02", cargo: "Docente" },
+    { nombre: "Guillermo Estrada Contreras", fecha: "2026-02-25", cargo: "Docente" },
+    { nombre: "Marco Antonio Fernández Hernández", fecha: "2026-12-18", cargo: "Docente" },
+    { nombre: "Martha Flores Mendoza", fecha: "2026-12-14", cargo: "Docente" },
+    { nombre: "Claudia García Chávez", fecha: "2026-03-09", cargo: "Docente" },
+    { nombre: "Juana María García López", fecha: "2026-01-26", cargo: "Docente" },
+    { nombre: "Marisandra García Máximo", fecha: "2026-09-28", cargo: "Docente" },
+    { nombre: "Erika Itzel Gayosso Tolentino", fecha: "2026-07-17", cargo: "Docente" },
+    { nombre: "Edgar Gomez Castillo", fecha: "2026-07-20", cargo: "Docente" },
+    { nombre: "José González Hernández", fecha: "2026-01-17", cargo: "Docente" },
+    { nombre: "Claudia Nayeli González Gardini", fecha: "2026-04-08", cargo: "Docente" },
+    { nombre: "Laura González Munive", fecha: "2026-10-19", cargo: "Docente" },
+    { nombre: "María Elena González Rosendo", fecha: "2026-08-07", cargo: "Docente" },
+    { nombre: "Sivonney Hernández Camargo", fecha: "2026-09-07", cargo: "Docente" },
+    { nombre: "Luis Ignacio Hernández Hernández", fecha: "2026-03-24", cargo: "Docente" },
+    { nombre: "Martín Hernández López", fecha: "2026-10-24", cargo: "Docente" },
+    { nombre: "José Yoshimar Hernández Ortíz", fecha: "2026-12-15", cargo: "Docente" },
+    { nombre: "Luis Francisco Hernández Picazo", fecha: "2026-04-02", cargo: "Docente" },
+    { nombre: "Soila Hernández Vargas", fecha: "2026-09-11", cargo: "Docente" },
+    { nombre: "Alfonso Herrera Gómez", fecha: "2026-04-11", cargo: "Docente" },
+    { nombre: "Lirio Yuselín Islas Montes", fecha: "2026-12-10", cargo: "Docente" },
+    { nombre: "María Goreti Islas Suarez", fecha: "2026-07-06", cargo: "Docente" },
+    { nombre: "Aurora Juárez Flores", fecha: "2026-09-10", cargo: "Docente" },
+    { nombre: "Elsa Erika Jurado Hernández", fecha: "2026-01-09", cargo: "Docente" },
+    { nombre: "Luis Rodolfo Lira García", fecha: "2026-03-18", cargo: "Docente" },
+    { nombre: "José Luis López Mejía", fecha: "2026-05-06", cargo: "Docente" },
+    { nombre: "Martha María López García", fecha: "2026-08-28", cargo: "Docente" },
+    { nombre: "Felipe López Salazar", fecha: "2026-03-22", cargo: "Docente" },
+    { nombre: "Luz María del Carmen López Vázquez", fecha: "2026-08-04", cargo: "Docente" },
+    { nombre: "Feliza Lugo Barrera", fecha: "2026-12-10", cargo: "Docente" },
+    { nombre: "Gustavo León Lugo Cabrera", fecha: "2026-04-12", cargo: "Docente" },
+    { nombre: "Daniel Martínez Flores", fecha: "2026-12-10", cargo: "Docente" },
+    { nombre: "Grindelia Martínez Flores", fecha: "2026-11-29", cargo: "Docente" },
+    { nombre: "Ruben Martínez Castro", fecha: "2026-09-28", cargo: "Docente" },
+    { nombre: "Martín Martínez Ruíz", fecha: "2026-01-13", cargo: "Docente" },
+    { nombre: "María de la Luz Melo Balderas", fecha: "2026-04-15", cargo: "Docente" },
+    { nombre: "María Isabel Mendoza García", fecha: "2026-04-22", cargo: "Docente" },
+    { nombre: "Arturo Najera Vargas", fecha: "2026-10-02", cargo: "Docente" },
+    { nombre: "Hernán Saide Oviedo Juárez", fecha: "2026-12-02", cargo: "Docente" },
+    { nombre: "Iracema Palma Rodríguez", fecha: "2026-10-06", cargo: "Docente" },
+    { nombre: "Ana Karen Pedraza Espinosa", fecha: "2026-10-22", cargo: "Docente" },
+    { nombre: "Guillermo Pérez Najera", fecha: "2026-12-21", cargo: "Docente" },
+    { nombre: "Olga Leticia Priego Cardoza", fecha: "2026-11-10", cargo: "Docente" },
+    { nombre: "Martín Ramírea González", fecha: "2026-11-11", cargo: "Docente" },
+    { nombre: "Jaime Abraham Ramírez Enciso", fecha: "2026-08-22", cargo: "Docente" },
+    { nombre: "Yolanda Reyes Jaramillo", fecha: "2026-10-02", cargo: "Docente" },
+    { nombre: "Diana Bethsabe Ríos Silva", fecha: "2026-12-03", cargo: "Docente" },
+    { nombre: "José Francisco Rodríguez Caudillo", fecha: "2026-11-03", cargo: "Docente" },
+    { nombre: "José Luis Rosas Calderon", fecha: "2026-12-16", cargo: "Docente" },
+    { nombre: "María Elena Rubio García", fecha: "2026-08-18", cargo: "Docente" },
+    { nombre: "Oscar Enrique Sanchez Garnica", fecha: "2026-09-01", cargo: "Docente" },
+    { nombre: "Jerusalén Sánchez Meza", fecha: "2026-08-30", cargo: "Docente" },
+    { nombre: "Arely Edith Soto Islas", fecha: "2026-03-11", cargo: "Docente" },
+    { nombre: "Norma Angélica Torres Islas", fecha: "2026-10-11", cargo: "Docente" },
+    { nombre: "Julia Dallan Trejo Martínez", fecha: "2026-04-21", cargo: "Docente" },
+    { nombre: "Ismael Vázquez Alamilla", fecha: "2026-04-14", cargo: "Docente" },
+    { nombre: "Jorge Daivids Vilchis Aldana", fecha: "2026-04-30", cargo: "Docente" },
+    { nombre: "Jesús Andrés Vilchis León", fecha: "2026-12-31", cargo: "Docente" },
+    { nombre: "Elizabeth Villegas Sánchez", fecha: "2026-11-06", cargo: "Docente" },
+    { nombre: "Sandra María del Rocio Zamudio Fonseca", fecha: "2026-04-16", cargo: "Docente" },
 ];
 
 /**
@@ -76,25 +171,19 @@ function generarCronogramaEfectivo() {
 
     let curIni = new Date(fechaInicio);
     let curFin = new Date(fechaInicio);
+    // La Semana 1 termina el domingo de esa misma semana
     curFin.setDate(fechaInicio.getDate() + (7 - fechaInicio.getDay()) % 7);
     curFin.setHours(23, 59, 59, 999);
 
-    let numSemanaActiva = 0;
+    let numSemana = 0;
 
     while (curIni <= fechaFin) {
+        numSemana++;
         const esVacaciones = esSemanaDePausa(curIni, curFin);
-        let label = "RECESO / VACACIONES";
-        let num = null;
-
-        if (!esVacaciones) {
-            numSemanaActiva++;
-            num = numSemanaActiva;
-            label = `SEMANA ${num}`;
-        }
 
         cronograma.push({
-            num: num,
-            label: label,
+            num: numSemana,
+            label: `SEMANA ${numSemana}`,
             start: new Date(curIni),
             end: new Date(curFin),
             esVacaciones: esVacaciones
@@ -137,6 +226,7 @@ function initCalendario() {
             <div class="view-type-toggle">
                 <button class="view-btn ${viewMode === 'grouped' ? 'active' : ''}" id="view-grouped">Calendario</button>
                 <button class="view-btn ${viewMode === 'list' ? 'active' : ''}" id="view-list">Sólo Eventos</button>
+                <button class="view-btn ${viewMode === 'birthdays' ? 'active' : ''}" id="view-birthdays">🎂 Cumpleaños</button>
             </div>
         </div>
         <div id="calendario-content"></div>
@@ -156,11 +246,19 @@ function initCalendario() {
         renderEventos();
         updateToggles();
     });
+    document.getElementById('view-birthdays').addEventListener('click', () => {
+        if (viewMode === 'birthdays') return;
+        viewMode = 'birthdays';
+        renderEventos();
+        updateToggles();
+    });
 }
 
 function updateToggles() {
     document.getElementById('view-grouped').classList.toggle('active', viewMode === 'grouped');
     document.getElementById('view-list').classList.toggle('active', viewMode === 'list');
+    const bBtn = document.getElementById('view-birthdays');
+    if (bBtn) bBtn.classList.toggle('active', viewMode === 'birthdays');
 }
 
 function renderEventos() {
@@ -176,8 +274,10 @@ function renderEventos() {
     ].sort((a, b) => new Date(a.fecha || a.inicio) - new Date(b.fecha || b.inicio));
 
     if (viewMode === 'list') {
-        // En vista lista plana, sí filtramos solo por eventos reales existentes
+        // En vista lista plana, sí filtramos solo por eventos reales existentes (sin cumpleaños)
         content.innerHTML = `<div class="calendario-grid">${items.map(item => renderItem(item, hoy)).join('')}</div>`;
+    } else if (viewMode === 'birthdays') {
+        content.innerHTML = renderCumpleanos(hoy);
     } else {
         const agrupar = agruparJerarquiaCompleta(items);
         content.innerHTML = renderJerarquiaCompleta(agrupar, hoy);
@@ -223,7 +323,6 @@ function agruparJerarquiaCompleta(items) {
 
         semanasAfectadas.forEach(s => {
             const sKey = `W-${s.start.getTime()}`;
-            // Encontrar en qué mes pusimos esta semana
             const dStr = s.start.toISOString().split('T')[0];
             const [year, month] = dStr.split('-');
             const mesKey = `${year}-${month}`;
@@ -233,6 +332,25 @@ function agruparJerarquiaCompleta(items) {
                 if (!yaExiste) meses[mesKey].semanas[sKey].items.push(item);
             }
         });
+    });
+
+    // 3. Inyectar CUMPLEAÑOS en las semanas correspondientes
+    CUMPLEANOS.forEach(c => {
+        const s = getInfoSemana(c.fecha);
+        if (s) {
+            const sKey = `W-${s.start.getTime()}`;
+            const dStr = s.start.toISOString().split('T')[0];
+            const [year, month] = dStr.split('-');
+            const mesKey = `${year}-${month}`;
+
+            if (meses[mesKey] && meses[mesKey].semanas[sKey]) {
+                meses[mesKey].semanas[sKey].items.push({
+                    ...c,
+                    titulo: c.nombre,
+                    tipo: 'cumple'
+                });
+            }
+        }
     });
 
     return meses;
@@ -258,14 +376,17 @@ function renderJerarquiaCompleta(meses, hoy) {
             return `
                         <div class="semana-bloque ${tipoSemana.clase} ${!tieneEventos ? 'semana-vacia' : ''}">
                             <div class="semana-header">
-                                <span class="semana-num">${sInfo.label}</span>
+                                <div class="semana-id">
+                                    <span class="semana-num">${sInfo.label}</span>
+                                    <span class="semana-parcial-label">${tipoSemana.parcial || ''}</span>
+                                </div>
                                 <span class="semana-rango">${formatearRango(sInfo.start, sInfo.end)}</span>
                                 ${tipoSemana.tag ? `<span class="semana-tipo-badge">${tipoSemana.tag}</span>` : ''}
                             </div>
                             <div class="calendario-grid">
                                 ${tieneEventos ?
                     sem.items.map(item => renderItem(item, hoy)).join('') :
-                    `<p class="semana-sin-eventos">Sin eventos programados</p>`
+                    `<div class="vacio-container"><i data-feather="calendar" style="width:14px; opacity:0.5;"></i> <p class="semana-sin-eventos">Sin eventos programados</p></div>`
                 }
                             </div>
                         </div>
@@ -277,13 +398,46 @@ function renderJerarquiaCompleta(meses, hoy) {
 }
 
 function detectarTipoSemana(items, info) {
-    if (info.esVacaciones) return { tag: 'VACACIONAL', clase: 'semana-vacacional' };
-    if (items.some(i => i.categoria === 'evaluacion')) return { tag: 'EVALUACIÓN', clase: 'semana-evaluacion' };
-    if (items.some(i => i.categoria === 'restriccion')) return { tag: 'RESTRICCIÓN', clase: 'semana-restriccion' };
-    return { tag: '', clase: '' };
+    let result = { tag: '', clase: '', parcial: '' };
+
+    // Lógica de parciales solicitada
+    if (info.num >= 1 && info.num <= 5) result.parcial = "1er Parcial";
+    else if (info.num >= 6 && info.num <= 10) result.parcial = "2do Parcial";
+    else if (info.num >= 11 && info.num <= 15) result.parcial = "3er Parcial";
+    else if (info.num === 16) result.parcial = "Globales";
+
+    if (info.esVacaciones) {
+        result.tag = 'VACACIONAL';
+        result.clase = 'semana-vacacional';
+    } else if (items.some(i => i.categoria === 'evaluacion')) {
+        result.tag = 'EVALUACIÓN';
+        result.clase = 'semana-evaluacion';
+    } else if (items.some(i => i.categoria === 'restriccion')) {
+        result.tag = 'RESTRICCIÓN';
+        result.clase = 'semana-restriccion';
+    }
+
+    return result;
 }
 
 function renderItem(item, hoy) {
+    if (item.tipo === 'cumple') {
+        const fechaC = new Date(item.fecha + 'T00:00:00');
+        const esHoy = fechaC.getMonth() === hoy.getMonth() && fechaC.getDate() === hoy.getDate();
+        const dia = parseInt(item.fecha.split('-')[2]);
+        const mesNombre = obtenerNombreMes(fechaC.getMonth() + 1).toLowerCase();
+
+        return `
+            <div class="evento-card cumple-mini-card ${esHoy ? 'cumple-hoy-resaltado' : ''}">
+                <div class="cumple-mini-content">
+                    <span class="cumple-icon">🎂</span>
+                    <span class="cumple-nombre">${item.nombre}</span>
+                    <span class="cumple-dia">(${dia} ${mesNombre})</span>
+                </div>
+            </div>
+        `;
+    }
+
     const fechaBase = item.fecha || item.inicio;
     const fechaEv = new Date(fechaBase + 'T00:00:00');
     const proximos7Dias = new Date(hoy);
@@ -349,6 +503,42 @@ function formatearFechaLarga(fechaStr) {
 function obtenerNombreMes(monthNumber) {
     const meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
     return meses[parseInt(monthNumber, 10) - 1];
+}
+
+function renderCumpleanos(hoy) {
+    const listado = CUMPLEANOS.sort((a, b) => {
+        const d1 = new Date('2000-' + a.fecha.substring(5));
+        const d2 = new Date('2000-' + b.fecha.substring(5));
+        return d1 - d2;
+    });
+
+    return `
+        <div class="cumple-container">
+            <h3 class="mes-titulo">🎂 Próximos Cumpleaños</h3>
+            <div class="calendario-grid">
+                ${listado.map(c => {
+        const fechaC = new Date(c.fecha + 'T00:00:00');
+        const esMesActual = fechaC.getMonth() === hoy.getMonth();
+        return `
+                        <div class="evento-card cumple-card ${esMesActual ? 'cumple-hoy' : ''}">
+                            <div class="evento-header">
+                                <span class="evento-badge ${esMesActual ? 'badge-proximo' : 'badge-realizado'}">${obtenerNombreMes(fechaC.getMonth() + 1)}</span>
+                                <i data-feather="gift" style="color:var(--clr-primary); width:16px;"></i>
+                            </div>
+                            <div class="evento-info">
+                                <h3 class="evento-titulo">${c.nombre}</h3>
+                                <div class="evento-meta">
+                                    <i data-feather="calendar"></i>
+                                    <span>${formatearFechaSimple(c.fecha)}</span>
+                                </div>
+                                ${c.cargo ? `<p class="evento-desc">${c.cargo}</p>` : ''}
+                            </div>
+                        </div>
+                    `;
+    }).join('')}
+            </div>
+        </div>
+    `;
 }
 
 window.logout = function () {
