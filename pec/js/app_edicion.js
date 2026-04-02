@@ -25,6 +25,16 @@ window.initEdicionView = (function () {
     return sessionStorage.getItem('user_email') || '';
   }
 
+  // Convierte "DD/MM/YYYY" → Date válido (JS no acepta ese formato nativamente)
+  function _parseFechaMX(fechaStr) {
+    if (!fechaStr || fechaStr === 'undefined') return null;
+    const partes = String(fechaStr).trim().split('/');
+    if (partes.length !== 3) return null;
+    const [dia, mes, anio] = partes;
+    const d = new Date(parseInt(anio, 10), parseInt(mes, 10) - 1, parseInt(dia, 10));
+    return isNaN(d.getTime()) ? null : d;
+  }
+
   // ── Render principal ──────────────────────────────────────────────────────
 
   function _renderBase() {
@@ -189,9 +199,27 @@ window.initEdicionView = (function () {
       };
 
       const resp = await api.buscarParaEditar(filtros);
-      _estado.isAdmin        = resp.isAdmin;
-      _estado.edicionAbierta = resp.edicionAbierta;
-      _estado.fechaCierre    = resp.fechaCierre;
+
+      // DEBUG TEMPORAL — verificar qué llega desde el backend
+      console.log("Fecha desde config:", resp.fechaCierre);
+
+      _estado.isAdmin     = resp.isAdmin;
+      _estado.fechaCierre = resp.fechaCierre || "";
+
+      // Calcular edicionAbierta en frontend para no depender de versiones viejas del GAS
+      const _fechaParseada = _parseFechaMX(_estado.fechaCierre);
+      console.log("Fecha parseada:", _fechaParseada);
+
+      if (typeof resp.edicionAbierta === 'boolean') {
+        // GAS nuevo: usa el valor que ya calculó
+        _estado.edicionAbierta = resp.edicionAbierta;
+      } else if (_fechaParseada) {
+        // GAS viejo o sin dato: calcular localmente
+        _estado.edicionAbierta = new Date() <= _fechaParseada;
+      } else {
+        // Sin fecha configurada: asumir abierto
+        _estado.edicionAbierta = true;
+      }
 
       // Filtrar client-side por equipo y materia (texto libre)
       const txtEquipo  = document.getElementById('edit-f-equipo').value.trim().toLowerCase();
@@ -242,21 +270,30 @@ window.initEdicionView = (function () {
     const abierta  = _estado.edicionAbierta;
     const cierre   = _estado.fechaCierre;
 
+    // Sanitizar: nunca mostrar "undefined" ni string vacío como fecha
+    const cierreDisplay = (cierre && cierre !== 'undefined' && cierre.trim() !== '')
+      ? cierre.trim()
+      : null;
+
     if (isAdmin) {
       banner.style.background = '#eff6ff';
       banner.style.border     = '1px solid #bfdbfe';
       banner.style.color      = '#1d4ed8';
-      banner.textContent      = `🔑 Admin: puedes editar cualquier registro${cierre ? ` (cierre: ${cierre})` : ''}.`;
+      banner.textContent      = `🔑 Admin: puedes editar cualquier registro${cierreDisplay ? ` (cierre: ${cierreDisplay})` : ''}.`;
     } else if (abierta) {
       banner.style.background = '#f0fdf4';
       banner.style.border     = '1px solid #bbf7d0';
       banner.style.color      = '#166534';
-      banner.textContent      = `✅ Edición abierta${cierre ? ` hasta ${cierre}` : ''}. Solo puedes modificar tus propios registros.`;
+      banner.textContent      = cierreDisplay
+        ? `✅ Periodo de edición abierto hasta ${cierreDisplay}. Solo puedes modificar tus propios registros.`
+        : `✅ Periodo de edición abierto. Solo puedes modificar tus propios registros.`;
     } else {
       banner.style.background = '#fef3c7';
       banner.style.border     = '1px solid #fde68a';
       banner.style.color      = '#92400e';
-      banner.textContent      = `🔒 Periodo de edición cerrado (${cierre}). Solo el administrador puede hacer cambios.`;
+      banner.textContent      = cierreDisplay
+        ? `🔒 Periodo de edición cerrado (fecha límite: ${cierreDisplay}). Solo el administrador puede hacer cambios.`
+        : `🔒 Periodo de edición cerrado (fecha no configurada). Solo el administrador puede hacer cambios.`;
     }
   }
 

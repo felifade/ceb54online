@@ -762,7 +762,7 @@ function _getFechaCierre(ss) {
   const rows = sConf.getDataRange().getValues();
   for (let i = 0; i < rows.length; i++) {
     if (normalizeText(String(rows[i][0])) !== "portal_fecha_cierre") continue;
-    const val = rows[i][1];
+    const val = rows[i][1] || rows[i][2];   // col B primero, col C como respaldo
     if (!val) return null;
     // Si Sheets ya lo convirtió a Date (formato fecha en la celda)
     if (val instanceof Date && !isNaN(val.getTime())) return val;
@@ -825,7 +825,7 @@ function getEdicionData(e, ss) {
   return ContentService.createTextOutput(JSON.stringify({
     status: "success",
     evaluaciones: resultado,
-    fechaCierre,
+    fechaCierre: fechaCierreStr,
     edicionAbierta,
     isAdmin
   })).setMimeType(ContentService.MimeType.JSON);
