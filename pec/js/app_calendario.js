@@ -16,18 +16,18 @@ const CONFIG_CALENDARIO = {
 const FECHAS_CLAVE = [
     { id: "fc001", titulo: "Inicio de clases", fecha: "2026-02-11", categoria: "academico", prioridad: "alta" },
     { id: "fc002", titulo: "Inicio primer parcial", fecha: "2026-02-11", categoria: "evaluacion" },
-    { id: "fc003", titulo: "Fin primer parcial", fecha: "2026-03-20", categoria: "evaluacion" },
-    { id: "fc004", titulo: "Inicio segundo parcial", fecha: "2026-03-23", categoria: "evaluacion" },
+    { id: "fc003", titulo: "Fin primer parcial", fecha: "2026-03-13", categoria: "evaluacion" },
+    { id: "fc004", titulo: "Inicio segundo parcial", fecha: "2026-03-16", categoria: "evaluacion" },
     { id: "fc004", titulo: "Entrega PEC Estudiantes", fecha: "2026-04-24", categoria: "evaluacion" },
     { id: "fc004", titulo: "Captura PEC Docentes", fecha: "2026-04-28", categoria: "evaluacion" },
     { id: "fc005", titulo: "Revisión y aclaraciones PEC", fecha: "2026-04-29", categoria: "evaluacion" },
-    { id: "fc005", titulo: "Fin segundo parcial", fecha: "2026-05-08", categoria: "evaluacion" },
-    { id: "fc006", titulo: "Inicio tercer parcial", fecha: "2026-05-11", categoria: "evaluacion" },
-    { id: "fc007", titulo: "No realizar modificaciones", fecha: "2026-05-12", categoria: "restriccion", estadoManual: "restriccion", prioridad: "alta" },
+    { id: "fc005", titulo: "Fin segundo parcial", fecha: "2026-04-30", categoria: "evaluacion" },
+    { id: "fc006", titulo: "Inicio tercer parcial", fecha: "2026-05-4", categoria: "evaluacion" },
+     { id: "fc006", titulo: "Fecha Limite de Captura", fecha: "2026-05-10", categoria: "evaluacion" },
+    { id: "fc007", titulo: "No realizar modificaciones Control Escolar", fecha: "2026-05-12", categoria: "restriccion", estadoManual: "restriccion", prioridad: "alta" },
     { id: "fc008", titulo: "Reunión con padres", fecha: "2026-05-13", hora: "07:00", categoria: "reunion", prioridad: "alta" },
-    { id: "fc009", titulo: "Entrega de calificaciones segundo parcial", fecha: "2026-05-13", categoria: "control" },
+    { id: "fc009", titulo: "Entrega de calificaciones segundo parcial ambos turnos", fecha: "2026-05-13", categoria: "control" },
     { id: "fc010", titulo: "Entrega de calificaciones intrasemestrales", fecha: "2026-05-20", categoria: "control" },
-    { id: "fc011", titulo: "Fin tercer parcial", fecha: "2026-06-11", categoria: "evaluacion" },
     { id: "fc012", titulo: "Inicio evaluación final", fecha: "2026-06-12", categoria: "evaluacion" },
     { id: "fc013", titulo: "Fin de clases", fecha: "2026-06-19", categoria: "academico" },
     { id: "fc014", titulo: "Captura de actas finales", fecha: "2026-06-22", categoria: "control" },
@@ -115,7 +115,6 @@ const PERIODOS_ESPECIALES = [
     { titulo: "Batalla de Puebla", fecha: "2026-05-05", categoria: "festivo", tipo: "dia" },
     { titulo: "Día del Maestro", fecha: "2026-05-15", categoria: "festivo", tipo: "dia" },
     { titulo: "Receso escolar (Vacaciones)", inicio: "2026-03-30", fin: "2026-04-10", categoria: "vacaciones", tipo: "periodo" },
-    { titulo: "Semana de Evaluación Primera Vuelta", inicio: "2026-06-12", fin: "2026-06-18", categoria: "evaluacion", tipo: "periodo" },
 ];
 
 let viewMode = 'grouped';

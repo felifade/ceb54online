@@ -484,6 +484,132 @@
     .admin-toggle-card .ctrl-name { color: rgba(255,255,255,0.82); }
     .admin-toggle-card .ctrl-desc { color: rgba(255,255,255,0.38); font-size: 0.76rem; }
 
+    /* ── Semana Actual Widget ── */
+    .semana-actual {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+      border-radius: var(--rLg);
+      padding: 1.75rem 2rem;
+      margin-bottom: 2.5rem;
+      position: relative; overflow: hidden;
+    }
+    .semana-actual::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 90% 50%, rgba(56,132,192,0.15) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .semana-actual-head {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      flex-wrap: wrap; gap: 0.75rem;
+      margin-bottom: 1.25rem; position: relative;
+    }
+    .semana-actual-badge {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      background: rgba(56,132,192,0.2);
+      border: 1px solid rgba(56,132,192,0.4);
+      color: #93c5fd;
+      font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px;
+      padding: 0.3rem 0.875rem; border-radius: 9999px;
+      white-space: nowrap; align-self: flex-start;
+    }
+    .dot-live {
+      width: 6px; height: 6px;
+      background: #4ade80; border-radius: 50%;
+      animation: pulse 2s infinite; flex-shrink: 0;
+    }
+    .semana-actual-num {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem; font-weight: 800; color: #fff;
+    }
+    .semana-actual-rango { font-size: 0.8rem; color: rgba(255,255,255,0.45); margin-top: 0.15rem; }
+    .semana-actual-parcial {
+      display: inline-block; margin-top: 0.35rem;
+      font-size: 0.72rem; font-weight: 700;
+      color: #fbbf24;
+      background: rgba(251,191,36,0.12);
+      border: 1px solid rgba(251,191,36,0.3);
+      padding: 0.15rem 0.6rem; border-radius: 9999px;
+    }
+    .semana-actual-items { display: flex; flex-direction: column; gap: 0.5rem; position: relative; }
+    .semana-item {
+      display: flex; align-items: center; gap: 0.75rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 0.625rem;
+      padding: 0.625rem 0.875rem;
+      font-size: 0.875rem;
+    }
+    .semana-item-icon { font-size: 1rem; flex-shrink: 0; line-height: 1; }
+    .semana-item-text { color: rgba(255,255,255,0.85); flex: 1; min-width: 0; }
+    .semana-item-cat {
+      font-size: 0.67rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.4px;
+      padding: 0.15rem 0.5rem; border-radius: 9999px; flex-shrink: 0;
+    }
+    .cat-evaluacion { background: rgba(99,102,241,0.25); color: #a5b4fc; }
+    .cat-reunion    { background: rgba(234,179,8,0.25);  color: #fde047; }
+    .cat-restriccion{ background: rgba(239,68,68,0.25);  color: #fca5a5; }
+    .cat-control    { background: rgba(20,184,166,0.25); color: #5eead4; }
+    .cat-academico  { background: rgba(56,132,192,0.25); color: #93c5fd; }
+    .cat-festivo    { background: rgba(249,115,22,0.25); color: #fdba74; }
+    .cat-vacaciones { background: rgba(16,185,129,0.25); color: #6ee7b7; }
+    .cat-cumple     { background: rgba(236,72,153,0.25); color: #f9a8d4; }
+    .semana-vacia-msg {
+      color: rgba(255,255,255,0.4); font-size: 0.875rem;
+      font-style: italic; padding: 0.25rem 0;
+    }
+
+    /* ── Creando Apenas ── */
+    .creando-section {
+      margin-top: 3rem; padding-top: 2.5rem;
+      border-top: 1.5px dashed #e2e8f0;
+    }
+    .creando-label { display: flex; align-items: center; gap: 0.875rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .creando-badge {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: #fef3c7; color: #92400e;
+      border: 1px solid #fde68a;
+      font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      padding: 0.3rem 0.75rem; border-radius: 9999px;
+      white-space: nowrap;
+    }
+    .creando-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.05rem; font-weight: 800; color: var(--muted);
+    }
+    .creando-sub { font-size: 0.82rem; color: #94a3b8; margin-top: 0.1rem; }
+    .creando-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+    @media (max-width: 900px) { .creando-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 500px)  { .creando-grid { grid-template-columns: 1fr; } }
+    .creando-card {
+      background: #fff; border: 1.5px dashed #e2e8f0;
+      border-radius: var(--r); padding: 1.25rem 1.25rem 1rem;
+      display: flex; flex-direction: column; align-items: flex-start; gap: 0.4rem;
+      opacity: 0.65; position: relative; overflow: hidden;
+    }
+    .creando-card-icon { font-size: 1.75rem; line-height: 1; }
+    .creando-card-name {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.9rem; font-weight: 700; color: var(--muted);
+    }
+    .creando-card-tag {
+      font-size: 0.65rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.6px;
+      background: #f1f5f9; color: #94a3b8;
+      border: 1px solid #e2e8f0;
+      padding: 0.15rem 0.5rem; border-radius: 9999px;
+    }
+    .creando-card::after {
+      content: '🚧'; position: absolute; top: 0.6rem; right: 0.65rem;
+      font-size: 0.85rem; opacity: 0.4;
+    }
+
     /* ── Shake animation ── */
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
@@ -543,6 +669,11 @@
 
   <!-- ══ MAIN ══ -->
   <main class="main">
+
+    <!-- ══ SEMANA ACTUAL ══ -->
+    <div id="semana-actual-widget" class="semana-actual" style="display:none;">
+      <!-- Renderizado por JS tras cargar app_calendario.js -->
+    </div>
 
     <div class="section-label">
       <div class="section-label-accent"></div>
@@ -687,6 +818,39 @@
       </div>
     </div>
 
+    <!-- ══ MÓDULOS EN CONSTRUCCIÓN ══ -->
+    <div class="creando-section">
+      <div class="creando-label">
+        <span class="creando-badge">🚧 Creando apenas</span>
+        <div>
+          <div class="creando-title">Módulos en Desarrollo</div>
+          <div class="creando-sub">Próximamente disponibles para su área institucional</div>
+        </div>
+      </div>
+      <div class="creando-grid">
+        <div class="creando-card">
+          <div class="creando-card-icon">🏛️</div>
+          <div class="creando-card-name">Dirección</div>
+          <span class="creando-card-tag">Próximamente</span>
+        </div>
+        <div class="creando-card">
+          <div class="creando-card-icon">📋</div>
+          <div class="creando-card-name">Subdirección</div>
+          <span class="creando-card-tag">En construcción</span>
+        </div>
+        <div class="creando-card">
+          <div class="creando-card-icon">🎓</div>
+          <div class="creando-card-name">Orientación Educativa</div>
+          <span class="creando-card-tag">En construcción</span>
+        </div>
+        <div class="creando-card">
+          <div class="creando-card-icon">🔍</div>
+          <div class="creando-card-name">Prefectura</div>
+          <span class="creando-card-tag">Próximamente</span>
+        </div>
+      </div>
+    </div>
+
     <div class="version-bar">
       <span>
         <span class="v-dot"></span>
@@ -726,7 +890,124 @@
   </div>
 
   <script src="portal/js/portal-api.js"></script>
+  <script src="pec/js/app_calendario.js"></script>
   <script>
+    /* ── Semana Actual Widget ─────────────────────────────────────────────── */
+    // app_calendario.js registra su DOMContentLoaded primero (carga antes).
+    // cronogramaMap, FECHAS_CLAVE, CUMPLEANOS, PERIODOS_ESPECIALES quedan en scope global.
+
+    document.addEventListener('DOMContentLoaded', function () {
+      _renderSemanaActual();
+    });
+
+    function _renderSemanaActual() {
+      const widget = document.getElementById('semana-actual-widget');
+      if (!widget) return;
+
+      // cronogramaMap es let en app_calendario.js — accesible directamente, no via window
+      if (typeof cronogramaMap === 'undefined' || !cronogramaMap) {
+        widget.style.display = 'none';
+        return;
+      }
+
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+
+      // Buscar semana escolar actual
+      const sem = cronogramaMap.find(s => hoy >= s.start && hoy <= s.end);
+      if (!sem) { widget.style.display = 'none'; return; }
+
+      widget.style.display = 'block';
+
+      // Parcial correspondiente
+      const parcialMap = { 1:'1er Parcial', 2:'1er Parcial', 3:'1er Parcial', 4:'1er Parcial', 5:'1er Parcial',
+                           6:'2do Parcial', 7:'2do Parcial', 8:'2do Parcial', 9:'2do Parcial', 10:'2do Parcial',
+                           11:'3er Parcial', 12:'3er Parcial', 13:'3er Parcial', 14:'3er Parcial', 15:'3er Parcial',
+                           16:'Evaluación Global' };
+      const parcialLabel = parcialMap[sem.num] || '';
+
+      // Íconos por categoría
+      const catIcon = { evaluacion:'📝', reunion:'👥', restriccion:'🚫',
+                        control:'📁', academico:'🎓', festivo:'🎉', vacaciones:'🏖️' };
+
+      // Semana vacacional
+      if (sem.esVacaciones) {
+        widget.innerHTML = `
+          <div class="semana-actual-head">
+            <div>
+              <div class="semana-actual-num">🏖️ ${sem.label}</div>
+              <div class="semana-actual-rango">${formatearRango(sem.start, sem.end)}</div>
+              <span class="semana-actual-parcial">PERÍODO VACACIONAL</span>
+            </div>
+            <span class="semana-actual-badge"><span class="dot-live"></span>Esta semana</span>
+          </div>
+          <div class="semana-actual-items">
+            <p class="semana-vacia-msg">Período de descanso — sin actividades escolares programadas.</p>
+          </div>`;
+        return;
+      }
+
+      // Recopilar eventos de esta semana
+      const eventosSemana = FECHAS_CLAVE.filter(ev => {
+        const d = new Date(ev.fecha + 'T00:00:00');
+        return d >= sem.start && d <= sem.end;
+      });
+
+      // Periodos que se traslapen con esta semana
+      const periodosSemana = PERIODOS_ESPECIALES.filter(p => {
+        if (p.tipo === 'periodo') {
+          const ps = new Date(p.inicio + 'T00:00:00');
+          const pe = new Date(p.fin   + 'T00:00:00');
+          return ps <= sem.end && pe >= sem.start;
+        }
+        const d = new Date(p.fecha + 'T00:00:00');
+        return d >= sem.start && d <= sem.end;
+      });
+
+      // Cumpleaños de esta semana (reutilizando getInfoSemana de app_calendario.js)
+      const cumplesSemana = CUMPLEANOS.filter(c => {
+        const s = getInfoSemana(c.fecha);
+        return s && s.start.getTime() === sem.start.getTime();
+      });
+
+      const hayContenido = eventosSemana.length || periodosSemana.length || cumplesSemana.length;
+
+      const itemsHTML = !hayContenido
+        ? `<p class="semana-vacia-msg">Sin eventos programados para esta semana.</p>`
+        : [
+            ...eventosSemana.map(ev => `
+              <div class="semana-item">
+                <span class="semana-item-icon">${catIcon[ev.categoria] || '📌'}</span>
+                <span class="semana-item-text">${ev.titulo}</span>
+                <span class="semana-item-cat cat-${ev.categoria || 'academico'}">${ev.categoria || 'evento'}</span>
+              </div>`),
+            ...periodosSemana.map(p => `
+              <div class="semana-item">
+                <span class="semana-item-icon">${catIcon[p.categoria] || '📌'}</span>
+                <span class="semana-item-text">${p.titulo}</span>
+                <span class="semana-item-cat cat-${p.categoria || 'academico'}">${p.categoria || 'periodo'}</span>
+              </div>`),
+            ...cumplesSemana.map(c => `
+              <div class="semana-item">
+                <span class="semana-item-icon">🎂</span>
+                <span class="semana-item-text">${c.nombre}</span>
+                <span class="semana-item-cat cat-cumple">Cumpleaños</span>
+              </div>`)
+          ].join('');
+
+      widget.innerHTML = `
+        <div class="semana-actual-head">
+          <div>
+            <div class="semana-actual-num">${sem.label}</div>
+            <div class="semana-actual-rango">${formatearRango(sem.start, sem.end)}</div>
+            ${parcialLabel ? `<span class="semana-actual-parcial">${parcialLabel}</span>` : ''}
+          </div>
+          <span class="semana-actual-badge"><span class="dot-live"></span>Esta semana</span>
+        </div>
+        <div class="semana-actual-items">${itemsHTML}</div>`;
+    }
+    /* ── Fin widget ────────────────────────────────────────────────────────── */
+
     const KEY = 'cebAcadOk';
     const OK  = 'Y2ViNTRhZG1pbjIwMjY=';
     let destino       = null;
