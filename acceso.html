@@ -560,6 +560,20 @@
       font-style: italic; padding: 0.25rem 0;
     }
 
+    /* ── Cumpleaños Subtile ── */
+    .semana-cumples-box {
+      margin-top: 0.75rem;
+      padding: 0.625rem 1rem;
+      background: rgba(236,72,153,0.08);
+      border: 1px solid rgba(236,72,153,0.2);
+      border-radius: 0.875rem;
+      display: flex; align-items: center; gap: 0.65rem;
+      color: rgba(255,255,255,0.7);
+      font-size: 0.82rem;
+    }
+    .semana-cumples-box b { color: #f9a8d4; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .cumple-nombres { color: rgba(255,255,255,0.9); font-weight: 500; }
+
     /* ── Creando Apenas ── */
     .creando-section {
       margin-top: 3rem; padding-top: 2.5rem;
@@ -924,7 +938,19 @@
       const catIcon = { evaluacion:'📝', reunion:'👥', restriccion:'🚫',
                         control:'📁', academico:'🎓', festivo:'🎉', vacaciones:'🏖️' };
 
-      // Semana vacacional
+      // 1. Detectar cumpleaños (SIEMPRE, incluso en vacaciones)
+      const cumplesSemana = CUMPLEANOS.filter(c => {
+        const s = getInfoSemana(c.fecha);
+        return s && s.start.getTime() === sem.start.getTime();
+      });
+      const hayCumples = cumplesSemana.length;
+      const cumplesHTML = !hayCumples ? "" : `
+        <div class="semana-cumples-box">
+          <b>🎂 Cumpleaños</b>
+          <span class="cumple-nombres">${cumplesSemana.map(c => `${c.nombre} (${formatearFechaSimple(c.fecha)})`).join(', ')}</span>
+        </div>`;
+
+      // 2. Semana vacacional (Ruta A)
       if (sem.esVacaciones) {
         widget.innerHTML = `
           <div class="semana-actual-head">
@@ -937,17 +963,17 @@
           </div>
           <div class="semana-actual-items">
             <p class="semana-vacia-msg">Período de descanso — sin actividades escolares programadas.</p>
+            ${cumplesHTML}
           </div>`;
         return;
       }
 
-      // Recopilar eventos de esta semana
+      // 3. Semana académica (Ruta B)
       const eventosSemana = FECHAS_CLAVE.filter(ev => {
         const d = new Date(ev.fecha + 'T00:00:00');
         return d >= sem.start && d <= sem.end;
       });
 
-      // Periodos que se traslapen con esta semana
       const periodosSemana = PERIODOS_ESPECIALES.filter(p => {
         if (p.tipo === 'periodo') {
           const ps = new Date(p.inicio + 'T00:00:00');
@@ -958,16 +984,10 @@
         return d >= sem.start && d <= sem.end;
       });
 
-      // Cumpleaños de esta semana (reutilizando getInfoSemana de app_calendario.js)
-      const cumplesSemana = CUMPLEANOS.filter(c => {
-        const s = getInfoSemana(c.fecha);
-        return s && s.start.getTime() === sem.start.getTime();
-      });
+      const hayEventos = eventosSemana.length || periodosSemana.length;
 
-      const hayContenido = eventosSemana.length || periodosSemana.length || cumplesSemana.length;
-
-      const itemsHTML = !hayContenido
-        ? `<p class="semana-vacia-msg">Sin eventos programados para esta semana.</p>`
+      const itemsHTML = !hayEventos
+        ? `<p class="semana-vacia-msg">Sin eventos académicos para esta semana.</p>`
         : [
             ...eventosSemana.map(ev => `
               <div class="semana-item">
@@ -980,12 +1000,6 @@
                 <span class="semana-item-icon">${catIcon[p.categoria] || '📌'}</span>
                 <span class="semana-item-text">${p.titulo}</span>
                 <span class="semana-item-cat cat-${p.categoria || 'academico'}">${p.categoria || 'periodo'}</span>
-              </div>`),
-            ...cumplesSemana.map(c => `
-              <div class="semana-item">
-                <span class="semana-item-icon">🎂</span>
-                <span class="semana-item-text">${c.nombre}</span>
-                <span class="semana-item-cat cat-cumple">Cumpleaños</span>
               </div>`)
           ].join('');
 
@@ -998,7 +1012,10 @@
           </div>
           <span class="semana-actual-badge"><span class="dot-live"></span>Esta semana</span>
         </div>
-        <div class="semana-actual-items">${itemsHTML}</div>`;
+        <div class="semana-actual-items">
+          ${itemsHTML}
+          ${cumplesHTML}
+        </div>`;
     }
     /* ── Fin widget ────────────────────────────────────────────────────────── */
 
