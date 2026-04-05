@@ -10,10 +10,9 @@ const CONFIG_CALENDARIO = {
 };
 
 /**
- * EVENTOS PUNTUALES
- * Agregue aquí los eventos específicos por fecha.
+ * EVENTOS PUNTUALES (Fallback Local)
  */
-const FECHAS_CLAVE = [
+const FECHAS_CLAVE_FALLBACK = [
     { id: "fc001", titulo: "Inicio de clases", fecha: "2026-02-11", categoria: "academico", prioridad: "alta" },
     { id: "fc002", titulo: "Inicio primer parcial", fecha: "2026-02-11", categoria: "evaluacion" },
     { id: "fc003", titulo: "Fin primer parcial", fecha: "2026-03-13", categoria: "evaluacion" },
@@ -36,11 +35,13 @@ const FECHAS_CLAVE = [
     { id: "fc017", titulo: "Entrega de calificaciones intersemestral", fecha: "2026-07-10", categoria: "control" }
 ];
 
+let FECHAS_CLAVE = [];
+
 /**
- * CUMPLEANOS (Personalizable)
- * Agregue aquí los nombres y fechas de cumpleaños.
+ * CUMPLEAÑOS (Fallback Local)
+ * Se utilizará si la lectura desde Google Sheets falla o está vacía.
  */
-const CUMPLEANOS = [
+const CUMPLEANOS_FALLBACK = [
     { nombre: "José Alfredo Agudo García", fecha: "2026-11-29", cargo: "Docente" },
     { nombre: "Irma Alvarez Pérez", fecha: "2026-05-20", cargo: "Docente" },
     { nombre: "Elvia Abigail Arenas Orozco", fecha: "2026-07-29", cargo: "Docente" },
@@ -107,20 +108,26 @@ const CUMPLEANOS = [
     { nombre: "Sandra María del Rocio Zamudio Fonseca", fecha: "2026-04-16", cargo: "Docente" },
 ];
 
+// Esta variable se llenará dinámicamente o usará el fallback.
+let CUMPLEANOS = [];
+
 /**
- * PERIODOS ESPECIALES (Vacaciones, Festivos, Suspensiones)
+ * PERIODOS ESPECIALES (Fallback Local)
  */
-const PERIODOS_ESPECIALES = [
+const PERIODOS_ESPECIALES_FALLBACK = [
     { titulo: "Suspensión de labores", fecha: "2026-05-01", categoria: "festivo", tipo: "dia" },
     { titulo: "Batalla de Puebla", fecha: "2026-05-05", categoria: "festivo", tipo: "dia" },
     { titulo: "Día del Maestro", fecha: "2026-05-15", categoria: "festivo", tipo: "dia" },
     { titulo: "Receso escolar (Vacaciones)", inicio: "2026-03-30", fin: "2026-04-10", categoria: "vacaciones", tipo: "periodo" },
 ];
 
+let PERIODOS_ESPECIALES = [];
+
 let viewMode = 'grouped';
 let cronogramaMap = null;
 
-document.addEventListener("DOMContentLoaded", () => {
+// Convertir a async para poder cargar datos desde Google Sheets
+document.addEventListener("DOMContentLoaded", async () => {
     if (window.feather) feather.replace();
     const userName = sessionStorage.getItem('user_name');
     if (userName && document.getElementById('topbar-user-name')) {
@@ -131,9 +138,56 @@ document.addEventListener("DOMContentLoaded", () => {
         menuToggle.addEventListener('click', () => document.getElementById('sidebar').classList.toggle('open'));
     }
 
+    // -- FASE 2: Carga de BD Calendario (Eventos, Periodos, Cumpleaños) --
+    if (window.apiCalendario) {
+        const datos = await window.apiCalendario.fetchDatosCalendario();
+        if (datos && (datos.cumpleanos.length > 0 || datos.eventos.length > 0)) {
+            const visibles = arr => arr.filter(item => String(item.visible).toUpperCase() !== 'NO');
+            
+            CUMPLEANOS = visibles(datos.cumpleanos);
+            
+            const eventosGSheet = visibles(datos.eventos);
+            
+            FECHAS_CLAVE = eventosGSheet.filter(e => String(e.tipo).toLowerCase() === 'evento').map(e => ({
+                id: e.titulo.replace(/\s+/g, ''),
+                titulo: e.titulo,
+                fecha: e.fecha_inicio,
+                hora: e.hora || "",
+                categoria: e.categoria || "evento",
+                prioridad: e.prioridad || "",
+                descripcion: e.descripcion || ""
+            }));
+
+            PERIODOS_ESPECIALES = eventosGSheet.filter(e => String(e.tipo).toLowerCase() === 'periodo').map(p => ({
+                titulo: p.titulo,
+                inicio: p.fecha_inicio,
+                fin: p.fecha_fin || p.fecha_inicio,
+                categoria: p.categoria || "periodo",
+                tipo: "periodo"
+            }));
+
+            console.log("Calendario: Datos cargados desde Sheets.");
+        } else {
+            // GAS respondió pero sin datos — usar fallback local
+            CUMPLEANOS        = CUMPLEANOS_FALLBACK;
+            FECHAS_CLAVE      = FECHAS_CLAVE_FALLBACK;
+            PERIODOS_ESPECIALES = PERIODOS_ESPECIALES_FALLBACK;
+            console.warn("Calendario: GAS sin datos — usando fallback local.");
+        }
+    } else {
+        // apiCalendario no disponible — usar fallback local
+        CUMPLEANOS        = CUMPLEANOS_FALLBACK;
+        FECHAS_CLAVE      = FECHAS_CLAVE_FALLBACK;
+        PERIODOS_ESPECIALES = PERIODOS_ESPECIALES_FALLBACK;
+        console.warn("Calendario: apiCalendario no disponible — usando fallback local.");
+    }
+
     // Generar el cronograma cronológico primero
     cronogramaMap = generarCronogramaEfectivo();
     initCalendario();
+
+    // Disparar evento para que widgets en otras páginas sepan que ya pueden renderizar
+    document.dispatchEvent(new Event('calendarioDataLista'));
 });
 
 /**

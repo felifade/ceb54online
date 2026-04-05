@@ -150,8 +150,11 @@ function doGet(e) {
     if (act === "getCalAlumno")      return getCalAlumno(e, ss);
     if (act === "getCalPadre")       return getCalPadre(e, ss);
     if (act === "getConfig")         return ok({ status:"success", config: readConfig(ss) });
-    if (act === "getEncuestaStatus") return getEncuestaStatus(e, ss);
-    if (act === "adminPortal")       return adminPortalGet(e, ss);
+    if (act === "getEncuestaStatus")    return getEncuestaStatus(e, ss);
+    if (act === "adminPortal")          return adminPortalGet(e, ss);
+    if (act === "getPrefecturaBase")    return getPrefecturaBase(ss);
+    if (act === "getIncidencias")       return getIncidencias(e, ss);
+    if (act === "getCalendario")        return getCalendario(ss);
     return err("Acción no válida");
   } catch(ex) { return err(ex.toString()); }
 }
@@ -237,6 +240,8 @@ function doPost(e) {
     if (act === "encuestaAlumno")   return saveEncAlumno(body, ss);
     if (act === "encuestaPadre")    return saveEncPadre(body, ss);
     if (act === "adminPortal")      return adminPortal(body, ss);
+    if (act === "saveIncidencia")    return saveIncidencia(body, ss);
+    if (act === "marcarLaborSocial") return marcarLaborSocial(body, ss);
     return err("Acción no válida");
   } catch(ex) { return err(ex.toString()); }
 }
@@ -352,4 +357,58 @@ function adminPortal(body, ss) {
     else          sConf.appendRow([key, val]);
   });
   return ok({ status:"success" });
+}
+
+// ── CALENDARIO: eventos y cumpleaños desde Sheets ───────────────────
+// Hojas esperadas en el mismo spreadsheet:
+//   Calendario_Eventos: titulo | tipo | fecha_inicio | fecha_fin | hora | categoria | prioridad | descripcion | visible
+//   Calendario_Cumple:  nombre | fecha | cargo | visible
+function getCalendario(ss) {
+  const sEv  = getSheet(ss, "Calendario_Eventos");
+  const sCum = getSheet(ss, "Calendario_Cumple");
+
+  // Formato ISO yyyy-MM-dd requerido por el calendario frontend
+  function fmtISO(val) {
+    if (!val) return "";
+    if (val instanceof Date && !isNaN(val))
+      return Utilities.formatDate(val, Session.getScriptTimeZone(), "yyyy-MM-dd");
+    return String(val).trim();
+  }
+
+  const eventos = [];
+  if (sEv) {
+    const rows = sEv.getDataRange().getValues();
+    rows.shift();
+    rows.forEach(r => {
+      if (!r[0]) return;
+      eventos.push({
+        titulo:       String(r[0] || "").trim(),
+        tipo:         String(r[1] || "evento").trim().toLowerCase(),
+        fecha_inicio: fmtISO(r[2]),
+        fecha_fin:    fmtISO(r[3]),
+        hora:         String(r[4] || "").trim(),
+        categoria:    String(r[5] || "academico").trim().toLowerCase(),
+        prioridad:    String(r[6] || "").trim().toLowerCase(),
+        descripcion:  String(r[7] || "").trim(),
+        visible:      String(r[8] || "si").trim().toLowerCase() !== "no" ? "SI" : "NO"
+      });
+    });
+  }
+
+  const cumpleanos = [];
+  if (sCum) {
+    const rows = sCum.getDataRange().getValues();
+    rows.shift();
+    rows.forEach(r => {
+      if (!r[0]) return;
+      cumpleanos.push({
+        nombre:  String(r[0] || "").trim(),
+        fecha:   fmtISO(r[1]),
+        cargo:   String(r[2] || "Docente").trim(),
+        visible: String(r[3] || "si").trim().toLowerCase() !== "no" ? "SI" : "NO"
+      });
+    });
+  }
+
+  return ok({ status: "success", eventos, cumpleanos });
 }

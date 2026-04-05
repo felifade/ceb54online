@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prefectura — Seguimiento de Incidencias | CEB 5/4</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="js/api.js"></script>
+</head>
+<body>
+
+  <!-- ══ LOGIN OVERLAY ══ -->
+  <div id="pref-login-overlay" style="
+    position:fixed; inset:0; z-index:9999;
+    background:linear-gradient(135deg,#0f172a 0%,#1a0505 60%,#2d0a0a 100%);
+    display:flex; align-items:center; justify-content:center;
+    padding:1rem;">
+
+    <div style="
+      background:white; border-radius:24px; padding:2.5rem 2rem;
+      width:100%; max-width:400px; box-shadow:0 32px 80px rgba(0,0,0,0.5);
+      position:relative; overflow:hidden;">
+
+      <!-- Acento rojo superior -->
+      <div style="
+        position:absolute; top:0; left:0; right:0; height:4px;
+        background:linear-gradient(90deg,#dc2626,#ef4444,#dc2626);"></div>
+
+      <!-- Logo -->
+      <div style="text-align:center; margin-bottom:1.75rem;">
+        <div style="
+          width:64px; height:64px; border-radius:18px;
+          background:linear-gradient(135deg,#fef2f2,#fee2e2);
+          border:2px solid #fecaca;
+          display:flex; align-items:center; justify-content:center;
+          font-size:1.75rem; margin:0 auto 1rem;">🔍</div>
+        <div style="font-family:'Outfit',sans-serif; font-size:1.3rem; font-weight:800; color:#0f172a; letter-spacing:-0.5px;">
+          Prefectura
+        </div>
+        <div style="font-size:0.8rem; color:#64748b; margin-top:0.2rem;">
+          CEB 5/4 — Seguimiento de Incidencias
+        </div>
+      </div>
+
+      <!-- Formulario -->
+      <form id="pref-login-form" onsubmit="intentarLogin(event)" autocomplete="off">
+
+        <div style="margin-bottom:1rem;">
+          <label style="display:block; font-size:0.78rem; font-weight:700; color:#374151; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.5px;">
+            Tu nombre completo
+          </label>
+          <input id="pref-login-nombre" type="text" required
+            placeholder="Ej: María González Pérez"
+            autocomplete="name"
+            style="
+              width:100%; padding:0.75rem 1rem; border-radius:10px;
+              border:1.5px solid #e2e8f0; font-size:0.9rem; font-family:inherit;
+              outline:none; transition:border 0.2s; box-sizing:border-box;">
+        </div>
+
+        <div style="margin-bottom:1.5rem;">
+          <label style="display:block; font-size:0.78rem; font-weight:700; color:#374151; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.5px;">
+            Contraseña
+          </label>
+          <input id="pref-login-pass" type="password" required
+            placeholder="Contraseña del área"
+            autocomplete="current-password"
+            style="
+              width:100%; padding:0.75rem 1rem; border-radius:10px;
+              border:1.5px solid #e2e8f0; font-size:0.9rem; font-family:inherit;
+              outline:none; transition:border 0.2s; box-sizing:border-box;">
+        </div>
+
+        <div id="pref-login-error" style="
+          display:none; background:#fef2f2; border:1px solid #fecaca;
+          border-radius:8px; padding:0.65rem 0.9rem;
+          font-size:0.82rem; color:#dc2626; font-weight:600;
+          margin-bottom:1rem; text-align:center;">
+          Contraseña incorrecta. Inténtalo de nuevo.
+        </div>
+
+        <button type="submit" style="
+          width:100%; padding:0.875rem; border-radius:12px; border:none;
+          background:linear-gradient(135deg,#dc2626,#b91c1c);
+          color:white; font-size:0.95rem; font-weight:700;
+          cursor:pointer; font-family:inherit;
+          box-shadow:0 4px 14px rgba(220,38,38,0.35);
+          transition:all 0.2s;">
+          Ingresar al sistema
+        </button>
+
+      </form>
+
+      <div style="text-align:center; margin-top:1.25rem;">
+        <a href="../acceso.html" style="font-size:0.78rem; color:#94a3b8; text-decoration:none;">
+          ← Volver al portal
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo-area">
+      <div class="logo-icon">🔍</div>
+      <div>
+        <div class="logo-text">PREFECTURA</div>
+        <div class="logo-sub">CEB 5/4</div>
+      </div>
+    </div>
+
+    <nav class="nav-menu">
+      <div class="nav-item">
+        <a href="#" class="nav-link active" data-view="dashboard">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Resumen</span>
+        </a>
+      </div>
+      <div class="nav-item">
+        <a href="#" class="nav-link" data-view="registrar">
+          <i data-lucide="clipboard-pen"></i>
+          <span>Registrar Incidencia</span>
+        </a>
+      </div>
+      <div class="nav-item">
+        <a href="#" class="nav-link" data-view="consultar">
+          <i data-lucide="search"></i>
+          <span>Consultar Incidencias</span>
+        </a>
+      </div>
+      <hr class="nav-divider">
+      <div class="nav-item">
+        <a href="../acceso.html" class="nav-link" style="color:var(--clr-text-light);">
+          <i data-lucide="arrow-left"></i>
+          <span>Volver al Portal</span>
+        </a>
+      </div>
+    </nav>
+
+    <div style="margin-top:auto; padding-top:1rem; border-top:1px solid #f1f5f9; font-size:0.78rem; color:#94a3b8; padding-left:0.5rem;">
+      <div id="sidebar-user" style="font-weight:600; color:#64748b;">—</div>
+      <div id="sidebar-semana" style="margin-top:0.2rem;">Semana —</div>
+    </div>
+  </aside>
+
+  <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+  <!-- ══ MAIN ══ -->
+  <main class="main-content">
+
+    <header class="top-header">
+      <div style="display:flex; align-items:center; gap:0.75rem;">
+        <button id="btn-hamburger" class="btn-hamburger" aria-label="Menú">
+          <span></span><span></span><span></span>
+        </button>
+        <div>
+          <h1 class="view-title" id="view-title">Resumen de Prefectura</h1>
+          <p class="view-sub" id="view-sub">Incidencias registradas este ciclo escolar</p>
+        </div>
+      </div>
+      <div class="user-chip">
+        <span id="header-user">—</span>
+        <div class="user-avatar" id="header-avatar">?</div>
+      </div>
+    </header>
+
+    <!-- ══ VISTA 1: DASHBOARD ══ -->
+    <section id="view-dashboard" class="view active">
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fef2f2; color:#dc2626;"><i data-lucide="alert-triangle"></i></div>
+          <div>
+            <span class="stat-value" id="stat-total">—</span>
+            <span class="stat-label">Total Incidencias</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fff7ed; color:#f59e0b;"><i data-lucide="calendar-clock"></i></div>
+          <div>
+            <span class="stat-value" id="stat-semana">—</span>
+            <span class="stat-label">Esta Semana</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fffbeb; color:#b45309;"><i data-lucide="gavel"></i></div>
+          <div>
+            <span class="stat-value" id="stat-labor">—</span>
+            <span class="stat-label">Requieren Labor Social</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#f0fdf4; color:#059669;"><i data-lucide="check-circle-2"></i></div>
+          <div>
+            <span class="stat-value" id="stat-cumplida">—</span>
+            <span class="stat-label">Labor Social Cumplida</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Semana actual -->
+      <div style="background:white; border-radius:var(--radius-lg); border:1px solid #f1f5f9; box-shadow:var(--shadow-sm); overflow:hidden; margin-bottom:1.5rem;">
+        <div style="padding:1.25rem 1.75rem; border-bottom:1px solid #f8fafc; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+          <span style="font-weight:800; font-size:1rem;">Incidencias — Semana Actual</span>
+          <span id="dashboard-semana-badge" class="badge badge-info">Semana —</span>
+        </div>
+        <div id="dashboard-semana-lista" style="padding:1.25rem 1.75rem;">
+          <div class="empty-state"><div class="empty-state-ico">📋</div><p>Cargando...</p></div>
+        </div>
+      </div>
+
+      <!-- Labor social pendiente -->
+      <div style="background:white; border-radius:var(--radius-lg); border:1px solid #f1f5f9; box-shadow:var(--shadow-sm); overflow:hidden;">
+        <div style="padding:1.25rem 1.75rem; border-bottom:1px solid #f8fafc; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-weight:800; font-size:1rem;">⚠️ Alumnos con Labor Social Pendiente</span>
+        </div>
+        <div id="dashboard-labor-lista" style="padding:1.25rem 1.75rem;">
+          <div class="empty-state"><div class="empty-state-ico">✅</div><p>Cargando...</p></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ══ VISTA 2: REGISTRAR INCIDENCIA ══ -->
+    <section id="view-registrar" class="view">
+      <form id="form-incidencia" class="capture-form" autocomplete="off">
+
+        <!-- Tarjeta A: Contexto -->
+        <div class="cap-card">
+          <div class="cap-card-head">
+            <div class="cap-icon" style="background:#fff7ed; color:#f59e0b;">
+              <i data-lucide="calendar" style="width:18px;height:18px;"></i>
+            </div>
+            <div>
+              <div class="cap-title">Contexto</div>
+              <div class="cap-sub">Grupo, semana y fecha de la incidencia</div>
+            </div>
+          </div>
+          <div class="cap-row-3" style="margin-bottom:0.75rem;">
+            <div class="cap-field">
+              <label>Grupo <span class="req">*</span></label>
+              <input type="text" id="ctx-grupo" placeholder="Ej: 101, M203..." required>
+            </div>
+            <div class="cap-field">
+              <label>Semana escolar</label>
+              <input type="number" id="ctx-semana" min="1" max="25" placeholder="Ej: 11" readonly style="background:#f8fafc;">
+            </div>
+            <div class="cap-field">
+              <label>Fecha <span class="req">*</span></label>
+              <input type="date" id="ctx-fecha" required>
+            </div>
+          </div>
+          <div class="cap-field">
+            <label>Registrado por</label>
+            <input type="text" id="ctx-responsable" readonly style="background:#f8fafc; color:#64748b;">
+          </div>
+        </div>
+
+        <!-- Tarjeta B: Alumno -->
+        <div class="cap-card">
+          <div class="cap-card-head">
+            <div class="cap-icon" style="background:#eff6ff; color:#2563eb;">
+              <i data-lucide="users" style="width:18px;height:18px;"></i>
+            </div>
+            <div>
+              <div class="cap-title">Alumno</div>
+              <div class="cap-sub">Al escribir el grupo aparecen los alumnos — también puedes buscar por nombre</div>
+            </div>
+          </div>
+
+          <!-- Buscador por nombre (mín. 3 letras) -->
+          <div class="search-field" style="margin-bottom:0.5rem;">
+            <i data-lucide="search" class="search-ico"></i>
+            <input type="text" id="buscar-alumno" placeholder="Buscar alumno por nombre (mín. 3 letras)...">
+          </div>
+
+          <!-- Entrada manual -->
+          <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.6rem;
+               padding:0.55rem 0.75rem; background:#f8fafc; border-radius:10px; border:1px dashed #cbd5e1;">
+            <i data-lucide="user-plus" style="width:15px;height:15px;color:#94a3b8;flex-shrink:0;"></i>
+            <input type="text" id="alumno-manual" placeholder="Añadir manualmente: nombre completo..."
+              style="flex:1; background:transparent; border:none; font-size:0.85rem; padding:0; outline:none;">
+          </div>
+
+          <!-- Lista de resultados (grupo o búsqueda) -->
+          <div id="alumnos-lista" class="alumnos-lista" style="display:none;"></div>
+
+          <!-- Alumno seleccionado -->
+          <div id="alumno-seleccionado" style="display:none; margin-top:0.6rem; padding:0.75rem 1rem;
+               background:#fef2f2; border:1.5px solid #fca5a5; border-radius:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div style="display:flex; align-items:center; gap:0.65rem;">
+                <div id="alumno-sel-avatar" class="alumno-avatar" style="background:#fecaca;color:#dc2626;">?</div>
+                <div>
+                  <div style="font-weight:800; font-size:0.9rem;" id="alumno-sel-nombre">—</div>
+                  <div style="font-size:0.78rem; color:#64748b;" id="alumno-sel-info">—</div>
+                </div>
+              </div>
+              <button type="button" onclick="limpiarAlumno()"
+                style="background:none; border:none; color:#dc2626; cursor:pointer; font-size:1.1rem;" title="Quitar">✕</button>
+            </div>
+          </div>
+
+          <!-- Alerta labor social -->
+          <div id="labor-alert-form" class="labor-alert">
+            <span style="font-size:1.2rem;">⚠️</span>
+            <span id="labor-alert-msg">Este alumno ya tiene 2 incidencias previas. Con esta llegará a 3 y se activará la labor social automáticamente.</span>
+          </div>
+        </div>
+
+        <!-- Tarjeta C: Incidencia -->
+        <div class="cap-card">
+          <div class="cap-card-head">
+            <div class="cap-icon" style="background:#fef2f2; color:#dc2626;">
+              <i data-lucide="alert-circle" style="width:18px;height:18px;"></i>
+            </div>
+            <div>
+              <div class="cap-title">Tipo de Incidencia</div>
+              <div class="cap-sub">Selecciona la categoría que corresponde</div>
+            </div>
+          </div>
+
+          <div class="tipo-grid" style="margin-bottom:1rem;">
+            <label class="tipo-chip">
+              <input type="radio" name="tipo" value="Uniforme incompleto" required>
+              <span class="tipo-chip-ico">👕</span>
+              <span>Uniforme incompleto</span>
+            </label>
+            <label class="tipo-chip">
+              <input type="radio" name="tipo" value="No porta uniforme">
+              <span class="tipo-chip-ico">🚫</span>
+              <span>No porta uniforme</span>
+            </label>
+            <label class="tipo-chip">
+              <input type="radio" name="tipo" value="Falta de credencial">
+              <span class="tipo-chip-ico">🪪</span>
+              <span>Falta de credencial</span>
+            </label>
+            <label class="tipo-chip">
+              <input type="radio" name="tipo" value="Incidencia disciplinaria">
+              <span class="tipo-chip-ico">⚡</span>
+              <span>Incidencia disciplinaria</span>
+            </label>
+            <label class="tipo-chip">
+              <input type="radio" name="tipo" value="Impuntualidad">
+              <span class="tipo-chip-ico">⏰</span>
+              <span>Impuntualidad</span>
+            </label>
+            <label class="tipo-chip">
+              <input type="radio" name="tipo" value="Otro">
+              <span class="tipo-chip-ico">📝</span>
+              <span>Otro</span>
+            </label>
+          </div>
+
+          <div class="cap-row-2" style="margin-bottom:0.75rem;">
+            <div class="cap-field">
+              <label>Descripción breve <span class="req">*</span></label>
+              <input type="text" id="inc-descripcion" placeholder="Ej: Sin chaleco, sin calcetas blancas..." required>
+            </div>
+            <div class="cap-field">
+              <label>Observaciones</label>
+              <input type="text" id="inc-observaciones" placeholder="Notas adicionales...">
+            </div>
+          </div>
+        </div>
+
+        <!-- Botón enviar -->
+        <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+          <button type="submit" class="btn-submit" id="btn-guardar">
+            <i data-lucide="save" style="width:18px; height:18px;"></i>
+            Guardar Incidencia
+          </button>
+          <button type="button" onclick="limpiarFormulario()" style="background:none; border:none; color:var(--clr-text-light); cursor:pointer; font-size:0.875rem; font-weight:600; font-family:inherit;">
+            Limpiar formulario
+          </button>
+        </div>
+
+      </form>
+    </section>
+
+    <!-- ══ VISTA 3: CONSULTAR INCIDENCIAS ══ -->
+    <section id="view-consultar" class="view">
+
+      <!-- Filtros -->
+      <div class="filtros-panel">
+        <div class="filtros-row">
+          <div class="filtros-field">
+            <label>Grupo</label>
+            <input type="text" id="fil-grupo" placeholder="Ej: 101, M203...">
+          </div>
+          <div class="filtros-field">
+            <label>Nombre alumno</label>
+            <input type="text" id="fil-alumno" placeholder="Buscar por nombre...">
+          </div>
+          <div class="filtros-field">
+            <label>Semana</label>
+            <input type="number" id="fil-semana" min="1" max="25" placeholder="Ej: 11">
+          </div>
+          <div class="filtros-field">
+            <label>Tipo</label>
+            <select id="fil-tipo">
+              <option value="">Todos</option>
+              <option>Uniforme incompleto</option>
+              <option>No porta uniforme</option>
+              <option>Falta de credencial</option>
+              <option>Incidencia disciplinaria</option>
+              <option>Impuntualidad</option>
+              <option>Otro</option>
+            </select>
+          </div>
+          <button class="btn-buscar" onclick="consultarIncidencias()">
+            <i data-lucide="search" style="width:15px;height:15px;display:inline-block;vertical-align:-3px;margin-right:4px;"></i>
+            Buscar
+          </button>
+          <button class="btn-secondary" onclick="limpiarFiltros()">Limpiar</button>
+        </div>
+      </div>
+
+      <!-- Tabla de resultados -->
+      <div id="panel-resultados" class="tabla-panel" style="display:none;">
+        <div class="tabla-header">
+          <span class="tabla-title">Resultados</span>
+          <span class="tabla-count" id="tabla-count">0 registros</span>
+        </div>
+        <div class="tabla-wrap">
+          <table id="tabla-incidencias">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Semana</th>
+                <th>Grupo</th>
+                <th>Alumno</th>
+                <th>Tipo</th>
+                <th>Descripción</th>
+                <th>Total</th>
+                <th>Labor Social</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Historial agrupado por alumno -->
+      <div id="historial-agrupado" style="display:none; margin-top:1.5rem;">
+        <h3 style="font-size:1rem; font-weight:800; margin-bottom:1rem; color:var(--clr-text);">Historial por Alumno</h3>
+        <div id="historial-lista"></div>
+      </div>
+
+      <!-- Estado vacío inicial -->
+      <div id="consulta-placeholder">
+        <div class="empty-state" style="background:white; border-radius:var(--radius-lg); border:1px solid #f1f5f9; box-shadow:var(--shadow-sm);">
+          <div class="empty-state-ico">🔍</div>
+          <p>Usa los filtros de arriba para buscar incidencias.</p>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ══ TOAST ══ -->
+  <div id="toast" class="toast">
+    <span id="toast-ico"></span>
+    <span id="toast-msg"></span>
+  </div>
+
+  <!-- ══ SCRIPT PRINCIPAL ══ -->
+  <script>
+  /* ─────────────────────────────────────────────────────────────────
+     PREFECTURA — app.js embebido
+     Estructura: login → navegación → init → formulario → consulta → dashboard
+  ───────────────────────────────────────────────────────────────── */
+
+  // ── Contraseña del área (cambiar aquí si se necesita actualizar) ──
+  const PREF_PASSWORD = "pref2026";
+
+  // ── Login ─────────────────────────────────────────────────────────
+  (function iniciarSesion() {
+    const overlay = document.getElementById('pref-login-overlay');
+    const sesion  = sessionStorage.getItem('pref_user');
+
+    // Ya tiene sesión activa → ocultar overlay inmediatamente
+    if (sesion) {
+      overlay.style.display = 'none';
+      return;
+    }
+    // Sin sesión → overlay visible (ya lo es por defecto)
+  })();
+
+  function intentarLogin(e) {
+    e.preventDefault();
+    const nombre = document.getElementById('pref-login-nombre').value.trim();
+    const pass   = document.getElementById('pref-login-pass').value;
+    const errDiv = document.getElementById('pref-login-error');
+
+    if (pass !== PREF_PASSWORD) {
+      errDiv.style.display = 'block';
+      document.getElementById('pref-login-pass').style.borderColor = '#fca5a5';
+      return;
+    }
+
+    errDiv.style.display = 'none';
+    sessionStorage.setItem('pref_user',  nombre);
+    sessionStorage.setItem('user_name',  nombre); // compatibilidad con otros módulos
+    document.getElementById('pref-login-overlay').style.display = 'none';
+  }
+
+  // Limpiar borde de error al volver a escribir
+  document.getElementById('pref-login-pass')?.addEventListener('input', () => {
+    document.getElementById('pref-login-pass').style.borderColor = '#e2e8f0';
+    document.getElementById('pref-login-error').style.display = 'none';
+  });
+
+  // ── Estado local ──────────────────────────────────────────────────
+  let _alumnoSeleccionado = null;   // objeto { nombre, grupo } o null
+  let _incidenciasCache   = [];     // última consulta
+  let _baseData           = null;   // datos del GAS (directorio, grupos)
+
+  const GAS_DISPONIBLE = !prefecturaAPI.fetchBase.toString().includes('PENDIENTE');
+
+  // ── Navegación ────────────────────────────────────────────────────
+  const VIEWS = {
+    dashboard: { title: 'Resumen de Prefectura',      sub: 'Incidencias registradas este ciclo escolar' },
+    registrar: { title: 'Registrar Incidencia',        sub: 'Completa los tres bloques para guardar' },
+    consultar: { title: 'Consultar Incidencias',       sub: 'Filtra por grupo, alumno, semana o tipo' },
+  };
+
+  document.querySelectorAll('.nav-link[data-view]').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      irAVista(link.dataset.view);
+      cerrarSidebar();
+    });
+  });
+
+  function irAVista(nombre) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    document.getElementById('view-' + nombre)?.classList.add('active');
+    document.querySelector(`.nav-link[data-view="${nombre}"]`)?.classList.add('active');
+    document.getElementById('view-title').textContent = VIEWS[nombre]?.title || '';
+    document.getElementById('view-sub').textContent   = VIEWS[nombre]?.sub  || '';
+    if (nombre === 'dashboard') cargarDashboard();
+  }
+
+  // ── Hamburger ─────────────────────────────────────────────────────
+  document.getElementById('btn-hamburger').addEventListener('click', () => {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebar-overlay').classList.toggle('show');
+  });
+  document.getElementById('sidebar-overlay').addEventListener('click', cerrarSidebar);
+  function cerrarSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('show');
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', async () => {
+    if (window.lucide) lucide.createIcons();
+
+    // Fecha de hoy en formulario
+    const hoy = new Date().toISOString().split('T')[0];
+    document.getElementById('ctx-fecha').value   = hoy;
+    document.getElementById('ctx-semana').value  = prefGetSemanaActual();
+
+    // Responsable desde sessionStorage (reutilizar login si existe)
+    const nombre = sessionStorage.getItem('user_name') || sessionStorage.getItem('user_email') || 'Prefectura';
+    document.getElementById('ctx-responsable').value = nombre;
+    document.getElementById('header-user').textContent = nombre;
+    const iniciales = nombre.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2);
+    document.getElementById('header-avatar').textContent   = iniciales;
+    document.getElementById('sidebar-user').textContent    = nombre;
+    document.getElementById('sidebar-semana').textContent  = `Semana ${prefGetSemanaActual()}`;
+
+    // Cargar directorio de alumnos desde GAS (igual que Tutorías carga alumnosFull)
+    if (GAS_DISPONIBLE) {
+      try {
+        _baseData = await prefecturaAPI.fetchBase();
+        // Mostrar grupos disponibles en el placeholder del campo
+        const grupos = _baseData?.grupos || [];
+        if (grupos.length > 0) {
+          const hint = grupos.slice(0, 6).join(', ') + (grupos.length > 6 ? '...' : '');
+          document.getElementById('ctx-grupo').placeholder = `Grupos: ${hint}`;
+        }
+      } catch (err) {
+        console.warn('Prefectura: no se pudo cargar directorio —', err.message);
+      }
+    }
+
+    // Actualizar semana al cambiar fecha
+    document.getElementById('ctx-fecha').addEventListener('change', e => {
+      document.getElementById('ctx-semana').value = prefGetSemanaDeDate(e.target.value);
+    });
+
+    // GRUPO: igual que Tutorías — al escribir el grupo, filtra y muestra la lista
+    document.getElementById('ctx-grupo').addEventListener('input', e => {
+      const val = e.target.value.trim().toUpperCase();
+      if (val.length >= 2) {
+        const resultados = (_baseData?.directorio || [])
+          .filter(a => (a.grupo || '').toUpperCase().startsWith(val));
+        _renderListaAlumnos(resultados, 'grupo');
+      } else {
+        document.getElementById('alumnos-lista').style.display = 'none';
+      }
+      verificarPreviasAlumno();
+    });
+
+    // Buscador por nombre (mín. 3 letras, igual que Tutorías)
+    let _searchTimer = null;
+    document.getElementById('buscar-alumno').addEventListener('input', e => {
+      clearTimeout(_searchTimer);
+      _searchTimer = setTimeout(() => buscarAlumno(e.target.value.trim()), 250);
+    });
+
+    // Cargar dashboard inicial
+    cargarDashboard();
+  });
+
+  // ── Búsqueda por nombre (mín. 3 letras, igual que Tutorías) ─────
+  function buscarAlumno(query) {
+    if (!query || query.length < 3) {
+      document.getElementById('alumnos-lista').style.display = 'none';
+      return;
+    }
+    const directorio = _baseData?.directorio || [];
+    const alumnos = directorio
+      .filter(a => a.nombre?.toLowerCase().includes(query.toLowerCase()))
+      .slice(0, 15);
+    _renderListaAlumnos(alumnos, 'nombre');
+  }
+
+  // ── Render de lista de alumnos con avatares (igual que Tutorías) ─
+  function _renderListaAlumnos(alumnos, origen) {
+    const lista = document.getElementById('alumnos-lista');
+
+    if (!_baseData || (_baseData.directorio || []).length === 0) {
+      lista.innerHTML = `<div class="alumnos-empty">Directorio no disponible aún.<br>Usa el campo de añadir manualmente.</div>`;
+      lista.style.display = 'block';
+      return;
+    }
+
+    if (alumnos.length === 0) {
+      lista.innerHTML = `<div class="alumnos-empty">Sin coincidencias. Usa el campo de añadir manualmente.</div>`;
+      lista.style.display = 'block';
+      return;
+    }
+
+    lista.innerHTML = alumnos.map(a => {
+      const iniciales = a.nombre.split(' ').slice(0, 2).map(w => w[0] || '').join('').toUpperCase();
+      // Color avatar: rojo institucional Prefectura
+      const avatarStyle = 'background:#fecaca; color:#dc2626;';
+      return `
+        <div class="alumno-row" onclick="seleccionarAlumno('${_esc(a.nombre)}','${_esc(a.grupo||'')}')">
+          <div class="alumno-avatar" style="${avatarStyle}">${iniciales}</div>
+          <div class="alumno-info">
+            <span class="alumno-nombre">${a.nombre}</span>
+            ${a.grupo ? `<span class="alumno-grupo-badge">${a.grupo}</span>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+    lista.style.display = 'block';
+  }
+
+  function seleccionarAlumno(nombre, grupo) {
+    _alumnoSeleccionado = { nombre, grupo };
+    document.getElementById('alumnos-lista').style.display = 'none';
+    document.getElementById('buscar-alumno').value = '';
+
+    const iniciales = nombre.split(' ').slice(0, 2).map(w => w[0] || '').join('').toUpperCase();
+    document.getElementById('alumno-sel-avatar').textContent = iniciales || '?';
+
+    const box = document.getElementById('alumno-seleccionado');
+    document.getElementById('alumno-sel-nombre').textContent = nombre;
+    document.getElementById('alumno-sel-info').textContent   = grupo ? `Grupo: ${grupo}` : 'Grupo no registrado';
+    box.style.display = 'flex';
+
+    if (grupo && !document.getElementById('ctx-grupo').value)
+      document.getElementById('ctx-grupo').value = grupo;
+
+    verificarPreviasAlumno();
+  }
+
+  function limpiarAlumno() {
+    _alumnoSeleccionado = null;
+    document.getElementById('alumno-seleccionado').style.display = 'none';
+    document.getElementById('labor-alert-form').classList.remove('show');
+  }
+
+  async function verificarPreviasAlumno() {
+    const alertDiv = document.getElementById('labor-alert-form');
+    const nombre = _alumnoSeleccionado?.nombre || document.getElementById('alumno-manual').value.trim();
+    if (!nombre || !GAS_DISPONIBLE) return;
+    try {
+      const previas = await prefecturaAPI.consultarIncidencias({ alumno: nombre });
+      const total   = previas.length;
+      if (total >= 2 && total < 3) {
+        document.getElementById('labor-alert-msg').textContent =
+          `Este alumno ya tiene ${total} incidencia(s) previa(s). Con esta llegará a ${total + 1} y se activará la labor social automáticamente.`;
+        alertDiv.classList.add('show');
+      } else if (total >= 3) {
+        document.getElementById('labor-alert-msg').textContent =
+          `Este alumno ya tiene ${total} incidencias acumuladas y labor social activa.`;
+        alertDiv.classList.add('show');
+      } else {
+        alertDiv.classList.remove('show');
+      }
+    } catch (_) { /* sin conexión, no bloquear */ }
+  }
+
+  // ── Guardar incidencia ────────────────────────────────────────────
+  document.getElementById('form-incidencia').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-guardar');
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" style="width:18px;height:18px;animation:spin 1s linear infinite;"></i> Guardando...';
+    if (window.lucide) lucide.createIcons();
+
+    try {
+      const grupo       = document.getElementById('ctx-grupo').value.trim();
+      const semana      = parseInt(document.getElementById('ctx-semana').value) || prefGetSemanaActual();
+      const fecha       = document.getElementById('ctx-fecha').value;
+      const responsable = document.getElementById('ctx-responsable').value.trim();
+      const tipo        = document.querySelector('input[name="tipo"]:checked')?.value || '';
+      const descripcion = document.getElementById('inc-descripcion').value.trim();
+      const observ      = document.getElementById('inc-observaciones').value.trim();
+      const alumno      = _alumnoSeleccionado?.nombre || document.getElementById('alumno-manual').value.trim();
+
+      // Validaciones mínimas
+      if (!grupo)        { mostrarToast('error', 'Indica el grupo.'); return; }
+      if (!fecha)        { mostrarToast('error', 'Indica la fecha.'); return; }
+      if (!alumno)       { mostrarToast('error', 'Selecciona o escribe el nombre del alumno.'); return; }
+      if (!tipo)         { mostrarToast('error', 'Selecciona el tipo de incidencia.'); return; }
+      if (!descripcion)  { mostrarToast('error', 'Escribe una descripción breve.'); return; }
+
+      if (!GAS_DISPONIBLE) {
+        // Sin GAS: guardar local para prueba visual
+        mostrarToast('warning', 'GAS no configurado. Registro no persistido (modo prueba).');
+        limpiarFormulario();
+        return;
+      }
+
+      const resultado = await prefecturaAPI.guardarIncidencia({
+        fecha, semana, grupo,
+        nombre_alumno:   alumno,
+        tipo_incidencia: tipo,
+        descripcion,
+        observaciones:   observ,
+        registrado_por:  responsable
+      });
+
+      if (resultado.status !== 'success') throw new Error(resultado.message || 'Error al guardar.');
+
+      mostrarToast('success', `✅ Incidencia guardada correctamente.${resultado.requiereLaborSocial ? ' ⚠️ Este alumno requiere labor social.' : ''}`);
+      limpiarFormulario();
+      cargarDashboard();
+
+    } catch (err) {
+      mostrarToast('error', `Error: ${err.message}`);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="save" style="width:18px;height:18px;"></i> Guardar Incidencia';
+      if (window.lucide) lucide.createIcons();
+    }
+  });
+
+  function limpiarFormulario() {
+    document.getElementById('form-incidencia').reset();
+    const hoy = new Date().toISOString().split('T')[0];
+    document.getElementById('ctx-fecha').value  = hoy;
+    document.getElementById('ctx-semana').value = prefGetSemanaActual();
+    const nombre = sessionStorage.getItem('user_name') || sessionStorage.getItem('user_email') || 'Prefectura';
+    document.getElementById('ctx-responsable').value = nombre;
+    limpiarAlumno();
+    document.getElementById('alumnos-lista').style.display = 'none';
+    document.getElementById('buscar-alumno').value = '';
+  }
+
+  // ── Consultar incidencias ─────────────────────────────────────────
+  async function consultarIncidencias() {
+    document.getElementById('consulta-placeholder').style.display = 'none';
+
+    if (!GAS_DISPONIBLE) {
+      document.getElementById('panel-resultados').style.display = 'none';
+      document.getElementById('historial-agrupado').style.display = 'none';
+      document.getElementById('consulta-placeholder').innerHTML =
+        `<div class="empty-state" style="background:white;border-radius:var(--radius-lg);border:1px solid #f1f5f9;box-shadow:var(--shadow-sm);">
+          <div class="empty-state-ico">⚙️</div>
+          <p style="font-weight:700;color:#dc2626;">GAS no configurado.</p>
+          <p style="margin-top:0.5rem;font-size:0.82rem;">Configura la URL del GAS en <code>prefectura/js/api.js</code> para activar las consultas.</p>
+        </div>`;
+      document.getElementById('consulta-placeholder').style.display = 'block';
+      return;
+    }
+
+    const filtros = {
+      grupo:  document.getElementById('fil-grupo').value.trim(),
+      alumno: document.getElementById('fil-alumno').value.trim(),
+      semana: document.getElementById('fil-semana').value,
+      tipo:   document.getElementById('fil-tipo').value,
+    };
+
+    try {
+      _incidenciasCache = await prefecturaAPI.consultarIncidencias(filtros);
+      renderTablaIncidencias(_incidenciasCache);
+      renderHistorialAgrupado(_incidenciasCache);
+    } catch (err) {
+      mostrarToast('error', `Error al consultar: ${err.message}`);
+    }
+  }
+
+  function limpiarFiltros() {
+    ['fil-grupo','fil-alumno','fil-semana'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('fil-tipo').value = '';
+    document.getElementById('panel-resultados').style.display     = 'none';
+    document.getElementById('historial-agrupado').style.display   = 'none';
+    document.getElementById('consulta-placeholder').style.display = 'block';
+    document.getElementById('consulta-placeholder').innerHTML = `
+      <div class="empty-state" style="background:white;border-radius:var(--radius-lg);border:1px solid #f1f5f9;box-shadow:var(--shadow-sm);">
+        <div class="empty-state-ico">🔍</div><p>Usa los filtros de arriba para buscar incidencias.</p>
+      </div>`;
+  }
+
+  function renderTablaIncidencias(lista) {
+    const panel = document.getElementById('panel-resultados');
+    const tbody = document.getElementById('tabla-body');
+    const count = document.getElementById('tabla-count');
+
+    count.textContent = `${lista.length} registro(s)`;
+    panel.style.display = lista.length ? 'block' : 'none';
+
+    if (!lista.length) { tbody.innerHTML = ''; return; }
+
+    tbody.innerHTML = lista.map((inc, i) => {
+      const labBadge = inc.labor_social_realizada
+        ? `<span class="labor-badge labor-realizada">✅ Realizada</span>`
+        : inc.requiere_labor_social
+          ? `<span class="labor-badge labor-requerida">⚠️ Requerida</span>`
+          : `<span class="badge badge-gray">—</span>`;
+
+      const btnLabor = (!inc.labor_social_realizada && inc.requiere_labor_social)
+        ? `<button class="btn-labor" onclick="marcarLabor('${inc.id || i}','${_esc(inc.nombre_alumno)}')">Marcar cumplida</button>`
+        : (inc.labor_social_realizada ? `<span style="font-size:0.78rem;color:#059669;font-weight:600;">✓ ${inc.fecha_labor_social || ''}</span>` : '—');
+
+      return `<tr>
+        <td>${inc.fecha_registro || '—'}</td>
+        <td><span class="badge badge-info">S${inc.semana || '?'}</span></td>
+        <td><strong>${inc.grupo || '—'}</strong></td>
+        <td>${inc.nombre_alumno || '—'}</td>
+        <td><span class="badge badge-danger">${inc.tipo_incidencia || '—'}</span></td>
+        <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${_esc(inc.descripcion||'')}">${inc.descripcion || '—'}</td>
+        <td style="text-align:center;font-weight:800;color:${(inc.total_incidencias||0) >= 3 ? '#dc2626' : '#1e293b'};">
+          ${inc.total_incidencias || 1}
+        </td>
+        <td>${labBadge}</td>
+        <td>${btnLabor}</td>
+      </tr>`;
+    }).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function renderHistorialAgrupado(lista) {
+    const cont   = document.getElementById('historial-agrupado');
+    const inner  = document.getElementById('historial-lista');
+
+    // Agrupar por alumno
+    const map = {};
+    lista.forEach(inc => {
+      const k = inc.nombre_alumno || 'Sin nombre';
+      if (!map[k]) map[k] = { grupo: inc.grupo, incidencias: [] };
+      map[k].incidencias.push(inc);
+    });
+
+    if (!Object.keys(map).length) { cont.style.display = 'none'; return; }
+
+    inner.innerHTML = Object.entries(map).map(([alumno, dat]) => {
+      const total  = dat.incidencias.length;
+      const labReq = total >= 3;
+      const labOk  = dat.incidencias.some(i => i.labor_social_realizada);
+      return `
+        <div class="historial-card">
+          <div class="historial-card-top">
+            <div>
+              <div class="historial-alumno">${alumno}</div>
+              <div class="historial-grupo">Grupo: ${dat.grupo || '—'}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <span class="badge ${total >= 3 ? 'badge-danger' : 'badge-warning'}">${total} incidencia${total !== 1 ? 's' : ''}</span>
+              ${labReq ? (labOk
+                ? `<span class="labor-badge labor-realizada">✅ Labor realizada</span>`
+                : `<span class="labor-badge labor-requerida">⚠️ Labor pendiente</span>`)
+              : ''}
+            </div>
+          </div>
+          <div class="historial-items">
+            ${dat.incidencias.map(inc => `
+              <div class="historial-item">
+                <span class="historial-item-ico">·</span>
+                <span style="color:#94a3b8;min-width:65px;">${inc.fecha_registro || '—'}</span>
+                <span class="badge badge-danger" style="font-size:0.65rem;">${inc.tipo_incidencia || '—'}</span>
+                <span>${inc.descripcion || ''}</span>
+              </div>`).join('')}
+          </div>
+        </div>`;
+    }).join('');
+
+    cont.style.display = 'block';
+  }
+
+  // ── Marcar labor social ────────────────────────────────────────────
+  async function marcarLabor(rowId, alumnoNombre) {
+    const hoy = new Date().toISOString().split('T')[0];
+    const conf = confirm(`¿Marcar labor social de "${alumnoNombre}" como realizada hoy (${hoy})?`);
+    if (!conf) return;
+
+    if (!GAS_DISPONIBLE) {
+      mostrarToast('warning', 'GAS no configurado — cambio no persistido.');
+      return;
+    }
+
+    try {
+      const res = await prefecturaAPI.marcarLaborSocial(rowId, hoy);
+      if (res.status !== 'success') throw new Error(res.message);
+      mostrarToast('success', `✅ Labor social de ${alumnoNombre} marcada como realizada.`);
+      consultarIncidencias();
+      cargarDashboard();
+    } catch (err) {
+      mostrarToast('error', `Error: ${err.message}`);
+    }
+  }
+
+  // ── Dashboard ─────────────────────────────────────────────────────
+  async function cargarDashboard() {
+    const semanaActual = prefGetSemanaActual();
+    document.getElementById('dashboard-semana-badge').textContent = `Semana ${semanaActual}`;
+
+    if (!GAS_DISPONIBLE) {
+      _renderDashboardOffline(semanaActual);
+      return;
+    }
+
+    try {
+      const todas = await prefecturaAPI.consultarIncidencias({});
+      const estaSemana = todas.filter(i => parseInt(i.semana) === semanaActual);
+      const laborPend  = todas.filter(i => i.requiere_labor_social && !i.labor_social_realizada);
+      const laborOk    = todas.filter(i => i.labor_social_realizada);
+
+      document.getElementById('stat-total').textContent   = todas.length;
+      document.getElementById('stat-semana').textContent  = estaSemana.length;
+      document.getElementById('stat-labor').textContent   = laborPend.length;
+      document.getElementById('stat-cumplida').textContent = laborOk.length;
+
+      // Semana actual lista
+      const semLista = document.getElementById('dashboard-semana-lista');
+      if (!estaSemana.length) {
+        semLista.innerHTML = `<div class="empty-state"><div class="empty-state-ico">✅</div><p>Sin incidencias esta semana.</p></div>`;
+      } else {
+        semLista.innerHTML = `<div style="display:flex;flex-direction:column;gap:0.5rem;">
+          ${estaSemana.slice(0, 8).map(inc => `
+            <div style="display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0.875rem;background:#fafafa;border-radius:10px;border:1px solid #f1f5f9;font-size:0.85rem;">
+              <span class="badge badge-danger">${inc.tipo_incidencia || '—'}</span>
+              <span style="flex:1;font-weight:600;">${inc.nombre_alumno || '—'}</span>
+              <span class="badge badge-gray">${inc.grupo || '—'}</span>
+            </div>`).join('')}
+          ${estaSemana.length > 8 ? `<p style="font-size:0.8rem;color:#94a3b8;padding:0.25rem 0.5rem;">+ ${estaSemana.length - 8} más...</p>` : ''}
+        </div>`;
+      }
+
+      // Labor pendiente
+      const labLista = document.getElementById('dashboard-labor-lista');
+      if (!laborPend.length) {
+        labLista.innerHTML = `<div class="empty-state"><div class="empty-state-ico">🎉</div><p>Sin alumnos con labor social pendiente.</p></div>`;
+      } else {
+        // Agrupar por alumno
+        const uniq = {};
+        laborPend.forEach(i => { uniq[i.nombre_alumno] = i; });
+        labLista.innerHTML = `<div style="display:flex;flex-direction:column;gap:0.5rem;">
+          ${Object.entries(uniq).map(([nombre, inc]) => `
+            <div style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;background:#fffbeb;border-radius:12px;border:1.5px solid #fde68a;font-size:0.85rem;">
+              <span style="font-size:1.1rem;">⚠️</span>
+              <span style="flex:1;font-weight:700;">${nombre}</span>
+              <span class="badge badge-info">${inc.grupo || '—'}</span>
+              <button class="btn-labor" onclick="marcarLabor('${inc.id||''}','${_esc(nombre)}')">Marcar cumplida</button>
+            </div>`).join('')}
+        </div>`;
+      }
+
+    } catch (err) {
+      console.error('Dashboard error:', err);
+      _renderDashboardOffline(semanaActual);
+    }
+  }
+
+  function _renderDashboardOffline(semana) {
+    ['stat-total','stat-semana','stat-labor','stat-cumplida'].forEach(id => {
+      document.getElementById(id).textContent = '—';
+    });
+    const msg = `<div class="empty-state"><div class="empty-state-ico">⚙️</div><p>GAS no configurado.<br><small>Configura la URL en <code>prefectura/js/api.js</code></small></p></div>`;
+    document.getElementById('dashboard-semana-lista').innerHTML = msg;
+    document.getElementById('dashboard-labor-lista').innerHTML  = msg;
+  }
+
+  // ── Toast ─────────────────────────────────────────────────────────
+  let _toastTimer;
+  function mostrarToast(tipo, mensaje) {
+    clearTimeout(_toastTimer);
+    const t = document.getElementById('toast');
+    const iconos = { success:'✅', error:'❌', warning:'⚠️' };
+    t.className = `toast ${tipo} show`;
+    document.getElementById('toast-ico').textContent = iconos[tipo] || 'ℹ️';
+    document.getElementById('toast-msg').textContent = mensaje;
+    _toastTimer = setTimeout(() => t.classList.remove('show'), 4000);
+  }
+
+  // ── Utilidades ────────────────────────────────────────────────────
+  function _esc(str) { return String(str).replace(/'/g, "\\'"); }
+
+  // Spin animation para loader
+  const style = document.createElement('style');
+  style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+  document.head.appendChild(style);
+
+  </script>
+</body>
+</html>

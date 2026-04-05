@@ -30,12 +30,14 @@ function doGet(e) {
       case "getMaterias":   return json(getMaterias());
       case "getIndicadores":  return json(getIndicadores(p));
       case "getAlumnosGrupo": return json(getAlumnosGrupo(p));
+      case "getCumpleanos":   return json(getCumpleanos());
       default:                return json({ status: "ok", sistema: "CEB54 Academico v1" });
     }
   } catch (err) {
     return json({ status: "error", message: err.message });
   }
 }
+
 
 // ── ROUTER POST ────────────────────────────────────────────────────────────
 function doPost(e) {
@@ -467,6 +469,38 @@ function getMaterias() {
       return obj;
     })
   };
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  CALENDARIO (CUMPLEAÑOS)
+// ════════════════════════════════════════════════════════════════════════════
+function getCumpleanos() {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sh = ss.getSheetByName("cumpleanos");
+  
+  if (!sh || sh.getLastRow() <= 1) {
+    // Si la hoja no existe o está vacía, devuelve array vacío (el frontend usará fallback)
+    return { status: "success", cumpleanos: [] };
+  }
+
+  const data = sh.getDataRange().getValues();
+  const [headers, ...rows] = data;
+  const normHeaders = headers.map(h => String(h).toLowerCase().trim());
+  
+  const cumpleanos = rows.map(r => {
+    const obj = {};
+    normHeaders.forEach((h, i) => {
+      let val = r[i];
+      // Si es un objeto de fecha nativo de Sheets, convertirlo a AAAA-MM-DD
+      if (h === "fecha" && Object.prototype.toString.call(val) === "[object Date]") {
+        val = Utilities.formatDate(val, "America/Mexico_City", "yyyy-MM-dd");
+      }
+      obj[h] = val;
+    });
+    return obj;
+  });
+
+  return { status: "success", cumpleanos };
 }
 
 // ════════════════════════════════════════════════════════════════════════════

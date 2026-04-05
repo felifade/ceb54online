@@ -53,6 +53,10 @@ function doGet(e) {
     if (e.parameter.action === "getBitacora") {
       return getBitacoraData(e, ss);
     }
+    // Módulo Calendario Institucional (Eventos, Periodos, Cumpleaños)
+    if (e.parameter.action === "getCalendario") {
+      return getCalendarioData(ss);
+    }
     const userEmail = normalizeText(e.parameter.userEmail || "");
 
     // 1. CONFIGURACIÓN
@@ -968,4 +972,55 @@ function editarEvaluacion(ss, body) {
 
   return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ============================================================
+// MÓDULO CALENDARIO INSTITUCIONAL — v2.0
+// Unifica lectura de cumpleaños y eventos para frontend
+// ============================================================
+function getCalendarioData(ss) {
+  let cumpleanos = [];
+  let eventos = [];
+  
+  // 1. Leer Cumpleaños
+  const shCumples = getSheet(ss, "cumpleanos");
+  if (shCumples && shCumples.getLastRow() > 1) {
+    const data = shCumples.getDataRange().getValues();
+    const headers = data[0].map(h => String(h).toLowerCase().trim());
+    data.slice(1).forEach(r => {
+      let obj = {};
+      headers.forEach((h, i) => {
+        let val = r[i];
+        if (h === "fecha" && val instanceof Date) {
+          val = Utilities.formatDate(val, "America/Mexico_City", "yyyy-MM-dd");
+        }
+        obj[h] = val;
+      });
+      cumpleanos.push(obj);
+    });
+  }
+
+  // 2. Leer Eventos y Periodos Especiales
+  const shEventos = getSheet(ss, "eventos_calendario");
+  if (shEventos && shEventos.getLastRow() > 1) {
+    const data = shEventos.getDataRange().getValues();
+    const headers = data[0].map(h => String(h).toLowerCase().trim());
+    data.slice(1).forEach(r => {
+      let obj = {};
+      headers.forEach((h, i) => {
+        let val = r[i];
+        if ((h === "fecha_inicio" || h === "fecha_fin") && val instanceof Date) {
+          val = Utilities.formatDate(val, "America/Mexico_City", "yyyy-MM-dd");
+        }
+        obj[h] = val;
+      });
+      eventos.push(obj);
+    });
+  }
+
+  return ContentService.createTextOutput(JSON.stringify({
+    status: "success",
+    cumpleanos: cumpleanos,
+    eventos: eventos
+  })).setMimeType(ContentService.MimeType.JSON);
 }

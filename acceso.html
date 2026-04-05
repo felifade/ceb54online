@@ -775,6 +775,17 @@
             </div>
             <span class="tool-arrow">›</span>
           </button>
+          <a href="prefectura/index.html" class="tool-item" style="text-decoration:none;">
+            <div class="tool-icon">🔍</div>
+            <div class="tool-info">
+              <div class="tool-name">
+                Prefectura
+                <span class="tool-lock" style="background:rgba(220,38,38,0.12);color:#dc2626;border-color:rgba(220,38,38,0.2);">🔒 Acceso</span>
+              </div>
+              <div class="tool-desc">Registro y seguimiento de incidencias</div>
+            </div>
+            <span class="tool-arrow">›</span>
+          </a>
         </div>
 
       </div>
@@ -846,10 +857,10 @@
           <div class="creando-card-name">Orientación Educativa</div>
           <span class="creando-card-tag" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">Activo</span>
         </a>
-        <a href="area_prefectura.html" class="creando-card" style="opacity: 1; cursor: pointer; text-decoration: none; border-style: solid; border-color: #cbd5e1;">
+        <a href="prefectura/index.html" class="creando-card" style="opacity: 1; cursor: pointer; text-decoration: none; border-style: solid; border-color: #fca5a5; background:linear-gradient(135deg,#fff,#fef2f2);">
           <div class="creando-card-icon">🔍</div>
-          <div class="creando-card-name">Prefectura</div>
-          <span class="creando-card-tag" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">Activo</span>
+          <div class="creando-card-name" style="color:#b91c1c;">Prefectura</div>
+          <span class="creando-card-tag" style="background:#fef2f2; color:#dc2626; border-color:#fecaca;">🔒 Acceso propio</span>
         </a>
         <a href="area_tutorias.html" class="creando-card" style="opacity: 1; cursor: pointer; text-decoration: none; border-style: solid; border-color: #cbd5e1;">
           <div class="creando-card-icon">📋</div>
@@ -898,14 +909,22 @@
   </div>
 
   <script src="portal/js/portal-api.js"></script>
+  <script src="pec/js/api_calendario.js"></script>
   <script src="pec/js/app_calendario.js"></script>
   <script>
     /* ── Semana Actual Widget ─────────────────────────────────────────────── */
-    // app_calendario.js registra su DOMContentLoaded primero (carga antes).
-    // cronogramaMap, FECHAS_CLAVE, CUMPLEANOS, PERIODOS_ESPECIALES quedan en scope global.
+    // app_calendario.js ahora carga datos de forma asíncrona.
+    // Escuchamos el evento personalizado para renderizar.
 
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('calendarioDataLista', function () {
       _renderSemanaActual();
+    });
+
+    // Fallback por si la vista carga después de que el evento ya se disparó
+    document.addEventListener('DOMContentLoaded', function () {
+      if (typeof cronogramaMap !== 'undefined' && cronogramaMap !== null) {
+        _renderSemanaActual();
+      }
     });
 
     function _renderSemanaActual() {
