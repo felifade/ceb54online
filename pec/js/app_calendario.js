@@ -13,26 +13,26 @@ const CONFIG_CALENDARIO = {
  * EVENTOS PUNTUALES (Fallback Local)
  */
 const FECHAS_CLAVE_FALLBACK = [
-    { id: "fc001", titulo: "Inicio de clases", fecha: "2026-02-11", categoria: "academico", prioridad: "alta" },
-    { id: "fc002", titulo: "Inicio primer parcial", fecha: "2026-02-11", categoria: "evaluacion" },
-    { id: "fc003", titulo: "Fin primer parcial", fecha: "2026-03-13", categoria: "evaluacion" },
-    { id: "fc004", titulo: "Inicio segundo parcial", fecha: "2026-03-16", categoria: "evaluacion" },
-    { id: "fc004", titulo: "Entrega PEC Estudiantes", fecha: "2026-04-24", categoria: "evaluacion" },
-    { id: "fc004", titulo: "Captura PEC Docentes", fecha: "2026-04-28", categoria: "evaluacion" },
-    { id: "fc005", titulo: "Revisión y aclaraciones PEC", fecha: "2026-04-29", categoria: "evaluacion" },
-    { id: "fc005", titulo: "Fin segundo parcial", fecha: "2026-04-30", categoria: "evaluacion" },
-    { id: "fc006", titulo: "Inicio tercer parcial", fecha: "2026-05-4", categoria: "evaluacion" },
-     { id: "fc006", titulo: "Fecha Limite de Captura", fecha: "2026-05-10", categoria: "evaluacion" },
-    { id: "fc007", titulo: "No realizar modificaciones Control Escolar", fecha: "2026-05-12", categoria: "restriccion", estadoManual: "restriccion", prioridad: "alta" },
-    { id: "fc008", titulo: "Reunión con padres", fecha: "2026-05-13", hora: "07:00", categoria: "reunion", prioridad: "alta" },
-    { id: "fc009", titulo: "Entrega de calificaciones segundo parcial ambos turnos", fecha: "2026-05-13", categoria: "control" },
-    { id: "fc010", titulo: "Entrega de calificaciones intrasemestrales", fecha: "2026-05-20", categoria: "control" },
-    { id: "fc012", titulo: "Inicio evaluación final", fecha: "2026-06-12", categoria: "evaluacion" },
-    { id: "fc013", titulo: "Fin de clases", fecha: "2026-06-19", categoria: "academico" },
-    { id: "fc014", titulo: "Captura de actas finales", fecha: "2026-06-22", categoria: "control" },
-    { id: "fc015", titulo: "Reunión previa intersemestral", fecha: "2026-06-25", categoria: "academico" },
-    { id: "fc016", titulo: "Inicio intersemestral", fecha: "2026-06-26", categoria: "academico" },
-    { id: "fc017", titulo: "Entrega de calificaciones intersemestral", fecha: "2026-07-10", categoria: "control" }
+    { id: "fc001", titulo: "Inicio de clases",                                    fecha: "2026-02-11", categoria: "academico",   prioridad: "alta", visiblePortalAlumno: true },
+    { id: "fc002", titulo: "Inicio primer parcial",                               fecha: "2026-02-11", categoria: "evaluacion",  visiblePortalAlumno: true },
+    { id: "fc003", titulo: "Fin primer parcial",                                  fecha: "2026-03-13", categoria: "evaluacion",  visiblePortalAlumno: true },
+    { id: "fc004", titulo: "Inicio segundo parcial",                              fecha: "2026-03-16", categoria: "evaluacion",  visiblePortalAlumno: true },
+    { id: "fc004", titulo: "Entrega PEC Estudiantes",                             fecha: "2026-04-24", categoria: "evaluacion",  visiblePortalAlumno: true },
+    { id: "fc004", titulo: "Captura PEC Docentes",                                fecha: "2026-04-28", categoria: "evaluacion" },
+    { id: "fc005", titulo: "Revisión y aclaraciones PEC",                         fecha: "2026-04-29", categoria: "evaluacion",  visiblePortalAlumno: true },
+    { id: "fc005", titulo: "Fin segundo parcial",                                 fecha: "2026-04-30", categoria: "evaluacion",  visiblePortalAlumno: true },
+    { id: "fc006", titulo: "Inicio tercer parcial",                               fecha: "2026-05-04", categoria: "evaluacion",  visiblePortalAlumno: true },
+    { id: "fc006", titulo: "Fecha Limite de Captura",                             fecha: "2026-05-10", categoria: "evaluacion" },
+    { id: "fc007", titulo: "No realizar modificaciones Control Escolar",          fecha: "2026-05-12", categoria: "restriccion", estadoManual: "restriccion", prioridad: "alta" },
+    { id: "fc008", titulo: "Reunión con padres",                                  fecha: "2026-05-13", hora: "07:00", categoria: "reunion",    prioridad: "alta", visiblePortalAlumno: true },
+    { id: "fc009", titulo: "Entrega de calificaciones segundo parcial ambos turnos", fecha: "2026-05-13", categoria: "control",  visiblePortalAlumno: true },
+    { id: "fc010", titulo: "Entrega de calificaciones intrasemestrales",          fecha: "2026-05-20", categoria: "control",    visiblePortalAlumno: true },
+    { id: "fc012", titulo: "Inicio evaluación final",                             fecha: "2026-06-12", categoria: "evaluacion", visiblePortalAlumno: true },
+    { id: "fc013", titulo: "Fin de clases",                                       fecha: "2026-06-19", categoria: "academico",  visiblePortalAlumno: true },
+    { id: "fc014", titulo: "Captura de actas finales",                            fecha: "2026-06-22", categoria: "control" },
+    { id: "fc015", titulo: "Reunión previa intersemestral",                       fecha: "2026-06-25", categoria: "academico",  visiblePortalAlumno: true },
+    { id: "fc016", titulo: "Inicio intersemestral",                               fecha: "2026-06-26", categoria: "academico",  visiblePortalAlumno: true },
+    { id: "fc017", titulo: "Entrega de calificaciones intersemestral",            fecha: "2026-07-10", categoria: "control",    visiblePortalAlumno: true }
 ];
 
 let FECHAS_CLAVE = [];
@@ -155,7 +155,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 hora: e.hora || "",
                 categoria: e.categoria || "evento",
                 prioridad: e.prioridad || "",
-                descripcion: e.descripcion || ""
+                descripcion: e.descripcion || "",
+                visiblePortalAlumno: String(e.portal_alumno || "no").toUpperCase() === "SI"
             }));
 
             PERIODOS_ESPECIALES = eventosGSheet.filter(e => String(e.tipo).toLowerCase() === 'periodo').map(p => ({

@@ -361,7 +361,7 @@ function adminPortal(body, ss) {
 
 // ── CALENDARIO: eventos y cumpleaños desde Sheets ───────────────────
 // Hojas esperadas en el mismo spreadsheet:
-//   Calendario_Eventos: titulo | tipo | fecha_inicio | fecha_fin | hora | categoria | prioridad | descripcion | visible
+//   Calendario_Eventos: titulo | tipo | fecha_inicio | fecha_fin | hora | categoria | prioridad | descripcion | visible | portal_alumno
 //   Calendario_Cumple:  nombre | fecha | cargo | visible
 function getCalendario(ss) {
   const sEv  = getSheet(ss, "Calendario_Eventos");
@@ -382,15 +382,16 @@ function getCalendario(ss) {
     rows.forEach(r => {
       if (!r[0]) return;
       eventos.push({
-        titulo:       String(r[0] || "").trim(),
-        tipo:         String(r[1] || "evento").trim().toLowerCase(),
-        fecha_inicio: fmtISO(r[2]),
-        fecha_fin:    fmtISO(r[3]),
-        hora:         String(r[4] || "").trim(),
-        categoria:    String(r[5] || "academico").trim().toLowerCase(),
-        prioridad:    String(r[6] || "").trim().toLowerCase(),
-        descripcion:  String(r[7] || "").trim(),
-        visible:      String(r[8] || "si").trim().toLowerCase() !== "no" ? "SI" : "NO"
+        titulo:            String(r[0] || "").trim(),
+        tipo:              String(r[1] || "evento").trim().toLowerCase(),
+        fecha_inicio:      fmtISO(r[2]),
+        fecha_fin:         fmtISO(r[3]),
+        hora:              String(r[4] || "").trim(),
+        categoria:         String(r[5] || "academico").trim().toLowerCase(),
+        prioridad:         String(r[6] || "").trim().toLowerCase(),
+        descripcion:       String(r[7] || "").trim(),
+        visible:           String(r[8] || "si").trim().toLowerCase() !== "no" ? "SI" : "NO",
+        portal_alumno:     String(r[9] || "no").trim().toLowerCase() === "si" ? "SI" : "NO"
       });
     });
   }

@@ -35,6 +35,9 @@
 
 <main class="portal-main">
 
+  <!-- BLOQUE: SEMANA ACTUAL + EVENTOS SELECCIONADOS + UNIFORME DEL DÍA -->
+  <div id="bloque-semana-portal"></div>
+
   <!-- FECHAS -->
   <div class="dates-banner">
     <div class="date-chip captura">
@@ -166,5 +169,101 @@
 
 <script src="js/portal-api.js"></script>
 <script src="js/padre.js"></script>
+
+<!-- Fuente única de datos del calendario — FECHAS_CLAVE + lógica de semanas -->
+<script src="../pec/js/api_calendario.js"></script>
+<script src="../pec/js/app_calendario.js"></script>
+
+<script>
+function renderInfoSemanal() {
+    const container = document.getElementById('bloque-semana-portal');
+    if (!container) return;
+
+    const fuente = (typeof FECHAS_CLAVE !== 'undefined' && FECHAS_CLAVE.length > 0)
+        ? FECHAS_CLAVE
+        : (typeof FECHAS_CLAVE_FALLBACK !== 'undefined' ? FECHAS_CLAVE_FALLBACK : []);
+
+    function getSemanaActual() {
+        if (typeof cronogramaMap === 'undefined' || !cronogramaMap.length) return null;
+        const hoy = new Date(); hoy.setHours(0,0,0,0);
+        return cronogramaMap.find(s => hoy >= s.start && hoy <= s.end) || null;
+    }
+
+    function getEventosSemana(semana) {
+        if (!semana) return [];
+        return fuente.filter(ev => {
+            if (!ev.visiblePortalAlumno) return false;
+            const d = new Date(ev.fecha + 'T00:00:00');
+            return d >= semana.start && d <= semana.end;
+        });
+    }
+
+    function getUniforme() {
+        const dia = new Date().getDay();
+        if (dia === 0 || dia === 6) return { texto: "Sin clases hoy",   emoji: "🏡", color: "#94a3b8" };
+        if (dia === 2 || dia === 4) return { texto: "Uniforme de gala", emoji: "👔", color: "#1d4ed8" };
+        return                             { texto: "Pants",            emoji: "👟", color: "#059669" };
+    }
+
+    function fmtD(d) {
+        const DIAS  = ['dom','lun','mar','mié','jue','vie','sáb'];
+        const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+        return `${DIAS[d.getDay()]} ${d.getDate()} ${MESES[d.getMonth()]}`;
+    }
+
+    const CAT = {
+        evaluacion: { dot: '#d97706' },
+        reunion:    { dot: '#7c3aed' },
+        control:    { dot: '#0284c7' },
+        academico:  { dot: '#16a34a' },
+    };
+
+    const semana   = getSemanaActual();
+    const eventos  = getEventosSemana(semana);
+    const uniforme = getUniforme();
+
+    const semanaTxt = semana
+        ? `Sem. ${semana.num} &nbsp;·&nbsp; ${fmtD(semana.start)} – ${fmtD(semana.end)}`
+        : 'Fuera del período escolar';
+
+    const eventosHTML = eventos.length === 0
+        ? `<p style="font-size:0.82rem;color:#94a3b8;margin:0;">Sin eventos destacados esta semana.</p>`
+        : eventos.map(ev => {
+            const c = CAT[ev.categoria] || CAT.academico;
+            const d = new Date(ev.fecha + 'T00:00:00');
+            return `
+              <div style="display:flex;align-items:center;gap:0.6rem;padding:0.4rem 0;border-bottom:1px solid #f8fafc;">
+                <div style="width:7px;height:7px;border-radius:50%;background:${c.dot};flex-shrink:0;"></div>
+                <div style="flex:1;font-size:0.83rem;color:#1e293b;font-weight:500;line-height:1.3;">${ev.titulo}</div>
+                <div style="font-size:0.75rem;color:#94a3b8;flex-shrink:0;white-space:nowrap;">${fmtD(d)}</div>
+              </div>`;
+          }).join('');
+
+    container.innerHTML = `
+      <div style="background:white;border-radius:18px;padding:1.1rem 1.4rem;box-shadow:0 2px 8px rgba(0,0,0,.06);border:1px solid #f1f5f9;margin-bottom:1.1rem;display:grid;grid-template-columns:1fr auto;gap:1.1rem;align-items:start;">
+        <div>
+          <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.7rem;">
+            <span style="font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#1d4ed8;background:#dbeafe;padding:2px 9px;border-radius:20px;">Esta semana</span>
+            <span style="font-size:0.78rem;color:#64748b;font-weight:600;">${semanaTxt}</span>
+          </div>
+          ${eventosHTML}
+        </div>
+        <div style="background:#f8fafc;border-radius:14px;padding:0.9rem 0.75rem;text-align:center;min-width:90px;border:1px solid #e2e8f0;flex-shrink:0;">
+          <div style="font-size:1.6rem;margin-bottom:0.3rem;">${uniforme.emoji}</div>
+          <div style="font-size:0.63rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;margin-bottom:3px;">Hoy</div>
+          <div style="font-size:0.78rem;font-weight:800;color:${uniforme.color};line-height:1.2;">${uniforme.texto}</div>
+        </div>
+      </div>
+    `;
+}
+
+document.addEventListener('calendarioDataLista', renderInfoSemanal);
+
+// Restaurar logout correcto del portal (app_calendario.js lo sobreescribe con 'login.html')
+window.logout = function() {
+    portalSession.clear();
+    window.location.href = "index.html";
+};
+</script>
 </body>
 </html>
