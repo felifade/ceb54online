@@ -30,32 +30,21 @@
                     <i data-feather="grid"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="#" class="nav-item" data-view="grupos">
-                    <i data-feather="users"></i>
-                    <span>Grupos y Equipos</span>
-                </a>
-                <!-- <a href="#" class="nav-item" data-view="concentrado">
-                    <i data-feather="file-text"></i>
-                    <span>Concentrado</span>
-                </a> -->
-                <a href="#" class="nav-item" data-view="directorio">
-                    <i data-feather="map"></i>
-                    <span>Directorio Escolar</span>
-                </a>
-                <a href="calendario.html" class="nav-item">
-                    <i data-feather="calendar"></i>
-                    <span>Fechas Clave</span>
-                </a>
+
                 <a href="#" class="nav-item" data-view="rapida">
                     <i data-feather="eye"></i>
                     <span>Vista Rápida</span>
                 </a>
-                <a href="#" class="nav-item" data-view="auditoria">
-                    <i data-feather="shield"></i>
-                    <span>Auditoría Academia</span>
+
+                <!-- Grupos y Equipos: destacado como acción principal -->
+                <a href="#" class="nav-item" data-view="grupos" style="background: rgba(234, 179, 8, 0.12); border-left: 3px solid #eab308; position: relative;">
+                    <i data-feather="users"></i>
+                    <span>Grupos y Equipos</span>
+                    <span style="margin-left: auto; background: #eab308; color: #1c1917; font-size: 0.6rem; font-weight: 800; padding: 2px 7px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;">CAPTURA</span>
                 </a>
 
-                <a href="#" class="nav-item" data-view="edicion">
+                <!-- Editar Capturas: sub-acción de Grupos y Equipos -->
+                <a href="#" class="nav-item" data-view="edicion" style="padding-left: 2.25rem; font-size: 0.88rem; opacity: 0.85; border-left: 2px solid rgba(234,179,8,0.3); margin-left: 0.5rem;">
                     <i data-feather="edit"></i>
                     <span>Editar Capturas</span>
                 </a>
@@ -63,6 +52,19 @@
                 <a href="calificaciones.html" class="nav-item">
                     <i data-feather="star"></i>
                     <span>Calificaciones PEC</span>
+                </a>
+
+                <!-- Separador -->
+                <div style="height: 1px; background: rgba(255,255,255,0.08); margin: 0.75rem 0;"></div>
+
+                <a href="#" class="nav-item" data-view="directorio">
+                    <i data-feather="map"></i>
+                    <span>Directorio Escolar</span>
+                </a>
+
+                <a href="#" class="nav-item" data-view="auditoria">
+                    <i data-feather="shield"></i>
+                    <span>Auditoría Academia</span>
                 </a>
 
                 <a href="#" class="nav-item" onclick="logout()" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; color: #fda4af;">

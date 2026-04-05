@@ -59,33 +59,35 @@ function doGet(e) {
     }
     const userEmail = normalizeText(e.parameter.userEmail || "");
 
-    // 1. CONFIGURACIÓN
+    // ── CACHÉ GAS: evita releer Sheets si los datos ya están en memoria ──────
+    const _cache  = CacheService.getScriptCache();
+    const _cKey   = 'pec_v1_' + userEmail;
+    const _cached = _cache.get(_cKey);
+    if (_cached) return ContentService.createTextOutput(_cached).setMimeType(ContentService.MimeType.JSON);
+    // ─────────────────────────────────────────────────────────────────────────
+
+    // 1. CONFIGURACIÓN — leer UNA sola vez y reutilizar para config + fechas
     let config = { docente: "Felipe López Salazar", parcialActivo: "2" };
     const sConf = getSheet(ss, S_CONFIGURACION);
-    if (sConf) {
-      const d = sConf.getDataRange().getValues();
-      d.forEach(r => {
-        if (!r[0]) return;
-        const key = String(r[0]).trim();
-        const keyNorm = normalizeText(key);
-        if (keyNorm === "docente_nombre") config.docente = r[1];
-        else if (keyNorm === "parcial_activo") config.parcialActivo = normalizeParcial(r[1]);
-        else config[key] = r[1]; // Captura todas las demás claves (ej: pec_2m_nombre, etc.)
-      });
-    }
+    const confData = sConf ? sConf.getDataRange().getValues() : [];
+    confData.forEach(r => {
+      if (!r[0]) return;
+      const key = String(r[0]).trim();
+      const keyNorm = normalizeText(key);
+      if (keyNorm === "docente_nombre") config.docente = r[1];
+      else if (keyNorm === "parcial_activo") config.parcialActivo = normalizeParcial(r[1]);
+      else config[key] = r[1];
+    });
     const parcialActivo = config.parcialActivo;
 
-    // Fechas límite por parcial
+    // Fechas límite — reutiliza confData (sin segunda lectura a Sheets)
     let fechas = { p1: "", p2: "", p3: "" };
-    if (sConf) {
-      const d = sConf.getDataRange().getValues();
-      d.forEach(r => {
-        const key = normalizeText(r[0]);
-        if (key === "cal_p1_fecha") fechas.p1 = String(r[1] || "").trim();
-        if (key === "cal_p2_fecha") fechas.p2 = String(r[1] || "").trim();
-        if (key === "cal_p3_fecha") fechas.p3 = String(r[1] || "").trim();
-      });
-    }
+    confData.forEach(r => {
+      const key = normalizeText(r[0]);
+      if (key === "cal_p1_fecha") fechas.p1 = String(r[1] || "").trim();
+      if (key === "cal_p2_fecha") fechas.p2 = String(r[1] || "").trim();
+      if (key === "cal_p3_fecha") fechas.p3 = String(r[1] || "").trim();
+    });
 
     // 2. ROL DE USUARIO
     let userRole = "Docente";
@@ -104,12 +106,23 @@ function doGet(e) {
     let alumnosFull = [];
     let sinEquipo = [];
 
-    // Mapa de evaluados para rapidez
+    // Leer S_EVALUACIONES UNA sola vez — reutilizado en sección 7
     const evaluadosMap = {};
-    const sEvCheck = getSheet(ss, S_EVALUACIONES);
-    if (sEvCheck) {
-      const dEv = sEvCheck.getDataRange().getValues(); dEv.shift();
-      dEv.forEach(r => evaluadosMap[String(r[3])] = true);
+    const sEv = getSheet(ss, S_EVALUACIONES);
+    const evRaw = [];
+    if (sEv) {
+      const dEv = sEv.getDataRange().getValues(); dEv.shift();
+      dEv.forEach(r => {
+        const equipoId = String(r[3]);
+        evaluadosMap[equipoId] = true;
+        evRaw.push({
+          fecha: r[0], parcial: r[1], grupoId: String(r[2]),
+          equipoId: equipoId, equipoNombre: String(r[4] || ''),
+          materia: String(r[5] || ''), docente: String(r[6] || ''),
+          puntaje: Number(r[7] || 0), observaciones: r[8] || "",
+          alumno: String(r[9] || ''), docenteEmail: normalizeText(r[10])
+        });
+      });
     }
 
     if (sAlum) {
@@ -216,29 +229,11 @@ function doGet(e) {
       }
     }
 
-    // 7. EVALUACIONES PEC
-    const sEv = getSheet(ss, S_EVALUACIONES);
-    let evaluaciones = [];
-    let todasEvaluaciones = [];
-    if (sEv) {
-      const d = sEv.getDataRange().getValues(); d.shift();
-      const evRaw = d.map(r => ({
-        fecha: r[0],
-        parcial: r[1],
-        grupoId: String(r[2]),
-        equipoId: String(r[3]),
-        equipoNombre: String(r[4] || ''),
-        materia: String(r[5] || ''),
-        docente: String(r[6] || ''),
-        puntaje: Number(r[7] || 0),
-        observaciones: r[8] || "",
-        alumno: String(r[9] || ''),
-        docenteEmail: normalizeText(r[10])
-      }));
-      todasEvaluaciones = [...evRaw]; // Sin filtro — para Vista Rápida y avance global
-      evaluaciones = [...evRaw];
-      if (!isAdmin && userEmail !== "") evaluaciones = evaluaciones.filter(x => x.docenteEmail === userEmail);
-    }
+    // 7. EVALUACIONES PEC — reutiliza evRaw leído en sección 3 (sin segunda lectura)
+    const todasEvaluaciones = [...evRaw];
+    const evaluaciones = (isAdmin || userEmail === "")
+      ? [...evRaw]
+      : evRaw.filter(x => x.docenteEmail === userEmail);
     const listaEquipos = Object.values(equiposMap);
 
     // 8. AVANCE DOCENTE
@@ -276,14 +271,14 @@ function doGet(e) {
     }
 
 
-    return ContentService.createTextOutput(JSON.stringify({
+    const _respStr = JSON.stringify({
       status: "success",
       feedbackHistory: feedbackHistory,
       config: config,
       grupos: [...gruposConEquipos],
       equipos: listaEquipos,
       evaluaciones: evaluaciones,
-      todasEvaluaciones: todasEvaluaciones || evaluaciones,
+      todasEvaluaciones: todasEvaluaciones,
       tutorias: tutoriasData,
       alumnosFull: alumnosFull,
       directorio: directorio,
@@ -295,11 +290,23 @@ function doGet(e) {
       sinEquipo: sinEquipo,
       audit: audit,
       fechas: fechas
-    })).setMimeType(ContentService.MimeType.JSON);
+    });
+    // Guardar en caché 5 min (máx 100KB — si excede, se omite silenciosamente)
+    try { _cache.put(_cKey, _respStr, 300); } catch(_) {}
+    return ContentService.createTextOutput(_respStr).setMimeType(ContentService.MimeType.JSON);
 
   } catch (error) {
     return ContentService.createTextOutput(JSON.stringify({ status: "error", message: error.toString() })).setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+// ── Invalida caché GAS tras cualquier escritura ──────────────────────────────
+function _invalidarCache(email) {
+  try {
+    const c = CacheService.getScriptCache();
+    if (email) c.remove('pec_v1_' + normalizeText(email));
+    c.remove('pec_v1_'); // caché global (sin userEmail)
+  } catch(_) {}
 }
 
 // === MÉTODO POST: ACCIONES DE ESCRITURA ===
@@ -381,6 +388,7 @@ function doPost(e) {
           normalizeText(body.docente_email)
         ]);
       });
+      _invalidarCache(body.docente_email);
       return ContentService.createTextOutput(JSON.stringify({ status: "success" }));
     }
 
@@ -390,6 +398,7 @@ function doPost(e) {
       for (let i = d.length - 1; i >= 1; i--) {
         if (Math.abs(new Date(d[i][0]).getTime() - tF) < 10000 && String(d[i][3]).trim() === tA) { s.deleteRow(i + 1); break; }
       }
+      _invalidarCache(body.docente_email);
       return ContentService.createTextOutput(JSON.stringify({ status: "success" }));
     }
 
@@ -412,6 +421,7 @@ function doPost(e) {
         }
       }
       if (!matched) return ContentService.createTextOutput(JSON.stringify({ status: "error", message: `No se encontró la fila. Col: ${body.column}, Alumno: ${tA}` }));
+      _invalidarCache(body.docente_email);
       return ContentService.createTextOutput(JSON.stringify({ status: "success" }));
     }
 
@@ -525,6 +535,7 @@ function doPost(e) {
     } else {
       base[7] = body.puntaje; sEv.appendRow(base);
     }
+    _invalidarCache(emailCaptura);
     return ContentService.createTextOutput(JSON.stringify({ status: "success" }));
 
   } catch (error) {

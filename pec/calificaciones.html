@@ -6,6 +6,7 @@
     <title>Calificaciones PEC | CEB 5/4</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
     <link rel="stylesheet" href="css/style.css">
     <script src="js/auth.js"></script>
     <style>
@@ -236,47 +237,60 @@
                 </div>
             </div>
             <nav class="sidebar-nav">
-                <a href="index.html" class="nav-item">
-                    <i data-lucide="info"></i>
+                <a href="index.html" class="nav-item" style="background: rgba(5, 150, 105, 0.1); border-left: 3px solid #059669; margin-bottom: 0.5rem;">
+                    <i data-feather="info"></i>
                     <span>Portal Proyectos (PEC)</span>
                 </a>
-                <a href="index.html#dashboard" class="nav-item">
-                    <i data-lucide="layout-dashboard"></i>
+
+                <a href="index.html" class="nav-item" data-nav-target="dashboard">
+                    <i data-feather="grid"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="index.html#grupos" class="nav-item">
-                    <i data-lucide="users"></i>
-                    <span>Grupos y Equipos</span>
-                </a>
-                <a href="index.html#concentrado" class="nav-item">
-                    <i data-lucide="file-text"></i>
-                    <span>Concentrado</span>
-                </a>
-                <a href="index.html#directorio" class="nav-item">
-                    <i data-lucide="map"></i>
-                    <span>Directorio Escolar</span>
-                </a>
-                <a href="index.html#rapida" class="nav-item">
-                    <i data-lucide="eye"></i>
+
+                <a href="index.html" class="nav-item" data-nav-target="rapida">
+                    <i data-feather="eye"></i>
                     <span>Vista Rápida</span>
                 </a>
-                <a href="index.html#auditoria" class="nav-item">
-                    <i data-lucide="shield"></i>
-                    <span>Auditoría Academia</span>
+
+                <!-- Grupos y Equipos: módulo principal de captura -->
+                <a href="index.html" class="nav-item" data-nav-target="grupos" style="background: rgba(234, 179, 8, 0.12); border-left: 3px solid #eab308; position: relative;">
+                    <i data-feather="users"></i>
+                    <span>Grupos y Equipos</span>
+                    <span style="margin-left: auto; background: #eab308; color: #1c1917; font-size: 0.6rem; font-weight: 800; padding: 2px 7px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;">CAPTURA</span>
                 </a>
-                <a href="calificaciones.html" class="nav-item active" style="background:rgba(5,150,105,0.1);border-left:3px solid #059669;">
-                    <i data-lucide="star"></i>
+
+                <!-- Editar Capturas: sub-acción de Grupos y Equipos -->
+                <a href="index.html" class="nav-item" data-nav-target="edicion" style="padding-left: 2.25rem; font-size: 0.88rem; opacity: 0.85; border-left: 2px solid rgba(234,179,8,0.3); margin-left: 0.5rem;">
+                    <i data-feather="edit"></i>
+                    <span>Editar Capturas</span>
+                </a>
+
+                <a href="calificaciones.html" class="nav-item active" style="background: rgba(5,150,105,0.1); border-left: 3px solid #059669;">
+                    <i data-feather="star"></i>
                     <span>Calificaciones PEC</span>
                 </a>
 
-                <a href="#" class="nav-item" onclick="logout()" style="margin-top:1rem;border-top:1px solid rgba(255,255,255,0.1);padding-top:1rem;color:#fda4af;">
-                    <i data-lucide="log-out"></i>
+                <!-- Separador -->
+                <div style="height: 1px; background: rgba(255,255,255,0.08); margin: 0.75rem 0;"></div>
+
+                <a href="index.html" class="nav-item" data-nav-target="directorio">
+                    <i data-feather="map"></i>
+                    <span>Directorio Escolar</span>
+                </a>
+
+                <a href="index.html" class="nav-item" data-nav-target="auditoria">
+                    <i data-feather="shield"></i>
+                    <span>Auditoría Academia</span>
+                </a>
+
+                <a href="#" class="nav-item" onclick="logout()" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; color: #fda4af;">
+                    <i data-feather="log-out"></i>
                     <span>Cerrar Sesión</span>
                 </a>
             </nav>
             <div class="sidebar-footer">
                 <p>Centro de Estudios de Bachillerato<br>CEB 5/4</p>
-                <a href="../index.html" style="color:#67A8DB;font-weight:600;margin-top:15px;display:inline-block;font-size:0.85rem;">Volver al Sitio Web Principal</a>
+                <a href="../index.html" style="color: #67A8DB; font-weight: 600; margin-top: 15px; display: inline-block; font-size: 0.85rem;">Volver al Sitio Web Principal</a>
             </div>
         </aside>
 
@@ -397,5 +411,16 @@
 
     <script src="js/api_v3.js"></script>
     <script src="js/app_calificaciones.js"></script>
+    <script>
+        // Inicializar iconos del sidebar
+        if (typeof feather !== 'undefined') feather.replace();
+        // Pasar la vista objetivo al navegar de regreso a index.html
+        document.querySelectorAll('.nav-item[data-nav-target]').forEach(function(a) {
+            a.addEventListener('click', function(e) {
+                const target = this.getAttribute('data-nav-target');
+                if (target) sessionStorage.setItem('pec_nav_target', target);
+            });
+        });
+    </script>
 </body>
 </html>

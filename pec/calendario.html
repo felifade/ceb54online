@@ -94,5 +94,40 @@
     <!-- Scripts -->
     <script src="js/api_calendario.js"></script>
     <script src="js/app_calendario.js"></script>
+
+    <script>
+    // Si se accede desde fuera del PEC (ej. Dirección), mostrar layout limpio sin sidebar
+    (function() {
+        const params = new URLSearchParams(window.location.search);
+        const desde = params.get('desde');
+        if (!desde) return;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ocultar sidebar
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.style.display = 'none';
+
+            // Ajustar main content para ocupar todo el ancho
+            const main = document.querySelector('.main-content');
+            if (main) { main.style.marginLeft = '0'; main.style.width = '100%'; }
+
+            // Ocultar botón de menú móvil (no aplica sin sidebar)
+            const toggle = document.getElementById('menu-toggle');
+            if (toggle) toggle.style.display = 'none';
+
+            // Cambiar botón topbar por "Regresar a Dirección"
+            const topbarTitle = document.querySelector('.topbar-title');
+            if (topbarTitle && desde === 'direccion') {
+                const btn = document.createElement('a');
+                btn.href = '../area_direccion.html';
+                btn.style.cssText = 'display:inline-flex;align-items:center;gap:0.4rem;font-size:0.85rem;font-weight:700;color:#64748b;text-decoration:none;background:#f1f5f9;padding:0.4rem 0.9rem;border-radius:8px;border:1px solid #e2e8f0;margin-right:1rem;transition:background 0.2s;';
+                btn.innerHTML = '← Dirección';
+                btn.onmouseover = () => btn.style.background = '#e2e8f0';
+                btn.onmouseout  = () => btn.style.background = '#f1f5f9';
+                topbarTitle.parentNode.insertBefore(btn, topbarTitle);
+            }
+        });
+    })();
+    </script>
 </body>
 </html>

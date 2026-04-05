@@ -49,20 +49,11 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentView = 'pecportal';
 
     // Navegación
-    const _isAdminRole = () => (sessionStorage.getItem('user_role') || '').toLowerCase() === 'admin';
-    const _vistasRestringidas = ['directorio', 'auditoria'];
-
     navItems.forEach(item => {
         item.addEventListener('click', (e) => {
             const viewName = item.getAttribute('data-view');
             if (!viewName) return; // Links con href real (ej. calificaciones.html) navegan normalmente
             e.preventDefault();
-
-            // Control de acceso por rol
-            if (!_isAdminRole() && _vistasRestringidas.includes(viewName)) {
-                alert('⛔ No tienes permiso para acceder a esta sección.');
-                return;
-            }
             
             navItems.forEach(nav => nav.classList.remove('active'));
             item.classList.add('active');
@@ -94,12 +85,20 @@ document.addEventListener("DOMContentLoaded", () => {
         sidebar.classList.toggle('open');
     });
 
-    // Funciones Base
-    const showLoader = () => loader.classList.remove('hidden');
-    const hideLoader = () => loader.classList.add('hidden');
+    // Funciones Base — loader con delay 300ms para evitar parpadeo en carga rápida
+    let _loaderTimer = null;
+    const showLoader = () => {
+      _loaderTimer = setTimeout(() => loader.classList.remove('hidden'), 300);
+    };
+    const hideLoader = () => {
+      clearTimeout(_loaderTimer);
+      loader.classList.add('hidden');
+    };
 
-    // Lógica por Vista
+    // Lógica por Vista — guard para no re-inicializar vistas ya cargadas
+    const _viewLoaded = {};
     const loadViewData = async (view) => {
+        if (_viewLoaded[view]) return; // ya inicializada, no recargar
         if (view === 'dashboard') await initDashboard();
         if (view === 'grupos') await initGrupos();
         if (view === 'concentrado') await initConcentrado();
@@ -107,6 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (view === 'rapida') await initVistaRapida();
         if (view === 'auditoria' && window.initAuditoriaView) await window.initAuditoriaView();
         if (view === 'edicion'   && window.initEdicionView)  await window.initEdicionView();
+        _viewLoaded[view] = true;
     };
 
     /* =======================================
@@ -1070,7 +1070,11 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             alert("Evaluación guardada exitosamente en Google Sheets.");
             formEval.reset();
-            // Refrescar equipos si seguimos en la vista
+            // Invalidar vistas que dependen de evaluaciones para que recarguen datos frescos
+            delete _viewLoaded['dashboard'];
+            delete _viewLoaded['concentrado'];
+            delete _viewLoaded['rapida'];
+            // Refrescar equipos si seguimos en la vista grupos
             if(currentView === 'grupos') {
                 selectGrupo.dispatchEvent(new Event('change'));
             }
@@ -1383,6 +1387,14 @@ document.addEventListener("DOMContentLoaded", () => {
         alert(`📝 Observaciones PEC - ${equipo}\nParcial ${parcial}\n\n${obs}`);
     };
 
-    // Iniciar con la primera vista
-    initDashboard();
+    // Iniciar con la primera vista, o con la vista que dejó pendiente otra página (ej. calificaciones)
+    const _navTarget = sessionStorage.getItem('pec_nav_target');
+    if (_navTarget) {
+        sessionStorage.removeItem('pec_nav_target');
+        const _targetItem = document.querySelector(`.nav-item[data-view="${_navTarget}"]`);
+        if (_targetItem) _targetItem.click();
+        else initDashboard();
+    } else {
+        initDashboard();
+    }
 });
