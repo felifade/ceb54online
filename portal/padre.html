@@ -222,9 +222,11 @@ function renderInfoSemanal() {
     const eventos  = getEventosSemana(semana);
     const uniforme = getUniforme();
 
-    const semanaTxt = semana
-        ? `Sem. ${semana.num} &nbsp;·&nbsp; ${fmtD(semana.start)} – ${fmtD(semana.end)}`
-        : 'Fuera del período escolar';
+    const semanaTxt = !semana
+        ? 'Fuera del período escolar'
+        : semana.esVacaciones
+            ? `Periodo vacacional &nbsp;·&nbsp; ${fmtD(semana.start)} – ${fmtD(semana.end)}`
+            : `Sem. ${semana.num} &nbsp;·&nbsp; ${fmtD(semana.start)} – ${fmtD(semana.end)}`;
 
     const eventosHTML = eventos.length === 0
         ? `<p style="font-size:0.82rem;color:#94a3b8;margin:0;">Sin eventos destacados esta semana.</p>`

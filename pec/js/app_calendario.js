@@ -205,17 +205,19 @@ function generarCronogramaEfectivo() {
     curFin.setDate(fechaInicio.getDate() + (7 - fechaInicio.getDay()) % 7);
     curFin.setHours(23, 59, 59, 999);
 
-    let numSemana = 0;
+    let numAcademica = 0; // Solo cuenta semanas NO vacacionales
 
     while (curIni <= fechaFin) {
-        numSemana++;
         const esVacaciones = esSemanaDePausa(curIni, curFin);
 
+        // Las semanas vacacionales no incrementan el contador académico
+        if (!esVacaciones) numAcademica++;
+
         cronograma.push({
-            num: numSemana,
-            label: `SEMANA ${numSemana}`,
-            start: new Date(curIni),
-            end: new Date(curFin),
+            num:          esVacaciones ? 0 : numAcademica,
+            label:        esVacaciones ? 'VACACIONAL' : `SEMANA ${numAcademica}`,
+            start:        new Date(curIni),
+            end:          new Date(curFin),
             esVacaciones: esVacaciones
         });
 
@@ -257,6 +259,7 @@ function initCalendario() {
                 <button class="view-btn ${viewMode === 'grouped' ? 'active' : ''}" id="view-grouped">Calendario</button>
                 <button class="view-btn ${viewMode === 'list' ? 'active' : ''}" id="view-list">Sólo Eventos</button>
                 <button class="view-btn ${viewMode === 'birthdays' ? 'active' : ''}" id="view-birthdays">🎂 Cumpleaños</button>
+                <button class="view-btn ${viewMode === 'dias' ? 'active' : ''}" id="view-dias" style="border-color:rgba(124,58,237,0.4);${viewMode==='dias'?'':'color:#7c3aed;'}">🧪 Por días</button>
             </div>
         </div>
         <div id="calendario-content"></div>
@@ -282,6 +285,12 @@ function initCalendario() {
         renderEventos();
         updateToggles();
     });
+    document.getElementById('view-dias').addEventListener('click', () => {
+        if (viewMode === 'dias') return;
+        viewMode = 'dias';
+        renderEventos();
+        updateToggles();
+    });
 }
 
 function updateToggles() {
@@ -289,6 +298,8 @@ function updateToggles() {
     document.getElementById('view-list').classList.toggle('active', viewMode === 'list');
     const bBtn = document.getElementById('view-birthdays');
     if (bBtn) bBtn.classList.toggle('active', viewMode === 'birthdays');
+    const dBtn = document.getElementById('view-dias');
+    if (dBtn) dBtn.classList.toggle('active', viewMode === 'dias');
 }
 
 function renderEventos() {
@@ -308,6 +319,8 @@ function renderEventos() {
         content.innerHTML = `<div class="calendario-grid">${items.map(item => renderItem(item, hoy)).join('')}</div>`;
     } else if (viewMode === 'birthdays') {
         content.innerHTML = renderCumpleanos(hoy);
+    } else if (viewMode === 'dias') {
+        content.innerHTML = renderVistaDias(hoy);
     } else {
         const agrupar = agruparJerarquiaCompleta(items);
         content.innerHTML = renderJerarquiaCompleta(agrupar, hoy);
@@ -414,10 +427,28 @@ function renderJerarquiaCompleta(meses, hoy) {
                                 ${tipoSemana.tag ? `<span class="semana-tipo-badge">${tipoSemana.tag}</span>` : ''}
                             </div>
                             <div class="calendario-grid">
-                                ${tieneEventos ?
-                    sem.items.map(item => renderItem(item, hoy)).join('') :
-                    `<div class="vacio-container"><i data-feather="calendar" style="width:14px; opacity:0.5;"></i> <p class="semana-sin-eventos">Sin eventos programados</p></div>`
-                }
+                                ${(() => {
+                    const eventos  = sem.items.filter(i => i.tipo !== 'cumple');
+                    const cumples  = sem.items.filter(i => i.tipo === 'cumple');
+                    const eventosHTML = eventos.length > 0
+                        ? eventos.map(item => renderItem(item, hoy)).join('')
+                        : !cumples.length
+                            ? `<div class="vacio-container"><i data-feather="calendar" style="width:14px; opacity:0.5;"></i> <p class="semana-sin-eventos">Sin eventos programados</p></div>`
+                            : '';
+                    const cumpleHTML = cumples.length > 0
+                        ? `<div style="margin-top:${eventos.length?'0.5rem':'0'};padding:0.35rem 0.6rem;display:flex;flex-wrap:wrap;gap:0.3rem 0.75rem;border-top:${eventos.length?'1px dashed rgba(0,0,0,0.07)':'none'};align-items:center;">
+                            <span style="font-size:0.72rem;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">🎂 Cumpleaños</span>
+                            ${cumples.map(c => {
+                                const fc = new Date(c.fecha + 'T00:00:00');
+                                const esHoy = fc.getMonth() === hoy.getMonth() && fc.getDate() === hoy.getDate();
+                                const dia = parseInt(c.fecha.split('-')[2]);
+                                const mes = obtenerNombreMes(fc.getMonth()+1).toLowerCase();
+                                return `<span style="font-size:0.75rem;color:${esHoy?'#d97706':'#64748b'};font-weight:${esHoy?'700':'500'};white-space:nowrap;">${c.nombre.split(' ').slice(0,3).join(' ')} <span style="opacity:0.6;">(${dia} ${mes})</span>${esHoy?' 🎉':''}</span>`;
+                            }).join('')}
+                           </div>`
+                        : '';
+                    return eventosHTML + cumpleHTML;
+                })()}
                             </div>
                         </div>
                     `;
@@ -430,11 +461,11 @@ function renderJerarquiaCompleta(meses, hoy) {
 function detectarTipoSemana(items, info) {
     let result = { tag: '', clase: '', parcial: '' };
 
-    // Lógica de parciales solicitada
-    if (info.num >= 1 && info.num <= 5) result.parcial = "1er Parcial";
-    else if (info.num >= 6 && info.num <= 10) result.parcial = "2do Parcial";
-    else if (info.num >= 11 && info.num <= 15) result.parcial = "3er Parcial";
-    else if (info.num === 16) result.parcial = "Globales";
+    // Parciales solo en semanas académicas (num > 0)
+    if (!info.esVacaciones && info.num >= 1 && info.num <= 5)  result.parcial = "1er Parcial";
+    else if (!info.esVacaciones && info.num >= 6 && info.num <= 10)  result.parcial = "2do Parcial";
+    else if (!info.esVacaciones && info.num >= 11 && info.num <= 15) result.parcial = "3er Parcial";
+    else if (!info.esVacaciones && info.num === 16)                  result.parcial = "Globales";
 
     if (info.esVacaciones) {
         result.tag = 'VACACIONAL';
@@ -570,6 +601,221 @@ function renderCumpleanos(hoy) {
         </div>
     `;
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   VISTA EXPERIMENTAL: Por días (Lun–Vie)
+   Reutiliza: cronogramaMap, FECHAS_CLAVE, CUMPLEANOS, PERIODOS_ESPECIALES
+   No modifica ningún dato ni función existente.
+══════════════════════════════════════════════════════════════════ */
+function renderVistaDias(hoy) {
+    const DIAS_NOMBRE = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    const DIAS_LABORALES = [1, 2, 3, 4, 5]; // lun–vie
+    const CAT_COLOR = {
+        evaluacion: { bg: '#fef3c7', border: '#d97706', text: '#92400e' },
+        reunion:    { bg: '#ede9fe', border: '#7c3aed', text: '#4c1d95' },
+        control:    { bg: '#e0f2fe', border: '#0284c7', text: '#0c4a6e' },
+        academico:  { bg: '#dcfce7', border: '#16a34a', text: '#14532d' },
+        restriccion:{ bg: '#fee2e2', border: '#dc2626', text: '#991b1b' },
+        festivo:    { bg: '#f1f5f9', border: '#94a3b8', text: '#475569' },
+    };
+
+    // Construir mapa fecha→items para acceso rápido
+    const mapaEventos = {}; // "yyyy-MM-dd" → [{...}]
+
+    const addToMap = (fecha, item) => {
+        if (!fecha) return;
+        const key = typeof fecha === 'string' ? fecha.substring(0, 10)
+                  : fecha instanceof Date ? fecha.toISOString().substring(0, 10) : null;
+        if (!key) return;
+        if (!mapaEventos[key]) mapaEventos[key] = [];
+        mapaEventos[key].push(item);
+    };
+
+    FECHAS_CLAVE.forEach(ev => addToMap(ev.fecha, { ...ev, _tipo: 'evento' }));
+
+    PERIODOS_ESPECIALES.forEach(p => {
+        if (!p.inicio) return;
+        let cur = new Date(p.inicio + 'T00:00:00');
+        const fin = new Date((p.fin || p.inicio) + 'T00:00:00');
+        while (cur <= fin) {
+            addToMap(cur.toISOString().substring(0, 10), { ...p, _tipo: 'periodo' });
+            cur.setDate(cur.getDate() + 1);
+        }
+    });
+
+    CUMPLEANOS.forEach(c => addToMap(c.fecha, { ...c, _tipo: 'cumple' }));
+
+    // Renderizar por semanas del cronograma
+    const bloques = cronogramaMap.map(sem => {
+        const esVac = sem.esVacaciones;
+
+        // Calcular los 5 días laborales de esta semana
+        const dias = DIAS_LABORALES.map(numDia => {
+            // Encontrar el día exacto dentro del rango de la semana
+            let d = new Date(sem.start);
+            // Avanzar hasta que coincida con el día de semana
+            while (d.getDay() !== numDia && d <= sem.end) d.setDate(d.getDate() + 1);
+            if (d > sem.end) return null; // La semana no llega a ese día
+            const key = d.toISOString().substring(0, 10);
+            return { dia: numDia, fecha: d, key, items: mapaEventos[key] || [] };
+        }).filter(Boolean);
+
+        const esHoy = !esVac && dias.some(d => d.fecha.getTime() === hoy.getTime());
+
+        // Encabezado de semana
+        const encabezado = `
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;
+               padding:0.6rem 0.9rem;background:${esVac?'#f1f5f9':'#0f172a'};border-radius:10px 10px 0 0;
+               border-bottom:2px solid ${esVac?'#e2e8f0':'#1e293b'};">
+            <div style="display:flex;align-items:center;gap:0.6rem;">
+              <span style="font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;
+                   color:${esVac?'#64748b':'#94a3b8'};">${sem.label}</span>
+              ${esHoy ? '<span style="font-size:0.62rem;background:#059669;color:white;padding:1px 7px;border-radius:20px;font-weight:700;">HOY</span>' : ''}
+              ${esVac ? '<span style="font-size:0.62rem;background:#e2e8f0;color:#64748b;padding:1px 7px;border-radius:20px;font-weight:700;">VACACIONAL</span>' : ''}
+            </div>
+            <span style="font-size:0.7rem;color:${esVac?'#94a3b8':'#64748b'};">${formatearRango(sem.start, sem.end)}</span>
+          </div>`;
+
+        // Si es vacacional, mostrar bloque simple sin días
+        if (esVac) {
+            return `
+              <div style="margin-bottom:1.25rem;border-radius:10px;border:1px solid #e2e8f0;overflow:hidden;opacity:0.7;">
+                ${encabezado}
+                <div style="padding:0.75rem 0.9rem;background:#f8fafc;font-size:0.8rem;color:#94a3b8;font-style:italic;">
+                  Período vacacional — sin actividades académicas
+                </div>
+              </div>`;
+        }
+
+        // Grid de días laborales
+        const diasHTML = dias.map(({ dia, fecha, items }) => {
+            const esHoyDia = fecha.getTime() === hoy.getTime();
+            const eventos = items.filter(i => i._tipo === 'evento' || i._tipo === 'periodo');
+            const cumples = items.filter(i => i._tipo === 'cumple');
+            const tieneAlgo = eventos.length > 0 || cumples.length > 0;
+
+            const eventosHTML = eventos.map(ev => {
+                const cat = ev.categoria || 'academico';
+                const c = CAT_COLOR[cat] || CAT_COLOR.academico;
+                return `<div style="font-size:0.72rem;padding:2px 6px;border-radius:5px;margin-bottom:2px;
+                              background:${c.bg};border-left:2px solid ${c.border};color:${c.text};
+                              line-height:1.3;font-weight:500;">${ev.titulo}</div>`;
+            }).join('');
+
+            const cumpleHTML = cumples.map(c => {
+                const nombre = c.nombre.split(' ').slice(0, 2).join(' ');
+                return `<div style="font-size:0.68rem;color:#d97706;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${c.nombre}">🎂 ${nombre}</div>`;
+            }).join('');
+
+            return `
+              <div style="flex:1;min-width:0;border-left:1px solid ${esHoyDia?'#059669':'#f1f5f9'};
+                   padding:0.4rem 0.5rem;background:${esHoyDia?'#f0fdf4':'white'};min-height:60px;">
+                <div style="font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;
+                     color:${esHoyDia?'#059669':'#94a3b8'};margin-bottom:4px;">${DIAS_NOMBRE[dia]}</div>
+                ${tieneAlgo ? eventosHTML + cumpleHTML
+                    : `<span style="font-size:0.65rem;color:#e2e8f0;">—</span>`}
+              </div>`;
+        }).join('');
+
+        return `
+          <div style="margin-bottom:1.25rem;border-radius:10px;border:1px solid #e2e8f0;overflow:hidden;
+               box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+            ${encabezado}
+            <div style="display:flex;flex-wrap:wrap;">
+              ${diasHTML}
+            </div>
+          </div>`;
+    }).join('');
+
+    return `
+      <div style="margin-bottom:0.75rem;padding:0.6rem 0.9rem;background:#ede9fe;border-radius:10px;
+           border:1px solid #c4b5fd;display:flex;align-items:center;gap:0.5rem;">
+        <span style="font-size:0.75rem;font-weight:700;color:#4c1d95;">🧪 Vista experimental — Por días</span>
+        <span style="font-size:0.72rem;color:#7c3aed;">Los eventos se distribuyen por día dentro de cada semana.</span>
+      </div>
+      ${bloques}`;
+}
+
+// Exponer para uso desde otras páginas
+window.renderVistaDias = renderVistaDias;
+
+/**
+ * Variante del widget semanal por días filtrada para portales de alumnos/padres.
+ * Solo muestra eventos con visiblePortalAlumno === true.
+ * @param {HTMLElement} container  El div donde renderizar
+ * @param {Date} hoy
+ */
+window.renderVistaDiasPortal = function(container, hoy) {
+    if (!container || typeof cronogramaMap === 'undefined' || !cronogramaMap) return;
+
+    hoy = hoy || new Date(); hoy.setHours(0,0,0,0);
+    const sem = cronogramaMap.find(s => hoy >= s.start && hoy <= s.end);
+    if (!sem) { container.innerHTML = '<p style="font-size:0.82rem;color:#94a3b8;padding:0.5rem 0;">Fuera del período escolar.</p>'; return; }
+
+    const DIAS_NOMBRE  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    const DIAS_LABORALES = [1,2,3,4,5];
+    const CAT_COLOR = {
+        evaluacion: { bg:'#fef3c7', border:'#d97706', text:'#92400e' },
+        reunion:    { bg:'#ede9fe', border:'#7c3aed', text:'#4c1d95' },
+        control:    { bg:'#e0f2fe', border:'#0284c7', text:'#0c4a6e' },
+        academico:  { bg:'#dcfce7', border:'#16a34a', text:'#14532d' },
+        restriccion:{ bg:'#fee2e2', border:'#dc2626', text:'#991b1b' },
+        festivo:    { bg:'#f1f5f9', border:'#94a3b8', text:'#475569' },
+    };
+
+    // Solo eventos marcados para el portal
+    const fuenteEventos = FECHAS_CLAVE.filter(ev => ev.visiblePortalAlumno);
+
+    const mapaEventos = {};
+    const addToMap = (fecha, item) => {
+        if (!fecha) return;
+        const key = String(fecha).substring(0,10);
+        if (!mapaEventos[key]) mapaEventos[key] = [];
+        mapaEventos[key].push(item);
+    };
+    fuenteEventos.forEach(ev => addToMap(ev.fecha, { ...ev, _tipo:'evento' }));
+    CUMPLEANOS.forEach(c => addToMap(c.fecha, { ...c, _tipo:'cumple' }));
+
+    const diasHTML = DIAS_LABORALES.map(numDia => {
+        let d = new Date(sem.start);
+        while (d.getDay() !== numDia && d <= sem.end) d.setDate(d.getDate()+1);
+        if (d > sem.end) return '';
+        const key = d.toISOString().substring(0,10);
+        const items = mapaEventos[key] || [];
+        const esHoyDia = d.getTime() === hoy.getTime();
+        const eventos = items.filter(i => i._tipo === 'evento');
+        const cumples = items.filter(i => i._tipo === 'cumple');
+
+        const contenido = [
+            ...eventos.map(ev => {
+                const c = CAT_COLOR[ev.categoria] || CAT_COLOR.academico;
+                return `<div style="font-size:0.72rem;padding:2px 6px;border-radius:5px;margin-bottom:2px;background:${c.bg};border-left:2px solid ${c.border};color:${c.text};line-height:1.3;font-weight:500;">${ev.titulo}</div>`;
+            }),
+            ...cumples.map(c => {
+                const nombre = c.nombre.split(' ').slice(0,2).join(' ');
+                return `<div style="font-size:0.68rem;color:#d97706;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${c.nombre}">🎂 ${nombre}</div>`;
+            })
+        ].join('') || `<span style="font-size:0.65rem;color:#e2e8f0;">—</span>`;
+
+        return `<div style="flex:1;min-width:0;border-left:1px solid ${esHoyDia?'#059669':'#f1f5f9'};padding:0.4rem 0.5rem;background:${esHoyDia?'#f0fdf4':'white'};min-height:55px;">
+            <div style="font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:${esHoyDia?'#059669':'#94a3b8'};margin-bottom:4px;">${DIAS_NOMBRE[numDia]}</div>
+            ${contenido}
+        </div>`;
+    }).join('');
+
+    const esVac = sem.esVacaciones;
+    container.innerHTML = `
+        <div style="border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+            <div style="padding:0.5rem 0.75rem;background:${esVac?'#f1f5f9':'#0f172a'};display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.4rem;">
+                <span style="font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:${esVac?'#64748b':'#94a3b8'};">${sem.label} ${esVac?'· Vacacional':''}</span>
+                <span style="font-size:0.68rem;color:${esVac?'#94a3b8':'#64748b'};">${formatearRango(sem.start, sem.end)}</span>
+            </div>
+            ${esVac
+                ? `<div style="padding:0.6rem 0.75rem;font-size:0.8rem;color:#94a3b8;background:#f8fafc;font-style:italic;">Período vacacional — sin actividades</div>`
+                : `<div style="display:flex;flex-wrap:wrap;">${diasHTML}</div>`
+            }
+        </div>`;
+};
 
 window.logout = function () {
     sessionStorage.clear();

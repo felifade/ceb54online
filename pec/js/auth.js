@@ -8,6 +8,8 @@
     // Si no está autenticado o no tiene email, redirigir
     if ((!authRecord || !userEmail) && !window.location.pathname.includes('login.html')) {
         sessionStorage.removeItem('tutorias_auth');
+        // Guardar la ruta original para redirigir después del login
+        sessionStorage.setItem('pec_redirect_after_login', window.location.href);
         window.location.href = 'login.html';
     }
 
