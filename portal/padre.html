@@ -36,7 +36,14 @@
 <main class="portal-main">
 
   <!-- BLOQUE: SEMANA ACTUAL + EVENTOS SELECCIONADOS + UNIFORME DEL DÍA -->
+  <div id="btn-vista-dias-portal" style="display:none;text-align:right;margin-bottom:0.4rem;">
+    <button onclick="_toggleVistaDiasPortal()" id="btn-vdp-inner"
+      style="font-size:0.74rem;padding:0.28rem 0.85rem;border-radius:20px;border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;cursor:pointer;font-weight:700;transition:all 0.2s;">
+      📅 Ver semana detallada
+    </button>
+  </div>
   <div id="bloque-semana-portal"></div>
+  <div id="vista-dias-portal" style="display:none;margin-bottom:1.1rem;"></div>
 
   <!-- FECHAS -->
   <div class="dates-banner">
@@ -259,7 +266,28 @@ function renderInfoSemanal() {
     `;
 }
 
-document.addEventListener('calendarioDataLista', renderInfoSemanal);
+document.addEventListener('calendarioDataLista', function() {
+    renderInfoSemanal();
+    document.getElementById('btn-vista-dias-portal').style.display = 'block';
+});
+
+let _modoDiasPortal = false;
+function _toggleVistaDiasPortal() {
+    _modoDiasPortal = !_modoDiasPortal;
+    const bloque  = document.getElementById('bloque-semana-portal');
+    const diasDiv = document.getElementById('vista-dias-portal');
+    const btn     = document.getElementById('btn-vdp-inner');
+    if (_modoDiasPortal) {
+        bloque.style.display  = 'none';
+        diasDiv.style.display = 'block';
+        window.renderVistaDiasPortal(diasDiv, new Date());
+        btn.textContent = '⬅ Vista resumida';
+    } else {
+        bloque.style.display  = 'block';
+        diasDiv.style.display = 'none';
+        btn.textContent = '📅 Ver semana detallada';
+    }
+}
 
 // Restaurar logout correcto del portal (app_calendario.js lo sobreescribe con 'login.html')
 window.logout = function() {

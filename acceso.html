@@ -685,9 +685,16 @@
   <main class="main">
 
     <!-- ══ SEMANA ACTUAL ══ -->
+    <div id="btn-vista-dias-comunidad" style="display:none;text-align:right;margin-bottom:0.5rem;">
+      <button onclick="_toggleVistaDiasComunidad()" id="btn-vdc-inner"
+        style="font-size:0.78rem;padding:0.35rem 1rem;border-radius:20px;border:1px solid rgba(124,58,237,0.45);background:rgba(124,58,237,0.08);color:#a78bfa;cursor:pointer;font-weight:700;transition:all 0.2s;">
+        📅 Vista por días
+      </button>
+    </div>
     <div id="semana-actual-widget" class="semana-actual" style="display:none;">
       <!-- Renderizado por JS tras cargar app_calendario.js -->
     </div>
+    <div id="vista-dias-comunidad" style="display:none;margin-bottom:2.5rem;"></div>
 
     <div class="section-label">
       <div class="section-label-accent"></div>
@@ -918,7 +925,29 @@
 
     document.addEventListener('calendarioDataLista', function () {
       _renderSemanaActual();
+      document.getElementById('btn-vista-dias-comunidad').style.display = 'block';
     });
+
+    let _modoDiasComunidad = false;
+    function _toggleVistaDiasComunidad() {
+      _modoDiasComunidad = !_modoDiasComunidad;
+      const widget  = document.getElementById('semana-actual-widget');
+      const diasDiv = document.getElementById('vista-dias-comunidad');
+      const btn     = document.getElementById('btn-vdc-inner');
+      if (_modoDiasComunidad) {
+        widget.style.display  = 'none';
+        diasDiv.style.display = 'block';
+        if (!diasDiv.dataset.rendered) {
+          window.renderVistaDiasComunidad(diasDiv, new Date());
+          diasDiv.dataset.rendered = '1';
+        }
+        btn.textContent = '⬅ Vista semanal';
+      } else {
+        widget.style.display  = 'block';
+        diasDiv.style.display = 'none';
+        btn.textContent = '📅 Vista por días';
+      }
+    }
 
     // Fallback por si la vista carga después de que el evento ya se disparó
     document.addEventListener('DOMContentLoaded', function () {

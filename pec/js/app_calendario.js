@@ -817,6 +817,87 @@ window.renderVistaDiasPortal = function(container, hoy) {
         </div>`;
 };
 
+/**
+ * Variante para Portal Comunidad: semana actual, TODOS los eventos (sin filtro de portal).
+ * @param {HTMLElement} container
+ * @param {Date} hoy
+ */
+window.renderVistaDiasComunidad = function(container, hoy) {
+    if (!container || typeof cronogramaMap === 'undefined' || !cronogramaMap) return;
+
+    hoy = hoy || new Date(); hoy.setHours(0,0,0,0);
+    const sem = cronogramaMap.find(s => hoy >= s.start && hoy <= s.end);
+    if (!sem) { container.innerHTML = '<p style="font-size:0.82rem;color:#94a3b8;padding:0.5rem 0;">Fuera del período escolar.</p>'; return; }
+
+    const DIAS_NOMBRE   = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    const DIAS_LABORALES = [1,2,3,4,5];
+    const CAT_COLOR = {
+        evaluacion: { bg:'#fef3c7', border:'#d97706', text:'#92400e' },
+        reunion:    { bg:'#ede9fe', border:'#7c3aed', text:'#4c1d95' },
+        control:    { bg:'#e0f2fe', border:'#0284c7', text:'#0c4a6e' },
+        academico:  { bg:'#dcfce7', border:'#16a34a', text:'#14532d' },
+        restriccion:{ bg:'#fee2e2', border:'#dc2626', text:'#991b1b' },
+        festivo:    { bg:'#f1f5f9', border:'#94a3b8', text:'#475569' },
+    };
+
+    // Todos los eventos sin filtro de portal
+    const mapaEventos = {};
+    const addToMap = (fecha, item) => {
+        if (!fecha) return;
+        const key = String(fecha).substring(0,10);
+        if (!mapaEventos[key]) mapaEventos[key] = [];
+        mapaEventos[key].push(item);
+    };
+    FECHAS_CLAVE.forEach(ev => addToMap(ev.fecha, { ...ev, _tipo:'evento' }));
+    PERIODOS_ESPECIALES.forEach(p => {
+        if (!p.inicio) return;
+        let cur = new Date(p.inicio + 'T00:00:00');
+        const fin = new Date((p.fin || p.inicio) + 'T00:00:00');
+        while (cur <= fin) { addToMap(cur.toISOString().substring(0,10), { ...p, _tipo:'periodo' }); cur.setDate(cur.getDate()+1); }
+    });
+    CUMPLEANOS.forEach(c => addToMap(c.fecha, { ...c, _tipo:'cumple' }));
+
+    const diasHTML = DIAS_LABORALES.map(numDia => {
+        let d = new Date(sem.start);
+        while (d.getDay() !== numDia && d <= sem.end) d.setDate(d.getDate()+1);
+        if (d > sem.end) return '';
+        const key = d.toISOString().substring(0,10);
+        const items = mapaEventos[key] || [];
+        const esHoyDia = d.getTime() === hoy.getTime();
+        const eventos = items.filter(i => i._tipo === 'evento' || i._tipo === 'periodo');
+        const cumples = items.filter(i => i._tipo === 'cumple');
+
+        const contenido = [
+            ...eventos.map(ev => {
+                const c = CAT_COLOR[ev.categoria] || CAT_COLOR.academico;
+                return `<div style="font-size:0.72rem;padding:2px 6px;border-radius:5px;margin-bottom:2px;background:${c.bg};border-left:2px solid ${c.border};color:${c.text};line-height:1.3;font-weight:500;">${ev.titulo}</div>`;
+            }),
+            ...cumples.map(c => {
+                const nombre = c.nombre.split(' ').slice(0,2).join(' ');
+                return `<div style="font-size:0.68rem;color:#d97706;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${c.nombre}">🎂 ${nombre}</div>`;
+            })
+        ].join('') || `<span style="font-size:0.65rem;color:#e2e8f0;">—</span>`;
+
+        return `<div style="flex:1;min-width:0;border-left:1px solid ${esHoyDia?'#059669':'#f1f5f9'};padding:0.4rem 0.5rem;background:${esHoyDia?'#f0fdf4':'white'};min-height:55px;">
+            <div style="font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:${esHoyDia?'#059669':'#94a3b8'};margin-bottom:4px;">${DIAS_NOMBRE[numDia]}</div>
+            ${contenido}
+        </div>`;
+    }).join('');
+
+    const esVac = sem.esVacaciones;
+    container.innerHTML = `
+        <div style="border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+            <div style="padding:0.5rem 0.75rem;background:${esVac?'#f1f5f9':'#0f172a'};display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.4rem;">
+                <span style="font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:${esVac?'#64748b':'#94a3b8'};">${sem.label} ${esVac?'· Vacacional':''}</span>
+                <span style="font-size:0.68rem;color:${esVac?'#94a3b8':'#64748b'};">${formatearRango(sem.start, sem.end)}</span>
+            </div>
+            ${esVac
+                ? `<div style="padding:0.6rem 0.75rem;font-size:0.8rem;color:#94a3b8;background:#f8fafc;font-style:italic;">Período vacacional — sin actividades</div>`
+                : `<div style="display:flex;flex-wrap:wrap;">${diasHTML}</div>`
+            }
+        </div>`;
+};
+
 window.logout = function () {
     sessionStorage.clear();
     window.location.href = 'login.html';
