@@ -123,6 +123,31 @@
     <div class="grade-card locked"><div class="locked-msg"><i data-lucide="lock"></i><span>Cargando...</span></div></div>
   </div>
 
+  <!-- REPORTES DE PREFECTURA ─────────────────────────────────────────────────
+       Sección modular independiente. Consulta: prefectura-portal.js
+       No toca calificaciones, cuestionario ni autenticación existentes.
+  ──────────────────────────────────────────────────────────────────────────── -->
+  <div class="section-header">
+    <div class="section-header-icon" style="background:#fce7f3;">
+      <i data-lucide="shield-alert" style="color:#be185d;"></i>
+    </div>
+    <div>
+      <div class="section-title">Reportes de Prefectura</div>
+      <div class="section-sub">Seguimiento de incidencias registradas a tu nombre</div>
+    </div>
+  </div>
+
+  <div id="section-prefectura">
+    <!-- Cargando mientras init() no ha terminado -->
+    <div style="background:white;border-radius:20px;padding:1.2rem 1.5rem;margin-bottom:1.75rem;box-shadow:0 2px 8px rgba(0,0,0,.06);border:1px solid #f1f5f9;">
+      <div style="display:flex;align-items:center;gap:0.5rem;color:#94a3b8;font-size:0.88rem;">
+        <div class="spinner-ring" style="width:14px;height:14px;border-width:2px;"></div>
+        Cargando...
+      </div>
+    </div>
+  </div>
+  <!-- /REPORTES DE PREFECTURA ──────────────────────────────────────────────── -->
+
   <!-- EVALUACIÓN DOCENTES/DIRECTIVOS — visible solo cuando el admin lo activa -->
   <div id="section-evaluacion-docentes" style="display:none">
     <div class="section-header">
@@ -186,6 +211,19 @@
 
 <script src="js/portal-api.js"></script>
 <script src="js/alumno.js"></script>
+<script src="js/prefectura-portal.js"></script>
+<script>
+/* ── Reportes de Prefectura — inicialización independiente ─────────────────
+   Se ejecuta tras DOMContentLoaded, usando el usuario ya guardado en sesión.
+   No interfiere con alumno.js ni con ninguna otra sección del portal.
+────────────────────────────────────────────────────────────────────────── */
+document.addEventListener("DOMContentLoaded", function() {
+  const u = portalSession.load();
+  if (u && u.tipo === "alumno" && u.nombre) {
+    prefecturaPortal.init("section-prefectura", u.nombre, "#059669");
+  }
+});
+</script>
 
 <!-- Fuente única de datos del calendario — FECHAS_CLAVE + lógica de semanas -->
 <script src="../pec/js/api_calendario.js"></script>
