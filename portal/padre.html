@@ -112,6 +112,14 @@
   </div>
   <!-- /REPORTES DE PREFECTURA ──────────────────────────────────────────────── -->
 
+  <!-- ══ EVALUACIÓN INSTITUCIONAL ══════════════════════════════════════════════
+       Controlada por eval_padres_activa en Google Sheets.
+       Empieza oculta (display:none). El interceptor de getCalPadre la muestra
+       solo cuando config.eval_padres_activa === true.
+       Si está desactivada desde el admin, el padre no ve esta sección.
+  ══════════════════════════════════════════════════════════════════════════ -->
+  <div id="section-eval-institucional" style="display:none;">
+
   <!-- CUESTIONARIO PADRES — WIZARD 4 PASOS -->
   <div class="section-header">
     <div class="section-header-icon" style="background:#dbeafe;">
@@ -123,7 +131,45 @@
     </div>
   </div>
 
-  <div class="survey-card" id="survey-card">
+  <!-- ── TARJETA COMPACTA — colapsada por defecto ──────────────────────────
+       El formulario completo está abajo (survey-card), oculto.
+       Se abre solo cuando el padre da clic en "Responder".
+       Si ya fue respondida, el badge cambia y el botón desaparece.
+  ──────────────────────────────────────────────────────────────────────── -->
+  <div id="eval-resumen-card" style="background:white;border-radius:20px;padding:1.3rem 1.5rem;margin-bottom:1.75rem;box-shadow:0 2px 8px rgba(0,0,0,.06);border:1px solid #f1f5f9;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+
+      <!-- Icono + texto -->
+      <div style="display:flex;align-items:center;gap:0.85rem;">
+        <div style="background:#eff6ff;width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid #bfdbfe;">
+          <i data-lucide="star" style="width:22px;height:22px;color:#1d4ed8;"></i>
+        </div>
+        <div>
+          <div style="font-weight:700;font-size:0.95rem;color:#1e293b;margin-bottom:0.18rem;">Cuestionario para Padres y Tutores</div>
+          <div style="font-size:0.77rem;color:#64748b;">Institución · Director/a · Subdirector/a · General</div>
+        </div>
+      </div>
+
+      <!-- Badge + botón -->
+      <div style="display:flex;align-items:center;gap:0.65rem;flex-wrap:wrap;">
+        <span id="eval-badge"
+          style="font-size:0.71rem;font-weight:800;padding:3px 11px;border-radius:20px;background:#fef3c7;color:#b45309;white-space:nowrap;">
+          Pendiente
+        </span>
+        <button id="btn-abrir-eval" onclick="abrirEvaluacion()"
+          style="background:#1d4ed8;color:white;border:none;border-radius:12px;padding:0.52rem 1.1rem;font-size:0.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:0.38rem;transition:background 0.2s;"
+          onmouseover="this.style.background='#1e40af'" onmouseout="this.style.background='#1d4ed8'">
+          <i data-lucide="clipboard-check" style="width:15px;height:15px;"></i>
+          Responder
+        </button>
+      </div>
+
+    </div>
+  </div>
+  <!-- /TARJETA COMPACTA ──────────────────────────────────────────────────── -->
+
+  <!-- survey-card: oculto por defecto, se revela al dar clic en "Responder" -->
+  <div class="survey-card" id="survey-card" style="display:none;">
 
     <!-- Estado: ya enviado -->
     <div class="survey-done" id="survey-done" style="display:none;">
@@ -197,12 +243,42 @@
     </div>
   </div>
 
+  </div><!-- /section-eval-institucional -->
+
 </main>
 
 <script src="js/portal-api.js"></script>
 <script src="js/padre.js"></script>
 <script src="js/prefectura-portal.js"></script>
 <script>
+/* ── FIX: eval_padres_activa — interceptor de getCalPadre ──────────────────
+   DIAGNÓSTICO: padre.js nunca usa config.eval_padres_activa aunque el backend
+   lo devuelve correctamente. Este interceptor captura la respuesta de
+   getCalPadre y muestra/oculta #section-eval-institucional según el flag.
+
+   FLUJO:
+     Sheets: eval_padres_activa = "si"
+     → GAS readConfig() → { eval_padres_activa: true }
+     → portalAPI.getCalPadre() → dataCal.config.eval_padres_activa = true
+     → interceptor → section-eval-institucional.display = ""  (visible)
+
+   Este wrapper se instala aquí (synchronously, antes de DOMContentLoaded)
+   para estar en place cuando padre.js llama a getCalPadre desde su listener.
+────────────────────────────────────────────────────────────────────────── */
+(function() {
+  const _orig = portalAPI.getCalPadre.bind(portalAPI);
+  portalAPI.getCalPadre = async function(folio) {
+    const data = await _orig(folio);
+    if (data && data.config) {
+      const sec = document.getElementById('section-eval-institucional');
+      if (sec) sec.style.display = data.config.eval_padres_activa ? '' : 'none';
+      // Log de diagnóstico (quitar después de confirmar funcionamiento):
+      console.log('[Portal Padres] eval_padres_activa =', data.config.eval_padres_activa);
+    }
+    return data;
+  };
+})();
+
 /* ── Reportes de Prefectura — inicialización independiente ─────────────────
    Se ejecuta tras DOMContentLoaded, usando el usuario ya guardado en sesión.
    No interfiere con padre.js ni con ninguna otra sección del portal.
@@ -332,6 +408,47 @@ window.logout = function() {
     portalSession.clear();
     window.location.href = "index.html";
 };
+
+/* ── Evaluación Institucional — tarjeta compacta ───────────────────────────
+   Lógica de presentación únicamente. No toca preguntas, guardado ni backend.
+   - abrirEvaluacion(): revela el formulario al dar clic en "Responder"
+   - marcarEvaluacionRespondida(): actualiza badge cuando ya fue enviada
+   - MutationObserver: detecta cuando padre.js llama mostrarEncuestaEnviada()
+──────────────────────────────────────────────────────────────────────────── */
+function abrirEvaluacion() {
+    const card = document.getElementById('survey-card');
+    const btn  = document.getElementById('btn-abrir-eval');
+    if (card) { card.style.display = 'block'; card.scrollIntoView({ behavior:'smooth', block:'start' }); }
+    if (btn)  btn.style.display = 'none';
+}
+
+function marcarEvaluacionRespondida() {
+    const badge = document.getElementById('eval-badge');
+    const btn   = document.getElementById('btn-abrir-eval');
+    if (badge) {
+        badge.textContent       = 'Respondida';
+        badge.style.background  = '#d1fae5';
+        badge.style.color       = '#065f46';
+    }
+    // Ocultar botón — ya no se puede volver a contestar
+    if (btn) btn.style.display = 'none';
+}
+
+// Observar survey-done: cuando padre.js lo hace visible (display:flex),
+// la evaluación fue enviada → actualizar la tarjeta compacta.
+document.addEventListener('DOMContentLoaded', function() {
+    const surveyDone = document.getElementById('survey-done');
+    if (!surveyDone) return;
+    const obs = new MutationObserver(function() {
+        if (surveyDone.style.display && surveyDone.style.display !== 'none') {
+            marcarEvaluacionRespondida();
+            // Mostrar el card para que el mensaje de confirmación sea visible
+            const card = document.getElementById('survey-card');
+            if (card) card.style.display = 'block';
+        }
+    });
+    obs.observe(surveyDone, { attributes: true, attributeFilter: ['style'] });
+});
 </script>
 </body>
 </html>
