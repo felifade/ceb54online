@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cultura Digital III | CEB 5/4</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body oncontextmenu="return false" onselectstart="return false" oncopy="return false" oncut="return false" onpaste="return false">
+
+<div class="app-container">
+    <!-- Sidebar Modular -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="../portal/alumno.html" class="back-to-portal">
+                <i data-lucide="arrow-left-circle"></i> Volver al Portal
+            </a>
+            <img src="../assets/logo.png" alt="Logo CEB" class="logo-sidebar">
+            <div class="school-name-sidebar">CEB 5/4 "Profr. Rafael Ramírez"</div>
+            <div class="teacher-name-sidebar">Dr. Felipe López Salazar</div>
+            <hr class="header-divider">
+            <div class="subject-name">Cultura Digital III</div>
+        </div>        <nav class="sidebar-nav">
+            <!-- 2DO PARCIAL -->
+            <div class="menu-section">
+                <div class="menu-title"><i data-lucide="brain"></i> 2do Parcial</div>
+                <ul class="menu-list">
+                    <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(8)" class="menu-link" id="link-s8">🟡 Semana 08 <span class="menu-date">13 - 17 Abr</span></a></li>
+                    <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(7)" class="menu-link" id="link-s7">✉️ Semana 07 <span class="menu-date">23 - 27 Mar</span></a></li>
+                    <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(6)" class="menu-link" id="link-s6">✉️ Semana 06 <span class="menu-date">16 - 20 Mar</span></a></li>
+                </ul>
+            </div>
+
+            <!-- 1ER PARCIAL -->
+            <div class="menu-section">
+                <div class="menu-title"><i data-lucide="book-open"></i> 1er Parcial</div>
+                <ul class="menu-list">
+                    <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(5)" class="menu-link" id="link-s5">🎓 Semana 05 <span class="menu-date">09 - 13 Mar</span></a></li>
+                    <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(4)" class="menu-link" id="link-s4">👥 Semana 04 <span class="menu-date">02 - 06 Mar</span></a></li>
+                    <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(3)" class="menu-link" id="link-s3">🤝 Semana 03 <span class="menu-date">23 - 27 Feb</span></a></li>
+                    <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(2)" class="menu-link" id="link-s2">📐 Semana 02 <span class="menu-date">16 - 20 Feb</span></a></li>
+                    <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(1)" class="menu-link active" id="link-s1">🚀 Semana 01 <span class="menu-date">11 - 13 Feb</span></a></li>
+                </ul>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Área de la Libreta -->
+    <main class="main-content" id="shift-container">
+        
+        <!-- Indicador de turno -->
+        <div id="shift-badge" class="shift-status-badge" onclick="showShiftModal()">
+            <i data-lucide="sun"></i> <span id="shift-text">Turno: Matutino</span>
+        </div>
+
+        <div class="week-header">
+            <span class="week-title-pre">Actividades a Realizar</span>
+            <h1 class="week-title-main" id="main-title">SEMANA 01 🚀 Introducción y Configuración</h1>
+        </div>
+
+        <div class="notebook-perspective">
+            <div class="notebook-page" id="notebook-page">
+                
+                <div class="sheet-container" id="sheets-container">
+                    
+                    <!-- SEMANA 01 -->
+                    <div class="sheet active" id="sheet-s1">
+                        <div class="hour-header">Semana 01: Configuración</div>
+                        <p style="padding: 1rem; background: #fffbeb; border-radius: 8px; margin: 1rem; font-size: 0.85rem; border: 1px solid #fde68a;">
+                            ⚠️ El trabajo de hoy se realiza en tu documento de Google Classroom.
+                        </p>
+                        <table class="academic-table">
+                            <tbody>
+                                <tr>
+                                    <td class="col-instruction">
+                                        <span class="activity-num">Actividad 1</span>
+                                        <div class="dictation-tag"><i data-lucide="settings"></i> Configuración Inicial</div>
+                                        <p class="instruction-text">Crea un documento en Google Docs desde tu Classroom y configura los siguientes estilos de texto:</p>
+                                    </td>
+                                    <td class="col-content">
+                                        <div class="note-box">
+                                            <ul style="list-style:none; font-size:0.85rem; line-height:1.8;">
+                                                <li><strong>Título:</strong> Tamaño 20, Negrita.</li>
+                                                <li><strong>Subtítulo:</strong> Tamaño 16, Negrita Cursiva.</li>
+                                                <li><strong>Texto Normal:</strong> Tamaño 14, Justificado.</li>
+                                                <li><strong>Tablas:</strong> Tamaño 10.</li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-instruction">
+                                        <span class="activity-num">Actividad 2</span>
+                                        <div class="dictation-tag"><i data-lucide="layout"></i> Portada</div>
+                                        <p class="instruction-text">Elabora la portada institucional siguiendo el orden oficial.</p>
+                                    </td>
+                                    <td class="col-content">
+                                        <div class="note-box">
+                                            <p style="font-size:0.8rem; color:#64748b;">(Asegúrate de incluir: Escuela, Alumno, Grupo, Materia, Profesor e Imagen del escudo)</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-instruction">
+                                        <span class="activity-num">Actividad 3</span>
+                                        <div class="dictation-tag"><i data-lucide="mic"></i> Dictado Teórico</div>
+                                        <p class="instruction-text">Escucha al docente y escribe el concepto de comunicación digital en tu Docs.</p>
+                                    </td>
+                                    <td class="col-content no-copy">
+                                        <div class="note-box">
+                                            <p><strong>Comunicación Digital:</strong> Es el intercambio de información y conocimiento mediante herramientas tecnológicas y plataformas digitales. Se basa en la transmisión de datos binarios y la interconectividad global.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-instruction">
+                                        <span class="activity-num">Actividad 4</span>
+                                        <div class="dictation-tag"><i data-lucide="table"></i> Tabla Comparativa</div>
+                                        <p class="instruction-text">Inserta una tabla para comparar los tipos de conexión a la red.</p>
+                                    </td>
+                                    <td class="col-content">
+                                        <table style="width:100%; border-collapse:collapse; font-size:0.8rem; border:1px solid #e2e8f0; text-align:center;">
+                                            <tr style="background:#f8fafc;">
+                                                <th style="padding:5px; border:1px solid #e2e8f0;">Conexión Alámbrica</th>
+                                                <th style="padding:5px; border:1px solid #e2e8f0;">Conexión Inalámbrica</th>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding:10px; border:1px solid #e2e8f0; color:#94a3b8;">Estabilidad superior, mayor velocidad...</td>
+                                                <td style="padding:10px; border:1px solid #e2e8f0; color:#94a3b8;">Movilidad total, facilidad de acceso...</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- SEMANA 02 -->
+                    <div class="sheet" id="sheet-s2">
+                        <div class="hour-header">Semana 02: Medidas Digitales</div>
+                        <table class="academic-table">
+                            <tbody>
+                                <tr>
+                                    <td class="col-instruction">
+                                        <span class="activity-num">Actividad 1</span>
+                                        <div class="dictation-tag"><i data-lucide="mic"></i> Dictado: Unidades</div>
+                                        <p class="instruction-text">Escribe las definiciones de las unidades de medida en tu documento.</p>
+                                    </td>
+                                    <td class="col-content no-copy">
+                                        <div class="note-box">
+                                            <p><strong>Bit:</strong> Unidad mínima de información (0 o 1).<br>
+                                               <strong>Byte:</strong> Conjunto de 8 bits.<br>
+                                               <strong>MB/GB:</strong> Unidades de almacenamiento de datos masivos.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-instruction">
+                                        <span class="activity-num">Actividad 2</span>
+                                        <div class="dictation-tag"><i data-lucide="zap"></i> Velocidad vs Almacenamiento</div>
+                                        <p class="instruction-text">Dictado sobre la diferencia entre Hz/Mbps y Bytes.</p>
+                                    </td>
+                                    <td class="col-content no-copy">
+                                        <div class="note-box">
+                                            <p>Mientras que los <strong>Bytes</strong> miden cuánto espacio ocupa un archivo, los <strong>Hertz (Hz)</strong> miden la velocidad de procesamiento y los <strong>Mbps</strong> miden la velocidad de transferencia de datos en una red.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- SEMANA 03 -->
+                    <div class="sheet" id="sheet-s3">
+                        <div class="hour-header">Semana 03: Colaboración PEC (I)</div>
+                        <table class="academic-table">
+                            <tbody>
+                                <tr>
+                                    <td class="col-instruction">
+                                        <span class="activity-num">Actividad 1</span>
+                                        <div class="dictation-tag"><i data-lucide="users"></i> Trabajo en Equipo</div>
+                                        <p class="instruction-text">Dictado sobre la importancia de la colaboración digital.</p>
+                                    </td>
+                                    <td class="col-content no-copy">
+                                        <div class="note-box">
+                                            <p>El <strong>Trabajo Colaborativo</strong> en la nube permite que múltiples usuarios editen un mismo archivo en tiempo real, rompiendo barreras de tiempo y espacio, ideal para el desarrollo del proyecto PEC.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- SEMANA 04 -->
+                    <div class="sheet" id="sheet-s4">
+                        <div class="hour-header">Semana 04: Colaboración PEC (II)</div>
+                         <table class="academic-table">
+                            <tbody>
+                                <tr>
+                                    <td class="col-instruction">
+                                        <span class="activity-num">Actividad 1</span>
+                                        <p class="instruction-text">Registro de aportaciones individuales del equipo.</p>
+                                    </td>
+                                    <td class="col-content">
+                                        <div class="note-box">
+                                            <p>Cada integrante debe documentar su avance específico y capturar evidencias de su contribución al documento compartido del equipo.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- SEMANA 05 -->
+                    <div class="sheet" id="sheet-s5">
+                        <div class="hour-header">Semana 05: Evaluación Parcial</div>
+                        <div style="text-align:center; padding:3rem;">
+                            <i data-lucide="award" style="width:64px; height:64px; color:var(--accent); margin-bottom:1rem;"></i>
+                            <h2>Examen del 1er Parcial</h2>
+                            <p style="color:#64748b; margin:1rem 0;">Accede a los enlaces de <strong>Kahoot</strong> o <strong>Google Forms</strong> publicados en tu Classroom.</p>
+                            <div style="background:#f1f5f9; padding:1rem; border-radius:12px; display:inline-block;">
+                                📸 No olvides capturar pantalla de tu resultado final y pegarla en tu documento.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SEMANA 06 -->
+                    <div class="sheet" id="sheet-s6">
+                        <div class="hour-header">Semana 06: HORA 1 - Gmail Profesional</div>
+                        
+                        <!-- Instrucciones Iniciales -->
+                        <div style="padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin: 1rem; font-size: 0.85rem;">
+                            <p>1. Crea un <strong>nuevo documento</strong> en Google Docs.</p>
+                            <p>2. Cambia el nombre de la pestaña a: <strong>Semana 06 ✉️</strong></p>
+                        </div>
+
+                        <div style="text-align:center; margin: 1.5rem 0;">
+                            <h2 style="font-family:'Outfit', sans-serif; color:var(--primary); font-size:1.25rem;">🗓️ SEMANA 06: Gmail como herramienta profesional</h2>
+                        </div>
+
+                        <table class="academic-table">
+                            <tbody>
+                                <tr>
+                                    <td class="col-instruction">
+                                        <div class="dictation-tag"><i data-lucide="mic"></i> Texto para dictar</div>
+                                        <p class="instruction-text">Escucha con atención y dale formato profesional (Negritas y Emojis).</p>
+                                    </td>
+                                    <td class="col-content no-copy">
+                                        <div class="note-box" style="font-size:0.9rem; line-height:1.6;">
+                                            <p>El correo electrónico es una de las herramientas de <strong>comunicación digital</strong> más importantes en la vida académica y profesional 🎓. A través del correo se envían documentos, solicitudes, tareas, información institucional y mensajes formales ✉️.</p>
+                                            <p style="margin-top:0.5rem;">Una cuenta de <strong>Gmail</strong> permite organizar la información mediante carpetas, <strong>etiquetas</strong> 🏷️ y filtros, lo que facilita encontrar mensajes importantes y mantener una comunicación clara. Saber utilizarlo correctamente implica escribir mensajes formales, usar asuntos claros y mantener una bandeja organizada 📂. En la cultura digital, el correo no solo sirve para recibir información, sino para desarrollar <strong>responsabilidad y habilidades de organización profesional</strong> 💼.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Actividad 1 -->
+                        <div style="margin: 1.5rem 1rem;">
+                            <h3 style="font-size:1rem; color:var(--accent); display:flex; align-items:center; gap:0.5rem;">
+                                <i data-lucide="monitor"></i> Actividad 1: Explorando Gmail
+                            </h3>
+                            <div class="note-box" style="margin-top:0.5rem; font-size:0.85rem;">
+                                <ol style="padding-left:1.2rem;">
+                                    <li>Abre tu cuenta de Gmail.</li>
+                                    <li>Identifica las secciones: <strong>Bandeja de entrada, Enviados, Borradores, Spam y Papelera</strong>.</li>
+                                    <li>Responde en tu documento:
+                                        <ul style="list-style:none; margin-top:0.3rem; color:#64748b;">
+                                            <li>• ¿Cuántos correos tienes sin leer?</li>
+                                            <li>• ¿Qué tipo de correos recibes con mayor frecuencia?</li>
+                                            <li>• ¿Hay correos importantes mezclados con otros mensajes?</li>
+                                        </ul>
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Actividad 2 -->
+                        <div style="margin: 1.5rem 1rem;">
+                            <h3 style="font-size:1rem; color:var(--accent); display:flex; align-items:center; gap:0.5rem;">
+                                <i data-lucide="tags"></i> Actividad 2: Organización con etiquetas
+                            </h3>
+                            <div class="note-box" style="margin-top:0.5rem; font-size:0.85rem;">
+                                <p>Crea las siguientes etiquetas en Gmail:</p>
+                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.5rem; margin:0.8rem 0;">
+                                    <span>📚 <strong>Escuela</strong></span>
+                                    <span>📂 <strong>Documentos importantes</strong></span>
+                                    <span>📌 <strong>Pendientes</strong></span>
+                                    <span>🎓 <strong>Classroom</strong></span>
+                                    <span style="grid-column: span 2;">🧩 <strong>PEC (Proyecto Escolar Comunitario)</strong></span>
+                                </div>
+                                <p><strong>Después:</strong> Clasifica al menos 5 correos. Los de tareas a <em>Classroom</em> y los del <em>PEC</em> a su etiqueta correspondiente.</p>
+                            </div>
+                            <div style="margin-top:1rem; background:#fee2e2; color:#b91c1c; padding:0.8rem; border-radius:8px; text-align:center; font-weight:700; border:1px solid #fecaca;">
+                                📸 IMPRIME PANTALLA Y PÉGALO EN TU DOCUMENTO.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SEMANA 07 -->
+                    <div class="sheet" id="sheet-s7">
+                        <div class="hour-header">Semana 07: HORA 1 - Gmail Profesional (II)</div>
+                        
+                        <!-- Instrucciones Iniciales -->
+                        <div style="padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin: 1rem; font-size: 0.85rem;">
+                            <p>1. Pestaña Nueva: Cambia el nombre a <strong>Semana 07 ✉️</strong></p>
+                        </div>
+
+                        <div style="text-align:center; margin: 1.5rem 0;">
+                            <h2 style="font-family:'Outfit', sans-serif; color:var(--primary); font-size:1.25rem;">🗓️ SEMANA 07: Gmail como herramienta profesional parte 2</h2>
+                        </div>
+
+                        <table class="academic-table">
+                            <tbody>
+                                <tr>
+                                    <td class="col-instruction">
+                                        <div class="dictation-tag"><i data-lucide="mic"></i> Texto para dictar</div>
+                                        <p class="instruction-text">Agrega emojis y dale formato profesional (Negritas).</p>
+                                    </td>
+                                    <td class="col-content no-copy">
+                                        <div class="note-box" style="font-size:0.9rem; line-height:1.6;">
+                                            <p>El correo electrónico 📧 es una herramienta fundamental para la <strong>comunicación formal</strong> 💬 en el entorno académico y profesional.</p>
+                                            <p style="margin-top:0.5rem;">Un correo bien redactado debe incluir tres elementos principales:
+                                                <ul style="list-style:none; margin-left:0.5rem; margin-top:0.3rem;">
+                                                    <li>• <strong>Asunto claro</strong> 📝: indica de qué trata el mensaje.</li>
+                                                    <li>• <strong>Mensaje formal</strong> 💬: con saludo, desarrollo y cierre.</li>
+                                                    <li>• <strong>Datos del remitente</strong> 👤: como nombre y grupo.</li>
+                                                </ul>
+                                            </p>
+                                            <p style="margin-top:0.5rem;">También permite compartir información mediante <strong>archivos adjuntos</strong> 📎. En la cultura digital, debemos hacerlo con <strong>responsabilidad</strong> ⚖️, <strong>orden</strong> 📂 y <strong>claridad</strong> 🎯.</p>
+                                            <div style="margin-top:0.8rem; padding:0.5rem; border-left:4px solid var(--accent); background:#f0f9ff; font-style:italic;">
+                                                🔍 <strong>Reflexión:</strong> La forma en que escribes un correo refleja tu nivel de responsabilidad. Un mensaje claro abre puertas, uno descuidado las puede cerrar.
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Actividad 1 -->
+                        <div style="margin: 1.5rem 1rem;">
+                            <h3 style="font-size:1rem; color:var(--accent); display:flex; align-items:center; gap:0.5rem;">
+                                <i data-lucide="edit-3"></i> Actividad 1: Redacción de correo formal
+                            </h3>
+                            <div class="note-box" style="margin-top:0.5rem; font-size:0.85rem;">
+                                <p>Elige un <strong>compañero del grupo</strong> y redacta un correo siguiendo este modelo:</p>
+                                <div style="background:#fff; border:1px solid #cbd5e1; padding:1rem; border-radius:8px; margin-top:0.5rem; font-family:'Inter', sans-serif;">
+                                    <p><strong>Asunto:</strong> Información sobre Proyecto Escolar Comunitario</p>
+                                    <hr style="margin:0.5rem 0; border:0; border-top:1px solid #e2e8f0;">
+                                    <p>Saludos cordiales,</p>
+                                    <p style="margin-top:0.5rem;">Mi nombre es ________ y soy estudiante de cuarto semestre. Me gustaría compartir información sobre el <strong>Proyecto Escolar Comunitario</strong> que estamos trabajando en la materia. Este proyecto busca promover una cultura de paz y fortalecer la convivencia dentro de la comunidad escolar.</p>
+                                    <p style="margin-top:0.5rem;">Quedo atento a tus comentarios.</p>
+                                    <p style="margin-top:0.5rem;">Atentamente,<br><strong>[Nombre completo] [Grupo]</strong></p>
+                                </div>
+                                <div style="margin-top:1rem; background:#fee2e2; color:#b91c1c; padding:0.8rem; border-radius:8px; text-align:center; font-weight:700; border:1px solid #fecaca;">
+                                    📸 IMPRIME PANTALLA Y PÉGALO EN TU DOCUMENTO.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Actividad 2 -->
+                        <div style="margin: 1.5rem 1rem;">
+                            <h3 style="font-size:1rem; color:var(--accent); display:flex; align-items:center; gap:0.5rem;">
+                                <i data-lucide="mail-check"></i> Actividad 2: Envío y respuesta de correo
+                            </h3>
+                            <div class="note-box" style="margin-top:0.5rem; font-size:0.85rem;">
+                                <p>1. Envía tu correo con un <strong>archivo adjunto</strong> (tu documento de la semana).</p>
+                                <p>2. El compañero que recibe debe: <strong>Leer, descargar y responder</strong> siguiendo este modelo:</p>
+                                <div style="background:#fff; border:1px solid #cbd5e1; padding:1rem; border-radius:8px; margin-top:0.5rem; font-family:'Inter', sans-serif;">
+                                    <p>Saludos,</p>
+                                    <p style="margin-top:0.5rem;">Gracias por compartir la información del proyecto. He recibido correctamente el archivo adjunto.</p>
+                                    <p style="margin-top:0.5rem;">Saludos,<br><strong>[Tu Nombre]</strong></p>
+                                </div>
+                                <div style="margin-top:1rem; background:#fee2e2; color:#b91c1c; padding:0.8rem; border-radius:8px; text-align:center; font-weight:700; border:1px solid #fecaca;">
+                                    📸 IMPRIME PANTALLA Y PÉGALO EN TU DOCUMENTO.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                        <!-- SEMANA 08 - PEC Y COLABORACIÓN -->
+                        <div class="sheet" id="sheet-s8">
+                            <div class="hour-header">Semana 08: Organización y análisis del PEC</div>
+                            
+                            <div class="matutino-only">
+                                <!-- Actividad 1: Dictado -->
+                                <table class="academic-table" style="margin-bottom:1rem;">
+                                    <tbody>
+                                        <tr>
+                                            <td class="col-instruction">
+                                                <div class="dictation-tag"><i data-lucide="mic"></i> Dictado</div>
+                                                <p class="instruction-text">Escribe en tu libreta digital el siguiente concepto fundamental sobre el trabajo colaborativo.</p>
+                                            </td>
+                                            <td class="col-content no-copy">
+                                                <div class="note-box" style="font-size:0.85rem; line-height:1.6;">
+                                                    <p>El <strong>trabajo colaborativo</strong> en entornos digitales permite construir conocimiento de manera organizada y transparente. 💻</p>
+                                                    <p style="margin-top:0.5rem;">En proyectos como el <strong>Proyecto Escolar Comunitario (PEC) 🧩</strong>, el uso de herramientas como <strong>Google Docs</strong> facilita que todos los integrantes participen y den seguimiento real al equipo. Organizar la información implica analizar 📊 y clasificar datos para proponer soluciones responsables.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <!-- PARTE 1 - PEC Equipo -->
+                                <div style="margin: 1rem;">
+                                    <h3 style="font-size:1rem; color:var(--accent); display:flex; align-items:center; gap:0.5rem;">
+                                        <i data-lucide="users"></i> Fase 1: Organización (Google Docs)
+                                    </h3>
+                                    <div class="note-box" style="margin-top:0.5rem; font-size:0.85rem;">
+                                        <p>En el documento compartido por tu equipo, genera la siguiente tabla de análisis:</p>
+                                        <table class="academic-table" style="margin-top:0.8rem; border-color:#cbd5e1;">
+                                            <thead style="background:#f1f5f9;">
+                                                <tr>
+                                                    <th>Tipo de Violencia</th>
+                                                    <th>Lugar detectado</th>
+                                                    <th>Frecuencia</th>
+                                                    <th>Impacto Social</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr><td>Digital 📱</td><td>Redes Sociales</td><td>Alta</td><td>Aislamiento</td></tr>
+                                                <tr><td>Escolar 🏫</td><td>Pasillos/Baños</td><td>Media</td><td>Deserción</td></tr>
+                                            </tbody>
+                                        </table>
+                                        <div style="margin-top:1rem; background:#fee2e2; color:#b91c1c; padding:0.8rem; border-radius:8px; text-align:center; font-weight:700; border:1px solid #fecaca;">
+                                            📸 CAPTURA EL AVANCE DE TU EQUIPO Y PÉGALO EN TU DOC. INDIVIDUAL.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- PARTE 2 - Reflexión Individual -->
+                                <div style="margin: 1.5rem 1rem;">
+                                    <h3 style="font-size:1rem; color:var(--accent); display:flex; align-items:center; gap:0.5rem;">
+                                        <i data-lucide="brain-circuit"></i> Fase 2: Análisis Crítico
+                                    </h3>
+                                    <div class="note-box" style="margin-top:0.5rem; font-size:0.85rem;">
+                                        <p>Analiza el mapeo anterior y responde en tu documento:</p>
+                                        <ul style="margin-top:0.5rem; list-style:none;">
+                                            <li>• ¿Qué patrón de violencia es el más común según sus hallazgos?</li>
+                                            <li>• ¿Cómo influye la tecnología en la propagación de estas conductas?</li>
+                                            <li>• ¿Qué podrías hacer tú para mejorar esa situación?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <!-- Distribución de Tiempo -->
+                                <div style="margin:1rem; padding:0.8rem; background:#f8fafc; border-radius:8px; display:flex; justify-content:space-around; font-size:0.75rem; color:#64748b;">
+                                    <span>⏱️ Dictado: 10m</span>
+                                    <span>👥 PEC: 30m</span>
+                                    <span>✍️ Individual: 10m</span>
+                                </div>
+                            </div>
+
+                            <div class="vespertino-only">
+                                <!-- Actividad 1: Dictado -->
+                                <table class="academic-table" style="margin-bottom:1rem;">
+                                    <tbody>
+                                        <tr>
+                                            <td class="col-instruction">
+                                                <div class="dictation-tag"><i data-lucide="mic"></i> Dictado</div>
+                                                <p class="instruction-text">Escribe en tu libreta digital el siguiente concepto sobre la interdisciplinariedad en el PEC.</p>
+                                            </td>
+                                            <td class="col-content no-copy">
+                                                <div class="note-box" style="font-size:0.85rem; line-height:1.6;">
+                                                    <p>El desarrollo de <strong>proyectos interdisciplinarios</strong> permite comprender los problemas desde diferentes áreas del conocimiento. 🧩</p>
+                                                    <p style="margin-top:0.5rem;">En el <strong>Proyecto Escolar Comunitario (PEC)</strong>, el análisis de los hábitos tóxicos no solo implica conocer sus efectos en la salud, sino también comprender su impacto en el entorno social, ambiental y personal.</p>
+                                                    <p style="margin-top:0.5rem;">El uso de herramientas digitales como <strong>Google Docs</strong> facilita el trabajo colaborativo, permitiendo que los estudiantes investiguen, organicen y presenten información estructurada. Analizar información y generar conclusiones son habilidades fundamentales en la cultura digital. 💻</p>
+                                                    <div style="margin-top:0.8rem; padding:0.5rem; border-left:4px solid var(--accent); background:#f0f9ff; font-style:italic;">
+                                                        🔍 <strong>Reflexión:</strong> Comprender un problema es el primer paso para poder transformarlo.
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <!-- PARTE 1 - Trabajo en equipo -->
+                                <div style="margin: 1rem;">
+                                    <h3 style="font-size:1rem; color:var(--accent); display:flex; align-items:center; gap:0.5rem;">
+                                        <i data-lucide="users"></i> Fase 1: Análisis del Hábito Tóxico (PEC)
+                                    </h3>
+                                    <div class="note-box" style="margin-top:0.5rem; font-size:0.85rem;">
+                                        <p>En el documento colaborativo del equipo, creen la sección <strong>🔴 Análisis del hábito tóxico</strong> con esta tabla:</p>
+                                        <table class="academic-table" style="margin-top:0.8rem; border-color:#cbd5e1;">
+                                            <thead style="background:#f1f5f9;">
+                                                <tr>
+                                                    <th style="width:40%;">Elemento</th>
+                                                    <th>Información</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr><td>Hábito tóxico elegido</td><td></td></tr>
+                                                <tr><td>Alimento o práctica</td><td></td></tr>
+                                                <tr><td>Efectos en el cuerpo</td><td></td></tr>
+                                                <tr><td>Órganos afectados</td><td></td></tr>
+                                                <tr><td>Tipo de reacción química</td><td></td></tr>
+                                                <tr><td>Consecuencias en la salud</td><td></td></tr>
+                                                <tr><td>Impacto social o ambiental</td><td></td></tr>
+                                            </tbody>
+                                        </table>
+                                        
+                                        <div style="margin-top:1rem; padding:0.8rem; background:#fffbeb; border:1px solid #fde68a; border-radius:8px; font-size:0.8rem;">
+                                            <strong>📌 Indicaciones:</strong> Cada integrante aporta mínimo 1 elemento. Deben integrar reacciones químicas (salud), datos numéricos (matemáticas), ideas para el cómic e impacto social.
+                                        </div>
+
+                                        <div style="margin-top:1rem; background:#fee2e2; color:#b91c1c; padding:0.8rem; border-radius:8px; text-align:center; font-weight:700; border:1px solid #fecaca;">
+                                            📸 CAPTURA LA TABLA Y TU PARTICIPACIÓN ACTIVA.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- PARTE 2 - Evidencia individual -->
+                                <div style="margin: 1.5rem 1rem;">
+                                    <h3 style="font-size:1rem; color:var(--accent); display:flex; align-items:center; gap:0.5rem;">
+                                        <i data-lucide="brain-circuit"></i> Fase 2: Reflexión Individual
+                                    </h3>
+                                    <div class="note-box" style="margin-top:0.5rem; font-size:0.85rem;">
+                                        <p>Responde en tu documento individual:</p>
+                                        <ul style="margin-top:0.5rem; list-style:none;">
+                                            <li style="margin-bottom:0.4rem;">• ¿Qué hábito tóxico analizaste y qué efectos tiene en el cuerpo?</li>
+                                            <li style="margin-bottom:0.4rem;">• ¿Qué impacto tiene en la sociedad o el ambiente?</li>
+                                            <li>• ¿Qué podrías cambiar en tu vida a partir de este análisis?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <!-- Distribución de Tiempo -->
+                                <div style="margin:1rem; padding:0.8rem; background:#f8fafc; border-radius:8px; display:flex; justify-content:space-around; font-size:0.75rem; color:#64748b;">
+                                    <span>⏱️ Dictado: 10m</span>
+                                    <span>👥 PEC: 30m</span>
+                                    <span>✍️ Individual: 10m</span>
+                                    <span>🏁 Cierre: 10m</span>
+                                </div>
+                            </div>
+                        </div>
+
+                </div><!-- .sheet-container -->
+
+            </div><!-- .notebook-page -->
+        </div><!-- .notebook-perspective -->
+
+    </main>
+</div>
+
+<!-- Modal de Selección de Turno -->
+<div class="shift-overlay" id="shift-overlay">
+    <div class="shift-modal">
+        <h2>👋 ¡Hola! Selecciona tu turno</h2>
+        <p>Para mostrarte las actividades correctas, necesitamos saber tu horario.</p>
+        <div class="shift-options">
+            <button class="shift-option-btn mat-btn" onclick="applyShift('matutino')">
+                <span>Turno Matutino</span>
+                <i data-lucide="sun"></i>
+            </button>
+            <button class="shift-option-btn ves-btn" onclick="applyShift('vespertino')">
+                <span>Turno Vespertino</span>
+                <i data-lucide="moon"></i>
+            </button>
+        </div>
+        <p style="margin-top: 1.5rem; font-size: 0.75rem; color: #94a3b8;">Podrás cambiar esto después en la parte superior.</p>
+    </div>
+</div>
+
+<script>
+    // Inicializar iconos
+    lucide.createIcons();
+
+    const WEEK_TITLES = {
+        1: "🚀 SEMANA 01: Introducción y Configuración",
+        2: "📐 SEMANA 02: Unidades de Medida Digital",
+        3: "🤝 SEMANA 03: Trabajo Colaborativo PEC 1",
+        4: "👥 SEMANA 04: Trabajo Colaborativo PEC 2",
+        5: "🎓 SEMANA 05: Primer Examen Parcial",
+        6: "✉️ SEMANA 06: Gmail Profesional (I)",
+        7: "✉️ SEMANA 07: Gmail Profesional (II)",
+        8: "🟡 SEMANA 08: Análisis del Mapeo de Violencias (Google Docs)"
+    };
+
+    function switchWeek(num) {
+        const page = document.getElementById('notebook-page');
+        const container = document.getElementById('sheets-container');
+        const mainTitle = document.getElementById('main-title');
+        
+        // Actualizar UI del Sidebar
+        document.querySelectorAll('.menu-link').forEach(l => l.classList.remove('active'));
+        const link = document.getElementById('link-s' + num);
+        if (link) link.classList.add('active');
+
+        // Animación de flip
+        page.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+        page.style.transformOrigin = 'left center';
+        page.style.transform = 'rotateY(-15deg) scale(0.95)';
+        page.style.boxShadow = '-20px 20px 50px rgba(0,0,0,0.2)';
+        
+        setTimeout(() => {
+            // Cambiar título
+            mainTitle.innerHTML = WEEK_TITLES[num];
+            
+            document.querySelectorAll('.sheet').forEach(s => s.classList.remove('active'));
+            const sheet = document.getElementById('sheet-s' + num);
+            if (sheet) {
+                sheet.classList.add('active');
+            } else {
+                container.innerHTML += `<div class="sheet active" id="sheet-s${num}"><div class="hour-header">Contenido de Semana ${num} en construcción...</div></div>`;
+            }
+
+            page.style.transform = 'rotateY(0deg) scale(1)';
+            page.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)';
+            
+            lucide.createIcons();
+        }, 300);
+    }
+
+    // --- LÓGICA DE TURNOS ---
+    function checkShift() {
+        const savedShift = localStorage.getItem('user_shift_cd3');
+        const overlay = document.getElementById('shift-overlay');
+        
+        if (!savedShift) {
+            overlay.classList.add('active');
+        } else {
+            applyShift(savedShift, true);
+        }
+    }
+
+    function applyShift(shift, silent = false) {
+        const container = document.getElementById('shift-container');
+        const overlay = document.getElementById('shift-overlay');
+        const badgeText = document.getElementById('shift-text');
+        const badgeIcon = document.querySelector('#shift-badge i');
+
+        // Actualizar UI
+        container.classList.remove('shift-matutino', 'shift-vespertino');
+        container.classList.add('shift-' + shift);
+        
+        localStorage.setItem('user_shift_cd3', shift);
+        overlay.classList.remove('active');
+
+        // Actualizar Badge
+        if (shift === 'matutino') {
+            badgeText.innerText = 'Turno: Matutino';
+            badgeIcon.setAttribute('data-lucide', 'sun');
+        } else {
+            badgeText.innerText = 'Turno: Vespertino';
+            badgeIcon.setAttribute('data-lucide', 'moon');
+        }
+        
+        lucide.createIcons();
+
+        if (!silent) {
+            // Animación sutil de recarga
+            container.style.opacity = '0';
+            setTimeout(() => container.style.opacity = '1', 100);
+        }
+    }
+
+    function showShiftModal() {
+        document.getElementById('shift-overlay').classList.add('active');
+    }
+
+    // Inicialización automática a la semana más reciente
+    window.addEventListener('DOMContentLoaded', () => {
+        const weeks = Object.keys(WEEK_TITLES).map(Number);
+        const latest = Math.max(...weeks);
+        if (latest > 0) {
+            setTimeout(() => switchWeek(latest), 100);
+        }
+        checkShift();
+    });
+
+    // Lógica del Panel del Docente con Contraseña
+    let isTeacherAuthenticated = false;
+
+    function toggleTeacherPanel() {
+        const panel = document.getElementById('teacher-panel');
+        
+        if (isTeacherAuthenticated) {
+            panel.classList.toggle('active');
+        } else {
+            const pass = prompt("Introduce la clave de acceso docente:");
+            if (pass === "ceb54") { // Contraseña por defecto
+                isTeacherAuthenticated = true;
+                panel.classList.add('active');
+                alert("Acceso concedido, Dr. Felipe.");
+            } else {
+                alert("Clave incorrecta. Acceso denegado.");
+            }
+        }
+    }
+
+    // BLOQUEO ROBUSTO DE COPIA Y CLIC DERECHO
+    document.addEventListener('contextmenu', e => {
+        if (!e.target.closest('.allow-copy')) e.preventDefault();
+    });
+
+    document.addEventListener('copy', e => {
+        if (!e.target.closest('.allow-copy')) {
+            e.preventDefault();
+            alert("⚠️ El copiado de este contenido está restringido.");
+        }
+    });
+
+    document.addEventListener('keydown', e => {
+        // Bloquear Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+U, F12
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'v' || e.key === 'x' || e.key === 'u')) {
+            if (!e.target.closest('.allow-copy')) {
+                e.preventDefault();
+            }
+        }
+    });
+
+    // LIMPIEZA DE SELECCIÓN EN TIEMPO REAL
+    document.addEventListener('selectionchange', () => {
+        const selection = window.getSelection();
+        if (selection.toString().length > 0) {
+            if (!selection.anchorNode.parentElement.closest('.allow-copy')) {
+                selection.removeAllRanges();
+            }
+        }
+    });
+</script>
+
+<!-- Botón y Panel del Docente -->
+<button class="teacher-notes-btn" onclick="toggleTeacherPanel()">
+    <i data-lucide="lock"></i> Notas del Docente
+</button>
+
+<div class="teacher-panel" id="teacher-panel">
+    <div class="tp-header">
+        <i data-lucide="book-open-check"></i> Privado: Cultura Digital III
+    </div>
+    <div class="tp-content">
+        <div class="tp-note">
+            <strong>Notas:</strong> Esta materia solo cuenta con una hora única.
+        </div>
+        <p style="font-size: 0.7rem; color: #94a3b8; text-align: center; margin-top: 1rem;">Solo visible para: Dr. Felipe López Salazar</p>
+    </div>
+</div>
+
+</body>
+</html>

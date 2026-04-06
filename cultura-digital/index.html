@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cultura Digital II | CEB 5/4</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body oncontextmenu="return false" onselectstart="return false" oncopy="return false" oncut="return false"
+    onpaste="return false">
+
+    <div class="app-container">
+        <!-- Sidebar Modular -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../portal/alumno.html" class="back-to-portal">
+                    <i data-lucide="arrow-left-circle"></i> Volver al Portal
+                </a>
+                <img src="../assets/logo.png" alt="Logo CEB" class="logo-sidebar">
+                <div class="school-name-sidebar">CEB 5/4 "Profr. Rafael Ramírez"</div>
+                <div class="teacher-name-sidebar">Dr. Felipe López Salazar</div>
+                <hr class="header-divider">
+                <div class="subject-name">Cultura Digital II</div>
+            </div>
+            <nav class="sidebar-nav">
+                <!-- 2DO PARCIAL -->
+                <div class="menu-section">
+                    <div class="menu-title"><i data-lucide="brain"></i> 2do Parcial</div>
+                    <ul class="menu-list">
+                        <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(8)" class="menu-link"
+                                id="link-s8">📱 Semana 08 <span class="menu-date">13 - 17 Abr</span></a></li>
+                        <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(7)" class="menu-link"
+                                id="link-s7">📲 Semana 07 <span class="menu-date">23 - 27 Mar</span></a></li>
+                        <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(6)" class="menu-link"
+                                id="link-s6">📱 Semana 06 <span class="menu-date">16 - 20 Mar</span></a></li>
+                    </ul>
+                </div>
+
+                <!-- 1ER PARCIAL -->
+                <div class="menu-section">
+                    <div class="menu-title"><i data-lucide="book-open"></i> 1er Parcial</div>
+                    <ul class="menu-list">
+                        <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(5)" class="menu-link"
+                                id="link-s5">📖 Semana 05 <span class="menu-date">09 - 13 Mar</span></a></li>
+                        <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(4)" class="menu-link"
+                                id="link-s4">👥 Semana 04 <span class="menu-date">02 - 06 Mar</span></a></li>
+                        <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(3)" class="menu-link"
+                                id="link-s3">📓 Semana 03 <span class="menu-date">23 - 27 Feb</span></a></li>
+                        <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(2)" class="menu-link"
+                                id="link-s2">❤️ Semana 02 <span class="menu-date">16 - 20 Feb</span></a></li>
+                        <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(1)"
+                                class="menu-link active" id="link-s1">✍️ Semana 01 <span class="menu-date">11 - 13
+                                    Feb</span></a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Área de la Libreta -->
+        <main class="main-content">
+
+            <div class="week-header">
+                <span class="week-title-pre">Actividades a Realizar</span>
+                <h1 class="week-title-main" id="main-title">SEMANA 01 ✍️ Introducción al curso</h1>
+            </div>
+
+            <div class="hour-navigation" id="hour-nav">
+                <button class="hour-btn active" onclick="switchHour(1)" id="btn-h1">HORA 1</button>
+                <button class="hour-btn" onclick="switchHour(2)" id="btn-h2">HORA 2</button>
+            </div>
+
+            <div class="notebook-perspective">
+                <div class="notebook-page" id="notebook-page">
+
+                    <div class="sheet-container" id="sheets-container">
+
+                        <!-- SEMANA 01 -->
+                        <div class="sheet active" id="sheet-s1-h1">
+                            <div class="hour-header">Semana 01: HORA 1 - Configuración</div>
+                            <p
+                                style="padding: 1rem; background: #fffbeb; border-radius: 8px; margin: 1rem; font-size: 0.85rem; border: 1px solid #fde68a;">
+                                ⚠️ El trabajo se realiza en tu documento de Google Classroom.
+                            </p>
+                            <table class="academic-table">
+                                <tbody>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 1</span>
+                                            <p class="instruction-text">Crea un documento en Google Docs desde tu
+                                                Classroom y cambia el nombre de la pestaña a <strong>"Semana 01
+                                                    ✍️"</strong>.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div
+                                                style="font-weight:700; font-size:0.9rem; background:#f1f5f9; padding:0.6rem; border-radius:8px;">
+                                                Semana 01 ✍️</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 2</span>
+                                            <p class="instruction-text">Elabora la portada oficial siguiendo el orden
+                                                institucional.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-size:0.8rem;">Logo escolar, Institución,
+                                                Alumno, Materia, Grupo, Profesor, Ciclo y Nombre de la semana.</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 3</span>
+                                            <p class="instruction-text">Define los estilos: Título(20 px B),
+                                                Subtítulo(16 px BI), Texto(14 px J) y Tablas(10 px).</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <span class="activity-num">Paso 3</span>
+                                            <p class="instruction-text">En el <strong>Diseñador (Designer)</strong>,
+                                                arrastra un "VerticalArrangement" y cambia su alineación a "Center".</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <p style="font-size:0.85rem;">Asegúrate de que la propiedad
+                                                <strong>AlignHorizontal</strong> esté en <strong>Center: 3</strong>.</p>
+                                            <p style="font-size:0.8rem; color:#64748b; margin-top:5px;">📸 Captura las
+                                                propiedades en el panel derecho.</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Paso 4</span>
+                                            <p class="instruction-text">Agrega 5 etiquetas (Labels) y una Imagen con los
+                                                siguientes datos:</p>
+                                            <ul style="font-size:0.8rem; margin-top:5px; color:#475569;">
+                                                <li>- Escuela: CEB 5/4</li>
+                                                <li>- Alumno: (Tu nombre)</li>
+                                                <li>- Grupo: (Tu grado y grupo)</li>
+                                                <li>- Materia: Cultura Digital II</li>
+                                                <li>- Profesor: Dr. Felipe López Salazar</li>
+                                            </ul>
+                                        </td>
+                                        <td class="col-content">
+                                            <p style="font-size:0.85rem; font-weight:700; color:var(--header-dark);">
+                                                Formato sugerido:</p>
+                                            <p style="font-size:0.8rem;">Fuente negrita (Bold) y tamaño 18 para el
+                                                nombre de la escuela.</p>
+                                            <p style="font-size:0.8rem; color:#64748b; margin-top:5px;">📸 Captura el
+                                                diseño visual en el visor del celular.</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Paso 5</span>
+                                            <p class="instruction-text">Sube la imagen del logo de la escuela a los
+                                                "Media" y asígnala al componente de Imagen.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div
+                                                style="background:#f8fafc; padding:0.5rem; border-radius:4px; font-size:0.8rem;">
+                                                Propiedad: Picture -> Upload File</div>
+                                            <p style="font-size:0.8rem; color:#64748b; margin-top:5px;">📸 Captura tu
+                                                pantalla con la imagen insertada.</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- SEMANA 02 (2 Horas) -->
+                        <div class="sheet" id="sheet-s2-h1">
+                            <div class="hour-header">Semana 02: HORA 1 - Colaboración Digital</div>
+                            <table class="academic-table">
+                                <tbody>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 1</span>
+                                            <div class="dictation-tag"><i data-lucide="mic"></i> Aprendizaje
+                                                Colaborativo</div>
+                                            <p class="instruction-text">Dictado sobre el proceso de cocreación en línea
+                                                y superación de barreras.</p>
+                                        </td>
+                                        <td class="col-content no-copy">
+                                            <div class="note-box">
+                                                <p>El <strong>Aprendizaje Colaborativo Digital</strong> es un proceso
+                                                    donde dos o más personas trabajan juntas usando plataformas en línea
+                                                    🌐 para comunicarse y cocrear contenido, superando barreras
+                                                    geográficas y temporales ⏳.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 2</span>
+                                            <p class="instruction-text">Investiga 3 ventajas de trabajar en la nube y
+                                                agrega una imagen por cada ventaja.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-size:0.85rem;">
+                                                • Acceso desde cualquier lugar 🌍<br>
+                                                • Edición en tiempo real ⏱️<br>
+                                                • Almacenamiento seguro 🛡️
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="sheet" id="sheet-s2-h2">
+                            <div class="hour-header">Semana 02: HORA 2 - Herramientas TICCAD</div>
+                            <table class="academic-table">
+                                <tbody>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 3</span>
+                                            <div class="dictation-tag"><i data-lucide="mic"></i> Gestión de Información
+                                            </div>
+                                            <p class="instruction-text">Dictado sobre Software Libre y TICCAD como
+                                                herramientas innovadoras.</p>
+                                        </td>
+                                        <td class="col-content no-copy">
+                                            <div class="note-box">
+                                                <p>Las <strong>TICCAD</strong> (Tecnologías de la Información,
+                                                    Comunicación, Conocimiento y Aprendizajes Digitales) permiten
+                                                    interactuar con equipos de trabajo e investigar de forma innovadora
+                                                    💡.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 4</span>
+                                            <p class="instruction-text">Busca las definiciones de Software Libre y
+                                                TICCAD. Agrégales imágenes y formato justificado.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box"
+                                                style="background:#f8fafc; border:1px dashed #cbd5e1;">
+                                                💬 No olvides usar la herramienta "Añadir comentario" para escribir tu
+                                                opinión personal sobre lo que más te llamó la atención.
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- SEMANA 03 (2 Horas) -->
+                        <div class="sheet" id="sheet-s3-h1">
+                            <div class="hour-header">Semana 03: HORA 1 - Trabajo Colaborativo PEC</div>
+                            <table class="academic-table">
+                                <tbody>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 1</span>
+                                            <div class="dictation-tag"><i data-lucide="mic"></i> Construcción en Equipo
+                                            </div>
+                                            <p class="instruction-text no-copy">El trabajo colaborativo no es solo "unir
+                                                partes" 🧩, sino construir juntos cada proceso. En la nube logramos:
+                                                mayor organización 📁, seguimiento real 📊 y transparencia 🔍 en las
+                                                aportaciones.</p>
+                                        </td>
+                                        <td class="col-content no-copy">
+                                            <div class="note-box">
+                                                <p>Construir juntos cada proceso para lograr mayor organización y
+                                                    transparencia.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 2</span>
+                                            <div class="dictation-tag"><i data-lucide="table"></i> Roles y Evidencias
+                                            </div>
+                                            <p class="instruction-text">Dentro del documento del equipo, crea la tabla
+                                                de "Evidencia de Trabajo Colaborativo".</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-size:0.8rem;">
+                                                <strong>Columnas:</strong> Integrante | Rol | Aportación | Evidencia
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="sheet" id="sheet-s3-h2">
+                            <div class="hour-header">Semana 03: HORA 2 - Estructura del PEC</div>
+                            <p
+                                style="padding: 1rem; border: 1px dashed #cbd5e1; border-radius: 8px; margin: 1rem; font-size: 0.85rem;">
+                                🎯 <strong>Objetivo:</strong> Definir el cronograma de actividades iniciales y asignar
+                                los primeros roles de investigación en el documento compartido.
+                            </p>
+                            <ul style="padding: 0 2rem; font-size: 0.85rem; line-height: 1.8;">
+                                <li>Organización de carpetas en Google Drive.</li>
+                                <li>Primer acercamiento al planteamiento del problema.</li>
+                                <li>📸 Captura de la primera lluvia de ideas grupal.</li>
+                            </ul>
+                        </div>
+
+                        <!-- SEMANA 04 (2 Horas) -->
+                        <div class="sheet" id="sheet-s4-h1">
+                            <div class="hour-header">Semana 04: HORA 1 - Continuación PEC</div>
+                            <table class="academic-table">
+                                <tbody>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 1</span>
+                                            <div class="dictation-tag"><i data-lucide="mic"></i> Espacio Colectivo</div>
+                                            <p class="instruction-text no-copy">Un documento compartido es un espacio de
+                                                construcción colectiva 🏗️. Cada edición deja huella y cada comentario
+                                                refleja participación activa 💬.</p>
+                                        </td>
+                                        <td class="col-content no-copy">
+                                            <div class="note-box">
+                                                <p>Construcción colectiva donde cada edición deja huella y participación
+                                                    activa.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr style="background:#fefce8;">
+                                        <td class="col-instruction">
+                                            <div class="dictation-tag" style="background:#fde68a;"><i
+                                                    data-lucide="sun"></i> Matutino</div>
+                                        </td>
+                                        <td class="col-content">
+                                            <p style="font-size:0.85rem;">Pase de lista y actividad de respiración
+                                                consciente 🧘.</p>
+                                        </td>
+                                    </tr>
+                                    <tr style="background:#eff6ff;">
+                                        <td class="col-instruction">
+                                            <div class="dictation-tag" style="background:#dbeafe;"><i
+                                                    data-lucide="moon"></i> Vespertino</div>
+                                        </td>
+                                        <td class="col-content">
+                                            <p style="font-size:0.85rem;">Tema: Derechos Humanos, Democracia y
+                                                Ciudadanía Activa 🗳️.</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="sheet" id="sheet-s4-h2">
+                            <div class="hour-header">Semana 04: HORA 2 - Evidencia Individual</div>
+                            <p style="padding: 1.5rem; text-align: center; color: #64748b; font-size: 0.9rem;">
+                                ✍️ Reporta tu avance individual dentro del documento del equipo.
+                            </p>
+                            <div class="note-box" style="margin: 0 1rem; background: #f8fafc;">
+                                <p><strong>Tarea:</strong> Redactar la introducción del proyecto PEC (Mínimo una
+                                    cuartilla colaborativa) y etiquetar a tus compañeros en los comentarios cuando
+                                    requieras su revisión.</p>
+                            </div>
+                        </div>
+
+                        <!-- SEMANA 05 (2 Horas) -->
+                        <div class="sheet" id="sheet-s5-h1">
+                            <div class="hour-header">Semana 05: HORA 1 - Evaluación</div>
+                            <div style="text-align:center; padding:1.5rem;">
+                                <i data-lucide="award" style="width:48px; height:48px; color:var(--accent);"></i>
+                                <h3>Primer Examen Parcial</h3>
+                                <div class="note-box" style="margin-top:1rem;">
+                                    <p>📸 Pega aquí la captura de tu examen finalizado con la calificación visible.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sheet" id="sheet-s5-h2">
+                            <div class="hour-header">Semana 05: HORA 2 - Lógica y Retroalimentación</div>
+                            <div style="padding: 1rem;">
+                                <div
+                                    style="background:#f0fdf4; padding:0.8rem; border-radius:8px; border:1px solid #bbf7d0;">
+                                    <strong>🎲 Pensamiento Matemático 2</strong>
+                                    <p style="font-size:0.8rem; color:#166534;">Gato, Timbiriche o Sudoku (Captura fotos
+                                        en equipo).</p>
+                                </div>
+                                <div class="note-box" style="margin-top: 1rem; font-size: 0.85rem;">
+                                    <p><strong>Retroalimentación:</strong> Refuerza los temas de la nube y seguridad que
+                                        más se dificultaron en el examen.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SEMANA 06 (2 Horas) -->
+                        <div class="sheet" id="sheet-s6-h1">
+                            <div class="hour-header">Semana 06: HORA 1 - Intro a Apps</div>
+                            <table class="academic-table">
+                                <tbody>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 1</span>
+                                            <div class="dictation-tag"><i data-lucide="mic"></i> Creación de Soluciones
+                                            </div>
+                                            <p class="instruction-text">Dictado sobre pensamiento computacional y App
+                                                Inventor.</p>
+                                        </td>
+                                        <td class="col-content no-copy">
+                                            <div class="note-box">
+                                                <p>Aprender a crear tecnología nos permite pasar de ser solo usuarios a
+                                                    convertirnos en creadores de soluciones digitales 📱 mediante el
+                                                    <strong>Pensamiento Computacional</strong> 🧠.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 2</span>
+                                            <p class="instruction-text">Idea de Aplicación: ¿Qué problema de tu vida
+                                                diaria resolverías con una app? (Justificación + 3 emojis).</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-size:0.85rem; color:#64748b;">
+                                                Ejemplo: Recordatorios de estudio, control de gastos, etc.
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="sheet" id="sheet-s6-h2">
+                            <div class="hour-header">Semana 06: HORA 2 - Repaso Parcial</div>
+                            <div style="text-align:center; padding:3rem;">
+                                <i data-lucide="gamepad-2" style="width:48px; height:48px; color:#6366f1;"></i>
+                                <h4>Actividad Interactiva</h4>
+                                <p><strong>Kahoot:</strong> Repaso del primer parcial.</p>
+                                <p style="font-size:0.8rem; color:#64748b; margin-top:0.5rem;">📸 Toma captura del
+                                    resultado del Kahoot.</p>
+                            </div>
+                        </div>
+
+                        <!-- SEMANA 07 (2 Horas) -->
+                        <div class="sheet" id="sheet-s7-h1">
+                            <div class="hour-header">Semana 07: HORA 1 - Lógica</div>
+                            <table class="academic-table">
+                                <tbody>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 1</span>
+                                            <div class="dictation-tag"><i data-lucide="mic"></i> Pensar Ordenadamente
+                                            </div>
+                                            <p class="instruction-text">Dictado sobre la lógica en la programación y
+                                                vida diaria.</p>
+                                        </td>
+                                        <td class="col-content no-copy">
+                                            <div class="note-box">
+                                                <p>Programar no es solo escribir código, es aprender a pensar con
+                                                    <strong>claridad, orden y lógica</strong> 🧬. Ayuda a resolver
+                                                    problemas dividiéndolos en partes pequeñas.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 2</span>
+                                            <p class="instruction-text">Problema: Llegas tarde a la escuela. Escribe al
+                                                menos 6 pasos lógicos en una tabla de 2x7.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-size:0.85rem;">
+                                                1. Despertar ⏰ -> 2. Vestirse 👕 -> 3. Desayunar 🍳...
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="sheet" id="sheet-s7-h2">
+                            <div class="hour-header">Semana 07: HORA 2 - Programación</div>
+                            <div style="text-align:center; padding:2rem;">
+                                <i data-lucide="snowflake" style="width:48px; height:48px; color:#0ea5e9;"></i>
+                                <h4>Code.org: Frozen ❄️</h4>
+                                <p style="margin:1rem 0;">Plataforma: <a href="https://code.org/frozen"
+                                        target="_blank">code.org/frozen</a></p>
+                                <p><strong>Misión:</strong> Resolver los 20 niveles y capturar el diploma final.</p>
+                                <p style="font-size:0.8rem; color:#64748b;">(Nota: No aplica para grupos 201, 202, 203,
+                                    207 y 209).</p>
+                            </div>
+                        </div>
+
+                        <!-- SEMANA 08 (2 Horas) - REESTRUCTURADA -->
+                        <div class="sheet" id="sheet-s8-h1">
+                            <div class="hour-header">Semana 08: HORA 1 - Fundamentos</div>
+
+                            <!-- Actividad 1 -->
+                            <div style="margin: 1.5rem 1rem; border-bottom: 1.5px solid #f1f5f9; padding-bottom: 1rem;">
+                            <h3
+                                    style="font-size:1.25rem; font-weight:800; color:var(--accent); margin-bottom:0.5rem;">
+                                    📱 Semana 08: mi primera aplicación MOVIL
+                                </h3>
+                                <div class="note-box" style="font-size:0.9rem;">
+                                    <span class="activity-num">Actividad 1</span>
+                                    <p><strong>Instrucción:</strong> Crea el título de la pestaña en tu documento
+                                        siguiendo este formato: <strong>Tamaño 20, Negritas</strong>. Asegúrate de
+                                        incluir el emoji al inicio.</p>
+                                </div>
+                            </div>
+
+                            <!-- Actividad 2 -->
+                            <table class="academic-table" style="margin-bottom:1rem;">
+                                <tbody>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <div class="dictation-tag"><i data-lucide="mic"></i> Dictado</div>
+                                            <p class="instruction-text">Escribe en tu libreta digital el siguiente
+                                                concepto fundamental.</p>
+                                        </td>
+                                        <td class="col-content no-copy">
+                                            <div class="note-box" style="font-size:0.85rem; line-height:1.6;">
+                                                <p><strong>App Inventor</strong> es un entorno de desarrollo visual
+                                                    creado por Google y mantenido por el MIT 🧩. Utiliza un sistema de
+                                                    <strong>programación por bloques</strong>, lo que permite crear
+                                                    aplicaciones para dispositivos móviles sin necesidad de escribir
+                                                    código complejo de forma textual.</p>
+                                                <p style="margin-top:0.5rem;">Los dos entornos principales son: el
+                                                    <strong>Diseñador</strong> (donde elegimos los componentes como
+                                                    botones e imágenes) y el <strong>Editor de Bloques</strong> (donde
+                                                    definimos la lógica y el comportamiento de la app) ⚙️.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <!-- Actividad 3 -->
+                            <div style="margin: 1rem;">
+                                <h3
+                                    style="font-size:1rem; color:var(--accent); display:flex; align-items:center; gap:0.5rem;">
+                                    <i data-lucide="lightbulb"></i> Actividad 3: Reflexión General
+                                </h3>
+                                <div class="note-box" style="margin-top:0.5rem; font-size:0.85rem;">
+                                    <p>Antes de programar, responde en tu documento:</p>
+                                    <p style="margin-top:0.5rem; font-weight:600;">¿Qué diferencia consideras que existe
+                                        entre una Página Web y una Aplicación Móvil en cuanto a su uso diario? 📱🌐</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sheet" id="sheet-s8-h2">
+                            <div class="hour-header">Semana 08: HORA 2 - Práctica Dirigida</div>
+
+                            <div style="margin: 1rem;">
+                                <table class="academic-table">
+                                    <thead>
+                                        <tr style="background:var(--header-dark); color:white;">
+                                            <th
+                                                style="width:40%; padding:0.75rem; font-size:0.8rem; text-transform:uppercase;">
+                                                Instrucciones (Paso a Paso)</th>
+                                            <th
+                                                style="width:60%; padding:0.75rem; font-size:0.8rem; text-transform:uppercase;">
+                                                Impresión de Pantalla</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Paso 1: Ingreso -->
+                                        <tr>
+                                            <td style="background:#f8fafc; font-size:0.85rem; padding:1.2rem;">
+                                                <strong>Paso 1: Ingreso y Acceso</strong><br>
+                                                Accede a <a href="https://appinventor.mit.edu" target="_blank"
+                                                    style="color:var(--accent);">appinventor.mit.edu</a>. Inicia sesión con tu cuenta institucional y haz clic en el botón naranja <strong>"Create Apps!"</strong>.
+                                            </td>
+                                            <td style="background:#f0fdf4; border:2px dashed #bbf7d0; position:relative; min-height:100px;">
+                                                <div style="font-size:0.7rem; color:#15803d; text-align:center; padding-top:2rem;">[ Captura de Ingreso ]</div>
+                                            </td>
+                                        </tr>
+                                        <!-- Paso 2: Proyecto -->
+                                        <tr>
+                                            <td style="background:#f8fafc; font-size:0.85rem; padding:1.2rem;">
+                                                <strong>Paso 2: Nuevo Proyecto</strong><br>
+                                                Crea un proyecto con el formato: <code>SusIniciales_app01</code> (Ejemplo: <code>FLS_app01</code>). Haz clic en <strong>Screen1</strong> y cambia la propiedad <em>AlignHorizontal</em> a <u>Center (3)</u>.
+                                            </td>
+                                            <td style="background:#f0fdf4; border:2px dashed #bbf7d0; position:relative;">
+                                                <div style="font-size:0.7rem; color:#15803d; text-align:center; padding-top:2rem;">[ Captura de Configuración ]</div>
+                                            </td>
+                                        </tr>
+                                        <!-- Paso 3: Escuela -->
+                                        <tr>
+                                            <td style="background:#f8fafc; font-size:0.85rem; padding:1.2rem;">
+                                                <strong>Paso 3: Institución</strong><br>
+                                                Arrastra un componente <strong>Label</strong> (Etiqueta). En la propiedad <em>Text</em> escribe el nombre de la escuela. Activa <em>FontBold</em> y pon el tamaño en 20.
+                                            </td>
+                                            <td style="background:#f0fdf4; border:2px dashed #bbf7d0; position:relative;">
+                                            </td>
+                                        </tr>
+                                        <!-- Paso 4: Alumno -->
+                                        <tr>
+                                            <td style="background:#f8fafc; font-size:0.85rem; padding:1.2rem;">
+                                                <strong>Paso 4: Datos del Alumno</strong><br>
+                                                Añade otro <strong>Label</strong> debajo del anterior. Escribe tu nombre completo. Usa la propiedad <em>TextColor</em> para darle un toque personal.
+                                            </td>
+                                            <td style="background:#f0fdf4; border:2px dashed #bbf7d0; position:relative;">
+                                            </td>
+                                        </tr>
+                                        <!-- Paso 5: Identificación -->
+                                        <tr>
+                                            <td style="background:#f8fafc; font-size:0.85rem; padding:1.2rem;">
+                                                <strong>Paso 5: Grupo, Materia y Docente</strong><br>
+                                                Usa etiquetas (Labels) adicionales para colocar:<br>
+                                                • Grupo: (Tu grupo)<br>
+                                                • Materia: Cultura Digital II<br>
+                                                • Docente: Dr. Felipe López Salazar
+                                            </td>
+                                            <td style="background:#f0fdf4; border:2px dashed #bbf7d0; position:relative;">
+                                            </td>
+                                        </tr>
+                                        <!-- Paso 6: Logo y Botón de Acceso -->
+                                        <tr>
+                                            <td style="background:#f8fafc; font-size:0.85rem; padding:1.2rem;">
+                                                <strong>Paso 6: Identidad Visual y Navegación</strong><br>
+                                                Arrastra un componente <strong>Image</strong> y asigna el logo escolar. Justo debajo, añade un <strong>Button</strong> (Botón) con el texto <em>"ENTRAR"</em>. Este botón servirá para ir a la siguiente pantalla que programaremos después. 🚀
+                                            </td>
+                                            <td style="background:#f0fdf4; border:2px dashed #bbf7d0; position:relative;">
+                                                <div style="position:absolute; bottom:5px; right:5px; font-size:0.6rem; color:#15803d; font-weight:800;">PORTADA TERMINADA 📸</div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div style="margin-top:2.5rem; text-align:center;">
+                                <a href="https://appinventor.mit.edu" target="_blank" class="hour-btn"
+                                    style="display:inline-flex; align-items:center; gap:0.5rem; text-decoration:none; padding:1.2rem 2.5rem; background:var(--accent); color:white; border-radius:14px; font-weight:800; font-size:1.1rem; box-shadow:0 8px 25px rgba(244,63,94,0.3); transition:transform 0.2s ease;">
+                                    <i data-lucide="rocket"></i> INGRESAR A APP INVENTOR
+                                </a>
+                                <p style="font-size:0.75rem; color:#94a3b8; margin-top:1rem;">(Se abrirá en una nueva pestaña)</p>
+                            </div>
+                        </div>
+
+                    </div><!-- .sheet-container -->
+
+                </div><!-- .notebook-page -->
+            </div><!-- .notebook-perspective -->
+
+        </main>
+    </div>
+
+    <script>
+        // Inicializar iconos
+        lucide.createIcons();
+
+        const WEEK_TITLES = {
+            1: "✍️ SEMANA 01: Introducción y Formato",
+            2: "❤️ SEMANA 02: Ciudadanía Digital",
+            3: "📓 SEMANA 03: Recursos Digitales PNCE",
+            4: "👥 SEMANA 04: Trabajo Colaborativo",
+            5: "📖 SEMANA 05: Primer Examen Parcial",
+            6: "📱 SEMANA 06: Hardware y Software",
+            7: "📲 SEMANA 07: Sistemas Operativos",
+            8: "📱 SEMANA 08: Aplicaciones y Productividad"
+        };
+
+        const DOUBLE_HOUR_WEEKS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+
+        let currentWeek = 0; // Se inicializa en 0 para que la primera carga sea forzada
+        let currentHour = 1;
+
+        function switchWeek(num) {
+            if (num === currentWeek) return;
+            currentWeek = num;
+            currentHour = 1;
+
+            const page = document.getElementById('notebook-page');
+            const mainTitle = document.getElementById('main-title');
+            const hourNav = document.getElementById('hour-nav');
+
+            // Sidebar UI
+            document.querySelectorAll('.menu-link').forEach(l => l.classList.remove('active'));
+            const activeLink = document.getElementById('link-s' + num);
+            if (activeLink) activeLink.classList.add('active');
+
+            // Navegación de horas (Siempre visible)
+            hourNav.style.display = 'flex';
+            document.getElementById('btn-h1').classList.add('active');
+            document.getElementById('btn-h2').classList.remove('active');
+
+            // Animación
+            page.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            page.style.transformOrigin = 'left center';
+            page.style.transform = 'rotateY(-15deg) scale(0.95)';
+
+            setTimeout(() => {
+                mainTitle.innerHTML = WEEK_TITLES[num] || `SEMANA ${num}`;
+
+                document.querySelectorAll('.sheet').forEach(s => s.classList.remove('active'));
+                const targetSheet = document.getElementById(`sheet-s${num}-h1`);
+                if (targetSheet) targetSheet.classList.add('active');
+
+                page.style.transform = 'rotateY(0deg) scale(1)';
+                lucide.createIcons();
+            }, 300);
+        }
+
+        function switchHour(hour) {
+            if (hour === currentHour) return;
+            currentHour = hour;
+
+            const page = document.getElementById('notebook-page');
+            document.getElementById('btn-h1').classList.toggle('active', hour === 1);
+            document.getElementById('btn-h2').classList.toggle('active', hour === 2);
+
+            page.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            page.style.transformOrigin = 'left center';
+            page.style.transform = 'rotateY(-15deg) scale(0.95)';
+
+            setTimeout(() => {
+                document.querySelectorAll('.sheet').forEach(s => s.classList.remove('active'));
+                const targetSheet = document.getElementById(`sheet-s${currentWeek}-h${hour}`);
+                if (targetSheet) targetSheet.classList.add('active');
+
+                page.style.transform = 'rotateY(0deg) scale(1)';
+                lucide.createIcons();
+            }, 300);
+        }
+
+        // Lógica del Panel del Docente
+        let isTeacherAuthenticated = false;
+        function toggleTeacherPanel() {
+            const panel = document.getElementById('teacher-panel');
+            if (isTeacherAuthenticated) { panel.classList.toggle('active'); }
+            else {
+                const pass = prompt("Introduce la clave de acceso docente:");
+                if (pass === "ceb54") { isTeacherAuthenticated = true; panel.classList.add('active'); }
+                else { alert("Clave incorrecta."); }
+            }
+        }
+
+        // Protecciones
+        document.addEventListener('contextmenu', e => { if (!e.target.closest('.allow-copy')) e.preventDefault(); });
+        document.addEventListener('copy', e => {
+            if (!e.target.closest('.allow-copy')) { e.preventDefault(); alert("⚠️ Contenido restringido."); }
+        });
+        document.addEventListener('keydown', e => {
+            if ((e.ctrlKey || e.metaKey) && ['c', 'v', 'x', 'u'].includes(e.key)) {
+                if (!e.target.closest('.allow-copy')) e.preventDefault();
+            }
+        });
+        document.addEventListener('selectionchange', () => {
+            const selection = window.getSelection();
+            if (selection.toString().length > 0 && !selection.anchorNode.parentElement.closest('.allow-copy')) {
+                selection.removeAllRanges();
+            }
+        });
+
+        // Inicialización automática a la semana más reciente
+        window.addEventListener('DOMContentLoaded', () => {
+            const weeks = Object.keys(WEEK_TITLES).map(Number);
+            const latest = Math.max(...weeks);
+            if (latest > 0) {
+                setTimeout(() => switchWeek(latest), 100);
+            }
+        });
+    </script>
+
+    <button class="teacher-notes-btn" onclick="toggleTeacherPanel()">
+        <i data-lucide="lock"></i> Notas del Docente
+    </button>
+
+    <div class="teacher-panel" id="teacher-panel">
+        <div class="tp-header"><i data-lucide="book-open-check"></i> Privado: Guía Docente</div>
+        <div class="tp-content">
+            <div class="tp-note"><strong>Dr. Felipe:</strong> El sistema de horas ahora es dinámico. Las semanas [2, 6,
+                7, 8] mostrarán automáticamente selector de 2 horas.</div>
+            <div class="tp-note"><strong>Protección:</strong> La clase .no-copy sigue activa en todos los dictados
+                teóricos.</div>
+        </div>
+    </div>
+</body>
+
+</html>

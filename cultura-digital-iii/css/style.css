@@ -1,0 +1,631 @@
+/* =========================================
+   STYLE.CSS - CULTURA DIGITAL II
+   Diseño de Libreta Digital Académica
+   ========================================= */
+
+:root {
+    --paper-bg: #ffffff;
+    --paper-line: #e5e7eb;
+    --paper-margin: #fecaca;
+    --notebook-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    --header-dark: #1e293b;
+    --accent: #059669; /* Verde CEB */
+    --text-primary: #334155;
+    --text-secondary: #64748b;
+    --border-radius: 12px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    /* Bloqueo global de selección ULTRA REFORZADO */
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f8fafc;
+    color: var(--text-primary);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* Permitir copia solo en zonas específicas */
+.allow-copy, .allow-copy * {
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+}
+
+h1, h2, h3, .font-outfit {
+    font-family: 'Outfit', sans-serif;
+}
+
+/* Layout Principal */
+.app-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 300px;
+    background: white;
+    border-right: 1px solid #e2e8f0;
+    padding: 2rem 1.5rem;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-header {
+    margin-bottom: 2.5rem;
+    text-align: center;
+}
+
+.logo-sidebar {
+    width: 100px;
+    height: auto;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+}
+
+.school-name-sidebar {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--header-dark);
+    line-height: 1.2;
+    margin-bottom: 0.4rem;
+}
+
+.teacher-name-sidebar {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--accent);
+    margin-bottom: 1rem;
+}
+
+.header-divider {
+    border: 0;
+    border-top: 1.5px solid #f1f5f9;
+    margin: 1rem 0;
+}
+
+.subject-name {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--header-dark);
+    letter-spacing: -0.5px;
+}
+
+/* Dictado y Protección */
+.dictation-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #ef4444; /* Rojo para atención */
+    background: #fee2e2;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+.no-copy {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    cursor: default;
+    color: #64748b;
+    font-style: italic;
+    border-left: 2px dashed #cbd5e1;
+    padding-left: 1rem;
+    margin: 0.5rem 0;
+}
+
+.menu-section {
+    margin-bottom: 1.5rem;
+}
+
+.menu-title {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.menu-list {
+    list-style: none;
+}
+
+.menu-item {
+    margin-bottom: 0.25rem;
+}
+
+.menu-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    text-decoration: none;
+    color: var(--text-primary);
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.menu-date {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    font-weight: 400;
+    margin-left: auto;
+    opacity: 0.8;
+}
+
+.menu-link:hover {
+    background: #f1f5f9;
+}
+
+.menu-link.active {
+    background: #ecfdf5;
+    color: var(--accent);
+    font-weight: 700;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Notebook Container */
+.notebook-perspective {
+    perspective: 1500px;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.notebook-page {
+    background: var(--paper-bg);
+    min-height: 80vh;
+    border-radius: 4px 20px 20px 4px;
+    box-shadow: var(--notebook-shadow);
+    position: relative;
+    padding: 3rem;
+    transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+    border-left: 15px solid #e2e8f0;
+}
+
+.notebook-page::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--paper-margin);
+}
+
+/* Animación de paso de página */
+.page-flip {
+    transform-origin: left;
+    transform: rotateY(-180deg);
+}
+
+/* Header de la semana */
+.week-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 1.5rem;
+}
+
+.week-title-pre {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 2px;
+}
+
+.week-title-main {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--header-dark);
+    margin-top: 0.5rem;
+}
+
+/* Controles de Horas */
+.hour-navigation {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    justify-content: center;
+}
+
+.hour-btn {
+    padding: 0.6rem 2rem;
+    border-radius: 30px;
+    border: 2px solid #e2e8f0;
+    background: white;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: var(--text-secondary);
+}
+
+.hour-btn.active {
+    background: var(--header-dark);
+    color: white;
+    border-color: var(--header-dark);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Contenido de la Libreta */
+.sheet-container {
+    position: relative;
+    width: 100%;
+}
+
+.sheet {
+    opacity: 0;
+    visibility: hidden;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    transition: all 0.2s ease;
+}
+
+.back-to-portal {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(0,0,0,0.05);
+    color: var(--header-dark);
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
+    margin-bottom: 1.5rem;
+    transition: all 0.2s;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.back-to-portal:hover {
+    background: var(--accent);
+    color: white;
+    transform: translateX(-3px);
+}
+
+.sheet.active {
+    opacity: 1;
+    visibility: visible;
+    position: relative;
+}
+
+/* Encabezados de Hora */
+.hour-header {
+    background: var(--header-dark);
+    color: white;
+    padding: 0.75rem;
+    text-align: center;
+    font-weight: 800;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 0;
+    border-radius: 8px 8px 0 0;
+}
+
+/* Tabla Académica */
+.academic-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+    border: 1px solid #e2e8f0;
+    background: white;
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+}
+
+.academic-table th, .academic-table td {
+    padding: 1.2rem;
+    border: 1px solid #e2e8f0;
+    vertical-align: top;
+}
+
+.col-instruction {
+    width: 40%;
+    background: #f8fafc;
+}
+
+.col-content {
+    width: 60%;
+}
+
+.activity-num {
+    font-weight: 800;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 0.4rem;
+}
+
+.instruction-text {
+    font-size: 0.95rem;
+    color: var(--header-dark);
+    font-weight: 600;
+}
+
+/* Formatos de contenido */
+.content-sample {
+    font-family: 'Inter', sans-serif;
+}
+
+.title-sample {
+    font-size: 20px;
+    text-align: center;
+    font-weight: bold;
+    margin: 1rem 0;
+}
+
+.note-box {
+    background: #fff;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--accent);
+}
+
+/* Notas del Docente (Protegidas) */
+.teacher-notes-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--header-dark);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.2rem;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    z-index: 1000;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.teacher-notes-btn:hover {
+    transform: scale(1.05) translateY(-5px);
+    background: var(--accent);
+}
+
+.teacher-panel {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 320px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    border: 1px solid #e2e8f0;
+    padding: 1.5rem;
+    display: none; /* Se activa con JS */
+    z-index: 999;
+}
+
+.teacher-panel.active {
+    display: block;
+    animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.tp-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--header-dark);
+    font-weight: 800;
+    margin-bottom: 1rem;
+    border-bottom: 1.5px solid #f1f5f9;
+    padding-bottom: 0.6rem;
+}
+
+.tp-content {
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.tp-note {
+    background: #fffbeb;
+    border-left: 4px solid #f59e0b;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 0.75rem;
+}
+
+/* =========================================
+   SISTEMA DE TURNOS (MATUTINO/VESPERTINO)
+   ========================================= */
+
+.shift-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.85); /* Slate-900 con opacidad */
+    backdrop-filter: blur(10px);
+    z-index: 2000;
+    display: none; /* Se activa por JS */
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.shift-overlay.active {
+    display: flex;
+    animation: fadeIn 0.4s ease;
+}
+
+.shift-modal {
+    background: white;
+    width: 100%;
+    max-width: 450px;
+    border-radius: 28px;
+    padding: 2.5rem;
+    text-align: center;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.shift-modal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 8px;
+    background: linear-gradient(90deg, #f59e0b, #3b82f6); /* Sol a Luna */
+}
+
+.shift-modal h2 {
+    font-size: 1.75rem;
+    color: var(--header-dark);
+    margin-bottom: 0.5rem;
+}
+
+.shift-modal p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+}
+
+.shift-options {
+    display: grid;
+    gap: 1rem;
+}
+
+.shift-option-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 1.5rem;
+    border-radius: 18px;
+    border: 2px solid #f1f5f9;
+    background: #f8fafc;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-align: left;
+}
+
+.shift-option-btn:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent);
+    background: #ffffff;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.shift-option-btn i {
+    font-size: 1.5rem;
+}
+
+.shift-option-btn.mat-btn { color: #d97706; }
+.shift-option-btn.ves-btn { color: #2563eb; }
+
+/* Indicador de Turno en Header */
+.shift-status-badge {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 0.5rem 1rem;
+    background: white;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    z-index: 100;
+}
+
+.shift-status-badge:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+}
+
+.shift-status-badge i { width: 14px; height: 14px; }
+
+/* Lógica de Visibilidad */
+.matutino-only, .vespertino-only {
+    display: none; /* Ocultar ambos por defecto dentro de un bloque de turno */
+}
+
+/* Mostrar según clase en main-content */
+.main-content.shift-matutino .matutino-only { display: block; }
+.main-content.shift-vespertino .vespertino-only { display: block; }
+
+/* Animación de entrada para el contenido del turno */
+.shift-matutino .matutino-only, 
+.shift-vespertino .vespertino-only {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .sidebar { width: 240px; }
+    .notebook-page { padding: 2rem; }
+}
+
+@media (max-width: 768px) {
+    .app-container { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: relative; }
+    .notebook-page { padding: 1.5rem; border-left: 0; border-top: 10px solid #e2e8f0; }
+    .week-title-main { font-size: 1.5rem; }
+    .shift-status-badge { top: 10px; right: 10px; font-size: 0.7rem; }
+}

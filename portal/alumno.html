@@ -70,6 +70,41 @@
     </div>
   </div>
 
+  <!-- MATERIAS ACTUALES -->
+  <div class="section-header">
+    <div class="section-header-icon" style="background:#f0fdf4;">
+      <i data-lucide="book-open" style="color:#059669;"></i>
+    </div>
+    <div>
+      <div class="section-title">Mis Materias</div>
+      <div class="section-sub">Acceso a contenidos y actividades digitales</div>
+    </div>
+  </div>
+
+  <div style="background:white; border-radius:20px; padding:1.5rem; margin-bottom:1.75rem; box-shadow:0 2px 8px rgba(0,0,0,.06); border:1px solid #f1f5f9;">
+    <a id="card-cd-ii" href="../cultura-digital/index.html" class="info-card" style="display:none; align-items:center; gap:1.2rem; text-decoration:none; padding:1.2rem; background:linear-gradient(135deg,#f0fdf4,#d1fae5); border:1.5px solid #bbf7d0; border-radius:16px; transition:all 0.3s;" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 10px 15px -3px rgba(5,150,105,0.1)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+      <div style="background:white; width:50px; height:50px; border-radius:12px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+        <i data-lucide="monitor" style="color:#059669; width:26px; height:26px;"></i>
+      </div>
+      <div style="flex:1;">
+        <div style="font-weight:800; font-size:1.1rem; color:#065f46; margin-bottom:0.1rem;">Cultura Digital II</div>
+        <div style="font-size:0.82rem; color:#059669; font-weight:500;">Bitácora de actividades y ejercicios prácticos</div>
+      </div>
+      <i data-lucide="chevron-right" style="color:#059669; opacity:0.5;"></i>
+    </a>
+
+    <a id="card-cd-iii" href="../cultura-digital-iii/index.html" class="info-card" style="display:none; align-items:center; gap:1.2rem; text-decoration:none; padding:1.2rem; background:linear-gradient(135deg,#e0f2fe,#bae6fd); border:1.5px solid #7dd3fc; border-radius:16px; transition:all 0.3s; margin-top: 1rem;" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 10px 15px -3px rgba(2,132,199,0.1)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+      <div style="background:white; width:50px; height:50px; border-radius:12px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+        <i data-lucide="layers" style="color:#0284c7; width:26px; height:26px;"></i>
+      </div>
+      <div style="flex:1;">
+        <div style="font-weight:800; font-size:1.1rem; color:#075985; margin-bottom:0.1rem;">Cultura Digital III</div>
+        <div style="font-size:0.82rem; color:#0369a1; font-weight:500;">Proyectos avanzados y especialización digital</div>
+      </div>
+      <i data-lucide="chevron-right" style="color:#0369a1; opacity:0.5;"></i>
+    </a>
+  </div>
+
   <!-- CALIFICACIONES PEC -->
   <div class="section-header">
     <div class="section-header-icon" style="background:#d1fae5;">
@@ -282,6 +317,42 @@ window.logout = function() {
     portalSession.clear();
     window.location.href = "index.html";
 };
+
+// LÓGICA DE VISIBILIDAD DE MATERIAS POR SEMESTRE
+function checkSubjectVisibility() {
+    const groupEl = document.getElementById('h-grupo');
+    const cardII  = document.getElementById('card-cd-ii');
+    const cardIII = document.getElementById('card-cd-iii');
+    
+    if (!groupEl || !cardII || !cardIII) return;
+
+    const groupText = groupEl.textContent.trim();
+    if (groupText === '—' || !groupText) return;
+
+    // Buscamos el primer número en el texto (ej. de "Grupo 201" extraemos el "2")
+    const match = groupText.match(/\d/);
+    if (!match) return;
+
+    const semester = match[0];
+
+    if (semester === '2') {
+        cardII.style.display = 'flex';
+        cardIII.style.display = 'none';
+    } else if (semester === '4') {
+        cardII.style.display = 'none';
+        cardIII.style.display = 'flex';
+    } else {
+        cardII.style.display = 'none';
+        cardIII.style.display = 'none';
+    }
+}
+
+// Observar cuando cambia el texto del grupo (ya que se carga de forma asíncrona)
+const observer = new MutationObserver(checkSubjectVisibility);
+const hGrupo = document.getElementById('h-grupo');
+if (hGrupo) {
+    observer.observe(hGrupo, { childList: true, characterData: true, subtree: true });
+}
 </script>
 </body>
 </html>
