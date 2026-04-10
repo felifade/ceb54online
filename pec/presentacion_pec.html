@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presentación Final PEC | CEB 5/4</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* ══════════════════════════════════════════════════════════════════════
+           CSS IDÉNTICO a info_proyecto.html — no modificar este bloque
+        ══════════════════════════════════════════════════════════════════════ */
+        :root {
+            --primary: #059669;
+            --primary-light: #ecfdf5;
+            --primary-dark: #065f46;
+            --accent: #f59e0b;
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --glass: rgba(255, 255, 255, 0.95);
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            --radius: 20px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* --- HEADER & NAVIGATION (idéntico a info_proyecto.html) --- */
+        header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            padding: 4rem 1rem 6rem;
+            text-align: center;
+            color: white;
+            clip-path: ellipse(150% 100% at 50% 0%);
+        }
+
+        header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            letter-spacing: -1px;
+            margin-bottom: 2rem;
+        }
+
+        header p.header-sub {
+            font-size: 0.92rem;
+            opacity: 0.8;
+            margin-top: -1.5rem;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+
+        .tab-nav {
+            display: inline-flex;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 8px;
+            border-radius: 50px;
+            gap: 10px;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 40px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* --- CONTENT AREA --- */
+        .container {
+            max-width: 1200px;
+            margin: -4rem auto 5rem;
+            padding: 0 1.5rem;
+            position: relative;
+            z-index: 20;
+        }
+
+        .view-pane {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .view-pane.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- PROJECT GRID (idéntico a info_proyecto.html) --- */
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+        }
+
+        .project-card {
+            background: var(--glass);
+            border: 1px solid white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- SHIFT BADGES (idéntico a info_proyecto.html) --- */
+        .shift-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 15px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            width: fit-content;
+        }
+
+        .matutino-badge  { background: #fef3c7; color: #92400e; }
+        .vespertino-badge{ background: #e0f2fe; color: #075985; }
+        .global-badge    { background: #f0fdf4; color: #166534; }
+
+        .project-card h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-dark);
+            line-height: 1.2;
+        }
+
+        .project-card .objective {
+            font-size: 0.95rem;
+            color: #475569;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        /* --- TEACHERS SECTION (idéntico a info_proyecto.html) --- */
+        .teachers-section h4 {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .teachers-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            max-height: 250px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .teacher-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            background: white;
+            color: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.75rem;
+            border: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .teacher-item span {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #1e293b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* --- SCHEDULE BAR (idéntico a info_proyecto.html) --- */
+        .schedule-bar {
+            max-width: 1200px;
+            margin: -2.5rem auto 1.5rem;
+            padding: 0 1.5rem;
+            position: relative;
+            z-index: 30;
+            display: flex;
+            justify-content: center;
+        }
+
+        .schedule-inner {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border: 1px solid white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .schedule-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .schedule-item i { width: 18px; color: var(--primary); }
+
+        .date-label {
+            color: #94a3b8;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+        }
+
+        .date-val {
+            color: var(--primary-dark);
+            font-weight: 800;
+        }
+
+        /* --- FOOTER & MISC (idéntico a info_proyecto.html) --- */
+        footer {
+            text-align: center;
+            padding: 5rem 1rem;
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+
+        .hidden { display: none !important; }
+
+        /* ══════════════════════════════════════════════════════════════════════
+           ESTILOS NUEVOS — solo para Presentación PEC (mínimos, compatibles)
+        ══════════════════════════════════════════════════════════════════════ */
+
+        /* Tira de info: Fecha · Horario · Lugar */
+        .info-strip {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .info-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8fafc;
+            border: 1px solid #f1f5f9;
+            border-radius: 12px;
+            padding: 7px 13px;
+            flex: 1;
+            min-width: 130px;
+        }
+
+        .chip-label {
+            color: #94a3b8;
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+        }
+
+        .chip-val {
+            color: var(--primary-dark);
+            font-weight: 800;
+            font-size: 0.84rem;
+            display: block;
+        }
+
+        /* Materiales — columna única dentro de .teachers-list */
+        .materials-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .material-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 9px 12px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #f1f5f9;
+            font-size: 0.82rem;
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        .chk-icon {
+            width: 22px;
+            height: 22px;
+            background: var(--primary-light);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Materia item (dentro de teachers-list, dos líneas) */
+        .materia-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .materia-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+
+        .materia-item .m-nombre {
+            font-size: 0.81rem;
+            font-weight: 700;
+            color: #1e293b;
+            display: block;
+        }
+
+        .materia-item .m-aporte {
+            font-size: 0.73rem;
+            color: #64748b;
+            font-weight: 400;
+            display: block;
+            margin-top: 1px;
+        }
+
+        /* Caja de observaciones */
+        .obs-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.7rem;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 14px;
+            padding: 1rem 1.1rem;
+            margin-top: 1.5rem;
+        }
+
+        .obs-box p {
+            font-size: 0.83rem;
+            color: #92400e;
+            font-weight: 500;
+            line-height: 1.55;
+        }
+
+        /* Separador de sección dentro de la tarjeta */
+        .sec-divider {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .project-grid { grid-template-columns: 1fr; }
+            header h1 { font-size: 2rem; }
+        }
+
+        @media (max-width: 768px) {
+            .schedule-inner { gap: 1rem; padding: 15px; border-radius: 20px; justify-content: center; }
+            .schedule-bar   { margin-top: -3.5rem; }
+            .info-chip { min-width: 110px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- HEADER — mismo estilo visual que info_proyecto.html                      -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<header>
+    <h1>Presentación Final del PEC</h1>
+    <p class="header-sub">Evento de cierre · Proyecto Escolar Comunitario · CEB 5/4</p>
+    <nav class="tab-nav">
+        <button class="tab-btn active" onclick="switchSemester('2', this)">2do Semestre</button>
+        <button class="tab-btn"        onclick="switchSemester('4', this)">4to Semestre</button>
+        <button class="tab-btn"        onclick="switchSemester('6', this)">6to Semestre</button>
+    </nav>
+</header>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- SCHEDULE BAR — datos generales del evento                                -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="schedule-bar" id="schedule-bar">
+    <div class="schedule-inner">
+        <!-- EDITAR: datos del evento en EVENTO_INFO (ver script) -->
+        <div class="schedule-item">
+            <i data-lucide="calendar"></i>
+            <div>
+                <span class="date-label">Fecha del Evento</span>
+                <span class="date-val" id="ev-fecha">—</span>
+            </div>
+        </div>
+        <div class="schedule-item">
+            <i data-lucide="map-pin"></i>
+            <div>
+                <span class="date-label">Lugar</span>
+                <span class="date-val" id="ev-lugar">—</span>
+            </div>
+        </div>
+        <div class="schedule-item">
+            <i data-lucide="sun"></i>
+            <div>
+                <span class="date-label">Matutino</span>
+                <span class="date-val" id="ev-mat">—</span>
+            </div>
+        </div>
+        <div class="schedule-item">
+            <i data-lucide="moon"></i>
+            <div>
+                <span class="date-label">Vespertino</span>
+                <span class="date-val" id="ev-ves">—</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- CONTENIDO — igual que info_proyecto.html (3 panes, renderizados por JS)  -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="container">
+    <div id="pane-2" class="view-pane active"></div>
+    <div id="pane-4" class="view-pane"></div>
+    <div id="pane-6" class="view-pane"></div>
+</div>
+
+<footer>
+    <p>&copy; 2026 Centro de Estudios de Bachillerato 5/4</p>
+    <p style="margin-top:5px; opacity:0.6;">Proyecto Escolar Comunitario | Presentación Final</p>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   DATOS GENERALES DEL EVENTO
+   Editar aquí fecha, lugar y horarios globales (se muestran en el pill bar).
+═══════════════════════════════════════════════════════════════════════════ */
+const EVENTO_INFO = {
+    fecha:      "Por definir",          // Ej: "12 de junio de 2026"
+    lugar:      "Instalaciones CEB 5/4",
+    horario_mat: "8:00 – 12:00 hrs",
+    horario_ves: "13:00 – 17:00 hrs",
+};
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DATOS DE PRESENTACIÓN POR SEMESTRE Y TURNO
+   ─────────────────────────────────────────────────────────────────────────
+   Estructura por turno (matutino / vespertino):
+     fecha        → fecha específica si difiere del evento general
+     horario      → horario del turno
+     lugar        → lugar si difiere del evento general
+     descripcion  → descripción breve del evento para ese turno
+     materiales   → arreglo de strings con los materiales a llevar
+     materias     → arreglo de { nombre, aporte, color }
+                    color: hex para el punto de color (opcional, "#059669" por defecto)
+     observaciones → texto adicional (dejar "" si no aplica)
+═══════════════════════════════════════════════════════════════════════════ */
+const PRESENTACION_PEC = {
+
+    /* ── 2DO SEMESTRE ─────────────────────────────────────────────────────── */
+    "2": {
+        matutino: {
+            fecha:        "Por definir",
+            horario:      "8:00 – 12:00 hrs",
+            lugar:        "Instalaciones CEB 5/4",
+            descripcion:  "Los equipos del Turno Matutino de 2do Semestre presentarán sus proyectos comunitarios ante el jurado docente y la comunidad escolar. Cada equipo dispondrá de 10 a 15 minutos para exponer su proyecto, responder preguntas y mostrar sus evidencias.",
+            materiales: [
+                "Documento impreso del proyecto (portada e índice)",
+                "Presentación digital en USB o enlace a nube",
+                "Portafolio de evidencias (físico o digital)",
+                "Material de apoyo: cartel, maqueta o prototipo",
+                "Uniforme de gala obligatorio",
+                "Credencial escolar vigente",
+            ],
+            materias: [
+                { nombre: "Matemáticas",            aporte: "Análisis cuantitativo y estadístico del proyecto",    color: "#059669" },
+                { nombre: "Español / Comunicación", aporte: "Redacción del documento y exposición oral",           color: "#1d4ed8" },
+                { nombre: "Ciencias Sociales",      aporte: "Diagnóstico comunitario y contexto social",           color: "#7c3aed" },
+                { nombre: "Ciencias Naturales",     aporte: "Fundamentos científicos y metodología aplicada",      color: "#d97706" },
+                { nombre: "Cultura Digital",        aporte: "Recursos digitales, presentación y multimedia",       color: "#be185d" },
+                { nombre: "Tutoría",                aporte: "Acompañamiento y convivencia del equipo",             color: "#0e7490" },
+            ],
+            observaciones: "",
+        },
+        vespertino: {
+            fecha:        "Por definir",
+            horario:      "13:00 – 17:00 hrs",
+            lugar:        "Instalaciones CEB 5/4",
+            descripcion:  "Los equipos del Turno Vespertino de 2do Semestre presentarán sus proyectos comunitarios. El ingreso al evento es 15 minutos antes del inicio de cada turno. Se requiere presentación del carnet o credencial escolar.",
+            materiales: [
+                "Documento impreso del proyecto (portada e índice)",
+                "Presentación digital en USB o enlace a nube",
+                "Portafolio de evidencias (físico o digital)",
+                "Material de apoyo: cartel, maqueta o prototipo",
+                "Uniforme de gala obligatorio",
+                "Credencial escolar vigente",
+            ],
+            materias: [
+                { nombre: "Matemáticas",            aporte: "Análisis cuantitativo y estadístico del proyecto",    color: "#059669" },
+                { nombre: "Español / Comunicación", aporte: "Redacción del documento y exposición oral",           color: "#1d4ed8" },
+                { nombre: "Ciencias Sociales",      aporte: "Diagnóstico comunitario y contexto social",           color: "#7c3aed" },
+                { nombre: "Ciencias Naturales",     aporte: "Fundamentos científicos y metodología aplicada",      color: "#d97706" },
+                { nombre: "Cultura Digital",        aporte: "Recursos digitales, presentación y multimedia",       color: "#be185d" },
+                { nombre: "Tutoría",                aporte: "Acompañamiento y convivencia del equipo",             color: "#0e7490" },
+            ],
+            observaciones: "",
+        },
+    },
+
+    /* ── 4TO SEMESTRE ─────────────────────────────────────────────────────── */
+    "4": {
+        matutino: {
+            fecha:        "Por definir",
+            horario:      "8:00 – 12:00 hrs",
+            lugar:        "Instalaciones CEB 5/4",
+            descripcion:  "Los equipos del Turno Matutino de 4to Semestre presentarán proyectos con mayor profundidad y alcance comunitario. La presentación refleja la consolidación del aprendizaje a lo largo del ciclo.",
+            materiales: [
+                "Documento impreso del proyecto (portada e índice)",
+                "Presentación digital en USB o enlace a nube",
+                "Portafolio de evidencias (físico o digital)",
+                "Material de apoyo: cartel, maqueta o prototipo",
+                "Uniforme de gala obligatorio",
+                "Credencial escolar vigente",
+            ],
+            materias: [
+                { nombre: "Matemáticas",            aporte: "Análisis cuantitativo y estadístico del proyecto",    color: "#059669" },
+                { nombre: "Español / Comunicación", aporte: "Redacción del documento y exposición oral",           color: "#1d4ed8" },
+                { nombre: "Ciencias Sociales",      aporte: "Diagnóstico comunitario y contexto social",           color: "#7c3aed" },
+                { nombre: "Ciencias Naturales",     aporte: "Fundamentos científicos y metodología aplicada",      color: "#d97706" },
+                { nombre: "Cultura Digital II",     aporte: "Recursos digitales, presentación y multimedia",       color: "#be185d" },
+                { nombre: "Tutoría",                aporte: "Acompañamiento y convivencia del equipo",             color: "#0e7490" },
+                { nombre: "Inglés",                 aporte: "Vocabulario técnico y comprensión de fuentes",        color: "#65a30d" },
+                { nombre: "Filosofía / Ética",      aporte: "Reflexión ética sobre el impacto comunitario",        color: "#9333ea" },
+            ],
+            observaciones: "",
+        },
+        vespertino: {
+            fecha:        "Por definir",
+            horario:      "13:00 – 17:00 hrs",
+            lugar:        "Instalaciones CEB 5/4",
+            descripcion:  "Los equipos del Turno Vespertino de 4to Semestre presentarán proyectos consolidados que muestran el crecimiento académico y el impacto comunitario generado durante el ciclo escolar.",
+            materiales: [
+                "Documento impreso del proyecto (portada e índice)",
+                "Presentación digital en USB o enlace a nube",
+                "Portafolio de evidencias (físico o digital)",
+                "Material de apoyo: cartel, maqueta o prototipo",
+                "Uniforme de gala obligatorio",
+                "Credencial escolar vigente",
+            ],
+            materias: [
+                { nombre: "Matemáticas",            aporte: "Análisis cuantitativo y estadístico del proyecto",    color: "#059669" },
+                { nombre: "Español / Comunicación", aporte: "Redacción del documento y exposición oral",           color: "#1d4ed8" },
+                { nombre: "Ciencias Sociales",      aporte: "Diagnóstico comunitario y contexto social",           color: "#7c3aed" },
+                { nombre: "Ciencias Naturales",     aporte: "Fundamentos científicos y metodología aplicada",      color: "#d97706" },
+                { nombre: "Cultura Digital II",     aporte: "Recursos digitales, presentación y multimedia",       color: "#be185d" },
+                { nombre: "Tutoría",                aporte: "Acompañamiento y convivencia del equipo",             color: "#0e7490" },
+                { nombre: "Inglés",                 aporte: "Vocabulario técnico y comprensión de fuentes",        color: "#65a30d" },
+                { nombre: "Filosofía / Ética",      aporte: "Reflexión ética sobre el impacto comunitario",        color: "#9333ea" },
+            ],
+            observaciones: "",
+        },
+    },
+
+    /* ── 6TO SEMESTRE ─────────────────────────────────────────────────────── */
+    "6": {
+        matutino: {
+            fecha:        "Por definir",
+            horario:      "8:00 – 12:00 hrs",
+            lugar:        "Instalaciones CEB 5/4",
+            descripcion:  "Los equipos del Turno Matutino de 6to Semestre presentan el proyecto de cierre de su trayectoria académica. Es la culminación del PEC como evidencia del aprendizaje integral a lo largo del bachillerato.",
+            materiales: [
+                "Documento completo del proyecto (original y copia)",
+                "Presentación digital en USB o enlace a nube",
+                "Portafolio de evidencias completo (3 semestres)",
+                "Material de apoyo: cartel, maqueta o prototipo",
+                "Uniforme de gala obligatorio",
+                "Credencial escolar vigente",
+            ],
+            materias: [
+                { nombre: "Matemáticas",            aporte: "Análisis cuantitativo y estadístico del proyecto",    color: "#059669" },
+                { nombre: "Español / Comunicación", aporte: "Redacción del documento y exposición oral",           color: "#1d4ed8" },
+                { nombre: "Ciencias Sociales",      aporte: "Diagnóstico comunitario y contexto social",           color: "#7c3aed" },
+                { nombre: "Ciencias Naturales",     aporte: "Fundamentos científicos y metodología aplicada",      color: "#d97706" },
+                { nombre: "Cultura Digital III",    aporte: "Recursos digitales, presentación y multimedia",       color: "#be185d" },
+                { nombre: "Tutoría",                aporte: "Acompañamiento integral del equipo",                  color: "#0e7490" },
+                { nombre: "Inglés",                 aporte: "Vocabulario técnico y comprensión de fuentes",        color: "#65a30d" },
+                { nombre: "Filosofía / Ética",      aporte: "Reflexión ética sobre el impacto comunitario",        color: "#9333ea" },
+            ],
+            observaciones: "Evento de cierre especial para alumnos de 6to Semestre. Se entregará reconocimiento institucional a todos los equipos participantes.",
+        },
+        vespertino: {
+            fecha:        "Por definir",
+            horario:      "13:00 – 17:00 hrs",
+            lugar:        "Instalaciones CEB 5/4",
+            descripcion:  "Los equipos del Turno Vespertino de 6to Semestre presentan el proyecto de cierre de su trayectoria. La presentación incluye una reflexión sobre el impacto comunitario generado a lo largo del bachillerato.",
+            materiales: [
+                "Documento completo del proyecto (original y copia)",
+                "Presentación digital en USB o enlace a nube",
+                "Portafolio de evidencias completo (3 semestres)",
+                "Material de apoyo: cartel, maqueta o prototipo",
+                "Uniforme de gala obligatorio",
+                "Credencial escolar vigente",
+            ],
+            materias: [
+                { nombre: "Matemáticas",            aporte: "Análisis cuantitativo y estadístico del proyecto",    color: "#059669" },
+                { nombre: "Español / Comunicación", aporte: "Redacción del documento y exposición oral",           color: "#1d4ed8" },
+                { nombre: "Ciencias Sociales",      aporte: "Diagnóstico comunitario y contexto social",           color: "#7c3aed" },
+                { nombre: "Ciencias Naturales",     aporte: "Fundamentos científicos y metodología aplicada",      color: "#d97706" },
+                { nombre: "Cultura Digital III",    aporte: "Recursos digitales, presentación y multimedia",       color: "#be185d" },
+                { nombre: "Tutoría",                aporte: "Acompañamiento integral del equipo",                  color: "#0e7490" },
+                { nombre: "Inglés",                 aporte: "Vocabulario técnico y comprensión de fuentes",        color: "#65a30d" },
+                { nombre: "Filosofía / Ética",      aporte: "Reflexión ética sobre el impacto comunitario",        color: "#9333ea" },
+            ],
+            observaciones: "Evento de cierre especial para alumnos de 6to Semestre. Se entregará reconocimiento institucional a todos los equipos participantes.",
+        },
+    },
+};
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOTOR DE RENDER — no es necesario editar desde aquí abajo
+═══════════════════════════════════════════════════════════════════════════ */
+
+// Construye la tarjeta HTML de un turno completo
+function buildTurnoCard(sem, turno, data) {
+    const isMat      = turno === 'matutino';
+    const badgeCls   = isMat ? 'matutino-badge'  : 'vespertino-badge';
+    const badgeIcon  = isMat ? 'sun'              : 'moon';
+    const turnoLabel = isMat ? 'Matutino'         : 'Vespertino';
+
+    // Chips de fecha / horario / lugar
+    const chips = `
+        <div class="info-strip">
+            <div class="info-chip">
+                <i data-lucide="calendar" style="width:16px;height:16px;color:#059669;flex-shrink:0;"></i>
+                <div>
+                    <span class="chip-label">Fecha</span>
+                    <span class="chip-val">${data.fecha || 'Por definir'}</span>
+                </div>
+            </div>
+            <div class="info-chip">
+                <i data-lucide="clock" style="width:16px;height:16px;color:#059669;flex-shrink:0;"></i>
+                <div>
+                    <span class="chip-label">Horario</span>
+                    <span class="chip-val">${data.horario || '—'}</span>
+                </div>
+            </div>
+            <div class="info-chip">
+                <i data-lucide="map-pin" style="width:16px;height:16px;color:#059669;flex-shrink:0;"></i>
+                <div>
+                    <span class="chip-label">Lugar</span>
+                    <span class="chip-val">${data.lugar || '—'}</span>
+                </div>
+            </div>
+        </div>`;
+
+    // Materiales (lista con ícono de check)
+    const materialesHTML = (data.materiales || []).map(m => `
+        <div class="material-item">
+            <div class="chk-icon">
+                <i data-lucide="check" style="width:12px;height:12px;color:#059669;"></i>
+            </div>
+            ${m}
+        </div>`).join('');
+
+    // Materias (con punto de color y descripción del aporte)
+    const materiasHTML = (data.materias || []).map(m => `
+        <div class="materia-item">
+            <div class="materia-dot" style="background:${m.color || '#059669'};"></div>
+            <div>
+                <span class="m-nombre">${m.nombre}</span>
+                <span class="m-aporte">${m.aporte}</span>
+            </div>
+        </div>`).join('');
+
+    // Observaciones (solo si hay texto)
+    const obsHTML = data.observaciones ? `
+        <div class="obs-box">
+            <i data-lucide="alert-circle" style="width:18px;height:18px;color:#d97706;flex-shrink:0;margin-top:2px;"></i>
+            <p>${data.observaciones}</p>
+        </div>` : '';
+
+    return `
+        <div class="project-card">
+            <div class="shift-badge ${badgeCls}">
+                <i data-lucide="${badgeIcon}" style="width:13px;height:13px;"></i>
+                ${turnoLabel}
+            </div>
+
+            <h2>Turno ${turnoLabel} — ${sem}° Semestre</h2>
+
+            ${chips}
+
+            <p class="objective">${data.descripcion || ''}</p>
+
+            <div class="teachers-section">
+                <h4>
+                    <i data-lucide="package" style="width:14px;height:14px;"></i>
+                    Materiales a llevar
+                </h4>
+                <div class="materials-list">${materialesHTML}</div>
+            </div>
+
+            <div class="teachers-section sec-divider">
+                <h4>
+                    <i data-lucide="book-open" style="width:14px;height:14px;"></i>
+                    Materias participantes
+                </h4>
+                <div class="teachers-list" style="max-height:300px;">${materiasHTML}</div>
+            </div>
+
+            ${obsHTML}
+        </div>`;
+}
+
+// Renderiza el pane completo de un semestre (matutino + vespertino)
+function renderSemestre(sem) {
+    const pane = document.getElementById('pane-' + sem);
+    const data = PRESENTACION_PEC[sem];
+    if (!pane || !data) return;
+
+    pane.innerHTML = `
+        <div class="project-grid">
+            ${buildTurnoCard(sem, 'matutino',  data.matutino)}
+            ${buildTurnoCard(sem, 'vespertino', data.vespertino)}
+        </div>`;
+}
+
+// Cambio de semestre — mismo patrón que info_proyecto.html
+function switchSemester(sem, btn) {
+    document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('pane-' + sem).classList.add('active');
+    if (btn) btn.classList.add('active');
+    lucide.createIcons();
+}
+
+// Poblar schedule bar con EVENTO_INFO
+document.getElementById('ev-fecha').textContent = EVENTO_INFO.fecha;
+document.getElementById('ev-lugar').textContent = EVENTO_INFO.lugar;
+document.getElementById('ev-mat').textContent   = EVENTO_INFO.horario_mat;
+document.getElementById('ev-ves').textContent   = EVENTO_INFO.horario_ves;
+
+// Render inicial de los 3 semestres
+['2', '4', '6'].forEach(renderSemestre);
+lucide.createIcons();
+</script>
+</body>
+</html>
