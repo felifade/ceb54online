@@ -10,6 +10,16 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="pec/css/areas.css">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        (function() {
+            const auth  = sessionStorage.getItem('tutorias_auth');
+            const email = sessionStorage.getItem('user_email');
+            if (!auth || !email) {
+                sessionStorage.setItem('pec_redirect_after_login', window.location.href);
+                window.location.href = 'pec/login.html';
+            }
+        })();
+    </script>
 </head>
 <body style="background-color: #f1f5f9; font-family: 'Inter', sans-serif;">
 
