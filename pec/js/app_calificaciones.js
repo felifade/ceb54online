@@ -136,12 +136,23 @@ function renderTabla() {
       ? `<span style="margin-left:8px;font-size:0.7rem;font-weight:700;background:#fee2e2;color:#b91c1c;padding:2px 7px;border-radius:20px;">REPROBADO</span>`
       : "";
     const rowBg = reprobado ? "background:#fff5f5;" : "";
+
+    // Desglose por materia — se muestra solo si la API devuelve r.materias
+    const mats = Array.isArray(r.materias) ? r.materias : [];
+    const desglose = mats.length > 0
+      ? `<div style="margin-top:5px;font-size:0.68rem;color:#94a3b8;line-height:1.6;font-weight:400;">
+           ${mats.map(m =>
+             `<span style="white-space:nowrap;">${m.nombre}:&nbsp;<strong style="color:#64748b;">${typeof m.cal === 'number' ? m.cal.toFixed(1) : m.cal}</strong></span>`
+           ).join('<span style="color:#e2e8f0;"> &middot; </span>')}
+         </div>`
+      : "";
+
     return `
       <tr style="${rowBg}">
         <td style="text-align:center;color:#64748b;font-size:0.85rem;">${i + 1}</td>
         <td>${r.alumno}${badge}</td>
         <td style="text-align:center;">${r.grupo}</td>
-        <td style="text-align:center;font-weight:700;color:${color};">${r.cal.toFixed(2)}</td>
+        <td style="text-align:center;font-weight:700;color:${color};">${r.cal.toFixed(2)}${desglose}</td>
       </tr>`;
   }).join("");
 

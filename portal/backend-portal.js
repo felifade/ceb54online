@@ -125,13 +125,24 @@ function readCalifAlumno(ss, nombre, config) {
     ["2","3"].forEach(p => {
       if (!config["portal_p" + p + "_activa"]) return;
       let total = 0;
+      const materiasMap = {}; // acumula puntaje por materia
       rows.forEach(r => {
         const parc = String(r[1]).match(/\d+/);
         if (parc && parc[0] === p && norm(String(r[9])) === nombreNorm) {
-          total += Number(r[7] || 0);
+          const pts = Number(r[7] || 0);
+          total += pts;
+          const mat = String(r[5] || "").trim();
+          if (mat) {
+            materiasMap[mat] = (materiasMap[mat] || 0) + pts;
+          }
         }
       });
-      if (total > 0) result["p" + p] = Math.min(parseFloat(total.toFixed(2)), 2);
+      if (total > 0) {
+        result["p" + p] = Math.min(parseFloat(total.toFixed(2)), 2);
+        result["p" + p + "_materias"] = Object.entries(materiasMap).map(function(entry) {
+          return { nombre: entry[0], cal: parseFloat(entry[1].toFixed(2)) };
+        });
+      }
     });
   }
 

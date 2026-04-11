@@ -54,6 +54,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         portalAPI.getCalAlumno(usuario.curp),
         portalAPI.getEncuestaStatus(usuario.curp, "alumno"),
       ]);
+      // DEBUG — revisa en consola si la API devuelve materias por parcial
+      console.log("DEBUG portal cal:", JSON.stringify(dataCal, null, 2));
       const cfg = dataCal.config || {};
       renderFechas(cfg);
       renderCalificaciones(dataCal.calificaciones || {}, cfg);
@@ -111,6 +113,21 @@ function renderCalificaciones(cal, config) {
     const statusClass= val >= 1.8 ? "aprobado" : val >= 1.2 ? "riesgo"    : "reprobado";
     const pct = Math.round((val / 2) * 100);
 
+    // Desglose por materia — busca p1_materias, p1_detalle o materias dentro del objeto
+    // La API puede devolver el desglose bajo cualquiera de estas claves
+    const mats = cal[key + "_materias"] || cal[key + "_detalle"] || [];
+    let desgloseHTML = "";
+    if (Array.isArray(mats) && mats.length > 0) {
+      const items = mats.map(m => {
+        const nombre = m.nombre || m.materia || m.name || "Materia";
+        const nota   = typeof m.cal === "number" ? m.cal.toFixed(1)
+                     : typeof m.puntaje === "number" ? m.puntaje.toFixed(1)
+                     : m.cal ?? m.puntaje ?? "—";
+        return `<span style="white-space:nowrap;">${nombre}: <strong style="color:#374151;">${nota}</strong></span>`;
+      }).join('<span style="color:#d1d5db;"> &middot; </span>');
+      desgloseHTML = `<div class="detalle-materias">${items}</div>`;
+    }
+
     return `
       <div class="grade-card">
         <div class="grade-card-label">Parcial ${p}</div>
@@ -122,6 +139,7 @@ function renderCalificaciones(cal, config) {
             transition:width .6s ease;"></div>
         </div>
         <div class="grade-status ${statusClass}">${statusText}</div>
+        ${desgloseHTML}
       </div>`;
   }).join("");
 

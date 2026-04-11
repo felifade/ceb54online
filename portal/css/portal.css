@@ -338,6 +338,16 @@ input, select, textarea { font-family: var(--font); }
 .grade-status.reprobado  { background: var(--red-light);   color: #991b1b; }
 .grade-status.pendiente  { background: var(--slate-100);   color: var(--slate-400); }
 
+.detalle-materias {
+  font-size: 0.68rem;
+  color: #6b7280;
+  margin-top: 8px;
+  line-height: 1.6;
+  text-align: left;
+  width: 100%;
+  word-break: break-word;
+}
+
 .grade-card.locked {
   background: var(--slate-50);
   border-style: dashed;
