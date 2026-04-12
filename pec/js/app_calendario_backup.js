@@ -185,14 +185,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Generar el cronograma cronológico primero
     cronogramaMap = generarCronogramaEfectivo();
-    
-    // FUSION TRANSPARENTE DE iCLOUD
-    try {
-        await cargarICloudGlobal();
-    } catch (e) {
-        console.warn("Calendario: Fusión iCloud omitida o fallida", e);
-    }
-
     initCalendario();
 
     // Disparar evento para que widgets en otras páginas sepan que ya pueden renderizar
@@ -764,103 +756,45 @@ function renderVistaDias(hoy, fClave = FECHAS_CLAVE, periodos = PERIODOS_ESPECIA
 ══════════════════════════════════════════════════════════════════ */
 let cacheIcloud = null;
 
-// Función encargada de descargar, filtrar e inyectar iCloud en los arreglos globales (Fusión Transparente)
-async function cargarICloudGlobal() {
-    let fetchUrl = "data/icloud.ics";
-    if (window.location.protocol !== 'file:') {
-        fetchUrl += "?t=" + new Date().getTime();
-    }
-    
-    // Para asegurar que funcione en todos los directorios, detectamos el nivel de profundidad
-    let pathPrefix = "";
-    if (window.location.pathname.includes('/portal/')) {
-        pathPrefix = "../pec/";
-    } else if (!window.location.pathname.includes('/pec/')) {
-        pathPrefix = "pec/"; // Para páginas en la raíz (ej. acceso.html)
-    }
-
-    const response = await fetch(pathPrefix + fetchUrl);
-    
-    if (!response.ok) throw new Error("Aún no se ha descargado el archivo puente de iCloud.");
-    const icsText = await response.text();
-    cacheIcloud = parseICS(icsText);
-
-    // FASE 2: Detectar el tipo de usuario / portal actual
-    let urlPath = window.location.pathname.toLowerCase();
-    let rolActual = 'padres'; // Visitante genérico
-
-    if (urlPath.includes('/pec/')) {
-        rolActual = 'docentes';
-    } else if (urlPath.includes('alumno.html')) {
-        rolActual = 'alumnos';
-    } else if (urlPath.includes('padre.html')) {
-        rolActual = 'padres';
-    }
-
-    cacheIcloud.forEach(ev => {
-        let reqAuds = ev.audiencias || ['todos'];
-        let autorizado = reqAuds.includes('todos') || reqAuds.includes(rolActual);
-
-        if (autorizado) {
-            // Clasificación por Tipo de Evento (Metadatos)
-            if (ev.tipo === 'periodo') {
-                // Ajuste de offset de fecha fin (iCloud End es exclusivo)
-                let finAjustada = ev.end;
-                if (ev.end) {
-                    let d = new Date(ev.end + 'T00:00:00');
-                    d.setDate(d.getDate() - 1);
-                    finAjustada = d.toISOString().split('T')[0];
-                }
-
-                PERIODOS_ESPECIALES.push({
-                    titulo: ev.summary,
-                    inicio: ev.start,
-                    fin: finAjustada || ev.start,
-                    categoria: ev.categoria || "periodo",
-                    tipo: "periodo"
-                });
-            } else if (ev.tipo === 'vacaciones') {
-                PERIODOS_ESPECIALES.push({
-                    titulo: ev.summary,
-                    inicio: ev.start,
-                    fin: ev.end || ev.start,
-                    categoria: ev.categoria || "periodo",
-                    tipo: "vacaciones",
-                    esVacaciones: true
-                });
-            } else {
-                FECHAS_CLAVE.push({
-                    id: ev.uid || Math.random().toString(36).substr(2, 9),
-                    titulo: ev.summary,
-                    fecha: ev.start,
-                    hora: "",
-                    categoria: ev.categoria || "academico", // defecto si no existe
-                    descripcion: ev.description || "",
-                    visiblePortalAlumno: true // Dado que ya pasó la prueba de audiencia, es siempre visible
-                });
-            }
-        }
-    });
-
-    // Re-ordenar arreglos tras la inyección
-    FECHAS_CLAVE.sort((a,b) => a.fecha.localeCompare(b.fecha));
-}
-
 async function renderVistaIcloud(hoy) {
-    // Si llegamos hasta aquí, la fusión transparente ya inyectó los eventos autorizados a FECHAS_CLAVE.
-    // Por lo tanto, iCloud es en realidad una vista directa de todo lo autorizado combinado (Sheets+ICloud).
+    if (!cacheIcloud) {
+        try {
+            // URL Pública dada por el usuario
+            const icloudUrl = "https://p45-caldav.icloud.com/published/2/MTIwODExNDM2MjEyMDgxMQ_N9OFdZ615LKgUgfNU-ZbNqxZszYUzZmTsDzOLNxStl1QL5QEKu-Q4LXCaLKwWD5IJyDUd4nUexcMD7flFefw";
+            // Usamos parser para sortear CORS (Proxy)
+            const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(icloudUrl);
+            const response = await fetch(proxyUrl);
+            if (!response.ok) throw new Error("Fallo al descargar iCloud");
+            const icsText = await response.text();
+            cacheIcloud = parseICS(icsText);
+        } catch (e) {
+            console.error(e);
+            return `<div style="text-align:center; padding:50px; color:#ef4444;"><p>No se pudo sincronizar con iCloud en este momento.</p><p style="font-size:0.8rem;opacity:0.7;">Error: ${e.message}</p></div>`;
+        }
+    }
+    
+    // Transformar los eventos iCloud Parseados a la estructura requerida (fClave)
+    const eventosIcloudFormateados = cacheIcloud.map(ev => ({
+        id: ev.uid || Math.random().toString(36).substr(2, 9),
+        titulo: ev.summary,
+        fecha: ev.start, // formato yyyy-mm-dd
+        hora: "",
+        categoria: "reunion", // Se usa color morado para destacar
+        descripcion: ev.description || ""
+    }));
+
     return renderVistaDias(
         hoy,
-        FECHAS_CLAVE,
-        PERIODOS_ESPECIALES, 
-        CUMPLEANOS,
+        eventosIcloudFormateados,
+        [], // sin periodos extra
+        [], // sin cumpleaños extra
         '☁️ iCloud — Mis Actividades',
-        'Fusión de calendario institucional y eventos iCloud'
+        'Sincronizado directamente desde iCloud.'
     );
 }
 
 function parseICS(icsContent) {
-    const lines = icsContent.split(/\r\n|\n|\r/);
+    const lines = icsContent.split(/\\r\\n|\\n|\\r/);
     const events = [];
     let currentEvent = null;
 
@@ -871,30 +805,14 @@ function parseICS(icsContent) {
             currentEvent = {};
         } else if (line.startsWith('END:VEVENT')) {
             if (currentEvent) {
-                // FASE 1: Extraer audiencia antes de guardar el evento
-                if (currentEvent.description) {
-                    // Restauramos los saltos de línea reales para que el Regex funcione de manera limitada por línea
-                    const rawDesc = currentEvent.description;
-                    const matchAud = rawDesc.match(/audiencia:\s*([a-záéíóúñ,\s]+)(?=\s*(categoria:|tipo:|$))/i);
-                    const matchCat = rawDesc.match(/categoria:\s*([a-záéíóúñ]+)/i);
-                    const matchTipo = rawDesc.match(/tipo:\s*([a-záéíóúñ]+)/i);
-
-                    currentEvent.audiencias = matchAud ? matchAud[1].toLowerCase().split(',').map(s => s.trim()) : ['todos'];
-                    currentEvent.categoria = matchCat ? matchCat[1].toLowerCase() : 'academico'; // fallback default
-                    currentEvent.tipo = matchTipo ? matchTipo[1].toLowerCase() : 'evento';
-                } else {
-                    currentEvent.audiencias = ['todos'];
-                    currentEvent.categoria = 'academico';
-                    currentEvent.tipo = 'evento';
-                }
                 events.push(currentEvent);
                 currentEvent = null;
             }
         } else if (currentEvent) {
             if (line.startsWith('SUMMARY:')) {
-                currentEvent.summary = line.substring(8).replace(/\\,/g, ',');
+                currentEvent.summary = line.substring(8).replace(/\\\\,/g, ',');
             } else if (line.startsWith('DESCRIPTION:')) {
-                currentEvent.description = line.substring(12).replace(/\\n/g, ' ').replace(/\\,/g, ',');
+                currentEvent.description = line.substring(12).replace(/\\\\n/g, ' ').replace(/\\\\,/g, ',');
             } else if (line.startsWith('UID:')) {
                 currentEvent.uid = line.substring(4);
             } else if (line.startsWith('DTSTART')) {
@@ -904,7 +822,7 @@ function parseICS(icsContent) {
                     const y = dateStr.substring(0, 4);
                     const m = dateStr.substring(4, 6);
                     const d = dateStr.substring(6, 8);
-                    currentEvent.start = `${y}-${m}-${d}`;
+                    currentEvent.start = \`\${y}-\${m}-\${d}\`;
                 }
             } else if (line.startsWith('DTEND')) {
                 let dateStr = line.split(':')[1];
@@ -912,7 +830,7 @@ function parseICS(icsContent) {
                     const y = dateStr.substring(0, 4);
                     const m = dateStr.substring(4, 6);
                     const d = dateStr.substring(6, 8);
-                    currentEvent.end = `${y}-${m}-${d}`;
+                    currentEvent.end = \`\${y}-\${m}-\${d}\`;
                 }
             }
         }
