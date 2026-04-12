@@ -185,6 +185,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Generar el cronograma cronológico primero
     cronogramaMap = generarCronogramaEfectivo();
+    
+    // FUSION TRANSPARENTE DE iCLOUD
+    try {
+        await cargarICloudGlobal();
+    } catch (e) {
+        console.warn("Calendario: Fusión iCloud omitida o fallida", e);
+    }
+
     initCalendario();
 
     // Disparar evento para que widgets en otras páginas sepan que ya pueden renderizar
@@ -260,6 +268,7 @@ function initCalendario() {
                 <button class="view-btn ${viewMode === 'list' ? 'active' : ''}" id="view-list">Sólo Eventos</button>
                 <button class="view-btn ${viewMode === 'birthdays' ? 'active' : ''}" id="view-birthdays">🎂 Cumpleaños</button>
                 <button class="view-btn ${viewMode === 'dias' ? 'active' : ''}" id="view-dias" style="border-color:rgba(124,58,237,0.4);${viewMode==='dias'?'':'color:#7c3aed;'}">🧪 Por días</button>
+                <button class="view-btn ${viewMode === 'icloud' ? 'active' : ''}" id="view-icloud" style="border-color:rgba(56,189,248,0.4);${viewMode==='icloud'?'':'color:#0ea5e9;'}">☁️ iCloud</button>
             </div>
         </div>
         <div id="calendario-content"></div>
@@ -291,6 +300,12 @@ function initCalendario() {
         renderEventos();
         updateToggles();
     });
+    document.getElementById('view-icloud').addEventListener('click', () => {
+        if (viewMode === 'icloud') return;
+        viewMode = 'icloud';
+        renderEventos();
+        updateToggles();
+    });
 }
 
 function updateToggles() {
@@ -300,6 +315,8 @@ function updateToggles() {
     if (bBtn) bBtn.classList.toggle('active', viewMode === 'birthdays');
     const dBtn = document.getElementById('view-dias');
     if (dBtn) dBtn.classList.toggle('active', viewMode === 'dias');
+    const iBtn = document.getElementById('view-icloud');
+    if (iBtn) iBtn.classList.toggle('active', viewMode === 'icloud');
 }
 
 function renderEventos() {
@@ -321,6 +338,9 @@ function renderEventos() {
         content.innerHTML = renderCumpleanos(hoy);
     } else if (viewMode === 'dias') {
         content.innerHTML = renderVistaDias(hoy);
+    } else if (viewMode === 'icloud') {
+        content.innerHTML = `<div style="text-align:center; padding:50px; color:#64748b;"><div class="spinner" style="margin:0 auto 20px;"></div><p>Sincronizando con iCloud...</p></div>`;
+        renderVistaIcloud(hoy).then(html => content.innerHTML = html);
     } else {
         const agrupar = agruparJerarquiaCompleta(items);
         content.innerHTML = renderJerarquiaCompleta(agrupar, hoy);
@@ -607,7 +627,7 @@ function renderCumpleanos(hoy) {
    Reutiliza: cronogramaMap, FECHAS_CLAVE, CUMPLEANOS, PERIODOS_ESPECIALES
    No modifica ningún dato ni función existente.
 ══════════════════════════════════════════════════════════════════ */
-function renderVistaDias(hoy) {
+function renderVistaDias(hoy, fClave = FECHAS_CLAVE, periodos = PERIODOS_ESPECIALES, cumples = CUMPLEANOS, tituloCustom = null, descCustom = null) {
     const DIAS_NOMBRE = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
     const DIAS_LABORALES = [1, 2, 3, 4, 5]; // lun–vie
     const CAT_COLOR = {
@@ -631,9 +651,9 @@ function renderVistaDias(hoy) {
         mapaEventos[key].push(item);
     };
 
-    FECHAS_CLAVE.forEach(ev => addToMap(ev.fecha, { ...ev, _tipo: 'evento' }));
+    fClave.forEach(ev => addToMap(ev.fecha, { ...ev, _tipo: 'evento' }));
 
-    PERIODOS_ESPECIALES.forEach(p => {
+    periodos.forEach(p => {
         if (!p.inicio) return;
         let cur = new Date(p.inicio + 'T00:00:00');
         const fin = new Date((p.fin || p.inicio) + 'T00:00:00');
@@ -643,7 +663,7 @@ function renderVistaDias(hoy) {
         }
     });
 
-    CUMPLEANOS.forEach(c => addToMap(c.fecha, { ...c, _tipo: 'cumple' }));
+    cumples.forEach(c => addToMap(c.fecha, { ...c, _tipo: 'cumple' }));
 
     // Renderizar por semanas del cronograma
     const bloques = cronogramaMap.map(sem => {
@@ -727,13 +747,172 @@ function renderVistaDias(hoy) {
           </div>`;
     }).join('');
 
+    const mainTitle = tituloCustom !== null ? tituloCustom : '🧪 Vista experimental — Por días';
+    const mainDesc = descCustom !== null ? descCustom : 'Los eventos se distribuyen por día dentro de cada semana.';
+
     return `
       <div style="margin-bottom:0.75rem;padding:0.6rem 0.9rem;background:#ede9fe;border-radius:10px;
            border:1px solid #c4b5fd;display:flex;align-items:center;gap:0.5rem;">
-        <span style="font-size:0.75rem;font-weight:700;color:#4c1d95;">🧪 Vista experimental — Por días</span>
-        <span style="font-size:0.72rem;color:#7c3aed;">Los eventos se distribuyen por día dentro de cada semana.</span>
+        <span style="font-size:0.75rem;font-weight:700;color:#4c1d95;">${mainTitle}</span>
+        <span style="font-size:0.72rem;color:#7c3aed;">${mainDesc}</span>
       </div>
       ${bloques}`;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   ICLOUD INTEGRATION
+══════════════════════════════════════════════════════════════════ */
+let cacheIcloud = null;
+
+// Función encargada de descargar, filtrar e inyectar iCloud en los arreglos globales (Fusión Transparente)
+async function cargarICloudGlobal() {
+    let fetchUrl = "data/icloud.ics";
+    if (window.location.protocol !== 'file:') {
+        fetchUrl += "?t=" + new Date().getTime();
+    }
+    
+    // En el portal alumno/padre el js se llama desde ./pec/js/ (así que data/ está un nivel arriba si no corrige)
+    // Para asegurar que funcione en todos, resolvemos la url relativa
+    const pathPrefix = window.location.pathname.includes('/pec/') ? "" : "../pec/";
+    const response = await fetch(pathPrefix + fetchUrl);
+    
+    if (!response.ok) throw new Error("Aún no se ha descargado el archivo puente de iCloud.");
+    const icsText = await response.text();
+    cacheIcloud = parseICS(icsText);
+
+    // FASE 2: Detectar el tipo de usuario / portal actual
+    let urlPath = window.location.pathname.toLowerCase();
+    let rolActual = 'padres'; // Visitante genérico
+
+    if (urlPath.includes('/pec/')) {
+        rolActual = 'docentes';
+    } else if (urlPath.includes('alumno.html')) {
+        rolActual = 'alumnos';
+    } else if (urlPath.includes('padre.html')) {
+        rolActual = 'padres';
+    }
+
+    cacheIcloud.forEach(ev => {
+        let reqAuds = ev.audiencias || ['todos'];
+        let autorizado = reqAuds.includes('todos') || reqAuds.includes(rolActual);
+
+        if (autorizado) {
+            // Clasificación por Tipo de Evento (Metadatos)
+            if (ev.tipo === 'periodo') {
+                // Ajuste de offset de fecha fin (iCloud End es exclusivo)
+                let finAjustada = ev.end;
+                if (ev.end) {
+                    let d = new Date(ev.end + 'T00:00:00');
+                    d.setDate(d.getDate() - 1);
+                    finAjustada = d.toISOString().split('T')[0];
+                }
+
+                PERIODOS_ESPECIALES.push({
+                    titulo: ev.summary,
+                    inicio: ev.start,
+                    fin: finAjustada || ev.start,
+                    categoria: ev.categoria || "periodo",
+                    tipo: "periodo"
+                });
+            } else if (ev.tipo === 'vacaciones') {
+                PERIODOS_ESPECIALES.push({
+                    titulo: ev.summary,
+                    inicio: ev.start,
+                    fin: ev.end || ev.start,
+                    categoria: ev.categoria || "periodo",
+                    tipo: "vacaciones",
+                    esVacaciones: true
+                });
+            } else {
+                FECHAS_CLAVE.push({
+                    id: ev.uid || Math.random().toString(36).substr(2, 9),
+                    titulo: ev.summary,
+                    fecha: ev.start,
+                    hora: "",
+                    categoria: ev.categoria || "academico", // defecto si no existe
+                    descripcion: ev.description || "",
+                    visiblePortalAlumno: true // Dado que ya pasó la prueba de audiencia, es siempre visible
+                });
+            }
+        }
+    });
+
+    // Re-ordenar arreglos tras la inyección
+    FECHAS_CLAVE.sort((a,b) => a.fecha.localeCompare(b.fecha));
+}
+
+async function renderVistaIcloud(hoy) {
+    // Si llegamos hasta aquí, la fusión transparente ya inyectó los eventos autorizados a FECHAS_CLAVE.
+    // Por lo tanto, iCloud es en realidad una vista directa de todo lo autorizado combinado (Sheets+ICloud).
+    return renderVistaDias(
+        hoy,
+        FECHAS_CLAVE,
+        PERIODOS_ESPECIALES, 
+        CUMPLEANOS,
+        '☁️ iCloud — Mis Actividades',
+        'Fusión de calendario institucional y eventos iCloud'
+    );
+}
+
+function parseICS(icsContent) {
+    const lines = icsContent.split(/\r\n|\n|\r/);
+    const events = [];
+    let currentEvent = null;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+
+        if (line.startsWith('BEGIN:VEVENT')) {
+            currentEvent = {};
+        } else if (line.startsWith('END:VEVENT')) {
+            if (currentEvent) {
+                // FASE 1: Extraer audiencia antes de guardar el evento
+                if (currentEvent.description) {
+                    // Restauramos los saltos de línea reales para que el Regex funcione de manera limitada por línea
+                    const rawDesc = currentEvent.description;
+                    const matchAud = rawDesc.match(/audiencia:\s*([a-záéíóúñ,\s]+)(?=\s*(categoria:|tipo:|$))/i);
+                    const matchCat = rawDesc.match(/categoria:\s*([a-záéíóúñ]+)/i);
+                    const matchTipo = rawDesc.match(/tipo:\s*([a-záéíóúñ]+)/i);
+
+                    currentEvent.audiencias = matchAud ? matchAud[1].toLowerCase().split(',').map(s => s.trim()) : ['todos'];
+                    currentEvent.categoria = matchCat ? matchCat[1].toLowerCase() : 'academico'; // fallback default
+                    currentEvent.tipo = matchTipo ? matchTipo[1].toLowerCase() : 'evento';
+                } else {
+                    currentEvent.audiencias = ['todos'];
+                    currentEvent.categoria = 'academico';
+                    currentEvent.tipo = 'evento';
+                }
+                events.push(currentEvent);
+                currentEvent = null;
+            }
+        } else if (currentEvent) {
+            if (line.startsWith('SUMMARY:')) {
+                currentEvent.summary = line.substring(8).replace(/\\,/g, ',');
+            } else if (line.startsWith('DESCRIPTION:')) {
+                currentEvent.description = line.substring(12).replace(/\\n/g, ' ').replace(/\\,/g, ',');
+            } else if (line.startsWith('UID:')) {
+                currentEvent.uid = line.substring(4);
+            } else if (line.startsWith('DTSTART')) {
+                // Formato: DTSTART;TZID=America/Mexico_City:20260415T100000 o DTSTART;VALUE=DATE:20260415
+                let dateStr = line.split(':')[1];
+                if (dateStr && dateStr.length >= 8) {
+                    const y = dateStr.substring(0, 4);
+                    const m = dateStr.substring(4, 6);
+                    const d = dateStr.substring(6, 8);
+                    currentEvent.start = `${y}-${m}-${d}`;
+                }
+            } else if (line.startsWith('DTEND')) {
+                let dateStr = line.split(':')[1];
+                if (dateStr && dateStr.length >= 8) {
+                    const y = dateStr.substring(0, 4);
+                    const m = dateStr.substring(4, 6);
+                    const d = dateStr.substring(6, 8);
+                    currentEvent.end = `${y}-${m}-${d}`;
+                }
+            }
+        }
+    }
+    return events;
 }
 
 // Exponer para uso desde otras páginas
