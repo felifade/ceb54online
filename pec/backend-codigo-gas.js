@@ -13,6 +13,10 @@ const S_CONFIGURACION = "Configuracion";
 const S_USUARIOS = "Usuarios";
 const S_FEEDBACK = "Retroalimentacion"; // Nueva pestaña para evitar mezclar datos
 const S_BITACORA = "PEC_Bitacora";      // Bitácora de ediciones posteriores
+// Hojas del módulo Presentación/Cierre PEC
+const S_PEC_CIERRE_GENERAL  = "PEC_CIERRE_GENERAL";
+const S_PEC_CIERRE_MATERIAS = "PEC_CIERRE_MATERIAS";
+const S_PEC_CIERRE_INSUMOS  = "PEC_CIERRE_INSUMOS";
 
 // --- FUNCIONES DE NORMALIZACIÓN ---
 function normalizeText(val) {
@@ -42,6 +46,10 @@ function doGet(e) {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
 
+    // Módulo Presentación / Cierre PEC (alimentado desde Sheets)
+    if (e.parameter.action === "getPecCierre") {
+      return doGetPecCierre(ss);
+    }
     // Acción especial: calificaciones por parcial
     if (e.parameter.action === "getCalificaciones") {
       return doGetCalificaciones(e, ss);
@@ -540,6 +548,94 @@ function doPost(e) {
 
   } catch (error) {
     return ContentService.createTextOutput(JSON.stringify({ status: "error", message: error.toString() }));
+  }
+}
+
+// === PRESENTACIÓN / CIERRE PEC (datos desde Sheets) ===
+function doGetPecCierre(ss) {
+  try {
+    const CICLO  = "2025-2026";
+    const SEMS   = ["2", "4", "6"];
+    const TURNOS = ["matutino", "vespertino"];
+
+    function readRows(name) {
+      const sh = getSheet(ss, name);
+      if (!sh) return [];
+      const rows = sh.getDataRange().getValues();
+      rows.shift(); // omitir encabezado
+      return rows.filter(r => r.some(c => String(c).trim() !== ""));
+    }
+
+    const genRows = readRows(S_PEC_CIERRE_GENERAL);
+    const matRows = readRows(S_PEC_CIERRE_MATERIAS);
+    const insRows = readRows(S_PEC_CIERRE_INSUMOS);
+
+    const semestres = {};
+    SEMS.forEach(function(sem) {
+      semestres[sem] = {};
+      TURNOS.forEach(function(turno) {
+        const gen = genRows.find(function(r) {
+          return String(r[0]).trim() === CICLO &&
+                 String(r[1]).trim() === sem   &&
+                 normalizeText(r[2]) === turno &&
+                 normalizeText(r[9]) === "si";
+        });
+
+        const mats = matRows
+          .filter(function(r) {
+            return String(r[0]).trim() === CICLO &&
+                   String(r[1]).trim() === sem   &&
+                   normalizeText(r[2]) === turno &&
+                   normalizeText(r[7]) === "si";
+          })
+          .sort(function(a, b) { return Number(a[6]) - Number(b[6]); })
+          .map(function(r) {
+            return { nombre: String(r[3] || ""), aporte: String(r[4] || ""), color: String(r[5] || "#059669") };
+          });
+
+        const insumos = insRows
+          .filter(function(r) {
+            return String(r[0]).trim() === CICLO &&
+                   String(r[1]).trim() === sem   &&
+                   normalizeText(r[2]) === turno &&
+                   normalizeText(r[7]) === "si";
+          })
+          .sort(function(a, b) { return Number(a[6]) - Number(b[6]); })
+          .map(function(r) {
+            var obs = String(r[5] || "").trim();
+            return obs ? String(r[3] || "") + " (" + obs + ")" : String(r[3] || "");
+          });
+
+        semestres[sem][turno] = gen ? {
+          fecha:         String(gen[3] || "Por definir"),
+          horario:       String(gen[4] || "—"),
+          lugar:         String(gen[5] || "Instalaciones CEB 5/4"),
+          descripcion:   String(gen[7] || ""),
+          observaciones: String(gen[8] || ""),
+          materias:      mats,
+          materiales:    insumos,
+        } : null;
+      });
+    });
+
+    // Evento general: primera fila matutino/vespertino para horarios del pill-bar
+    var matRow = genRows.find(function(r) { return String(r[0]).trim() === CICLO && normalizeText(r[2]) === "matutino" && normalizeText(r[9]) === "si"; });
+    var vesRow = genRows.find(function(r) { return String(r[0]).trim() === CICLO && normalizeText(r[2]) === "vespertino" && normalizeText(r[9]) === "si"; });
+    var evento = {
+      fecha:       matRow ? String(matRow[3] || "Por definir") : "Por definir",
+      lugar:       matRow ? String(matRow[5] || "Instalaciones CEB 5/4") : "Instalaciones CEB 5/4",
+      horario_mat: matRow ? String(matRow[4] || "08:00 – 12:00 hrs") : "08:00 – 12:00 hrs",
+      horario_ves: vesRow ? String(vesRow[4] || "13:00 – 17:00 hrs") : "13:00 – 17:00 hrs",
+    };
+
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: "success", evento: evento, semestres: semestres }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch(err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
 }
 

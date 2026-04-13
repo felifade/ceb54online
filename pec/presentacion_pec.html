@@ -489,192 +489,13 @@
 
 <script>
 /* ═══════════════════════════════════════════════════════════════════════════
-   DATOS GENERALES DEL EVENTO
-   Editar aquí fecha, lugar y horarios globales (se muestran en el pill bar).
+   API — misma URL que el resto del portal PEC
 ═══════════════════════════════════════════════════════════════════════════ */
-const EVENTO_INFO = {
-    fecha:      "Por definir",          // Ej: "12 de junio de 2026"
-    lugar:      "Instalaciones CEB 5/4",
-    horario_mat: "8:00 – 12:00 hrs",
-    horario_ves: "13:00 – 17:00 hrs",
-};
+const PEC_API_URL = "https://script.google.com/macros/s/AKfycbz4q9VlhAvvVJ1XYOwqNTJ9eMkVRm3HgoyFJNpEQaPJsDdK1JcfhbTX1CRfDg38x79fsA/exec";
 
+/* ── DATOS: se cargan desde Google Sheets (ver backend getPecCierre) ─────── */
 /* ═══════════════════════════════════════════════════════════════════════════
-   DATOS DE PRESENTACIÓN POR SEMESTRE Y TURNO
-   ─────────────────────────────────────────────────────────────────────────
-   Estructura por turno (matutino / vespertino):
-     fecha        → fecha específica si difiere del evento general
-     horario      → horario del turno
-     lugar        → lugar si difiere del evento general
-     descripcion  → descripción breve del evento para ese turno
-     materiales   → arreglo de strings con los materiales a llevar
-     materias     → arreglo de { nombre, aporte, color }
-                    color: hex para el punto de color (opcional, "#059669" por defecto)
-     observaciones → texto adicional (dejar "" si no aplica)
-═══════════════════════════════════════════════════════════════════════════ */
-const PRESENTACION_PEC = {
-
-    /* ── 2DO SEMESTRE ─────────────────────────────────────────────────────── */
-    "2": {
-        matutino: {
-            fecha:        "Por definir",
-            horario:      "8:00 – 12:00 hrs",
-            lugar:        "Instalaciones CEB 5/4",
-            descripcion:  "Los equipos del Turno Matutino de 2do Semestre presentarán sus proyectos comunitarios ante el jurado docente y la comunidad escolar. Cada equipo dispondrá de 10 a 15 minutos para exponer su proyecto, responder preguntas y mostrar sus evidencias.",
-            materiales: [
-                "Documento impreso del proyecto (portada e índice)",
-                "Presentación digital en USB o enlace a nube",
-                "Portafolio de evidencias (físico o digital)",
-                "Material de apoyo: cartel, maqueta o prototipo",
-                "Uniforme de gala obligatorio",
-                "Credencial escolar vigente",
-            ],
-            materias: [
-                { nombre: "Matemáticas",            aporte: "Análisis cuantitativo y estadístico del proyecto",    color: "#059669" },
-                { nombre: "Español / Comunicación", aporte: "Redacción del documento y exposición oral",           color: "#1d4ed8" },
-                { nombre: "Ciencias Sociales",      aporte: "Diagnóstico comunitario y contexto social",           color: "#7c3aed" },
-                { nombre: "Ciencias Naturales",     aporte: "Fundamentos científicos y metodología aplicada",      color: "#d97706" },
-                { nombre: "Cultura Digital",        aporte: "Recursos digitales, presentación y multimedia",       color: "#be185d" },
-                { nombre: "Tutoría",                aporte: "Acompañamiento y convivencia del equipo",             color: "#0e7490" },
-            ],
-            observaciones: "",
-        },
-        vespertino: {
-            fecha:        "Por definir",
-            horario:      "13:00 – 17:00 hrs",
-            lugar:        "Instalaciones CEB 5/4",
-            descripcion:  "Los equipos del Turno Vespertino de 2do Semestre presentarán sus proyectos comunitarios. El ingreso al evento es 15 minutos antes del inicio de cada turno. Se requiere presentación del carnet o credencial escolar.",
-            materiales: [
-                "Documento impreso del proyecto (portada e índice)",
-                "Presentación digital en USB o enlace a nube",
-                "Portafolio de evidencias (físico o digital)",
-                "Material de apoyo: cartel, maqueta o prototipo",
-                "Uniforme de gala obligatorio",
-                "Credencial escolar vigente",
-            ],
-            materias: [
-                { nombre: "Matemáticas",            aporte: "Análisis cuantitativo y estadístico del proyecto",    color: "#059669" },
-                { nombre: "Español / Comunicación", aporte: "Redacción del documento y exposición oral",           color: "#1d4ed8" },
-                { nombre: "Ciencias Sociales",      aporte: "Diagnóstico comunitario y contexto social",           color: "#7c3aed" },
-                { nombre: "Ciencias Naturales",     aporte: "Fundamentos científicos y metodología aplicada",      color: "#d97706" },
-                { nombre: "Cultura Digital",        aporte: "Recursos digitales, presentación y multimedia",       color: "#be185d" },
-                { nombre: "Tutoría",                aporte: "Acompañamiento y convivencia del equipo",             color: "#0e7490" },
-            ],
-            observaciones: "",
-        },
-    },
-
-    /* ── 4TO SEMESTRE ─────────────────────────────────────────────────────── */
-    "4": {
-        matutino: {
-            fecha:        "Por definir",
-            horario:      "8:00 – 12:00 hrs",
-            lugar:        "Instalaciones CEB 5/4",
-            descripcion:  "Los equipos del Turno Matutino de 4to Semestre presentarán proyectos con mayor profundidad y alcance comunitario. La presentación refleja la consolidación del aprendizaje a lo largo del ciclo.",
-            materiales: [
-                "Documento impreso del proyecto (portada e índice)",
-                "Presentación digital en USB o enlace a nube",
-                "Portafolio de evidencias (físico o digital)",
-                "Material de apoyo: cartel, maqueta o prototipo",
-                "Uniforme de gala obligatorio",
-                "Credencial escolar vigente",
-            ],
-            materias: [
-                { nombre: "Matemáticas",            aporte: "Análisis cuantitativo y estadístico del proyecto",    color: "#059669" },
-                { nombre: "Español / Comunicación", aporte: "Redacción del documento y exposición oral",           color: "#1d4ed8" },
-                { nombre: "Ciencias Sociales",      aporte: "Diagnóstico comunitario y contexto social",           color: "#7c3aed" },
-                { nombre: "Ciencias Naturales",     aporte: "Fundamentos científicos y metodología aplicada",      color: "#d97706" },
-                { nombre: "Cultura Digital II",     aporte: "Recursos digitales, presentación y multimedia",       color: "#be185d" },
-                { nombre: "Tutoría",                aporte: "Acompañamiento y convivencia del equipo",             color: "#0e7490" },
-                { nombre: "Inglés",                 aporte: "Vocabulario técnico y comprensión de fuentes",        color: "#65a30d" },
-                { nombre: "Filosofía / Ética",      aporte: "Reflexión ética sobre el impacto comunitario",        color: "#9333ea" },
-            ],
-            observaciones: "",
-        },
-        vespertino: {
-            fecha:        "Por definir",
-            horario:      "13:00 – 17:00 hrs",
-            lugar:        "Instalaciones CEB 5/4",
-            descripcion:  "Los equipos del Turno Vespertino de 4to Semestre presentarán proyectos consolidados que muestran el crecimiento académico y el impacto comunitario generado durante el ciclo escolar.",
-            materiales: [
-                "Documento impreso del proyecto (portada e índice)",
-                "Presentación digital en USB o enlace a nube",
-                "Portafolio de evidencias (físico o digital)",
-                "Material de apoyo: cartel, maqueta o prototipo",
-                "Uniforme de gala obligatorio",
-                "Credencial escolar vigente",
-            ],
-            materias: [
-                { nombre: "Matemáticas",            aporte: "Análisis cuantitativo y estadístico del proyecto",    color: "#059669" },
-                { nombre: "Español / Comunicación", aporte: "Redacción del documento y exposición oral",           color: "#1d4ed8" },
-                { nombre: "Ciencias Sociales",      aporte: "Diagnóstico comunitario y contexto social",           color: "#7c3aed" },
-                { nombre: "Ciencias Naturales",     aporte: "Fundamentos científicos y metodología aplicada",      color: "#d97706" },
-                { nombre: "Cultura Digital II",     aporte: "Recursos digitales, presentación y multimedia",       color: "#be185d" },
-                { nombre: "Tutoría",                aporte: "Acompañamiento y convivencia del equipo",             color: "#0e7490" },
-                { nombre: "Inglés",                 aporte: "Vocabulario técnico y comprensión de fuentes",        color: "#65a30d" },
-                { nombre: "Filosofía / Ética",      aporte: "Reflexión ética sobre el impacto comunitario",        color: "#9333ea" },
-            ],
-            observaciones: "",
-        },
-    },
-
-    /* ── 6TO SEMESTRE ─────────────────────────────────────────────────────── */
-    "6": {
-        matutino: {
-            fecha:        "Por definir",
-            horario:      "8:00 – 12:00 hrs",
-            lugar:        "Instalaciones CEB 5/4",
-            descripcion:  "Los equipos del Turno Matutino de 6to Semestre presentan el proyecto de cierre de su trayectoria académica. Es la culminación del PEC como evidencia del aprendizaje integral a lo largo del bachillerato.",
-            materiales: [
-                "Documento completo del proyecto (original y copia)",
-                "Presentación digital en USB o enlace a nube",
-                "Portafolio de evidencias completo (3 semestres)",
-                "Material de apoyo: cartel, maqueta o prototipo",
-                "Uniforme de gala obligatorio",
-                "Credencial escolar vigente",
-            ],
-            materias: [
-                { nombre: "Matemáticas",            aporte: "Análisis cuantitativo y estadístico del proyecto",    color: "#059669" },
-                { nombre: "Español / Comunicación", aporte: "Redacción del documento y exposición oral",           color: "#1d4ed8" },
-                { nombre: "Ciencias Sociales",      aporte: "Diagnóstico comunitario y contexto social",           color: "#7c3aed" },
-                { nombre: "Ciencias Naturales",     aporte: "Fundamentos científicos y metodología aplicada",      color: "#d97706" },
-                { nombre: "Cultura Digital III",    aporte: "Recursos digitales, presentación y multimedia",       color: "#be185d" },
-                { nombre: "Tutoría",                aporte: "Acompañamiento integral del equipo",                  color: "#0e7490" },
-                { nombre: "Inglés",                 aporte: "Vocabulario técnico y comprensión de fuentes",        color: "#65a30d" },
-                { nombre: "Filosofía / Ética",      aporte: "Reflexión ética sobre el impacto comunitario",        color: "#9333ea" },
-            ],
-            observaciones: "Evento de cierre especial para alumnos de 6to Semestre. Se entregará reconocimiento institucional a todos los equipos participantes.",
-        },
-        vespertino: {
-            fecha:        "Por definir",
-            horario:      "13:00 – 17:00 hrs",
-            lugar:        "Instalaciones CEB 5/4",
-            descripcion:  "Los equipos del Turno Vespertino de 6to Semestre presentan el proyecto de cierre de su trayectoria. La presentación incluye una reflexión sobre el impacto comunitario generado a lo largo del bachillerato.",
-            materiales: [
-                "Documento completo del proyecto (original y copia)",
-                "Presentación digital en USB o enlace a nube",
-                "Portafolio de evidencias completo (3 semestres)",
-                "Material de apoyo: cartel, maqueta o prototipo",
-                "Uniforme de gala obligatorio",
-                "Credencial escolar vigente",
-            ],
-            materias: [
-                { nombre: "Matemáticas",            aporte: "Análisis cuantitativo y estadístico del proyecto",    color: "#059669" },
-                { nombre: "Español / Comunicación", aporte: "Redacción del documento y exposición oral",           color: "#1d4ed8" },
-                { nombre: "Ciencias Sociales",      aporte: "Diagnóstico comunitario y contexto social",           color: "#7c3aed" },
-                { nombre: "Ciencias Naturales",     aporte: "Fundamentos científicos y metodología aplicada",      color: "#d97706" },
-                { nombre: "Cultura Digital III",    aporte: "Recursos digitales, presentación y multimedia",       color: "#be185d" },
-                { nombre: "Tutoría",                aporte: "Acompañamiento integral del equipo",                  color: "#0e7490" },
-                { nombre: "Inglés",                 aporte: "Vocabulario técnico y comprensión de fuentes",        color: "#65a30d" },
-                { nombre: "Filosofía / Ética",      aporte: "Reflexión ética sobre el impacto comunitario",        color: "#9333ea" },
-            ],
-            observaciones: "Evento de cierre especial para alumnos de 6to Semestre. Se entregará reconocimiento institucional a todos los equipos participantes.",
-        },
-    },
-};
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   MOTOR DE RENDER — no es necesario editar desde aquí abajo
+   MOTOR DE RENDER — no tocar
 ═══════════════════════════════════════════════════════════════════════════ */
 
 // Construye la tarjeta HTML de un turno completo
@@ -769,20 +590,7 @@ function buildTurnoCard(sem, turno, data) {
         </div>`;
 }
 
-// Renderiza el pane completo de un semestre (matutino + vespertino)
-function renderSemestre(sem) {
-    const pane = document.getElementById('pane-' + sem);
-    const data = PRESENTACION_PEC[sem];
-    if (!pane || !data) return;
-
-    pane.innerHTML = `
-        <div class="project-grid">
-            ${buildTurnoCard(sem, 'matutino',  data.matutino)}
-            ${buildTurnoCard(sem, 'vespertino', data.vespertino)}
-        </div>`;
-}
-
-// Cambio de semestre — mismo patrón que info_proyecto.html
+// Cambio de semestre — igual que antes
 function switchSemester(sem, btn) {
     document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -791,15 +599,63 @@ function switchSemester(sem, btn) {
     lucide.createIcons();
 }
 
-// Poblar schedule bar con EVENTO_INFO
-document.getElementById('ev-fecha').textContent = EVENTO_INFO.fecha;
-document.getElementById('ev-lugar').textContent = EVENTO_INFO.lugar;
-document.getElementById('ev-mat').textContent   = EVENTO_INFO.horario_mat;
-document.getElementById('ev-ves').textContent   = EVENTO_INFO.horario_ves;
+// Mensaje de pendiente (fallback si no hay datos en Sheets)
+function paneVacio(pane) {
+    pane.innerHTML = `
+        <div style="padding:3rem;text-align:center;color:#94a3b8;font-style:italic;font-size:0.9rem;">
+            Información de presentación pendiente por cargar.
+        </div>`;
+}
 
-// Render inicial de los 3 semestres
-['2', '4', '6'].forEach(renderSemestre);
-lucide.createIcons();
+// ── INIT ASYNC — lee desde Sheets ──────────────────────────────────────────
+(async function init() {
+    // Estado de carga inicial
+    ['2', '4', '6'].forEach(function(sem) {
+        var p = document.getElementById('pane-' + sem);
+        if (p) p.innerHTML = '<div style="padding:2rem;text-align:center;color:#94a3b8;font-size:0.85rem;">Cargando...</div>';
+    });
+
+    try {
+        var res  = await fetch(PEC_API_URL + '?action=getPecCierre&_t=' + Date.now(), { method: 'GET', redirect: 'follow' });
+        var data = await res.json();
+
+        if (data.status !== 'success') throw new Error(data.message || 'Error al cargar datos');
+
+        // Pill bar
+        var ev = data.evento || {};
+        document.getElementById('ev-fecha').textContent = ev.fecha       || 'Por definir';
+        document.getElementById('ev-lugar').textContent = ev.lugar       || '—';
+        document.getElementById('ev-mat').textContent   = ev.horario_mat || '—';
+        document.getElementById('ev-ves').textContent   = ev.horario_ves || '—';
+
+        // Render de semestres
+        ['2', '4', '6'].forEach(function(sem) {
+            var pane    = document.getElementById('pane-' + sem);
+            if (!pane) return;
+            var semData = data.semestres && data.semestres[sem];
+            if (!semData) { paneVacio(pane); return; }
+
+            var mat = semData.matutino  || {};
+            var ves = semData.vespertino || {};
+            var tieneContenido = (mat.fecha || mat.descripcion || ves.fecha || ves.descripcion);
+            if (!tieneContenido) { paneVacio(pane); return; }
+
+            pane.innerHTML = '<div class="project-grid">' +
+                buildTurnoCard(sem, 'matutino',   mat) +
+                buildTurnoCard(sem, 'vespertino',  ves) +
+            '</div>';
+        });
+
+        lucide.createIcons();
+
+    } catch(err) {
+        console.error('PEC Cierre error:', err);
+        ['2', '4', '6'].forEach(function(sem) {
+            var p = document.getElementById('pane-' + sem);
+            if (p) paneVacio(p);
+        });
+    }
+})();
 </script>
 </body>
 </html>
