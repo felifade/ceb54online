@@ -352,6 +352,16 @@
                 font-size: 2rem;
             }
         }
+
+        /* --- PRESENTACIÓN FINAL --- */
+        .presentacion-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        @media (max-width: 768px) {
+            .presentacion-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 
@@ -423,6 +433,26 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Presentación Final: 2do Semestre -->
+            <div id="presentacion-section-2" style="display:none; margin-top:3rem;">
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:2rem; padding-bottom:1rem; border-bottom:2px solid #e2e8f0;">
+                    <div style="width:40px;height:40px;background:#fef3c7;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i data-lucide="award" style="width:22px;color:#d97706;"></i>
+                    </div>
+                    <h3 style="font-family:'Outfit',sans-serif; font-size:1.5rem; color:var(--primary-dark); margin:0;">Presentación Final del PEC</h3>
+                </div>
+                <div class="presentacion-grid">
+                    <div id="card-presentacion-2m" style="display:none; background:white; border:1px solid #e2e8f0; border-radius:20px; padding:1.5rem; box-shadow:var(--shadow);">
+                        <div class="shift-badge matutino-badge" style="margin-bottom:1rem;"><i data-lucide="sun"></i> Matutino</div>
+                        <iframe id="iframe-presentacion-2m" src="" style="width:100%; height:550px; border:none; border-radius:12px;" allowfullscreen></iframe>
+                    </div>
+                    <div id="card-presentacion-2v" style="display:none; background:white; border:1px solid #e2e8f0; border-radius:20px; padding:1.5rem; box-shadow:var(--shadow);">
+                        <div class="shift-badge vespertino-badge" style="margin-bottom:1rem;"><i data-lucide="moon"></i> Vespertino</div>
+                        <iframe id="iframe-presentacion-2v" src="" style="width:100%; height:550px; border:none; border-radius:12px;" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- SEMESTRE 4 -->
@@ -455,6 +485,26 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Presentación Final: 4to Semestre -->
+            <div id="presentacion-section-4" style="display:none; margin-top:3rem;">
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:2rem; padding-bottom:1rem; border-bottom:2px solid #e2e8f0;">
+                    <div style="width:40px;height:40px;background:#fef3c7;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i data-lucide="award" style="width:22px;color:#d97706;"></i>
+                    </div>
+                    <h3 style="font-family:'Outfit',sans-serif; font-size:1.5rem; color:var(--primary-dark); margin:0;">Presentación Final del PEC</h3>
+                </div>
+                <div class="presentacion-grid">
+                    <div id="card-presentacion-4m" style="display:none; background:white; border:1px solid #e2e8f0; border-radius:20px; padding:1.5rem; box-shadow:var(--shadow);">
+                        <div class="shift-badge matutino-badge" style="margin-bottom:1rem;"><i data-lucide="sun"></i> Matutino</div>
+                        <iframe id="iframe-presentacion-4m" src="" style="width:100%; height:550px; border:none; border-radius:12px;" allowfullscreen></iframe>
+                    </div>
+                    <div id="card-presentacion-4v" style="display:none; background:white; border:1px solid #e2e8f0; border-radius:20px; padding:1.5rem; box-shadow:var(--shadow);">
+                        <div class="shift-badge vespertino-badge" style="margin-bottom:1rem;"><i data-lucide="moon"></i> Vespertino</div>
+                        <iframe id="iframe-presentacion-4v" src="" style="width:100%; height:550px; border:none; border-radius:12px;" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- SEMESTRE 6 (UNIFICADO) -->
@@ -472,6 +522,26 @@
                         <div class="teachers-list" id="list_6"
                             style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); max-height: 400px;">
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Presentación Final: 6to Semestre -->
+            <div id="presentacion-section-6" style="display:none; margin-top:3rem;">
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:2rem; padding-bottom:1rem; border-bottom:2px solid #e2e8f0;">
+                    <div style="width:40px;height:40px;background:#fef3c7;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i data-lucide="award" style="width:22px;color:#d97706;"></i>
+                    </div>
+                    <h3 style="font-family:'Outfit',sans-serif; font-size:1.5rem; color:var(--primary-dark); margin:0;">Presentación Final del PEC</h3>
+                </div>
+                <div class="presentacion-grid">
+                    <div id="card-presentacion-6m" style="display:none; background:white; border:1px solid #e2e8f0; border-radius:20px; padding:1.5rem; box-shadow:var(--shadow);">
+                        <div class="shift-badge matutino-badge" style="margin-bottom:1rem;"><i data-lucide="sun"></i> Matutino</div>
+                        <iframe id="iframe-presentacion-6m" src="" style="width:100%; height:550px; border:none; border-radius:12px;" allowfullscreen></iframe>
+                    </div>
+                    <div id="card-presentacion-6v" style="display:none; background:white; border:1px solid #e2e8f0; border-radius:20px; padding:1.5rem; box-shadow:var(--shadow);">
+                        <div class="shift-badge vespertino-badge" style="margin-bottom:1rem;"><i data-lucide="moon"></i> Vespertino</div>
+                        <iframe id="iframe-presentacion-6v" src="" style="width:100%; height:550px; border:none; border-radius:12px;" allowfullscreen></iframe>
                     </div>
                 </div>
             </div>

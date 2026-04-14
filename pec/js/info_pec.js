@@ -128,7 +128,34 @@ document.addEventListener('DOMContentLoaded', async () => {
             }).join('');
         });
 
-        // 4. Inicializar Iconos
+        // 4. Presentaciones Finales (Google Docs iframes)
+        const presentacionSems = { '2': ['2m', '2v'], '4': ['4m', '4v'], '6': ['6m', '6v'] };
+        Object.entries(presentacionSems).forEach(function([sem, keys]) {
+            var anyVisible = false;
+            keys.forEach(function(key) {
+                var url = config['pec_presentacion_' + key + '_url'];
+                var card = document.getElementById('card-presentacion-' + key);
+                var iframe = document.getElementById('iframe-presentacion-' + key);
+                if (url && card && iframe) {
+                    // Normalize to /preview URL
+                    var previewUrl = url.trim()
+                        .replace(/\/edit(\?[^#]*)?(\#.*)?$/, '/preview')
+                        .replace(/\/pub(\?[^#]*)?(\#.*)?$/, '/preview');
+                    if (!previewUrl.includes('/preview')) {
+                        previewUrl = previewUrl.replace(/\/$/, '') + '/preview';
+                    }
+                    iframe.src = previewUrl;
+                    card.style.display = '';
+                    anyVisible = true;
+                }
+            });
+            if (anyVisible) {
+                var section = document.getElementById('presentacion-section-' + sem);
+                if (section) section.style.display = '';
+            }
+        });
+
+        // 5. Inicializar Iconos
         lucide.createIcons();
 
     } catch (error) {
