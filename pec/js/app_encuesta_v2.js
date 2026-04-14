@@ -3,6 +3,34 @@
 // Enfocada en Estudiantes (Evaluación Docente y Directiva)
 
 (function() {
+    // ── DETECCIÓN INMEDIATA DE ACCESO PORTAL (síncrono — DOM ya disponible) ─────
+    // Los scripts están al final del body, así que el DOM ya está listo aquí.
+    // Ocultar step-login antes de cualquier operación asíncrona evita el flash visual.
+    (function() {
+        var _p = new URLSearchParams(window.location.search);
+        if (_p.get('nombre') && _p.get('grupo')) {
+            var loginEl = document.getElementById('step-login');
+            if (loginEl) { loginEl.style.display = 'none'; loginEl.classList.remove('active'); }
+            var loaderEl = document.getElementById('student-loader');
+            if (loaderEl) loaderEl.style.display = 'block';
+        }
+    })();
+
+    // ── HELPERS DE SESSIONSTORA­GE — bloqueo local de evaluaciones ya enviadas ──
+    // Clave única por alumno + docente + parcial dentro de la sesión del navegador.
+    // Complementa feedbackHistory de GAS cuando Sheets aún no refleja el guardado.
+    function evalKey(alumno, docente, parcial) {
+        return 'eval_done_' + [alumno, docente, parcial]
+            .map(function(s) { return String(s).toLowerCase().replace(/\W+/g, '_'); })
+            .join('|');
+    }
+    function isEvalDoneLocally(alumno, docente, parcial) {
+        try { return !!sessionStorage.getItem(evalKey(alumno, docente, parcial)); } catch(e) { return false; }
+    }
+    function markEvalDoneLocally(alumno, docente, parcial) {
+        try { sessionStorage.setItem(evalKey(alumno, docente, parcial), '1'); } catch(e) {}
+    }
+
     // Estado Global de la Sesión de Encuesta
     let allData = null;
     let selectedStudent = null;
@@ -53,13 +81,25 @@
             // ── AUTO-LOGIN desde el Portal Estudiantil ──────────────
             if (isPortalAccess) {
                 selectedStudent = { nombre: pNombre, grupo: pGrupo };
-                // Mostrar chip de identidad
+
+                // Chip de identidad en step-choice (si el alumno llega ahí)
                 const loginInfo = document.getElementById('portal-student-info');
                 if (loginInfo) {
                     loginInfo.style.display = 'flex';
                     document.getElementById('portal-student-name').textContent = pNombre;
                     document.getElementById('portal-student-group').textContent = `Grupo ${pGrupo}`;
                 }
+
+                // Banner de bienvenida en step-teachers (acceso directo sin pasar por choice)
+                const welcomeTeachers = document.getElementById('portal-welcome-teachers');
+                const welcomeName    = document.getElementById('teachers-student-name');
+                const welcomeGroup   = document.getElementById('teachers-student-group');
+                if (welcomeTeachers && welcomeName && welcomeGroup) {
+                    welcomeTeachers.style.display = 'flex';
+                    welcomeName.textContent  = pNombre;
+                    welcomeGroup.textContent = `Grupo ${pGrupo}`;
+                }
+
                 // Parámetro "ir" para ir directo a profesores o directivos
                 const ir = params.get("ir") || "";
                 if (ir === 'profesores') {
@@ -184,26 +224,15 @@
                 loadDirectors();
             }
         },
-        reset: async () => {
-             showLoader();
-             try {
-                 // Recargar datos (allData) para actualizar el historial de evaluados (feedbackHistory)
-                 allData = await api.fetchAllData();
-                 
-                 // Limpiar estado de la encuesta anterior
-                 selectedTeacher = null;
-                 ratings = { c1:0, c2:0, c3:0, c4:0 };
-                 const comments = document.getElementById('eval-comments');
-                 if(comments) comments.value = '';
-                 
-                 // Regresar a la pantalla de elección (Profesores vs Directivos)
-                 showStep('choice');
-             } catch(e) {
-                 console.error(e);
-                 alert("⚠️ Hubo un problema al actualizar el historial. Intenta de nuevo.");
-             } finally {
-                 hideLoader();
-             }
+        reset: () => {
+            // No re-fetch necesario: sessionStorage ya bloquea duplicados localmente
+            // y feedbackHistory en memoria fue actualizado al guardar.
+            // Sheets como fuente oficial se sincroniza en la próxima carga de página.
+            selectedTeacher = null;
+            ratings = { c1:0, c2:0, c3:0, c4:0 };
+            const comments = document.getElementById('eval-comments');
+            if(comments) comments.value = '';
+            showStep('choice');
         }
     };
 
@@ -276,11 +305,15 @@
         }
 
         items.forEach(m => {
-            const yaEvaluado = historial.some(h => 
-                String(h.parcial) === pActivo && 
-                h.alumno === selectedStudent.nombre && 
+            // Verificar en historial del servidor Y en sessionStorage local
+            // (sessionStorage cubre el caso donde GAS aún no reflejó el guardado)
+            const enHistorial = historial.some(h =>
+                String(h.parcial) === pActivo &&
+                h.alumno === selectedStudent.nombre &&
                 h.docente === m.docente
             );
+            const enSesion   = isEvalDoneLocally(selectedStudent.nombre, m.docente, pActivo);
+            const yaEvaluado = enHistorial || enSesion;
 
             const btn = document.createElement('div');
             btn.className = 'teacher-btn';
@@ -326,10 +359,22 @@
         selectedTeacher = m;
         document.getElementById('eval-teacher-name').textContent = m.docente;
         document.getElementById('eval-subject-name').textContent = m.materia;
-        
+
+        // Reiniciar formulario completo para el nuevo docente
         const container = document.getElementById('encuesta-form');
         container.innerHTML = '';
         ratings = { c1:0, c2:0, c3:0, c4:0 };
+
+        // Limpiar comentario
+        const comments = document.getElementById('eval-comments');
+        if (comments) comments.value = '';
+
+        // Restaurar botón de envío (puede venir bloqueado de una evaluación anterior)
+        const btnSub = document.getElementById('btn-submit-eval');
+        if (btnSub) {
+            btnSub.disabled = false;
+            btnSub.innerHTML = 'Enviar Evaluación <i data-feather="check" style="width: 18px; vertical-align: middle; margin-left: 5px;"></i>';
+        }
 
         const listaCriterios = m.isDirector ? criteriosDirectivos : criteriosDocentes;
 
@@ -400,13 +445,16 @@
     const btnSubmit = document.getElementById('btn-submit-eval');
     if(btnSubmit) {
         btnSubmit.onclick = async () => {
-            // Validación: Todas las estrellas deben estar seleccionadas
+            // Validación: todas las estrellas deben estar seleccionadas
             if(Object.values(ratings).some(v => v === 0)) {
                 alert("⚠️ Por favor selecciona una calificación con estrellas para todas las preguntas.");
                 return;
             }
 
-            showLoader();
+            // ── Bloquear botón INMEDIATAMENTE — evita doble envío ───────────────
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '⏳ Guardando...';
+
             const payload = {
                 action: 'eval-docente',
                 parcial: 'Semestral',
@@ -424,35 +472,52 @@
             window._log("DEBUG - Enviando Encuesta:", payload);
 
             try {
-                // Usamos la API configurada
-                // Nota: la API de GAS requiere POST con JSON
-                const response = await fetch(api.GOOGLE_SHEETS_API_URL || "https://script.google.com/macros/s/AKfycbz4q9VlhAvvVJ1XYOwqNTJ9eMkVRm3HgoyFJNpEQaPJsDdK1JcfhbTX1CRfDg38x79fsA/exec", {
+                // POST con Content-Type text/plain — requerido por GAS para CORS
+                const apiUrl = (typeof GOOGLE_SHEETS_API_URL !== 'undefined')
+                    ? GOOGLE_SHEETS_API_URL
+                    : "https://script.google.com/macros/s/AKfycbz4q9VlhAvvVJ1XYOwqNTJ9eMkVRm3HgoyFJNpEQaPJsDdK1JcfhbTX1CRfDg38x79fsA/exec";
+
+                const response = await fetch(apiUrl, {
                     method: 'POST',
-                    mode: 'no-cors', // Para evitar problemas de CORS en GAS
-                    body: JSON.stringify(payload)
+                    redirect: 'follow',
+                    body: JSON.stringify(payload),
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
                 });
-                
-                // Como usamos no-cors, no podemos leer el JSON de respuesta fácilmente,
-                // pero si no hay error de red, asumimos éxito.
-                // Actualización optimista: marcar como evaluado en el historial local
-                // para que el badge "LISTO" aparezca inmediatamente al volver a la lista.
+
+                const result = await response.json();
+                window._log("DEBUG - Respuesta guardado:", result);
+
+                if (result.status === 'duplicado') {
+                    // Ya estaba registrado — tratar como éxito silencioso
+                    window._log("INFO - Evaluación ya existente (duplicado controlado).");
+                } else if (result.status !== 'success') {
+                    throw new Error(result.message || 'Error al guardar la evaluación.');
+                }
+
+                // ── Bloqueo local inmediato en sessionStorage ────────────────────
+                // Independiente de la velocidad de Sheets — evita re-envíos en la sesión
+                markEvalDoneLocally(selectedStudent.nombre, selectedTeacher.docente, 'Semestral');
+
+                // Actualizar memoria en sesión para renderList() posterior
                 if (!allData.feedbackHistory) allData.feedbackHistory = [];
                 allData.feedbackHistory.push({
                     parcial: 'Semestral',
                     alumno: selectedStudent.nombre,
                     docente: selectedTeacher.docente
                 });
-                // Limpiar caché para que el próximo reset() traiga datos frescos del servidor
-                api.cache = null;
 
-                setTimeout(() => {
-                    showStep('success');
-                }, 1000);
+                // Invalidar caché del API
+                if (typeof api !== 'undefined') api.cache = null;
+
+                showStep('success');
+
             } catch (e) {
                 console.error(e);
-                alert("Hubo un problema al enviar tu encuesta: " + e.message);
-            } finally {
-                hideLoader();
+                alert("Hubo un problema al enviar tu evaluación: " + e.message);
+                // Restaurar botón para que pueda reintentar
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = 'Enviar Evaluación <i data-feather="check" style="width: 18px; vertical-align: middle; margin-left: 5px;"></i>';
+                feather.replace();
             }
         };
     }
