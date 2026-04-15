@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Fondo -->
+  <rect width="512" height="512" rx="96" fill="#3884C0"/>
+  <!-- Escudo / libro simplificado -->
+  <rect x="148" y="120" width="216" height="272" rx="20" fill="white" opacity="0.15"/>
+  <!-- Texto CEB -->
+  <text x="256" y="230" font-family="Arial,sans-serif" font-weight="800" font-size="100" fill="white" text-anchor="middle" dominant-baseline="middle">CEB</text>
+  <!-- Texto 5/4 -->
+  <text x="256" y="340" font-family="Arial,sans-serif" font-weight="700" font-size="72" fill="white" text-anchor="middle" dominant-baseline="middle">5/4</text>
+</svg>

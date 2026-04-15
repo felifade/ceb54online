@@ -4,6 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portal Alumno | CEB 5/4</title>
+  <!-- PWA -->
+  <link rel="manifest" href="/portal/manifest.json">
+  <meta name="theme-color" content="#3884C0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Portal CEB 5/4">
+  <link rel="apple-touch-icon" href="/portal/icons/icon-192.png">
+  <!-- /PWA -->
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="css/portal.css">
@@ -392,5 +400,6 @@ if (hGrupo) {
     observer.observe(hGrupo, { childList: true, characterData: true, subtree: true });
 }
 </script>
+<script src="js/pwa.js"></script>
 </body>
 </html>
