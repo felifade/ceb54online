@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Docente | CEB 5/4</title>
+  <meta name="description" content="Portal privado docente – Acceso rápido a Cultura Digital CEB 5/4">
+  <meta name="robots" content="noindex, nofollow">
+
+  <!-- PWA -->
+  <link rel="manifest" href="/portal-docente/manifest.json">
+  <meta name="theme-color" content="#111111">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Portal Docente">
+  <link rel="apple-touch-icon" href="/portal-docente/icons/icon-192.png">
+
+  <!-- Fuentes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     PIN OVERLAY
+══════════════════════════════════════════ -->
+<div id="pin-overlay">
+  <div class="pin-box" id="pin-box">
+    <span class="pin-icon">🔐</span>
+    <h2>Acceso Docente</h2>
+    <p>Ingresa tu PIN para continuar</p>
+
+    <div class="pin-dots" id="pin-dots">
+      <div class="pin-dot" id="dot-0"></div>
+      <div class="pin-dot" id="dot-1"></div>
+      <div class="pin-dot" id="dot-2"></div>
+      <div class="pin-dot" id="dot-3"></div>
+    </div>
+
+    <div class="pin-numpad">
+      <button class="pin-key" data-val="1">1</button>
+      <button class="pin-key" data-val="2">2</button>
+      <button class="pin-key" data-val="3">3</button>
+      <button class="pin-key" data-val="4">4</button>
+      <button class="pin-key" data-val="5">5</button>
+      <button class="pin-key" data-val="6">6</button>
+      <button class="pin-key" data-val="7">7</button>
+      <button class="pin-key" data-val="8">8</button>
+      <button class="pin-key" data-val="9">9</button>
+      <button class="pin-key" data-val="0" style="grid-column:2">0</button>
+      <button class="pin-key delete" data-val="del">⌫</button>
+    </div>
+
+    <div class="pin-error" id="pin-error"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PORTAL PRINCIPAL
+══════════════════════════════════════════ -->
+<div class="portal-main" id="portal-main" style="display:none">
+  <div class="portal-wrap">
+
+    <!-- Header -->
+    <header class="portal-header">
+      <div class="header-left">
+        <div class="header-avatar">🧑‍🏫</div>
+        <div class="header-text">
+          <h1>Portal Docente</h1>
+          <p>Acceso rápido a mis materias — CEB 5/4</p>
+        </div>
+      </div>
+      <div class="header-badge">Sesión activa</div>
+    </header>
+
+    <!-- Banner de instalación PWA -->
+    <div id="install-banner">
+      <div class="install-banner-text">
+        <span>📲</span>
+        <div>
+          <strong>Instalar como app</strong>
+          <p>Agregar el portal a tu pantalla de inicio</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:0.5rem;align-items:center">
+        <button class="btn-install" id="btn-install">Instalar Portal</button>
+        <button class="btn-dismiss" id="btn-dismiss" title="Cerrar">✕</button>
+      </div>
+    </div>
+
+    <!-- Materias -->
+    <p class="section-title">Mis Materias</p>
+    <div class="cards-grid">
+
+      <!-- Cultura Digital II -->
+      <div class="subject-card cd2">
+        <div class="card-top">
+          <div class="card-icon">💻</div>
+          <span class="card-chip">2° semestre</span>
+        </div>
+        <div>
+          <div class="card-title">Cultura Digital II</div>
+          <div class="card-desc">
+            Competencias digitales, ofimática avanzada, hojas de cálculo, presentaciones y ciudadanía digital.
+          </div>
+        </div>
+        <div class="card-meta">
+          <span class="card-meta-item">📁 Semanas / Módulos</span>
+        </div>
+        <div class="card-footer">
+          <a href="../cultura-digital/index.html" class="btn-enter">
+            Entrar →
+          </a>
+          <span class="card-arrow">📘</span>
+        </div>
+      </div>
+
+      <!-- Cultura Digital III -->
+      <div class="subject-card cd3">
+        <div class="card-top">
+          <div class="card-icon">🚀</div>
+          <span class="card-chip">3° semestre</span>
+        </div>
+        <div>
+          <div class="card-title">Cultura Digital III</div>
+          <div class="card-desc">
+            Programación básica, pensamiento computacional, herramientas digitales creativas y proyectos tecnológicos.
+          </div>
+        </div>
+        <div class="card-meta">
+          <span class="card-meta-item">📁 Semanas / Módulos</span>
+        </div>
+        <div class="card-footer">
+          <a href="../cultura-digital-iii/index.html" class="btn-enter">
+            Entrar →
+          </a>
+          <span class="card-arrow">📗</span>
+        </div>
+      </div>
+
+      <!-- Espacio para materia futura -->
+      <div class="coming-soon-card">
+        <span style="font-size:1.5rem">＋</span>
+        <span>Próxima materia</span>
+      </div>
+
+    </div>
+
+    <!-- Acceso rápido -->
+    <p class="section-title">Acceso Rápido</p>
+    <div class="quick-row">
+
+      <a href="/portal/alumno.html" class="quick-item">
+        <span class="quick-item-icon">🎓</span>
+        <span class="quick-item-label">Portal Alumnos</span>
+      </a>
+
+      <a href="/" class="quick-item">
+        <span class="quick-item-icon">🏫</span>
+        <span class="quick-item-label">Sitio CEB 5/4</span>
+      </a>
+
+      <div class="quick-item" style="opacity:0.45;cursor:default">
+        <span class="quick-item-icon">📊</span>
+        <span class="quick-item-label">Calificaciones<br><small style="font-size:0.65rem">(próximamente)</small></span>
+      </div>
+
+      <div class="quick-item" style="opacity:0.45;cursor:default">
+        <span class="quick-item-icon">📅</span>
+        <span class="quick-item-label">Planeaciones<br><small style="font-size:0.65rem">(próximamente)</small></span>
+      </div>
+
+      <div class="quick-item" style="opacity:0.45;cursor:default">
+        <span class="quick-item-icon">🗂️</span>
+        <span class="quick-item-label">Recursos<br><small style="font-size:0.65rem">(próximamente)</small></span>
+      </div>
+
+      <div class="quick-item" style="opacity:0.45;cursor:default">
+        <span class="quick-item-icon">🛠️</span>
+        <span class="quick-item-label">Herramientas<br><small style="font-size:0.65rem">(próximamente)</small></span>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="portal-footer">
+      <p>
+        <strong>Portal Docente</strong> · CEB 5/4 "Profr. Rafael Ramírez" · Uso personal
+      </p>
+      <p style="margin-top:0.25rem">Cultura Digital II · Cultura Digital III</p>
+      <button class="btn-lock" id="btn-lock">🔒 Cerrar sesión</button>
+    </footer>
+
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "name": "Portal Docente CEB 5/4",
+  "short_name": "Portal Docente",
+  "description": "Panel privado docente – Cultura Digital CEB 5/4",
+  "start_url": "/portal-docente/",
+  "scope": "/portal-docente/",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#111111",
+  "orientation": "portrait",
+  "lang": "es",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/portal-docente/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/portal-docente/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
