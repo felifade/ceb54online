@@ -162,13 +162,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 3. Renderizado automático si hay sesión (Docente Regular)
         const loggedEncuestaName = userName || userEmail;
         if (loggedEncuestaName) {
-            const nUser = normalizeName(userName);
-            const myFeedback = history.filter(h => {
-                const nDoc = normalizeName(h.docente);
-                const userWords = nUser.split(' ').filter(w => w.length > 2);
-                const matchCount = userWords.filter(w => nDoc.includes(w)).length;
-                return matchCount >= 2 || nDoc.includes(nUser) || nUser.includes(nDoc);
-            });
+            // Filtro preciso: busca los nombres exactos del docente en el Directorio
+            // usando su email como llave, luego cruza con feedbackHistory por nombre exacto.
+            // Evita falsos positivos por apellidos compartidos (matchCount parcial anterior).
+            const myNamesFromDir = (allData.directorio || [])
+                .filter(d => normalizeName(d.correo) === normalizeName(userEmail))
+                .map(d => normalizeName(d.docente));
+
+            let myFeedback;
+            if (myNamesFromDir.length > 0) {
+                // Coincidencia exacta con los nombres del Directorio (mismo origen que feedbackHistory)
+                myFeedback = history.filter(h => myNamesFromDir.includes(normalizeName(h.docente)));
+            } else {
+                // Fallback para directivos u otros no en Directorio: nombre exacto de sesión
+                myFeedback = history.filter(h => normalizeName(h.docente) === normalizeName(userName));
+            }
 
             if (myFeedback.length > 0) {
                 renderEncuestaAnalysis(myFeedback, userName || myFeedback[0].docente);

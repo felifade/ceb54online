@@ -265,11 +265,16 @@
         title.innerHTML = `<i data-feather="users"></i> Profesores del Grupo ${grupo}`;
         container.innerHTML = '';
         
-        const clean = (g) => String(g).replace(/[^0-9]/g, '');
-        const targetClean = clean(grupo);
+        // Normaliza el grupo: mayúsculas, sin espacios ni símbolos de grado,
+        // sin prefijo "Grupo" — pero PRESERVA las letras (ej: "2A" ≠ "2B").
+        const norm = (g) => String(g).toUpperCase()
+            .replace(/\s+/g, '')
+            .replace(/[°º]/g, '')
+            .replace(/^GRUPO/i, '');
+        const targetNorm = norm(grupo);
         const pActivo = "Semestral"; // Evaluación fija de semestre
 
-        const misMaestros = (allData.directorio || []).filter(d => clean(d.grupo) === targetClean);
+        const misMaestros = (allData.directorio || []).filter(d => norm(d.grupo) === targetNorm);
         
         // Deduplicar por si el maestro da más de una materia en el mismo grupo
         const docentesUnicos = {};
