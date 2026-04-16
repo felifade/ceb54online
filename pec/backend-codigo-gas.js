@@ -231,7 +231,8 @@ function doGet(e) {
           grupal: r[9] === 'X' || r[9] === true || r[9] === 'Grupal',
           individual: r[10] === 'X' || r[10] === true || r[10] === 'Individual',
           docenteEmail: normalizeText(r[11] || ""),
-          asistencia: String(r[12] || "SÍ").trim().toUpperCase()
+          asistencia: String(r[12] || "SÍ").trim().toUpperCase(),
+          fecha_tutoria: String(r[13] || "")
         }));
         if (!isAdmin && userEmail !== "") tutoriasData = tutoriasData.filter(x => x.docenteEmail === userEmail);
       }
@@ -393,7 +394,9 @@ function doPost(e) {
           body.tema,
           body.grupal ? "X" : "",
           body.individual ? "X" : "",
-          normalizeText(body.docente_email)
+          normalizeText(body.docente_email),
+          body.asistencia || "",
+          body.fecha_tutoria || ""
         ]);
       });
       _invalidarCache(body.docente_email);

@@ -8,9 +8,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const viewTitle = document.getElementById('view-title');
     const currentDateEl = document.getElementById('current-date');
 
+    // Establecer fecha de hoy como valor por defecto en el campo fecha_tutoria
+    const inputFechaTutoria = document.getElementById('input-fecha-tutoria');
+    if (inputFechaTutoria) {
+        const hoy = new Date();
+        const yyyy = hoy.getFullYear();
+        const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+        const dd = String(hoy.getDate()).padStart(2, '0');
+        inputFechaTutoria.value = `${yyyy}-${mm}-${dd}`;
+    }
+
     // Set Current Date
     const now = new Date();
-    currentDateEl.textContent = now.toLocaleDateString('es-MX', { 
+    currentDateEl.textContent = now.toLocaleDateString('es-MX', {
         weekday: 'long', 
         year: 'numeric', 
         month: 'long', 
@@ -788,7 +798,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             intra: formData.get('alumno_tipo') === 'intra',
             tema: formData.get('tema'),
             individual: formData.get('tutoria_tipo') === 'individual',
-            grupal: formData.get('tutoria_tipo') === 'grupal'
+            grupal: formData.get('tutoria_tipo') === 'grupal',
+            fecha_tutoria: formData.get('fecha_tutoria') || ""
         };
 
         try {

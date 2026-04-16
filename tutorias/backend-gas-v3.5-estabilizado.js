@@ -159,20 +159,21 @@ function doGet(e) {
        const d = sTut.getDataRange().getValues();
        if(d.length > 1) {
          d.shift();
-         tutoriasData = d.map(r => ({ 
-            fecha: r[0], 
-            parcial: normalizeParcial(r[1]), 
-            grupo: String(r[2]||''),       
-            alumno: String(r[3]||''),      
-            sexo: String(r[4]||'H').toUpperCase(),   
-            asignatura: String(r[5]||''),  
+         tutoriasData = d.map(r => ({
+            fecha: r[0],
+            parcial: normalizeParcial(r[1]),
+            grupo: String(r[2]||''),
+            alumno: String(r[3]||''),
+            sexo: String(r[4]||'H').toUpperCase(),
+            asignatura: String(r[5]||''),
             regular: r[6] === 'X' || r[6] === true || r[6] === "Regular",
-            intra: r[7] === 'X' || r[7] === true || r[7] === "Intra", 
+            intra: r[7] === 'X' || r[7] === true || r[7] === "Intra",
             tema: String(r[8]||''),
             grupal: r[9] === 'X' || r[9] === true || r[9] === 'Grupal',
             individual: r[10] === 'X' || r[10] === true || r[10] === 'Individual',
-            docenteEmail: normalizeText(r[11] || ""), 
-            asistencia: String(r[12] || "SÍ").trim().toUpperCase()
+            docenteEmail: normalizeText(r[11] || ""),
+            asistencia: String(r[12] || "SÍ").trim().toUpperCase(),
+            fecha_tutoria: String(r[13] || "")
          }));
          if (!isAdmin && userEmail !== "") tutoriasData = tutoriasData.filter(x => x.docenteEmail === userEmail);
        }
@@ -264,18 +265,20 @@ function doPost(e) {
       
       alumnos.forEach(alum => {
         s.appendRow([
-          fecha, 
-          body.parcial, 
-          body.grupo, 
-          alum.nombre, 
-          alum.sexo, 
-          body.asignatura, 
+          fecha,
+          body.parcial,
+          body.grupo,
+          alum.nombre,
+          alum.sexo,
+          body.asignatura,
           body.regular ? "X" : "",
-          body.intra ? "X" : "", 
-          body.tema, 
-          body.grupal ? "X" : "", 
-          body.individual ? "X" : "", 
-          normalizeText(body.docente_email)
+          body.intra ? "X" : "",
+          body.tema,
+          body.grupal ? "X" : "",
+          body.individual ? "X" : "",
+          normalizeText(body.docente_email),
+          "",
+          body.fecha_tutoria || ""
         ]);
       });
       return ContentService.createTextOutput(JSON.stringify({ status: "success" }));

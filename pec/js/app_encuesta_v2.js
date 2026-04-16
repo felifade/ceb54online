@@ -265,16 +265,29 @@
         title.innerHTML = `<i data-feather="users"></i> Profesores del Grupo ${grupo}`;
         container.innerHTML = '';
         
-        // Normaliza el grupo: mayúsculas, sin espacios ni símbolos de grado,
-        // sin prefijo "Grupo" — pero PRESERVA las letras (ej: "2A" ≠ "2B").
+        // Normaliza el grupo: quita espacios, símbolos de grado y prefijo "Grupo".
         const norm = (g) => String(g).toUpperCase()
             .replace(/\s+/g, '')
             .replace(/[°º]/g, '')
             .replace(/^GRUPO/i, '');
-        const targetNorm = norm(grupo);
-        const pActivo = "Semestral"; // Evaluación fija de semestre
 
-        const misMaestros = (allData.directorio || []).filter(d => norm(d.grupo) === targetNorm);
+        const targetNorm = norm(grupo);
+
+        // Si el grupo normalizado es puramente numérico (ej: "204", "210"),
+        // se compara solo por dígitos para tolerar prefijos como "M204" en el Directorio.
+        // Si es alfanumérico (ej: "2A", "2B"), se compara exacto para evitar
+        // mezclar docentes de distintos grupos del mismo semestre.
+        const soloDigitos = (g) => String(g).replace(/[^0-9]/g, '');
+        const esNumerico = /^\d+$/.test(targetNorm);
+
+        const misMaestros = (allData.directorio || []).filter(d => {
+            if (esNumerico) {
+                return soloDigitos(d.grupo) === targetNorm;
+            }
+            return norm(d.grupo) === targetNorm;
+        });
+
+        const pActivo = "Semestral"; // Evaluación fija de semestre
         
         // Deduplicar por si el maestro da más de una materia en el mismo grupo
         const docentesUnicos = {};
