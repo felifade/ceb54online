@@ -123,7 +123,11 @@ const PERIODOS_ESPECIALES_FALLBACK = [
 
 let PERIODOS_ESPECIALES = [];
 
-let viewMode = 'grouped';
+let viewMode = 'dias';
+
+// ── Configuración de vistas opcionales ──────────────────────────────────────
+// Poner en true para mostrar la vista cuando esté lista para producción
+const SHOW_ICLOUD = false;
 let cronogramaMap = null;
 
 // Convertir a async para poder cargar datos desde Google Sheets
@@ -264,11 +268,13 @@ function initCalendario() {
                 <p style="margin: 5px 0 0; opacity: 0.8; font-size: 0.9rem;">Todas las semanas escolares disponibles para planeación</p>
             </div>
             <div class="view-type-toggle">
+                <button class="view-btn ${viewMode === 'dias' ? 'active' : ''}" id="view-dias">📅 Por días</button>
                 <button class="view-btn ${viewMode === 'grouped' ? 'active' : ''}" id="view-grouped">Calendario</button>
                 <button class="view-btn ${viewMode === 'list' ? 'active' : ''}" id="view-list">Sólo Eventos</button>
                 <button class="view-btn ${viewMode === 'birthdays' ? 'active' : ''}" id="view-birthdays">🎂 Cumpleaños</button>
-                <button class="view-btn ${viewMode === 'dias' ? 'active' : ''}" id="view-dias" style="border-color:rgba(124,58,237,0.4);${viewMode==='dias'?'':'color:#7c3aed;'}">🧪 Por días</button>
-                <button class="view-btn ${viewMode === 'icloud' ? 'active' : ''}" id="view-icloud" style="border-color:rgba(56,189,248,0.4);${viewMode==='icloud'?'':'color:#0ea5e9;'}">☁️ iCloud</button>
+                ${SHOW_ICLOUD ? `<button class="view-btn ${viewMode === 'icloud' ? 'active' : ''}" id="view-icloud" style="border-color:rgba(56,189,248,0.4);${viewMode==='icloud'?'':'color:#0ea5e9;'}">☁️ iCloud</button>` : ''}
+                <!-- iCloud oculto — activar con SHOW_ICLOUD = true cuando esté listo -->
+                <!-- Vista completa desactivada — enlace a calendario.html disponible si se reactiva -->
             </div>
         </div>
         <div id="calendario-content"></div>
@@ -276,6 +282,12 @@ function initCalendario() {
 
     renderEventos();
 
+    document.getElementById('view-dias').addEventListener('click', () => {
+        if (viewMode === 'dias') return;
+        viewMode = 'dias';
+        renderEventos();
+        updateToggles();
+    });
     document.getElementById('view-grouped').addEventListener('click', () => {
         if (viewMode === 'grouped') return;
         viewMode = 'grouped';
@@ -294,18 +306,16 @@ function initCalendario() {
         renderEventos();
         updateToggles();
     });
-    document.getElementById('view-dias').addEventListener('click', () => {
-        if (viewMode === 'dias') return;
-        viewMode = 'dias';
-        renderEventos();
-        updateToggles();
-    });
-    document.getElementById('view-icloud').addEventListener('click', () => {
-        if (viewMode === 'icloud') return;
-        viewMode = 'icloud';
-        renderEventos();
-        updateToggles();
-    });
+    // iCloud — solo se conecta si está visible (SHOW_ICLOUD = true)
+    const iCloudBtn = document.getElementById('view-icloud');
+    if (iCloudBtn) {
+        iCloudBtn.addEventListener('click', () => {
+            if (viewMode === 'icloud') return;
+            viewMode = 'icloud';
+            renderEventos();
+            updateToggles();
+        });
+    }
 }
 
 function updateToggles() {
@@ -747,16 +757,7 @@ function renderVistaDias(hoy, fClave = FECHAS_CLAVE, periodos = PERIODOS_ESPECIA
           </div>`;
     }).join('');
 
-    const mainTitle = tituloCustom !== null ? tituloCustom : '🧪 Vista experimental — Por días';
-    const mainDesc = descCustom !== null ? descCustom : 'Los eventos se distribuyen por día dentro de cada semana.';
-
-    return `
-      <div style="margin-bottom:0.75rem;padding:0.6rem 0.9rem;background:#ede9fe;border-radius:10px;
-           border:1px solid #c4b5fd;display:flex;align-items:center;gap:0.5rem;">
-        <span style="font-size:0.75rem;font-weight:700;color:#4c1d95;">${mainTitle}</span>
-        <span style="font-size:0.72rem;color:#7c3aed;">${mainDesc}</span>
-      </div>
-      ${bloques}`;
+    return bloques;
 }
 
 /* ══════════════════════════════════════════════════════════════════

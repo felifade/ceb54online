@@ -641,6 +641,23 @@
       .modal-actions { flex-direction: column-reverse; }
       .modal-enter, .modal-cancel { flex: none; width: 100%; }
     }
+    /* ── Indicador de carga del calendario ── */
+    @keyframes cal-spin { to { transform: rotate(360deg); } }
+    .cal-loading {
+      display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+      padding: 0.6rem 1.1rem; margin-bottom: 0.5rem;
+      border-radius: 20px;
+      border: 1px solid rgba(124, 58, 237, 0.2);
+      background: rgba(124, 58, 237, 0.05);
+      color: #a78bfa; font-size: 0.78rem; font-weight: 700;
+      width: fit-content; margin-left: auto;
+    }
+    .cal-loading-ring {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid rgba(167, 139, 250, 0.25);
+      border-top-color: #a78bfa;
+      animation: cal-spin 0.8s linear infinite; flex-shrink: 0;
+    }
   </style>
 </head>
 <body>
@@ -685,11 +702,19 @@
   <main class="main">
 
     <!-- ══ SEMANA ACTUAL ══ -->
-    <div id="btn-vista-dias-comunidad" style="display:none;text-align:right;margin-bottom:0.5rem;">
+    <div id="cal-loading-indicator" class="cal-loading">
+      <div class="cal-loading-ring"></div>
+      Cargando calendario...
+    </div>
+    <div id="btn-vista-dias-comunidad" style="display:none;justify-content:flex-end;gap:0.5rem;margin-bottom:0.5rem;">
       <button onclick="_toggleVistaDiasComunidad()" id="btn-vdc-inner"
         style="font-size:0.78rem;padding:0.35rem 1rem;border-radius:20px;border:1px solid rgba(124,58,237,0.45);background:rgba(124,58,237,0.08);color:#a78bfa;cursor:pointer;font-weight:700;transition:all 0.2s;">
         📅 Vista por días
       </button>
+      <a href="pec/calendario.html?desde=comunidad"
+        style="font-size:0.78rem;padding:0.35rem 1rem;border-radius:20px;border:1px solid rgba(124,58,237,0.45);background:rgba(124,58,237,0.08);color:#a78bfa;font-weight:700;transition:all 0.2s;text-decoration:none;display:inline-flex;align-items:center;">
+        📆 Vista completa
+      </a>
     </div>
     <div id="semana-actual-widget" class="semana-actual" style="display:none;">
       <!-- Renderizado por JS tras cargar app_calendario.js -->
@@ -945,8 +970,12 @@
     // Escuchamos el evento personalizado para renderizar.
 
     document.addEventListener('calendarioDataLista', function () {
+      // Ocultar indicador de carga
+      const loadingEl = document.getElementById('cal-loading-indicator');
+      if (loadingEl) loadingEl.style.display = 'none';
+
       _renderSemanaActual();
-      document.getElementById('btn-vista-dias-comunidad').style.display = 'block';
+      document.getElementById('btn-vista-dias-comunidad').style.display = 'flex';
     });
 
     let _modoDiasComunidad = false;
@@ -970,9 +999,11 @@
       }
     }
 
-    // Fallback por si la vista carga después de que el evento ya se disparó
+    // Fallback por si el evento ya se disparó antes de que este listener se registrara
     document.addEventListener('DOMContentLoaded', function () {
       if (typeof cronogramaMap !== 'undefined' && cronogramaMap !== null) {
+        const loadingEl = document.getElementById('cal-loading-indicator');
+        if (loadingEl) loadingEl.style.display = 'none';
         _renderSemanaActual();
       }
     });
