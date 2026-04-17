@@ -289,20 +289,16 @@
           <!-- Lista de resultados (grupo o búsqueda) -->
           <div id="alumnos-lista" class="alumnos-lista" style="display:none;"></div>
 
-          <!-- Alumno seleccionado -->
-          <div id="alumno-seleccionado" style="display:none; margin-top:0.6rem; padding:0.75rem 1rem;
-               background:#fef2f2; border:1.5px solid #fca5a5; border-radius:12px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <div style="display:flex; align-items:center; gap:0.65rem;">
-                <div id="alumno-sel-avatar" class="alumno-avatar" style="background:#fecaca;color:#dc2626;">?</div>
-                <div>
-                  <div style="font-weight:800; font-size:0.9rem;" id="alumno-sel-nombre">—</div>
-                  <div style="font-size:0.78rem; color:#64748b;" id="alumno-sel-info">—</div>
-                </div>
-              </div>
-              <button type="button" onclick="limpiarAlumno()"
-                style="background:none; border:none; color:#dc2626; cursor:pointer; font-size:1.1rem;" title="Quitar">✕</button>
+          <!-- Alumnos seleccionados (multi) -->
+          <div id="alumno-seleccionado" style="display:none; margin-top:0.6rem;">
+            <div style="font-size:0.75rem; font-weight:700; color:#64748b; margin-bottom:0.35rem; text-transform:uppercase; letter-spacing:0.4px;">
+              Alumnos seleccionados:
             </div>
+            <div id="alumnos-chips" style="display:flex; flex-wrap:wrap; gap:0.4rem;"></div>
+            <button type="button" onclick="limpiarAlumno()"
+              style="margin-top:0.5rem; background:none; border:none; color:#94a3b8; cursor:pointer; font-size:0.78rem; font-weight:600; font-family:inherit;">
+              ✕ Quitar todos
+            </button>
           </div>
 
           <!-- Alerta labor social -->
@@ -519,9 +515,10 @@
   });
 
   // ── Estado local ──────────────────────────────────────────────────
-  let _alumnoSeleccionado = null;   // objeto { nombre, grupo } o null
-  let _incidenciasCache   = [];     // última consulta
-  let _baseData           = null;   // datos del GAS (directorio, grupos)
+  let _alumnoSeleccionados   = [];  // array de { nombre, grupo }
+  let _listaActual           = [];  // últimos alumnos renderizados en la lista
+  let _incidenciasCache      = [];  // última consulta
+  let _baseData              = null; // datos del GAS (directorio, grupos)
 
   const GAS_DISPONIBLE = !prefecturaAPI.fetchBase.toString().includes('PENDIENTE');
 
@@ -652,50 +649,70 @@
       return;
     }
 
+    _listaActual = alumnos;
     lista.innerHTML = alumnos.map(a => {
       const iniciales = a.nombre.split(' ').slice(0, 2).map(w => w[0] || '').join('').toUpperCase();
-      // Color avatar: rojo institucional Prefectura
       const avatarStyle = 'background:#fecaca; color:#dc2626;';
+      const sel = _alumnoSeleccionados.some(s => s.nombre === a.nombre && s.grupo === (a.grupo || ''));
       return `
-        <div class="alumno-row" onclick="seleccionarAlumno('${_esc(a.nombre)}','${_esc(a.grupo||'')}')">
+        <div class="alumno-row${sel ? ' selected' : ''}" onclick="seleccionarAlumno('${_esc(a.nombre)}','${_esc(a.grupo||'')}')">
           <div class="alumno-avatar" style="${avatarStyle}">${iniciales}</div>
           <div class="alumno-info">
             <span class="alumno-nombre">${a.nombre}</span>
             ${a.grupo ? `<span class="alumno-grupo-badge">${a.grupo}</span>` : ''}
           </div>
+          ${sel ? '<span style="color:#dc2626;font-size:1.1rem;font-weight:800;margin-left:auto;">✓</span>' : ''}
         </div>`;
     }).join('');
     lista.style.display = 'block';
   }
 
   function seleccionarAlumno(nombre, grupo) {
-    _alumnoSeleccionado = { nombre, grupo };
-    document.getElementById('alumnos-lista').style.display = 'none';
-    document.getElementById('buscar-alumno').value = '';
+    const idx = _alumnoSeleccionados.findIndex(s => s.nombre === nombre && s.grupo === grupo);
+    if (idx >= 0) {
+      _alumnoSeleccionados.splice(idx, 1);
+    } else {
+      _alumnoSeleccionados.push({ nombre, grupo });
+      if (grupo && !document.getElementById('ctx-grupo').value)
+        document.getElementById('ctx-grupo').value = grupo;
+    }
+    _renderChips();
+    // Re-render la lista para actualizar los estados seleccionados
+    _renderListaAlumnos(_listaActual, 'rerender');
+    verificarPreviasAlumno();
+  }
 
-    const iniciales = nombre.split(' ').slice(0, 2).map(w => w[0] || '').join('').toUpperCase();
-    document.getElementById('alumno-sel-avatar').textContent = iniciales || '?';
-
+  function _renderChips() {
     const box = document.getElementById('alumno-seleccionado');
-    document.getElementById('alumno-sel-nombre').textContent = nombre;
-    document.getElementById('alumno-sel-info').textContent   = grupo ? `Grupo: ${grupo}` : 'Grupo no registrado';
-    box.style.display = 'flex';
+    const chips = document.getElementById('alumnos-chips');
+    if (_alumnoSeleccionados.length === 0) { box.style.display = 'none'; return; }
+    chips.innerHTML = _alumnoSeleccionados.map((a, i) => `
+      <div style="display:inline-flex;align-items:center;gap:0.35rem;
+           background:#fef2f2;border:1.5px solid #fca5a5;border-radius:9999px;
+           padding:0.3rem 0.65rem;font-size:0.8rem;font-weight:700;color:#dc2626;">
+        ${a.nombre}
+        <button type="button" onclick="quitarAlumno(${i})"
+          style="background:none;border:none;color:#dc2626;cursor:pointer;padding:0;font-size:0.9rem;line-height:1;">✕</button>
+      </div>`).join('');
+    box.style.display = 'block';
+  }
 
-    if (grupo && !document.getElementById('ctx-grupo').value)
-      document.getElementById('ctx-grupo').value = grupo;
-
+  function quitarAlumno(idx) {
+    _alumnoSeleccionados.splice(idx, 1);
+    _renderChips();
+    _renderListaAlumnos(_listaActual, 'rerender');
     verificarPreviasAlumno();
   }
 
   function limpiarAlumno() {
-    _alumnoSeleccionado = null;
-    document.getElementById('alumno-seleccionado').style.display = 'none';
+    _alumnoSeleccionados = [];
+    _renderChips();
     document.getElementById('labor-alert-form').classList.remove('show');
   }
 
   async function verificarPreviasAlumno() {
     const alertDiv = document.getElementById('labor-alert-form');
-    const nombre = _alumnoSeleccionado?.nombre || document.getElementById('alumno-manual').value.trim();
+    const nombre = _alumnoSeleccionados[0]?.nombre || document.getElementById('alumno-manual').value.trim();
     if (!nombre || !GAS_DISPONIBLE) return;
     try {
       const previas = await prefecturaAPI.consultarIncidencias({ alumno: nombre });
@@ -730,34 +747,45 @@
       const tipo        = document.querySelector('input[name="tipo"]:checked')?.value || '';
       const descripcion = document.getElementById('inc-descripcion').value.trim();
       const observ      = document.getElementById('inc-observaciones').value.trim();
-      const alumno      = _alumnoSeleccionado?.nombre || document.getElementById('alumno-manual').value.trim();
+      const manualNombre = document.getElementById('alumno-manual').value.trim();
+      const alumnosARegistrar = _alumnoSeleccionados.length > 0
+        ? _alumnoSeleccionados
+        : (manualNombre ? [{ nombre: manualNombre, grupo: '' }] : []);
 
       // Validaciones mínimas
-      if (!grupo)        { mostrarToast('error', 'Indica el grupo.'); return; }
-      if (!fecha)        { mostrarToast('error', 'Indica la fecha.'); return; }
-      if (!alumno)       { mostrarToast('error', 'Selecciona o escribe el nombre del alumno.'); return; }
-      if (!tipo)         { mostrarToast('error', 'Selecciona el tipo de incidencia.'); return; }
-      if (!descripcion)  { mostrarToast('error', 'Escribe una descripción breve.'); return; }
+      if (!grupo)                    { mostrarToast('error', 'Indica el grupo.'); return; }
+      if (!fecha)                    { mostrarToast('error', 'Indica la fecha.'); return; }
+      if (!alumnosARegistrar.length) { mostrarToast('error', 'Selecciona o escribe el nombre del alumno.'); return; }
+      if (!tipo)                     { mostrarToast('error', 'Selecciona el tipo de incidencia.'); return; }
+      if (!descripcion)              { mostrarToast('error', 'Escribe una descripción breve.'); return; }
 
       if (!GAS_DISPONIBLE) {
-        // Sin GAS: guardar local para prueba visual
         mostrarToast('warning', 'GAS no configurado. Registro no persistido (modo prueba).');
         limpiarFormulario();
         return;
       }
 
-      const resultado = await prefecturaAPI.guardarIncidencia({
-        fecha, semana, grupo,
-        nombre_alumno:   alumno,
-        tipo_incidencia: tipo,
-        descripcion,
-        observaciones:   observ,
-        registrado_por:  responsable
-      });
+      let errores = 0;
+      let laborSocial = false;
+      for (const alumno of alumnosARegistrar) {
+        const resultado = await prefecturaAPI.guardarIncidencia({
+          fecha, semana, grupo,
+          nombre_alumno:   alumno.nombre,
+          tipo_incidencia: tipo,
+          descripcion,
+          observaciones:   observ,
+          registrado_por:  responsable
+        });
+        if (resultado.status !== 'success') errores++;
+        if (resultado.requiereLaborSocial) laborSocial = true;
+      }
 
-      if (resultado.status !== 'success') throw new Error(resultado.message || 'Error al guardar.');
+      if (errores > 0) throw new Error(`${errores} incidencia(s) no se pudieron guardar.`);
 
-      mostrarToast('success', `✅ Incidencia guardada correctamente.${resultado.requiereLaborSocial ? ' ⚠️ Este alumno requiere labor social.' : ''}`);
+      const msg = alumnosARegistrar.length > 1
+        ? `✅ ${alumnosARegistrar.length} incidencias guardadas.${laborSocial ? ' ⚠️ Algún alumno requiere labor social.' : ''}`
+        : `✅ Incidencia guardada correctamente.${laborSocial ? ' ⚠️ Este alumno requiere labor social.' : ''}`;
+      mostrarToast('success', msg);
       limpiarFormulario();
       cargarDashboard();
 
@@ -777,9 +805,12 @@
     document.getElementById('ctx-semana').value = prefGetSemanaActual();
     const nombre = sessionStorage.getItem('user_name') || sessionStorage.getItem('user_email') || 'Prefectura';
     document.getElementById('ctx-responsable').value = nombre;
-    limpiarAlumno();
+    _alumnoSeleccionados = [];
+    _listaActual = [];
+    _renderChips();
     document.getElementById('alumnos-lista').style.display = 'none';
     document.getElementById('buscar-alumno').value = '';
+    document.getElementById('labor-alert-form').classList.remove('show');
   }
 
   // ── Consultar incidencias ─────────────────────────────────────────

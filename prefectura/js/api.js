@@ -67,24 +67,48 @@ const prefecturaAPI = {
     }
 };
 
-// ── Semanas escolares (lógica independiente, compatible con app_calendario.js) ──
-const PREF_FECHA_INICIO = "2026-02-11";  // misma base que CONFIG_CALENDARIO
+// ── Semanas escolares (igual que CONFIG_CALENDARIO en app_calendario.js) ──
+// Vacaciones excluidas del conteo académico, misma lógica que generarCronogramaEfectivo()
+const PREF_FECHA_INICIO = "2026-02-11";
+const PREF_FECHA_FIN    = "2026-07-30";
+const PREF_VACACIONES   = [
+    { inicio: "2026-03-30", fin: "2026-04-10" }   // Receso escolar — Semana Santa
+];
+
+function _prefCronograma() {
+    const semanas = [];
+    const ini = new Date(PREF_FECHA_INICIO + 'T00:00:00');
+    const fin = new Date(PREF_FECHA_FIN + 'T23:59:59');
+    let curIni = new Date(ini);
+    let curFin = new Date(ini);
+    curFin.setDate(ini.getDate() + (7 - ini.getDay()) % 7);
+    curFin.setHours(23, 59, 59, 999);
+    let numAcad = 0;
+    while (curIni <= fin) {
+        const esVac = PREF_VACACIONES.some(v => {
+            const vs = new Date(v.inicio + 'T00:00:00');
+            const ve = new Date(v.fin   + 'T23:59:59');
+            return (curIni <= ve && curFin >= vs);
+        });
+        if (!esVac) numAcad++;
+        semanas.push({ num: esVac ? 0 : numAcad, start: new Date(curIni), end: new Date(curFin) });
+        curIni = new Date(curFin); curIni.setDate(curFin.getDate() + 1); curIni.setHours(0,0,0,0);
+        curFin = new Date(curIni); curFin.setDate(curIni.getDate() + 6); curFin.setHours(23,59,59,999);
+    }
+    return semanas;
+}
+const _PREF_SEMANAS = _prefCronograma();
 
 function prefGetSemanaActual() {
-    const inicio = new Date(PREF_FECHA_INICIO + 'T00:00:00');
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    if (hoy < inicio) return 0;
-    const diff = Math.floor((hoy - inicio) / (7 * 24 * 60 * 60 * 1000));
-    return diff + 1;
+    const hoy = new Date(); hoy.setHours(12, 0, 0, 0);
+    const s = _PREF_SEMANAS.find(s => hoy >= s.start && hoy <= s.end);
+    return s ? s.num : 0;
 }
 
 function prefGetSemanaDeDate(fechaStr) {
-    const inicio = new Date(PREF_FECHA_INICIO + 'T00:00:00');
-    const fecha = new Date(fechaStr + 'T00:00:00');
-    if (fecha < inicio) return 0;
-    const diff = Math.floor((fecha - inicio) / (7 * 24 * 60 * 60 * 1000));
-    return diff + 1;
+    const d = new Date(fechaStr + 'T12:00:00');
+    const s = _PREF_SEMANAS.find(s => d >= s.start && d <= s.end);
+    return s ? s.num : 0;
 }
 
 window.prefecturaAPI = prefecturaAPI;
