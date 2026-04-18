@@ -10,7 +10,7 @@
  */
 
 // ── ID del Spreadsheet (hoja PEC — misma donde está el Directorio) ─────────
-const SS_ID       = "1KR8f7ObGmO8F2dVgJepKpKYBeMEktBme2jTTbImS8nM";
+const SS_ID = "1KR8f7ObGmO8F2dVgJepKpKYBeMEktBme2jTTbImS8nM";
 const CLAVE_ADMIN = "ceb54admin2026";
 
 // GAS maneja CORS automáticamente cuando el despliegue es "Cualquiera"
@@ -20,35 +20,38 @@ function json(data) {
 }
 
 // ── ROUTER GET ─────────────────────────────────────────────────────────────
-function doGet(e) {
+function doGetAcademico(e) {
   const p = e.parameter || {};
   try {
+    if (e.parameter.action === "getPecCierre") {
+      const ss = SpreadsheetApp.openById(SS_ID);
+      return doGetPecCierre(ss);
+    }
     switch (p.action) {
-      case "getDashboard":  return json(getDashboard(p));
-      case "getAlumnos":    return json(getAlumnos(p));
-      case "getGrupos":     return json(getGrupos());
-      case "getMaterias":   return json(getMaterias());
-      case "getIndicadores":  return json(getIndicadores(p));
+      case "getDashboard": return json(getDashboard(p));
+      case "getAlumnos": return json(getAlumnos(p));
+      case "getGrupos": return json(getGrupos());
+      case "getMaterias": return json(getMaterias());
+      case "getIndicadores": return json(getIndicadores(p));
       case "getAlumnosGrupo": return json(getAlumnosGrupo(p));
-      case "getCumpleanos":   return json(getCumpleanos());
-      default:                return json({ status: "ok", sistema: "CEB54 Academico v1" });
+      case "getCumpleanos": return json(getCumpleanos());
+      default: return json({ status: "ok", sistema: "CEB54 Academico v1" });
     }
   } catch (err) {
     return json({ status: "error", message: err.message });
   }
 }
 
-
 // ── ROUTER POST ────────────────────────────────────────────────────────────
-function doPost(e) {
+function doPostAcademico(e) {
   try {
     const body = JSON.parse(e.postData.contents);
     if (body.clave !== CLAVE_ADMIN) return json({ status: "error", message: "No autorizado" });
 
     switch (body.action) {
-      case "importarPDF":  return json(importarDesdeParser(body.data));
+      case "importarPDF": return json(importarDesdeParser(body.data));
       case "limpiarParcial": return json(limpiarParcial(body.grupo, body.parcial, body.ciclo));
-      default:             return json({ status: "error", message: "Acción desconocida" });
+      default: return json({ status: "error", message: "Acción desconocida" });
     }
   } catch (err) {
     return json({ status: "error", message: err.message });
@@ -63,24 +66,24 @@ function importarDesdeParser(data) {
   const ss = SpreadsheetApp.openById(SS_ID);
 
   const shAlumnos = getOrCreateSheet(ss, "Acad_Alumnos");
-  const shCals    = getOrCreateSheet(ss, "Acad_Calificaciones");
-  const shNorm    = getOrCreateSheet(ss, "calificaciones_normalizadas");
+  const shCals = getOrCreateSheet(ss, "Acad_Calificaciones");
+  const shNorm = getOrCreateSheet(ss, "calificaciones_normalizadas");
 
   // Encabezados si la hoja está vacía
   if (shAlumnos.getLastRow() === 0) {
-    shAlumnos.appendRow(["curp","nombre","grupo","semestre","turno","ciclo","sexo","activo"]);
+    shAlumnos.appendRow(["curp", "nombre", "grupo", "semestre", "turno", "ciclo", "sexo", "activo"]);
   }
   if (shCals.getLastRow() === 0) {
-    shCals.appendRow(["id","curp","nombre","grupo","semestre","turno","ciclo",
-                      "parcial","materia","calificacion","faltas","sinDatos",
-                      "promedio","enRiesgo","fuente","timestamp"]);
+    shCals.appendRow(["id", "curp", "nombre", "grupo", "semestre", "turno", "ciclo",
+      "parcial", "materia", "calificacion", "faltas", "sinDatos",
+      "promedio", "enRiesgo", "fuente", "timestamp"]);
   }
   if (shNorm.getLastRow() === 0) {
     shNorm.appendRow([
-      "id","ciclo","parcial","semestre","turno","grupo","curp","nombre_alumno","sexo",
-      "materia_pdf_original","materia_normalizada","posicion_columna",
-      "docente","correo_docente","calificacion","faltas","sd",
-      "promedio_alumno","en_riesgo","pending_review","archivo_origen","fecha_importacion"
+      "id", "ciclo", "parcial", "semestre", "turno", "grupo", "curp", "nombre_alumno", "sexo",
+      "materia_pdf_original", "materia_normalizada", "posicion_columna",
+      "docente", "correo_docente", "calificacion", "faltas", "sd",
+      "promedio_alumno", "en_riesgo", "pending_review", "archivo_origen", "fecha_importacion"
     ]);
   }
 
@@ -117,25 +120,25 @@ function importarDesdeParser(data) {
   const dir = leerDirectorioPEC();
 
   let insertadosAlumnos = 0;
-  let insertadasCals    = 0;
-  let insertadasNorm    = 0;
-  let duplicados        = 0;
-  const errores         = [];
+  let insertadasCals = 0;
+  let insertadasNorm = 0;
+  let duplicados = 0;
+  const errores = [];
 
-  const fuente    = `PDF_${data.meta.grupo}_p${data.meta.parcial}_${Utilities.formatDate(new Date(), "America/Mexico_City", "yyyyMMdd")}`;
+  const fuente = `PDF_${data.meta.grupo}_p${data.meta.parcial}_${Utilities.formatDate(new Date(), "America/Mexico_City", "yyyyMMdd")}`;
   const timestamp = Utilities.formatDate(new Date(), "America/Mexico_City", "yyyy-MM-dd HH:mm:ss");
 
   const rowsAlumnos = [];
-  const rowsCals    = [];
-  const rowsNorm    = [];
-  let idBase        = shCals.getLastRow();
-  let idNorm        = shNorm.getLastRow();
+  const rowsCals = [];
+  const rowsNorm = [];
+  let idBase = shCals.getLastRow();
+  let idNorm = shNorm.getLastRow();
 
   data.alumnos.forEach(al => {
     // ── Upsert Alumnos ─────────────────────────────────────────────────────
     if (!curpsExistentes.has(al.curp)) {
       rowsAlumnos.push([al.curp, al.nombre, al.grupo, al.semestre,
-                        al.turno, al.ciclo, al.sexo, true]);
+      al.turno, al.ciclo, al.sexo, true]);
       curpsExistentes.add(al.curp);
       insertadosAlumnos++;
     }
@@ -171,7 +174,7 @@ function importarDesdeParser(data) {
       const keyN = `${al.curp}|${al.ciclo}|${al.parcial}|${materiaNorm}`;
       if (!normExistentes.has(keyN)) {
         const docente = buscarDocente(dir, materiaNorm, al.grupo);
-        const correo  = buscarCorreo(dir, materiaNorm, al.grupo);
+        const correo = buscarCorreo(dir, materiaNorm, al.grupo);
         idNorm++;
         rowsNorm.push([
           idNorm,
@@ -196,15 +199,15 @@ function importarDesdeParser(data) {
   // ── Escritura en bloque ──────────────────────────────────────────────────
   if (rowsAlumnos.length > 0) {
     shAlumnos.getRange(shAlumnos.getLastRow() + 1, 1, rowsAlumnos.length, rowsAlumnos[0].length)
-             .setValues(rowsAlumnos);
+      .setValues(rowsAlumnos);
   }
   if (rowsCals.length > 0) {
     shCals.getRange(shCals.getLastRow() + 1, 1, rowsCals.length, rowsCals[0].length)
-          .setValues(rowsCals);
+      .setValues(rowsCals);
   }
   if (rowsNorm.length > 0) {
     shNorm.getRange(shNorm.getLastRow() + 1, 1, rowsNorm.length, rowsNorm[0].length)
-          .setValues(rowsNorm);
+      .setValues(rowsNorm);
   }
 
   return {
@@ -214,7 +217,7 @@ function importarDesdeParser(data) {
     insertadasNorm,
     duplicados,
     errores,
-    grupo:   data.meta.grupo,
+    grupo: data.meta.grupo,
     parcial: data.meta.parcial,
   };
 }
@@ -227,19 +230,19 @@ function limpiarParcial(grupo, parcial, ciclo) {
   const sh = ss.getSheetByName("Acad_Calificaciones");
   if (!sh) return { status: "error", message: "Hoja Acad_Calificaciones no encontrada" };
 
-  const data     = sh.getDataRange().getValues();
-  const headers  = data[0];
-  const iGrupo   = headers.indexOf("grupo");
+  const data = sh.getDataRange().getValues();
+  const headers = data[0];
+  const iGrupo = headers.indexOf("grupo");
   const iParcial = headers.indexOf("parcial");
-  const iCiclo   = headers.indexOf("ciclo");
+  const iCiclo = headers.indexOf("ciclo");
 
   let borradas = 0;
   // Recorrer de abajo a arriba para no corromper índices
   for (let i = data.length - 1; i >= 1; i--) {
     const matchParcial = String(data[i][iParcial]) === String(parcial);
-    const matchCiclo   = String(data[i][iCiclo])   === String(ciclo);
+    const matchCiclo = String(data[i][iCiclo]) === String(ciclo);
     // Si grupo es vacío o "TODOS" → borra todo el parcial/ciclo sin importar grupo
-    const matchGrupo   = !grupo || grupo === "TODOS" || String(data[i][iGrupo]) === String(grupo);
+    const matchGrupo = !grupo || grupo === "TODOS" || String(data[i][iGrupo]) === String(grupo);
     if (matchParcial && matchCiclo && matchGrupo) {
       sh.deleteRow(i + 1);
       borradas++;
@@ -249,11 +252,11 @@ function limpiarParcial(grupo, parcial, ciclo) {
   // Limpiar calificaciones_normalizadas (mismos filtros)
   const shN = ss.getSheetByName("calificaciones_normalizadas");
   if (shN && shN.getLastRow() > 1) {
-    const dataN   = shN.getDataRange().getValues();
-    const hdrsN   = dataN[0];
-    const iGN     = hdrsN.indexOf("grupo");
-    const iPN     = hdrsN.indexOf("parcial");
-    const iCN     = hdrsN.indexOf("ciclo");
+    const dataN = shN.getDataRange().getValues();
+    const hdrsN = dataN[0];
+    const iGN = hdrsN.indexOf("grupo");
+    const iPN = hdrsN.indexOf("parcial");
+    const iCN = hdrsN.indexOf("ciclo");
     for (let i = dataN.length - 1; i >= 1; i--) {
       const matchP = String(dataN[i][iPN]) === String(parcial);
       const matchC = String(dataN[i][iCN]) === String(ciclo);
@@ -267,8 +270,8 @@ function limpiarParcial(grupo, parcial, ciclo) {
   if (!grupo || grupo === "TODOS") {
     const shA = ss.getSheetByName("Acad_Alumnos");
     if (shA && shA.getLastRow() > 1) {
-      const dataA   = shA.getDataRange().getValues();
-      const hdrsA   = dataA[0];
+      const dataA = shA.getDataRange().getValues();
+      const hdrsA = dataA[0];
       const iCicloA = hdrsA.indexOf("ciclo");
       let borradasA = 0;
       for (let i = dataA.length - 1; i >= 1; i--) {
@@ -287,22 +290,22 @@ function limpiarParcial(grupo, parcial, ciclo) {
 //  DASHBOARD — datos agregados para el frontend
 // ════════════════════════════════════════════════════════════════════════════
 function getDashboard(p) {
-  const ciclo   = p.ciclo   || getCicloActivo();
+  const ciclo = p.ciclo || getCicloActivo();
   const parcial = p.parcial ? parseInt(p.parcial) : null;
-  const grupo   = p.grupo   || null;
+  const grupo = p.grupo || null;
 
   const cals = leerCalificaciones(ciclo, parcial, grupo);
 
   return {
     status: "success",
     ciclo, parcial, grupo,
-    resumen:           calcResumen(cals),
-    porGrupo:          calcPorGrupo(cals),
-    porMateria:        calcPorMateria(cals),
-    enRiesgo:          calcEnRiesgo(cals),
-    topAlumnos:        calcTopAlumnos(cals),
-    tendencias:        calcTendencias(ciclo, grupo),
-    porSemestreTurno:  calcPorSemestreTurno(cals),
+    resumen: calcResumen(cals),
+    porGrupo: calcPorGrupo(cals),
+    porMateria: calcPorMateria(cals),
+    enRiesgo: calcEnRiesgo(cals),
+    topAlumnos: calcTopAlumnos(cals),
+    tendencias: calcTendencias(ciclo, grupo),
+    porSemestreTurno: calcPorSemestreTurno(cals),
   };
 }
 
@@ -310,9 +313,9 @@ function getDashboard(p) {
 //  INDICADORES DETALLADOS
 // ════════════════════════════════════════════════════════════════════════════
 function getIndicadores(p) {
-  const ciclo   = p.ciclo   || getCicloActivo();
+  const ciclo = p.ciclo || getCicloActivo();
   const parcial = p.parcial ? parseInt(p.parcial) : null;
-  const grupo   = p.grupo   || null;
+  const grupo = p.grupo || null;
 
   const cals = leerCalificaciones(ciclo, parcial, grupo);
 
@@ -320,25 +323,25 @@ function getIndicadores(p) {
     status: "success",
     // ALUMNOS
     alumnos: {
-      total:       contarAlumnosUnicos(cals),
-      enRiesgo:    calcEnRiesgo(cals),
-      mejores:     calcTopAlumnos(cals, 10),
-      historial:   calcHistorialParciales(ciclo, grupo),
+      total: contarAlumnosUnicos(cals),
+      enRiesgo: calcEnRiesgo(cals),
+      mejores: calcTopAlumnos(cals, 10),
+      historial: calcHistorialParciales(ciclo, grupo),
     },
     // DOCENTES
     docentes: {
-      porDocente:  calcPorDocente(cals),
+      porDocente: calcPorDocente(cals),
     },
     // MATERIAS
     materias: {
       reprobacion: calcReprobacionMateria(cals),
-      promedios:   calcPorMateria(cals),
+      promedios: calcPorMateria(cals),
     },
     // GENERALES
     general: {
       indiceReprobacion: calcIndiceReprobacion(cals),
-      porGrupo:          calcPorGrupo(cals),
-      rankingGrupos:     calcRankingGrupos(cals),
+      porGrupo: calcPorGrupo(cals),
+      rankingGrupos: calcRankingGrupos(cals),
     },
   };
 }
@@ -347,9 +350,9 @@ function getIndicadores(p) {
 //  ALUMNOS POR GRUPO — tabla detallada alumno × materia
 // ════════════════════════════════════════════════════════════════════════════
 function getAlumnosGrupo(p) {
-  const ciclo   = p.ciclo   || getCicloActivo();
+  const ciclo = p.ciclo || getCicloActivo();
   const parcial = p.parcial ? parseInt(p.parcial) : null;
-  const grupo   = p.grupo   || null;
+  const grupo = p.grupo || null;
 
   if (!grupo) return { status: "error", message: "Parámetro 'grupo' requerido" };
 
@@ -358,7 +361,7 @@ function getAlumnosGrupo(p) {
 
   // Ordenar materias por orden de aparición (primera vez que aparecen)
   const materias = [];
-  const matSet   = new Set();
+  const matSet = new Set();
   cals.forEach(c => {
     if (c.materia && !matSet.has(c.materia)) {
       matSet.add(c.materia);
@@ -371,17 +374,17 @@ function getAlumnosGrupo(p) {
   cals.forEach(c => {
     if (!mapaAlumnos[c.curp]) {
       mapaAlumnos[c.curp] = {
-        curp:     c.curp,
-        nombre:   c.nombre,
-        grupo:    c.grupo,
+        curp: c.curp,
+        nombre: c.nombre,
+        grupo: c.grupo,
         promedio: c.promedio,
         enRiesgo: c.enRiesgo,
-        cals:     {}   // materia → {cal, faltas, sinDatos}
+        cals: {}   // materia → {cal, faltas, sinDatos}
       };
     }
     mapaAlumnos[c.curp].cals[c.materia] = {
-      cal:      c.calificacion,
-      faltas:   c.faltas,
+      cal: c.calificacion,
+      faltas: c.faltas,
       sinDatos: c.sinDatos,
     };
   });
@@ -400,28 +403,28 @@ function leerCalificaciones(ciclo, parcial, grupo) {
   const sh = ss.getSheetByName("Acad_Calificaciones");
   if (!sh || sh.getLastRow() <= 1) return [];
 
-  const data    = sh.getDataRange().getValues();
+  const data = sh.getDataRange().getValues();
   const headers = data[0];
-  const idx     = {};
+  const idx = {};
   headers.forEach((h, i) => idx[h] = i);
 
   return data.slice(1).filter(r => {
-    if (ciclo  && String(r[idx.ciclo])   !== String(ciclo))   return false;
-    if (parcial && parseInt(r[idx.parcial]) !== parcial)       return false;
-    if (grupo  && String(r[idx.grupo])   !== String(grupo))   return false;
+    if (ciclo && String(r[idx.ciclo]) !== String(ciclo)) return false;
+    if (parcial && parseInt(r[idx.parcial]) !== parcial) return false;
+    if (grupo && String(r[idx.grupo]) !== String(grupo)) return false;
     return true;
   }).map(r => ({
-    curp:         r[idx.curp],
-    nombre:       r[idx.nombre],
-    grupo:        r[idx.grupo],
-    parcial:      parseInt(r[idx.parcial]),
-    materia:      r[idx.materia],
+    curp: r[idx.curp],
+    nombre: r[idx.nombre],
+    grupo: r[idx.grupo],
+    parcial: parseInt(r[idx.parcial]),
+    materia: r[idx.materia],
     calificacion: r[idx.calificacion] !== "" ? parseFloat(r[idx.calificacion]) : null,
-    faltas:       parseInt(r[idx.faltas] || 0),
-    sinDatos:     r[idx.sinDatos] === "SI",
-    promedio:     r[idx.promedio] !== "" ? parseFloat(r[idx.promedio]) : null,
-    enRiesgo:     r[idx.enRiesgo] === "SI",
-    ciclo:        r[idx.ciclo],
+    faltas: parseInt(r[idx.faltas] || 0),
+    sinDatos: r[idx.sinDatos] === "SI",
+    promedio: r[idx.promedio] !== "" ? parseFloat(r[idx.promedio]) : null,
+    enRiesgo: r[idx.enRiesgo] === "SI",
+    ciclo: r[idx.ciclo],
   }));
 }
 
@@ -477,7 +480,7 @@ function getMaterias() {
 function getCumpleanos() {
   const ss = SpreadsheetApp.openById(SS_ID);
   const sh = ss.getSheetByName("cumpleanos");
-  
+
   if (!sh || sh.getLastRow() <= 1) {
     // Si la hoja no existe o está vacía, devuelve array vacío (el frontend usará fallback)
     return { status: "success", cumpleanos: [] };
@@ -486,7 +489,7 @@ function getCumpleanos() {
   const data = sh.getDataRange().getValues();
   const [headers, ...rows] = data;
   const normHeaders = headers.map(h => String(h).toLowerCase().trim());
-  
+
   const cumpleanos = rows.map(r => {
     const obj = {};
     normHeaders.forEach((h, i) => {
@@ -520,12 +523,12 @@ function calcResumen(cals) {
     : 0;
 
   return {
-    totalAlumnos:       alumnosUnicos.size,
-    alumnosEnRiesgo:    enRiesgo.size,
-    promedioGeneral:    prom ? Math.round(prom * 100) / 100 : null,
-    indiceReprobacion:  idxRep,
+    totalAlumnos: alumnosUnicos.size,
+    alumnosEnRiesgo: enRiesgo.size,
+    promedioGeneral: prom ? Math.round(prom * 100) / 100 : null,
+    indiceReprobacion: idxRep,
     totalCalificaciones: calsSinNull.length,
-    calificacionesRep:  reprobadas,
+    calificacionesRep: reprobadas,
   };
 }
 
@@ -540,11 +543,11 @@ function calcPorGrupo(cals) {
 
   return Object.entries(grupos).map(([grupo, d]) => ({
     grupo,
-    totalAlumnos:  d.alumnos.size,
-    enRiesgo:      d.enRiesgo.size,
-    promedio:      d.califs.length ? Math.round(d.califs.reduce((s,v)=>s+v,0)/d.califs.length*100)/100 : null,
-    reprobacion:   d.califs.length ? Math.round(d.califs.filter(v=>v<6).length/d.califs.length*100) : 0,
-  })).sort((a,b) => (b.promedio||0) - (a.promedio||0));
+    totalAlumnos: d.alumnos.size,
+    enRiesgo: d.enRiesgo.size,
+    promedio: d.califs.length ? Math.round(d.califs.reduce((s, v) => s + v, 0) / d.califs.length * 100) / 100 : null,
+    reprobacion: d.califs.length ? Math.round(d.califs.filter(v => v < 6).length / d.califs.length * 100) : 0,
+  })).sort((a, b) => (b.promedio || 0) - (a.promedio || 0));
 }
 
 function calcPorMateria(cals) {
@@ -553,9 +556,9 @@ function calcPorMateria(cals) {
   const grupos = {}; // key: "sem|turno"
   cals.forEach(c => {
     if (c.calificacion === null) return;
-    const sem   = c.semestre || "—";
-    const turno = c.turno    || "—";
-    const key   = `${sem}|${turno}`;
+    const sem = c.semestre || "—";
+    const turno = c.turno || "—";
+    const key = `${sem}|${turno}`;
     if (!grupos[key]) grupos[key] = { semestre: sem, turno, materias: {} };
     if (!grupos[key].materias[c.materia]) grupos[key].materias[c.materia] = { califs: [], grupo: c.grupo };
     grupos[key].materias[c.materia].califs.push(c.calificacion);
@@ -563,20 +566,20 @@ function calcPorMateria(cals) {
 
   // Convertir a array plano de {semestre, turno, materia, docente, promedio, reprobacion}
   const filas = [];
-  Object.values(grupos).sort((a,b) => {
+  Object.values(grupos).sort((a, b) => {
     if (a.semestre !== b.semestre) return a.semestre - b.semestre;
     return a.turno.localeCompare(b.turno);
   }).forEach(g => {
     Object.entries(g.materias).forEach(([materia, d]) => {
       const doc = buscarDocente(dir, materia, d.grupo || "");
       filas.push({
-        semestre:    g.semestre,
-        turno:       g.turno,
+        semestre: g.semestre,
+        turno: g.turno,
         materia,
-        docente:     doc,
-        promedio:    Math.round(d.califs.reduce((s,v)=>s+v,0)/d.califs.length*100)/100,
-        reprobacion: Math.round(d.califs.filter(v=>v<6).length/d.califs.length*100),
-        total:       d.califs.length,
+        docente: doc,
+        promedio: Math.round(d.califs.reduce((s, v) => s + v, 0) / d.califs.length * 100) / 100,
+        reprobacion: Math.round(d.califs.filter(v => v < 6).length / d.califs.length * 100),
+        total: d.califs.length,
       });
     });
   });
@@ -598,7 +601,7 @@ function calcEnRiesgo(cals) {
       mapa[c.curp].materiasBajas.push({ materia: c.materia, cal: c.calificacion });
     }
   });
-  return Object.values(mapa).sort((a,b) => (a.promedio||0) - (b.promedio||0));
+  return Object.values(mapa).sort((a, b) => (a.promedio || 0) - (b.promedio || 0));
 }
 
 function calcTopAlumnos(cals, n = 10) {
@@ -610,7 +613,7 @@ function calcTopAlumnos(cals, n = 10) {
   });
   return Object.values(mapa)
     .filter(a => a.promedio !== null)
-    .sort((a,b) => (b.promedio||0) - (a.promedio||0))
+    .sort((a, b) => (b.promedio || 0) - (a.promedio || 0))
     .slice(0, n);
 }
 
@@ -624,10 +627,10 @@ function calcIndiceReprobacion(cals) {
   });
   return Object.entries(parciales).map(([p, d]) => ({
     parcial: parseInt(p),
-    indice:  Math.round(d.rep / d.total * 100),
-    total:   d.total,
+    indice: Math.round(d.rep / d.total * 100),
+    total: d.total,
     reprobados: d.rep,
-  })).sort((a,b) => a.parcial - b.parcial);
+  })).sort((a, b) => a.parcial - b.parcial);
 }
 
 // Normaliza texto: sin acentos, minúsculas, sin espacios extra
@@ -638,21 +641,21 @@ function norm(s) {
 
 // Lee el Directorio y devuelve estructura para búsqueda flexible
 function leerDirectorioPEC() {
-  const docMap   = {}; // norm(materia)|norm(grupo) → docente
-  const docMapM  = {}; // norm(materia) → docente (fallback sin grupo)
+  const docMap = {}; // norm(materia)|norm(grupo) → docente
+  const docMapM = {}; // norm(materia) → docente (fallback sin grupo)
   const correoMap = {}; // norm(materia)|norm(grupo) → correo
   const ss = SpreadsheetApp.openById(SS_ID);
   const sh = ss.getSheetByName("Directorio");
   if (!sh || sh.getLastRow() <= 1) return { docMap, docMapM, correoMap, rows: [] };
   const rows = sh.getDataRange().getValues().slice(1);
   rows.forEach(r => {
-    const grupo   = String(r[0] || "").trim();
+    const grupo = String(r[0] || "").trim();
     const materia = String(r[1] || "").trim();
     const docente = String(r[2] || "").trim();
-    const correo  = String(r[3] || "").trim();
+    const correo = String(r[3] || "").trim();
     if (!materia || !docente) return;
     const key = `${norm(materia)}|${norm(grupo)}`;
-    docMap[key]    = docente;
+    docMap[key] = docente;
     correoMap[key] = correo;
     if (!docMapM[norm(materia)]) docMapM[norm(materia)] = docente;
   });
@@ -701,12 +704,12 @@ function calcPorDocente(cals) {
 
   return Object.entries(docentes).map(([docente, d]) => ({
     docente,
-    promedio:    Math.round(d.califs.reduce((s,v)=>s+v,0)/d.califs.length*100)/100,
-    reprobacion: Math.round(d.reprobados/d.califs.length*100),
-    totalEvals:  d.califs.length,
-    materias:    [...d.materias],
-    grupos:      [...d.grupos].sort(),
-  })).sort((a,b) => a.docente.localeCompare(b.docente));
+    promedio: Math.round(d.califs.reduce((s, v) => s + v, 0) / d.califs.length * 100) / 100,
+    reprobacion: Math.round(d.reprobados / d.califs.length * 100),
+    totalEvals: d.califs.length,
+    materias: [...d.materias],
+    grupos: [...d.grupos].sort(),
+  })).sort((a, b) => a.docente.localeCompare(b.docente));
 }
 
 function calcRankingGrupos(cals) {
@@ -715,13 +718,13 @@ function calcRankingGrupos(cals) {
 
 // Agrupa por semestre+turno: KPIs, top alumnos, en riesgo, materias, docentes
 function calcPorSemestreTurno(cals) {
-  const dir     = leerDirectorioPEC();
+  const dir = leerDirectorioPEC();
   const bloques = {};
 
   cals.forEach(c => {
-    const sem   = String(c.semestre || "—");
-    const turno = String(c.turno    || "—");
-    const key   = `${sem}|${turno}`;
+    const sem = String(c.semestre || "—");
+    const turno = String(c.turno || "—");
+    const key = `${sem}|${turno}`;
     if (!bloques[key]) bloques[key] = {
       semestre: sem, turno,
       califs: [], alumnos: {}, grupos: new Set(),
@@ -764,14 +767,14 @@ function calcPorSemestreTurno(cals) {
     })
     .map(b => {
       const prom = b.califs.length
-        ? Math.round(b.califs.reduce((s,v)=>s+v,0)/b.califs.length*100)/100 : null;
+        ? Math.round(b.califs.reduce((s, v) => s + v, 0) / b.califs.length * 100) / 100 : null;
       const reprobacion = b.califs.length
-        ? Math.round(b.califs.filter(v=>v<6).length/b.califs.length*100) : 0;
+        ? Math.round(b.califs.filter(v => v < 6).length / b.califs.length * 100) : 0;
 
       // Todos los alumnos ordenados por promedio
       const alumnosOrdenados = Object.values(b.alumnos)
         .filter(a => a.promedio !== null)
-        .sort((a,z) => z.promedio - a.promedio);
+        .sort((a, z) => z.promedio - a.promedio);
 
       // Top 5 mejores
       const topAlumnos = alumnosOrdenados.slice(0, 5);
@@ -779,34 +782,34 @@ function calcPorSemestreTurno(cals) {
       // En riesgo (promedio < 6) ordenados de menor a mayor
       const enRiesgo = Object.values(b.alumnos)
         .filter(a => a.enRiesgo)
-        .sort((a,z) => (a.promedio||0) - (z.promedio||0));
+        .sort((a, z) => (a.promedio || 0) - (z.promedio || 0));
 
       // Materias ordenadas por reprobación
       const materias = Object.entries(b.materias).map(([materia, d]) => ({
         materia,
-        docente:     buscarDocente(dir, materia, d.grupo || ""),
-        promedio:    Math.round(d.califs.reduce((s,v)=>s+v,0)/d.califs.length*100)/100,
-        reprobacion: Math.round(d.califs.filter(v=>v<6).length/d.califs.length*100),
-        total:       d.califs.length,
-      })).sort((a,z) => z.reprobacion - a.reprobacion);
+        docente: buscarDocente(dir, materia, d.grupo || ""),
+        promedio: Math.round(d.califs.reduce((s, v) => s + v, 0) / d.califs.length * 100) / 100,
+        reprobacion: Math.round(d.califs.filter(v => v < 6).length / d.califs.length * 100),
+        total: d.califs.length,
+      })).sort((a, z) => z.reprobacion - a.reprobacion);
 
       // Docentes ordenados alfabéticamente
       const docentes = Object.entries(b.docentes).map(([docente, d]) => ({
         docente,
-        promedio:    Math.round(d.califs.reduce((s,v)=>s+v,0)/d.califs.length*100)/100,
-        reprobacion: Math.round(d.reprobados/d.califs.length*100),
-        totalEvals:  d.califs.length,
-        materias:    [...d.materias],
-      })).sort((a,z) => a.docente.localeCompare(z.docente));
+        promedio: Math.round(d.califs.reduce((s, v) => s + v, 0) / d.califs.length * 100) / 100,
+        reprobacion: Math.round(d.reprobados / d.califs.length * 100),
+        totalEvals: d.califs.length,
+        materias: [...d.materias],
+      })).sort((a, z) => a.docente.localeCompare(z.docente));
 
       return {
-        semestre:        b.semestre,
-        turno:           b.turno,
-        promedio:        prom,
+        semestre: b.semestre,
+        turno: b.turno,
+        promedio: prom,
         reprobacion,
-        totalAlumnos:    Object.keys(b.alumnos).length,
+        totalAlumnos: Object.keys(b.alumnos).length,
         alumnosEnRiesgo: enRiesgo.length,
-        grupos:          [...b.grupos].sort(),
+        grupos: [...b.grupos].sort(),
         topAlumnos,
         enRiesgo,
         materias,
@@ -823,10 +826,10 @@ function calcHistorialParciales(ciclo, grupo) {
     parciales[c.parcial].push(c.calificacion);
   });
   return Object.entries(parciales).map(([p, vals]) => ({
-    parcial:  parseInt(p),
-    promedio: Math.round(vals.reduce((s,v)=>s+v,0)/vals.length*100)/100,
-    total:    vals.length,
-  })).sort((a,b) => a.parcial - b.parcial);
+    parcial: parseInt(p),
+    promedio: Math.round(vals.reduce((s, v) => s + v, 0) / vals.length * 100) / 100,
+    total: vals.length,
+  })).sort((a, b) => a.parcial - b.parcial);
 }
 
 function contarAlumnosUnicos(cals) {
@@ -849,6 +852,50 @@ function getCicloActivo() {
   const sh = ss.getSheetByName("Acad_Config");
   if (!sh) return "";
   const data = sh.getDataRange().getValues();
-  const row  = data.find(r => String(r[0]).trim().toLowerCase() === "ciclo_activo");
+  const row = data.find(r => String(r[0]).trim().toLowerCase() === "ciclo_activo");
+  return row ? String(row[1]).trim() : "";
+}
+
+function doGetPecCierre(ss) {
+  // Función placeholder para demostrar la ruta
+  return json({ status: "success", message: "PEC Cierre Académico listo" });
+}
+
+
+function calcHistorialParciales(ciclo, grupo) {
+  const todosCals = leerCalificaciones(ciclo, null, grupo);
+  const parciales = {};
+  todosCals.filter(c => c.calificacion !== null).forEach(c => {
+    if (!parciales[c.parcial]) parciales[c.parcial] = [];
+    parciales[c.parcial].push(c.calificacion);
+  });
+  return Object.entries(parciales).map(([p, vals]) => ({
+    parcial: parseInt(p),
+    promedio: Math.round(vals.reduce((s, v) => s + v, 0) / vals.length * 100) / 100,
+    total: vals.length,
+  })).sort((a, b) => a.parcial - b.parcial);
+}
+
+function contarAlumnosUnicos(cals) {
+  return new Set(cals.map(c => c.curp)).size;
+}
+
+function calcTendencias(ciclo, grupo) {
+  return calcHistorialParciales(ciclo, grupo);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  UTILIDADES
+// ════════════════════════════════════════════════════════════════════════════
+function getOrCreateSheet(ss, nombre) {
+  return ss.getSheetByName(nombre) || ss.insertSheet(nombre);
+}
+
+function getCicloActivo() {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sh = ss.getSheetByName("Acad_Config");
+  if (!sh) return "";
+  const data = sh.getDataRange().getValues();
+  const row = data.find(r => String(r[0]).trim().toLowerCase() === "ciclo_activo");
   return row ? String(row[1]).trim() : "";
 }
