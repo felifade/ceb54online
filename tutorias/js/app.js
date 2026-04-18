@@ -400,35 +400,35 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         tbody.innerHTML = filtered.map(t => `
             <tr style="border-bottom: 1px solid #f8fafc;">
-                <td style="padding:1rem; font-size:0.85rem;">${formatDateLocale(t.fecha_tutoria || t.fecha)}</td>
-                <td style="padding:1rem; font-size:0.85rem;">
+                <td style="padding:0.4rem 0.65rem; font-size:0.78rem; white-space:nowrap;">${formatDateLocale(t.fecha_tutoria || t.fecha)}</td>
+                <td style="padding:0.4rem 0.65rem; font-size:0.78rem;">
                     <span onclick="toggleTutoriaParcial(event, '${t.fecha}', '${t.alumno.replace(/'/g, "\\'")}', ${t.parcial})"
                           title="Click para cambiar parcial"
-                          style="cursor:pointer; font-weight:700; color:#3b82f6; background:#eff6ff; padding:2px 8px; border-radius:4px; border:1px solid #dbeafe;">
-                        Parcial ${t.parcial}
+                          style="cursor:pointer; font-weight:700; color:#3b82f6; background:#eff6ff; padding:2px 6px; border-radius:4px; border:1px solid #dbeafe;">
+                        P${t.parcial}
                     </span>
                 </td>
-                <td style="padding:1rem; font-size:0.85rem; font-weight:700;">${t.grupo}</td>
-                <td style="padding:1rem; font-size:0.85rem;">
-                    ${t.alumno} 
-                    <span onclick="toggleTutoriaSexo(event, '${t.fecha}', '${t.alumno.replace(/'/g, "\\'")}', '${t.sexo}')" 
+                <td style="padding:0.4rem 0.65rem; font-size:0.78rem; font-weight:700;">${t.grupo}</td>
+                <td style="padding:0.4rem 0.65rem; font-size:0.78rem;">
+                    ${t.alumno}
+                    <span onclick="toggleTutoriaSexo(event, '${t.fecha}', '${t.alumno.replace(/'/g, "\\'")}', '${t.sexo}')"
                           title="Click para cambiar sexo"
-                          style="cursor:pointer; font-size:0.7rem; font-weight:700; padding:2px 6px; border-radius:4px; margin-left:4px; background:${t.sexo === 'H' ? '#dcfce7' : '#fce7f3'}; color:${t.sexo === 'H' ? '#166534' : '#9d174d'}; border: 1px solid ${t.sexo === 'H' ? '#bbf7d0' : '#fbcfe8'};">
+                          style="cursor:pointer; font-size:0.68rem; font-weight:700; padding:1px 5px; border-radius:4px; margin-left:3px; background:${t.sexo === 'H' ? '#dcfce7' : '#fce7f3'}; color:${t.sexo === 'H' ? '#166534' : '#9d174d'}; border: 1px solid ${t.sexo === 'H' ? '#bbf7d0' : '#fbcfe8'};">
                         ${t.sexo}
                     </span>
                 </td>
-                <td class="admin-only-col" style="padding:1rem; font-size:0.8rem; font-weight:600; color:#475569; display:${isAdmin ? 'table-cell' : 'none'};">${t.docente || "-"}</td>
-                <td style="padding:1rem; font-size:0.85rem;">${t.asignatura}</td>
-                <td style="padding:1rem; font-size:1.1rem; text-align:center;" 
+                <td class="admin-only-col" style="padding:0.4rem 0.65rem; font-size:0.72rem; font-weight:600; color:#475569; display:${isAdmin ? 'table-cell' : 'none'};">${t.docente || "-"}</td>
+                <td style="padding:0.4rem 0.65rem; font-size:0.78rem;">${t.asignatura}</td>
+                <td style="padding:0.4rem 0.65rem; font-size:0.95rem; text-align:center;"
                     onclick="toggleAsistencia(event, '${t.fecha}', '${t.alumno.replace(/'/g, "\\'")}', '${t.asistencia}')"
                     title="Click para cambiar asistencia">
                     ${t.asistencia === 'NO' ? '❌' : '✅'}
                 </td>
-                <td style="padding:1rem; font-size:0.85rem;">${t.individual ? 'Individual' : 'Grupal'}</td>
-                <td style="padding:1rem; font-size:0.85rem; color:#64748b; min-width: 250px; word-wrap: break-word;">${t.tema}</td>
-                <td style="padding:1rem; font-size:0.85rem;">
-                    <button class="btn-delete" onclick="handleDeleteTutoria('${t.fecha}', '${t.alumno.replace(/'/g, "\\'")}')" style="background:none; border:none; color:#ef4444; cursor:pointer; padding:4px;">
-                        <i data-lucide="trash-2" style="width:16px; height:16px;"></i>
+                <td style="padding:0.4rem 0.65rem; font-size:0.78rem;">${t.individual ? 'Individual' : 'Grupal'}</td>
+                <td style="padding:0.4rem 0.65rem; font-size:0.78rem; color:#64748b; word-wrap: break-word;">${t.tema}</td>
+                <td style="padding:0.4rem 0.65rem; font-size:0.78rem;">
+                    <button class="btn-delete" onclick="handleDeleteTutoria('${t.fecha}', '${t.alumno.replace(/'/g, "\\'")}')" style="background:none; border:none; color:#ef4444; cursor:pointer; padding:3px;">
+                        <i data-lucide="trash-2" style="width:14px; height:14px;"></i>
                     </button>
                 </td>
             </tr>
