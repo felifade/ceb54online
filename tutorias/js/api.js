@@ -57,6 +57,10 @@ const api = {
         datos.action = "saveTutoria";
         datos.docente_email = sessionStorage.getItem('user_email') || "";
 
+        console.log('[DEBUG] asistencia:', datos.asistencia);
+        console.log('[DEBUG] fecha_tutoria:', datos.fecha_tutoria);
+        console.log('[DEBUG] fecha:', datos.fecha);
+
         const response = await fetch(GOOGLE_SHEETS_API_URL, {
             method: 'POST',
             mode: 'cors',

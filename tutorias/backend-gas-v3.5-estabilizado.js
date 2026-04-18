@@ -277,7 +277,7 @@ function doPost(e) {
           body.grupal ? "X" : "",
           body.individual ? "X" : "",
           normalizeText(body.docente_email),
-          "",
+          body.asistencia || "SÍ",
           body.fecha_tutoria || ""
         ]);
       });

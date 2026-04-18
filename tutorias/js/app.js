@@ -400,7 +400,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         tbody.innerHTML = filtered.map(t => `
             <tr style="border-bottom: 1px solid #f8fafc;">
-                <td style="padding:1rem; font-size:0.85rem;">${new Date(t.fecha).toLocaleDateString()}</td>
+                <td style="padding:1rem; font-size:0.85rem;">${formatDateLocale(t.fecha)}</td>
                 <td style="padding:1rem; font-size:0.85rem;">
                     <span onclick="toggleTutoriaParcial(event, '${t.fecha}', '${t.alumno.replace(/'/g, "\\'")}', ${t.parcial})"
                           title="Click para cambiar parcial"
@@ -594,7 +594,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td style="border:1px solid #000; padding:4px; text-align:center; font-size:1.1rem;">${t.asistencia === 'NO' ? '❌' : '✅'}</td>
                 <td style="border:1px solid #000; padding:4px; text-align:center;">${t.grupal ? 'X' : ''}</td>
                 <td style="border:1px solid #000; padding:4px; text-align:center;">${t.individual ? 'X' : ''}</td>
-                <td style="border:1px solid #000; padding:4px;">${new Date(t.fecha).toLocaleDateString()}</td>
+                <td style="border:1px solid #000; padding:4px;">${formatDateLocale(t.fecha)}</td>
             </tr>
         `).join('') || '<tr><td colspan="8" style="text-align:center; padding:10px;">No hay datos para este parcial</td></tr>';
     }
@@ -776,6 +776,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- FORM SUBMISSION ---
     const form = document.getElementById('form-tutoria');
+    function formatDateLocale(dateStr) {
+        if (!dateStr) return "-";
+        // Si recibimos YYYY-MM-DD, evitamos que JS lo trate como UTC
+        if (typeof dateStr === 'string' && dateStr.includes('-') && !dateStr.includes(':')) {
+            const [y, m, d] = dateStr.split('-');
+            return `${d}/${m}/${y}`;
+        }
+        try {
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr;
+            return d.toLocaleDateString();
+        } catch (e) { return dateStr; }
+    }
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -799,6 +813,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             tema: formData.get('tema'),
             individual: formData.get('tutoria_tipo') === 'individual',
             grupal: formData.get('tutoria_tipo') === 'grupal',
+            fecha: formData.get('fecha_tutoria') || "",
             fecha_tutoria: formData.get('fecha_tutoria') || ""
         };
 
@@ -811,6 +826,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (result.status === "success") {
                 alert("Tutoría registrada con éxito.");
                 form.reset();
+                // Re-establecer fecha de hoy para el siguiente registro
+                const inputFecha = document.getElementById('input-fecha-tutoria');
+                if (inputFecha) {
+                    const hoy = new Date();
+                    const yyyy = hoy.getFullYear();
+                    const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+                    const dd = String(hoy.getDate()).padStart(2, '0');
+                    inputFecha.value = `${yyyy}-${mm}-${dd}`;
+                }
                 selectedStudentsState = [];
                 document.getElementById('students-checkbox-list').innerHTML = `<div class="students-empty"><i data-lucide="user-search" style="width:36px;height:36px;color:#cbd5e1;"></i><p>Ingresa el número de grupo o busca por nombre</p></div>`;
                 if (typeof lucide !== 'undefined') lucide.createIcons();

@@ -152,7 +152,7 @@ function readCalifAlumno(ss, nombre, config) {
 // ═══════════════════════════════════════════════════════════════════
 // GET
 // ═══════════════════════════════════════════════════════════════════
-function doGet(e) {
+function doGetPortal(e) {
   try {
     const ss  = SpreadsheetApp.getActiveSpreadsheet();
     const act = e.parameter.action || "";
@@ -166,6 +166,9 @@ function doGet(e) {
     if (act === "getPrefecturaBase")    return getPrefecturaBase(ss);
     if (act === "getIncidencias")       return getIncidencias(e, ss);
     if (act === "getCalendario")        return getCalendario(ss);
+    if (e.parameter.action === "getPecCierre") {
+      return doGetPecCierre(ss);
+    }
     return err("Acción no válida");
   } catch(ex) { return err(ex.toString()); }
 }
@@ -243,7 +246,7 @@ function getEncuestaStatus(e, ss) {
 // ═══════════════════════════════════════════════════════════════════
 // POST
 // ═══════════════════════════════════════════════════════════════════
-function doPost(e) {
+function doPostPortal(e) {
   try {
     const ss   = SpreadsheetApp.getActiveSpreadsheet();
     const body = JSON.parse(e.postData.contents);
@@ -424,3 +427,4 @@ function getCalendario(ss) {
 
   return ok({ status: "success", eventos, cumpleanos });
 }
+

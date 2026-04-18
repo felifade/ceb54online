@@ -45,6 +45,14 @@ const OLD_GRADES_SHEET_ID_4S = "1aRY6lP8R5-myw61Epbffsc1WmzNDYo67N0ovGOWng7s"; /
 function doGet(e) {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
+        const _act = e.parameter.action || "";
+    if (['loginAlumno','getCalAlumno','getCalPadre','getConfig','getEncuestaStatus','adminPortal','getPrefecturaBase','getIncidencias'].includes(_act)) {
+      return doGetPortal(e);
+    }
+    if (['getDashboard','getAlumnos','getGrupos','getMaterias','getIndicadores','getAlumnosGrupo','getCumpleanos'].includes(_act)) {
+      return doGetAcademico(e);
+    }
+
 
     // Módulo Presentación / Cierre PEC (alimentado desde Sheets)
     if (e.parameter.action === "getPecCierre") {
@@ -324,6 +332,12 @@ function doPost(e) {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const body = JSON.parse(e.postData.contents);
     const action = body.action || "";
+    if (['encuestaAlumno','encuestaPadre','adminPortal','saveIncidencia','marcarLaborSocial'].includes(action)) {
+      return doPostPortal(e);
+    }
+    if (['importarPDF','limpiarParcial'].includes(action)) {
+      return doPostAcademico(e);
+    }
 
     // LOGIN
     if (action === "login") {
@@ -416,8 +430,8 @@ function doPost(e) {
     if (action === "updateTutoriaField") {
       const s = getSheet(ss, S_TUTORIAS); const d = s.getDataRange().getValues();
       const tF = new Date(body.fecha).getTime(); const tA = String(body.alumno).trim();
-      // Mapa de columnas: Parcial=1(B), Sexo=4(E), Tema=8(I), Asistencia=12(M)
-      const m = { "parcial": 1, "sexo": 4, "tema": 8, "asistencia": 12 };
+      // Mapa de columnas: Parcial=1(B), Sexo=4(E), Tema=8(I), Asistencia=12(M), Fecha_Tutoria=13(N)
+      const m = { "parcial": 1, "sexo": 4, "tema": 8, "asistencia": 12, "fecha_tutoria": 13 };
       let col = m[body.column];
       let matched = false;
       if (col !== undefined) {
@@ -1091,7 +1105,7 @@ function editarEvaluacion(ss, body) {
 function getCalendarioData(ss) {
   let cumpleanos = [];
   let eventos = [];
-  
+
   // 1. Leer Cumpleaños
   const shCumples = getSheet(ss, "cumpleanos");
   if (shCumples && shCumples.getLastRow() > 1) {
