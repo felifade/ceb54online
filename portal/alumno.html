@@ -6,7 +6,7 @@
   <title>Portal Alumno | CEB 5/4</title>
   <!-- PWA -->
   <link rel="manifest" href="/portal/manifest.json">
-  <meta name="theme-color" content="#3884C0">
+  <meta name="theme-color" content="#059669">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Portal CEB 5/4">
@@ -21,199 +21,260 @@
 <!-- Loading -->
 <div class="loading-overlay" id="loading">
   <div class="spinner-ring"></div>
-  <div class="loading-text">Cargando tu información...</div>
+  <div class="loading-text">Cargando tu portal...</div>
 </div>
 
-<!-- Header -->
-<header class="portal-header green" id="header">
-  <div class="header-brand">
-    <div class="header-badge">ALUMNO</div>
-    <div>
-      <div class="header-name" id="h-nombre">—</div>
-      <div class="header-group" id="h-grupo">—</div>
+<!-- ══ HEADER ═══════════════════════════════════════════════ -->
+<header class="app-header" id="header">
+  <!-- Izquierda: badge + avatar pequeño + nombre -->
+  <div class="app-header-left">
+    <div class="app-header-badge">ALUMNO</div>
+    <div class="app-header-avatar-sm" id="header-avatar-sm">?</div>
+    <div class="app-header-info">
+      <div class="app-header-name" id="h-nombre">Cargando...</div>
+      <div class="app-header-sub">Bienvenido de nuevo 👋</div>
     </div>
   </div>
-  <div class="header-user">
-    <div class="header-avatar" id="h-avatar">?</div>
-    <button class="btn-logout" onclick="logout()">
-      <i data-lucide="log-out"></i><span>Salir</span>
+  <!-- Derecha: iniciales + botón salir -->
+  <div class="app-header-right">
+    <div class="app-header-initials" id="header-initials">?</div>
+    <button class="app-btn-logout" onclick="logout()">
+      <i data-lucide="log-out"></i>
+      <span>Salir</span>
     </button>
   </div>
 </header>
 
-<main class="portal-main">
+<!-- ══ FONDO DEGRADADO ══════════════════════════════════════ -->
+<div class="app-bg"></div>
 
-  <!-- BLOQUE: SEMANA ACTUAL + EVENTOS SELECCIONADOS + UNIFORME DEL DÍA -->
-  <div id="btn-vista-dias-portal" style="display:none;text-align:right;margin-bottom:0.4rem;">
-    <button onclick="_toggleVistaDiasPortal()" id="btn-vdp-inner"
-      style="font-size:0.74rem;padding:0.28rem 0.85rem;border-radius:20px;border:1px solid #bbf7d0;background:#f0fdf4;color:#059669;cursor:pointer;font-weight:700;transition:all 0.2s;">
-      📅 Ver semana detallada
-    </button>
-  </div>
-  <div id="bloque-semana-portal"></div>
-  <div id="vista-dias-portal" style="display:none;margin-bottom:1.1rem;"></div>
+<!-- ══ MAIN ════════════════════════════════════════════════ -->
+<main class="app-main">
 
-  <!-- FECHAS -->
-  <div class="dates-banner" id="dates-banner">
-    <div class="date-chip captura">
-      <div class="date-chip-icon">
-        <i data-lucide="timer"></i>
-        <span class="date-chip-label">Límite de captura</span>
-      </div>
-      <div class="date-chip-value" id="fecha-captura">Cargando...</div>
+  <!-- PERFIL (Profile Card) -->
+  <div class="profile-card">
+    <div class="profile-avatar" id="hero-avatar">?</div>
+    <div class="profile-info">
+      <div class="profile-name" id="hero-name">Cargando...</div>
+      <div class="profile-greeting">Bienvenido de nuevo 👋</div>
+      <div class="profile-group" id="hero-group">Grupo —</div>
     </div>
-    <div class="date-chip aclaracion">
-      <div class="date-chip-icon">
-        <i data-lucide="message-circle-question"></i>
-        <span class="date-chip-label">Período de aclaraciones</span>
-      </div>
-      <div class="date-chip-value" id="fecha-aclaracion">Cargando...</div>
-    </div>
-    <div class="date-chip cierre">
-      <div class="date-chip-icon">
-        <i data-lucide="award"></i>
-        <span class="date-chip-label">Publicación final</span>
-      </div>
-      <div class="date-chip-value" id="fecha-cierre">Cargando...</div>
-    </div>
+    <!-- Hidden element kept for JS compatibility -->
+    <span id="h-grupo" style="display:none;"></span>
   </div>
 
-  <!-- MATERIAS ACTUALES -->
-  <div class="section-header">
-    <div class="section-header-icon" style="background:#f0fdf4;">
-      <i data-lucide="book-open" style="color:#059669;"></i>
-    </div>
-    <div>
-      <div class="section-title">Mis Materias</div>
-      <div class="section-sub">Acceso a contenidos y actividades digitales</div>
-    </div>
-  </div>
-
-  <div style="background:white; border-radius:20px; padding:1.5rem; margin-bottom:1.75rem; box-shadow:0 2px 8px rgba(0,0,0,.06); border:1px solid #f1f5f9;">
-    <a id="card-cd-ii" href="../cultura-digital/index.html" class="info-card" style="display:none; align-items:center; gap:1.2rem; text-decoration:none; padding:1.2rem; background:linear-gradient(135deg,#f0fdf4,#d1fae5); border:1.5px solid #bbf7d0; border-radius:16px; transition:all 0.3s;" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 10px 15px -3px rgba(5,150,105,0.1)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
-      <div style="background:white; width:50px; height:50px; border-radius:12px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
-        <i data-lucide="monitor" style="color:#059669; width:26px; height:26px;"></i>
-      </div>
-      <div style="flex:1;">
-        <div style="font-weight:800; font-size:1.1rem; color:#065f46; margin-bottom:0.1rem;">Cultura Digital II</div>
-        <div style="font-size:0.82rem; color:#059669; font-weight:500;">Bitácora de actividades y ejercicios prácticos</div>
-      </div>
-      <i data-lucide="chevron-right" style="color:#059669; opacity:0.5;"></i>
-    </a>
-
-    <a id="card-cd-iii" href="../cultura-digital-iii/index.html" class="info-card" style="display:none; align-items:center; gap:1.2rem; text-decoration:none; padding:1.2rem; background:linear-gradient(135deg,#e0f2fe,#bae6fd); border:1.5px solid #7dd3fc; border-radius:16px; transition:all 0.3s; margin-top: 1rem;" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 10px 15px -3px rgba(2,132,199,0.1)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
-      <div style="background:white; width:50px; height:50px; border-radius:12px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
-        <i data-lucide="layers" style="color:#0284c7; width:26px; height:26px;"></i>
-      </div>
-      <div style="flex:1;">
-        <div style="font-weight:800; font-size:1.1rem; color:#075985; margin-bottom:0.1rem;">Cultura Digital III</div>
-        <div style="font-size:0.82rem; color:#0369a1; font-weight:500;">Proyectos avanzados y especialización digital</div>
-      </div>
-      <i data-lucide="chevron-right" style="color:#0369a1; opacity:0.5;"></i>
-    </a>
-  </div>
-
-  <!-- CALIFICACIONES PEC -->
-  <div class="section-header">
-    <div class="section-header-icon" style="background:#d1fae5;">
-      <i data-lucide="bar-chart-2" style="color:#059669;"></i>
-    </div>
-    <div>
-      <div class="section-title">Mis Calificaciones PEC</div>
-      <div class="section-sub">Evaluación por parcial · Escala 0 – 2 puntos</div>
-    </div>
-  </div>
-
-  <div class="grades-grid" id="grades-grid">
-    <!-- Se renderizan desde JS -->
-    <div class="grade-card locked"><div class="locked-msg"><i data-lucide="lock"></i><span>Cargando...</span></div></div>
-    <div class="grade-card locked"><div class="locked-msg"><i data-lucide="lock"></i><span>Cargando...</span></div></div>
-    <div class="grade-card locked"><div class="locked-msg"><i data-lucide="lock"></i><span>Cargando...</span></div></div>
-  </div>
-
-  <!-- REPORTES DE PREFECTURA ─────────────────────────────────────────────────
-       Sección modular independiente. Consulta: prefectura-portal.js
-       No toca calificaciones, cuestionario ni autenticación existentes.
-  ──────────────────────────────────────────────────────────────────────────── -->
-  <div class="section-header">
-    <div class="section-header-icon" style="background:#fce7f3;">
-      <i data-lucide="shield-alert" style="color:#be185d;"></i>
-    </div>
-    <div>
-      <div class="section-title">Reportes de Prefectura</div>
-      <div class="section-sub">Seguimiento de incidencias registradas a tu nombre</div>
-    </div>
-  </div>
-
-  <div id="section-prefectura">
-    <!-- Cargando mientras init() no ha terminado -->
-    <div style="background:white;border-radius:20px;padding:1.2rem 1.5rem;margin-bottom:1.75rem;box-shadow:0 2px 8px rgba(0,0,0,.06);border:1px solid #f1f5f9;">
-      <div style="display:flex;align-items:center;gap:0.5rem;color:#94a3b8;font-size:0.88rem;">
-        <div class="spinner-ring" style="width:14px;height:14px;border-width:2px;"></div>
-        Cargando...
-      </div>
-    </div>
-  </div>
-  <!-- /REPORTES DE PREFECTURA ──────────────────────────────────────────────── -->
-
-  <!-- EVALUACIÓN DOCENTES/DIRECTIVOS — visible solo cuando el admin lo activa -->
-  <div id="section-evaluacion-docentes" style="display:none">
-    <div class="section-header">
-      <div class="section-header-icon" style="background:#fef3c7;">
-        <i data-lucide="star" style="color:#d97706;"></i>
-      </div>
+  <!-- FECHAS CLAVE (bajo el perfil, antes del grid) -->
+  <div class="fechas-row">
+    <div class="fecha-item amber">
+      <span class="fecha-dot"></span>
       <div>
-        <div class="section-title">Evalúa a tus Docentes y Directivos</div>
-        <div class="section-sub">Accede directamente con tu información ya cargada</div>
+        <div class="fecha-value" id="fecha-captura">…</div>
+        <div class="fecha-label">CAPTURA<br>ESTUDIANTES</div>
       </div>
     </div>
+    <div class="fecha-item blue">
+      <span class="fecha-dot"></span>
+      <div>
+        <div class="fecha-value" id="fecha-aclaracion">…</div>
+        <div class="fecha-label">ACLARACIÓN</div>
+      </div>
+    </div>
+    <div class="fecha-item green">
+      <span class="fecha-dot"></span>
+      <div>
+        <div class="fecha-value" id="fecha-cierre">…</div>
+        <div class="fecha-label">PUBLICACIÓN</div>
+      </div>
+    </div>
+  </div>
 
-    <div id="encuesta-docentes-card" class="info-card" style="background:white; border-radius:20px; padding:1.5rem; margin-bottom:1.75rem; box-shadow:0 2px 8px rgba(0,0,0,.06); border:1px solid #f1f5f9; flex-direction:column; gap:1rem;">
-      <div style="display:flex; align-items:center; gap:1rem;">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.6rem; flex:1;">
-          <a id="link-profesores" href="#" class="encuesta-quick-btn" style="background:linear-gradient(135deg,#ede9fe,#ddd6fe); border:1.5px solid #c4b5fd; border-radius:14px; padding:1.1rem; display:flex; flex-direction:column; align-items:center; gap:0.4rem; text-decoration:none; transition:all 0.2s;">
-            <i data-lucide="users" style="width:24px;height:24px;color:#7c3aed;"></i>
-            <span style="font-weight:800;font-size:0.88rem;color:#4c1d95;">Evaluar Profesores</span>
-            <span style="font-size:0.72rem;color:#7c3aed;">Tus materias del ciclo</span>
-          </a>
-          <a id="link-directivos" href="#" class="encuesta-quick-btn" style="background:linear-gradient(135deg,#fff7ed,#fef3c7); border:1.5px solid #fde68a; border-radius:14px; padding:1.1rem; display:flex; flex-direction:column; align-items:center; gap:0.4rem; text-decoration:none; transition:all 0.2s;">
-            <i data-lucide="briefcase" style="width:24px;height:24px;color:#d97706;"></i>
-            <span style="font-weight:800;font-size:0.88rem;color:#92400e;">Evaluar Directivos</span>
-            <span style="font-size:0.72rem;color:#d97706;">Director y Subdirector</span>
+  <!-- GRID PRINCIPAL -->
+  <div class="app-grid">
+
+    <!-- ── COLUMNA IZQUIERDA ── -->
+    <div class="app-col">
+
+      <!-- CALIFICACIONES -->
+      <div class="app-card" id="card-calificaciones">
+        <div class="card-header">
+          <div class="card-icon green-icon"><i data-lucide="bar-chart-2"></i></div>
+          <span class="card-title">Calificaciones</span>
+          <span class="card-dots">···</span>
+        </div>
+        <div class="grades-grid" id="grades-grid">
+          <!-- Renderizado dinámico -->
+        </div>
+      </div>
+
+      <!-- ESTA SEMANA -->
+      <div class="app-card">
+        <div class="card-header">
+          <div class="card-icon teal-icon"><i data-lucide="calendar"></i></div>
+          <span class="card-title">Esta semana</span>
+          <span class="card-dots">···</span>
+        </div>
+        <div id="bloque-semana-portal"></div>
+        <div id="btn-vista-dias-portal" style="display:none; margin-top:0.75rem;">
+          <button onclick="_toggleVistaDiasPortal()" id="btn-vdp-inner"
+            style="font-size:0.75rem; color:#059669; font-weight:700; background:transparent; border:none; cursor:pointer; display:flex; align-items:center; gap:0.3rem;">
+            Ver cronograma <i data-lucide="chevron-right" style="width:13px;"></i>
+          </button>
+        </div>
+        <div id="vista-dias-portal" style="display:none; margin-top:0.75rem;"></div>
+      </div>
+
+      <!-- SISTEMA INTEGRAL SAGYC (Nuevo) -->
+      <div class="app-card" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: none;">
+        <div class="card-header">
+          <div class="card-icon" style="background: rgba(255,255,255,0.1);"><i data-lucide="external-link" style="color:#fff;"></i></div>
+          <span class="card-title" style="color:#fff;">Sistema Sagyc</span>
+        </div>
+        <div style="padding:0.25rem 0.5rem;">
+          <p style="font-size:0.75rem; color:#cbd5e1; margin-bottom:1rem; line-height:1.4;">
+            Consulta tus faltas y calificaciones oficiales con tu cuenta institucional.
+          </p>
+          <div style="background:rgba(255,255,255,0.05); border-radius:10px; padding:0.75rem; border:1px solid rgba(255,255,255,0.1); margin-bottom:1rem;">
+             <div style="font-size:0.65rem; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.4rem;">Instrucciones de acceso</div>
+             <div style="display:flex; flex-direction:column; gap:0.35rem;">
+                <div style="font-size:0.75rem; color:#fff; display:flex; align-items:center; gap:0.5rem;">
+                   <i data-lucide="user" style="width:12px; height:12px; color:#38bdf8;"></i>
+                   <span>Correo institucional</span>
+                </div>
+                <div style="font-size:0.75rem; color:#fff; display:flex; align-items:center; gap:0.5rem;">
+                   <i data-lucide="key" style="width:12px; height:12px; color:#38bdf8;"></i>
+                   <span>Contraseña: Tu CURP</span>
+                </div>
+             </div>
+          </div>
+          <a href="https://ceb54.sistemas-sagyc.com/login/" target="_blank" class="app-btn-primary" style="background:#fff; color:#1e293b; width:100%; justify-content:center; font-weight:700;">
+             Entrar a Sagyc <i data-lucide="arrow-up-right" style="width:16px; height:16px;"></i>
           </a>
         </div>
       </div>
-      <p style="font-size:0.78rem;color:#94a3b8;display:flex;align-items:center;gap:0.4rem;margin:0;">
-        <i data-lucide="shield-check" style="width:13px;height:13px;"></i>
-        Tu identidad se transfiere automáticamente — no necesitas volver a identificarte
-      </p>
-    </div>
-  </div>
 
-  <!-- CUESTIONARIO PEC — visible solo cuando el admin lo activa, se muestra como ficha -->
-  <div id="section-pec-encuesta" style="display:none">
-    <div class="section-header">
-      <div class="section-header-icon" style="background:#ede9fe;">
-        <i data-lucide="clipboard-check" style="color:#7c3aed;"></i>
-      </div>
-      <div>
-        <div class="section-title">Cuestionario de Evaluación PEC</div>
-        <div class="section-sub">Tu opinión mejora el proceso educativo</div>
-      </div>
-    </div>
+      <!-- PREFECTURA -->
+      <div id="section-prefectura"></div>
 
-    <div style="background:white; border-radius:20px; padding:1.5rem; margin-bottom:1.75rem; box-shadow:0 2px 8px rgba(0,0,0,.06); border:1px solid #f1f5f9;">
-      <a href="../pec/encuesta.html" style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;background:linear-gradient(135deg,#ede9fe,#ddd6fe);border:1.5px solid #c4b5fd;border-radius:14px;padding:1.4rem;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-        <i data-lucide="clipboard-list" style="width:28px;height:28px;color:#7c3aed;"></i>
-        <span style="font-weight:800;font-size:0.95rem;color:#4c1d95;">Responder Cuestionario PEC</span>
-        <span style="font-size:0.78rem;color:#7c3aed;text-align:center;">Evaluación del proceso educativo · Confidencial</span>
-      </a>
-      <p style="font-size:0.78rem;color:#94a3b8;display:flex;align-items:center;gap:0.4rem;margin:1rem 0 0;">
-        <i data-lucide="shield-check" style="width:13px;height:13px;"></i>
-        Tu participación es anónima y voluntaria
-      </p>
-    </div>
-  </div>
+    </div><!-- /col izquierda -->
+
+    <!-- ── COLUMNA DERECHA ── -->
+    <div class="app-col">
+
+      <!-- ACCESO RÁPIDO CULTURA DIGITAL (botón compacto, renderizado por JS) -->
+      <div id="portal-acceso-directo" style="display:none;"></div>
+
+      <!-- EVALUACIÓN DOCENTE (status + acceso) -->
+      <div id="section-evaluacion-docentes" style="display:none" class="app-card">
+        <div class="card-header">
+          <div class="card-icon amber-icon"><i data-lucide="user-check"></i></div>
+          <span class="card-title">Evaluación docente</span>
+        </div>
+        <div id="eval-loading-status" style="font-size:0.75rem; color:#94a3b8; margin-top:0.5rem;">Consultando...</div>
+        <div id="eval-progress-container" style="display:none; margin-top:0.75rem;">
+          <div class="eval-bar-track">
+            <div id="eval-bar-fill" class="eval-bar-fill"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.4rem; margin-bottom:0.85rem;">
+            <span id="eval-count-text" style="font-size:0.8rem; color:#475569; font-weight:500;"></span>
+            <span id="eval-percent-text" style="font-size:0.8rem; font-weight:800; color:#059669;">0%</span>
+          </div>
+        </div>
+        <!-- Botón de acceso directo -->
+        <div id="eval-action-box" style="display:none;">
+          <a id="btn-eval-go" href="#" class="eval-access-btn amber-btn"
+             onclick="sessionStorage.setItem('portal_came_from_eval','1')">
+            <i data-lucide="clipboard-list"></i>
+            <span>Evaluar docentes</span>
+            <i data-lucide="arrow-right" class="eval-arrow"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- EVALUACIÓN DIRECTIVOS (status + acceso) -->
+      <div id="section-evaluacion-directivos" style="display:none" class="app-card">
+        <div class="card-header">
+          <div class="card-icon blue-icon"><i data-lucide="building-2"></i></div>
+          <span class="card-title">Evaluación directivos</span>
+        </div>
+        <div id="eval-dir-loading-status" style="font-size:0.75rem; color:#94a3b8; margin-top:0.5rem;">Consultando...</div>
+        <div id="eval-dir-progress-container" style="display:none; margin-top:0.75rem;">
+          <div class="eval-bar-track">
+            <div id="eval-dir-bar-fill" class="eval-bar-fill" style="background: linear-gradient(90deg, #60a5fa, #1d4ed8);"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.4rem; margin-bottom:0.85rem;">
+            <span id="eval-dir-count-text" style="font-size:0.8rem; color:#475569; font-weight:500;"></span>
+            <span id="eval-dir-percent-text" style="font-size:0.8rem; font-weight:800; color:#1d4ed8;">0%</span>
+          </div>
+        </div>
+        <!-- Botón de acceso directo -->
+        <div id="eval-dir-action-box" style="display:none;">
+          <a id="btn-eval-dir-go" href="#" class="eval-access-btn blue-btn"
+             onclick="sessionStorage.setItem('portal_came_from_eval','1')">
+            <i data-lucide="shield-check"></i>
+            <span>Evaluar directivos</span>
+            <i data-lucide="arrow-right" class="eval-arrow"></i>
+          </a>
+        </div>
+      </div>
+
+
+      <!-- FECHAS CLAVE (widget en sidebar — oculto, las fechas ya están arriba) -->
+      <div class="app-card" id="card-fechas-sidebar">
+        <div class="card-header">
+          <div class="card-icon blue-icon"><i data-lucide="calendar-days"></i></div>
+          <span class="card-title">Fechas clave</span>
+          <span class="card-dots" style="margin-left:auto;">···</span>
+        </div>
+        <div class="fechas-sidebar">
+          <div class="fsb-item">
+            <span class="fsb-dot amber-dot"></span>
+            <div>
+              <div class="fsb-date" id="fsb-captura">30 abril</div>
+              <div class="fsb-label">CAPTURA<br>ESTUDIANTES</div>
+            </div>
+          </div>
+          <div class="fsb-item">
+            <span class="fsb-dot blue-dot"></span>
+            <div>
+              <div class="fsb-date" id="fsb-aclaracion">06 mayo</div>
+              <div class="fsb-label">ACLARACIÓN</div>
+            </div>
+          </div>
+          <div class="fsb-item">
+            <span class="fsb-dot green-dot"></span>
+            <div>
+              <div class="fsb-date" id="fsb-cierre">05 mayo</div>
+              <div class="fsb-label">PUBLICACIÓN</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ENCUESTA PEC -->
+      <div id="section-pec-encuesta" style="display:none" class="app-card">
+        <div class="card-header">
+          <div class="card-icon purple-icon"><i data-lucide="clipboard-check"></i></div>
+          <span class="card-title">Encuesta PEC</span>
+        </div>
+        <p style="font-size:0.8rem; color:#64748b; margin:0.5rem 0 1rem;">Tu opinión sobre el programa es importante</p>
+        <a href="../pec/encuesta.html" class="eval-cta-btn" style="background:#7c3aed;">Responder ahora</a>
+      </div>
+
+      <!-- MATERIAS DEL GRUPO (2 columnas — al final de la columna derecha) -->
+      <div class="app-card">
+        <div class="card-header">
+          <div class="card-icon green-icon"><i data-lucide="book-open"></i></div>
+          <span class="card-title">Materias del grupo</span>
+          <span class="card-dots">···</span>
+        </div>
+        <div id="materias-container" class="materias-2col">
+          <p style="font-size:0.75rem; color:#94a3b8; padding:0.55rem 0; grid-column:1/-1;">Cargando lista...</p>
+        </div>
+      </div>
+
+    </div><!-- /col derecha -->
+
+  </div><!-- /app-grid -->
 
 </main>
 
@@ -221,10 +282,6 @@
 <script src="js/alumno.js"></script>
 <script src="js/prefectura-portal.js"></script>
 <script>
-/* ── Reportes de Prefectura — inicialización independiente ─────────────────
-   Se ejecuta tras DOMContentLoaded, usando el usuario ya guardado en sesión.
-   No interfiere con alumno.js ni con ninguna otra sección del portal.
-────────────────────────────────────────────────────────────────────────── */
 document.addEventListener("DOMContentLoaded", function() {
   const u = portalSession.load();
   if (u && u.tipo === "alumno" && u.nombre) {
@@ -233,44 +290,26 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
 
-<!-- Fuente única de datos del calendario — FECHAS_CLAVE + lógica de semanas -->
+<!-- Fuente única de datos del calendario -->
 <script src="../pec/js/api_calendario.js"></script>
 <script src="../pec/js/app_calendario.js"></script>
 
 <script>
-/* ══════════════════════════════════════════════════
-   BLOQUE INFORMATIVO: SEMANA ACTUAL · EVENTOS · UNIFORME
-   Lee de FECHAS_CLAVE (fuente única) filtrando visiblePortalAlumno: true
-   Se activa cuando app_calendario.js termina de cargar sus datos.
-══════════════════════════════════════════════════ */
-
+/* ══ BLOQUE SEMANA ACTUAL ══════════════════════════════════════════ */
 function renderInfoSemanal() {
     const container = document.getElementById('bloque-semana-portal');
     if (!container) return;
 
-    // ── Leer FECHAS_CLAVE (global de app_calendario.js) ──────
     const fuente = (typeof FECHAS_CLAVE !== 'undefined' && FECHAS_CLAVE.length > 0)
         ? FECHAS_CLAVE
         : (typeof FECHAS_CLAVE_FALLBACK !== 'undefined' ? FECHAS_CLAVE_FALLBACK : []);
 
-    // ── Semana actual (usa cronogramaMap de app_calendario.js) ─
     function getSemanaActual() {
         if (typeof cronogramaMap === 'undefined' || !cronogramaMap.length) return null;
         const hoy = new Date(); hoy.setHours(0,0,0,0);
         return cronogramaMap.find(s => hoy >= s.start && hoy <= s.end) || null;
     }
 
-    // ── Eventos de la semana marcados para el portal ──────────
-    function getEventosSemana(semana) {
-        if (!semana) return [];
-        return fuente.filter(ev => {
-            if (!ev.visiblePortalAlumno) return false;
-            const d = new Date(ev.fecha + 'T00:00:00');
-            return d >= semana.start && d <= semana.end;
-        });
-    }
-
-    // ── Uniforme según día ────────────────────────────────────
     function getUniforme() {
         const dia = new Date().getDay();
         if (dia === 0 || dia === 6) return { texto: "Sin clases hoy",   emoji: "🏡", color: "#94a3b8" };
@@ -278,63 +317,73 @@ function renderInfoSemanal() {
         return                             { texto: "Pants",            emoji: "👟", color: "#059669" };
     }
 
-    // ── Formato fecha compacto ────────────────────────────────
     function fmtD(d) {
         const DIAS  = ['dom','lun','mar','mié','jue','vie','sáb'];
         const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-        return `${DIAS[d.getDay()]} ${d.getDate()} ${MESES[d.getMonth()]}`;
+        return `${d.getDate()} ${MESES[d.getMonth()]}`;
     }
 
-    // ── Colores por categoría ─────────────────────────────────
-    const CAT = {
-        evaluacion: { dot: '#d97706' },
-        reunion:    { dot: '#7c3aed' },
-        control:    { dot: '#0284c7' },
-        academico:  { dot: '#16a34a' },
-    };
-
     const semana   = getSemanaActual();
-    const eventos  = getEventosSemana(semana);
     const uniforme = getUniforme();
 
-    const semanaTxt = !semana
-        ? 'Fuera del período escolar'
-        : semana.esVacaciones
-            ? `Periodo vacacional &nbsp;·&nbsp; ${fmtD(semana.start)} – ${fmtD(semana.end)}`
-            : `Sem. ${semana.num} &nbsp;·&nbsp; ${fmtD(semana.start)} – ${fmtD(semana.end)}`;
+    // Actualizar metric chip si existe
+    const metricWeek = document.getElementById("metric-week");
+    if (metricWeek) metricWeek.textContent = semana ? `Sem. ${semana.num}` : "Sem. —";
 
-    const eventosHTML = eventos.length === 0
-        ? `<p style="font-size:0.82rem;color:#94a3b8;margin:0;">Sin eventos destacados esta semana.</p>`
-        : eventos.map(ev => {
-            const c = CAT[ev.categoria] || CAT.academico;
-            const d = new Date(ev.fecha + 'T00:00:00');
-            return `
-              <div style="display:flex;align-items:center;gap:0.6rem;padding:0.4rem 0;border-bottom:1px solid #f8fafc;">
-                <div style="width:7px;height:7px;border-radius:50%;background:${c.dot};flex-shrink:0;"></div>
-                <div style="flex:1;font-size:0.83rem;color:#1e293b;font-weight:500;line-height:1.3;">${ev.titulo}</div>
-                <div style="font-size:0.75rem;color:#94a3b8;flex-shrink:0;white-space:nowrap;">${fmtD(d)}</div>
-              </div>`;
-          }).join('');
+    const rangoTxt = semana
+        ? `${fmtD(semana.start)} – ${fmtD(semana.end)} abr`
+        : 'Fuera del período escolar';
+
+    // ── Configuración visual por tipo de día ──────────────
+    const dia = new Date().getDay();
+    const esFinde   = (dia === 0 || dia === 6);
+    const esGala    = (dia === 2 || dia === 4);
+    const esVacacio = semana && semana.esVacaciones;
+
+    let iconoBox, iconoColor, bgBox, numColor, subTexto, badgeBg, badgeColor, badgeText, iconName;
+
+    if (esVacacio) {
+        iconoColor = '#7c3aed'; bgBox = '#ede9fe'; numColor = '#5b21b6';
+        subTexto   = 'Periodo vacacional'; badgeBg = '#ede9fe'; badgeColor = '#7c3aed';
+        badgeText  = '🌴 Vacaciones'; iconName = 'palmtree';
+    } else if (esFinde) {
+        iconoColor = '#94a3b8'; bgBox = '#f1f5f9'; numColor = '#475569';
+        subTexto   = 'Día de descanso · Sin clases'; badgeBg = '#f1f5f9'; badgeColor = '#64748b';
+        badgeText  = '🏡 Fin de semana'; iconName = 'house';
+    } else if (esGala) {
+        iconoColor = '#1d4ed8'; bgBox = '#dbeafe'; numColor = '#1e3a8a';
+        subTexto   = 'Mar y Jue: Uniforme de gala'; badgeBg = '#dbeafe'; badgeColor = '#1d4ed8';
+        badgeText  = '👔 Uniforme de gala'; iconName = 'shirt';
+    } else {
+        iconoColor = '#059669'; bgBox = '#d1fae5'; numColor = '#065f46';
+        subTexto   = 'Lun, Mié y Vie: Pants + tenis'; badgeBg = '#d1fae5'; badgeColor = '#059669';
+        badgeText  = '👟 Pants'; iconName = 'footprints';
+    }
+
+    const rangoFmt = semana
+        ? `${fmtD(semana.start)} – ${fmtD(semana.end)}`
+        : 'Fuera del período';
 
     container.innerHTML = `
-      <div style="background:white;border-radius:18px;padding:1.1rem 1.4rem;box-shadow:0 2px 8px rgba(0,0,0,.06);border:1px solid #f1f5f9;margin-bottom:1.1rem;display:grid;grid-template-columns:1fr auto;gap:1.1rem;align-items:start;">
-        <div>
-          <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.7rem;">
-            <span style="font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#059669;background:#d1fae5;padding:2px 9px;border-radius:20px;">Esta semana</span>
-            <span style="font-size:0.78rem;color:#64748b;font-weight:600;">${semanaTxt}</span>
-          </div>
-          ${eventosHTML}
+      <div class="semana-row">
+        <div class="semana-icon-box" style="background:${bgBox};">
+          <i data-lucide="${iconName}" style="width:22px; height:22px; color:${iconoColor};"></i>
         </div>
-        <div style="background:#f8fafc;border-radius:14px;padding:0.9rem 0.75rem;text-align:center;min-width:90px;border:1px solid #e2e8f0;flex-shrink:0;">
-          <div style="font-size:1.6rem;margin-bottom:0.3rem;">${uniforme.emoji}</div>
-          <div style="font-size:0.63rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;margin-bottom:3px;">Hoy</div>
-          <div style="font-size:0.78rem;font-weight:800;color:${uniforme.color};line-height:1.2;">${uniforme.texto}</div>
+        <div class="semana-body">
+          <div class="semana-num" style="color:${numColor};">Semana ${semana ? semana.num : '—'}</div>
+          <div class="semana-sub">${subTexto}</div>
+        </div>
+        <div class="semana-right">
+          <div class="semana-rango" style="color:${iconoColor};">◂ ${rangoFmt}</div>
         </div>
       </div>
+      <div style="margin-top:0.85rem; padding:0.55rem 0.85rem; border-radius:10px; background:${badgeBg}; display:inline-flex; align-items:center; gap:0.5rem;">
+        <span style="font-size:0.82rem; font-weight:700; color:${badgeColor};">${badgeText}</span>
+      </div>
     `;
+    lucide.createIcons();
 }
 
-// Esperar a que app_calendario.js termine de cargar sus datos
 document.addEventListener('calendarioDataLista', function() {
     renderInfoSemanal();
     document.getElementById('btn-vista-dias-portal').style.display = 'block';
@@ -358,47 +407,47 @@ function _toggleVistaDiasPortal() {
     }
 }
 
-// Restaurar logout correcto del portal (app_calendario.js lo sobreescribe con 'login.html')
+// Restaurar logout correcto
 window.logout = function() {
     portalSession.clear();
     window.location.href = "index.html";
 };
 
-// LÓGICA DE VISIBILIDAD DE MATERIAS POR SEMESTRE
-function checkSubjectVisibility() {
-    const groupEl = document.getElementById('h-grupo');
-    const cardII  = document.getElementById('card-cd-ii');
-    const cardIII = document.getElementById('card-cd-iii');
-    
-    if (!groupEl || !cardII || !cardIII) return;
+// Sincronizar fecha-sidebar con fecha-captura/aclaracion/cierre
+function syncFechasSidebar() {
+    const fmtFecha = (s) => {
+        if (!s || s === '—' || s === 'Cargando...' || s === 'Por definir') return '—';
+        if (s.length < 10 && (s.includes(' ') || s.includes('/'))) return s;
+        try {
+            const d = new Date(s.includes('-') ? s + 'T00:00:00' : s);
+            if (isNaN(d.getTime())) return s;
+            const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+            return `${d.getDate()} ${MESES[d.getMonth()]}`;
+        } catch(e) { return s; }
+    };
 
-    const groupText = groupEl.textContent.trim();
-    if (groupText === '—' || !groupText) return;
-
-    // Buscamos el primer número en el texto (ej. de "Grupo 201" extraemos el "2")
-    const match = groupText.match(/\d/);
-    if (!match) return;
-
-    const semester = match[0];
-
-    if (semester === '2') {
-        cardII.style.display = 'flex';
-        cardIII.style.display = 'none';
-    } else if (semester === '4') {
-        cardII.style.display = 'none';
-        cardIII.style.display = 'flex';
-    } else {
-        cardII.style.display = 'none';
-        cardIII.style.display = 'none';
-    }
+    const map = {
+        'fecha-captura':   'fsb-captura',
+        'fecha-aclaracion':'fsb-aclaracion',
+        'fecha-cierre':    'fsb-cierre',
+    };
+    Object.entries(map).forEach(([src, dst]) => {
+        const srcEl = document.getElementById(src);
+        const dstEl = document.getElementById(dst);
+        if (srcEl && dstEl) {
+            const val = srcEl.textContent.trim();
+            if (val && val !== '…' && val !== 'Cargando...') {
+                dstEl.textContent = fmtFecha(val);
+            }
+        }
+    });
 }
+// Observar cambios en las fechas y sincronizar al sidebar
+['fecha-captura','fecha-aclaracion','fecha-cierre'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) new MutationObserver(syncFechasSidebar).observe(el, { childList: true, characterData: true, subtree: true });
+});
 
-// Observar cuando cambia el texto del grupo (ya que se carga de forma asíncrona)
-const observer = new MutationObserver(checkSubjectVisibility);
-const hGrupo = document.getElementById('h-grupo');
-if (hGrupo) {
-    observer.observe(hGrupo, { childList: true, characterData: true, subtree: true });
-}
 </script>
 <script src="js/pwa.js"></script>
 </body>

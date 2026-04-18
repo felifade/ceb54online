@@ -6,7 +6,7 @@
   <title>Portal de Padres | CEB 5/4</title>
   <!-- PWA -->
   <link rel="manifest" href="/portal/manifest.json">
-  <meta name="theme-color" content="#3884C0">
+  <meta name="theme-color" content="#1c2b3a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Portal CEB 5/4">
@@ -18,240 +18,345 @@
 </head>
 <body>
 
+<!-- Fondo degradado -->
+<div class="app-bg"></div>
+
 <!-- Loading -->
 <div class="loading-overlay" id="loading">
   <div class="spinner-ring"></div>
   <div class="loading-text">Cargando información...</div>
 </div>
 
-<!-- Header -->
-<header class="portal-header blue">
-  <div class="header-brand">
-    <div class="header-badge" style="background:rgba(255,255,255,0.2);">PADRE/TUTOR</div>
-    <div>
-      <div class="header-name" id="h-nombre">—</div>
-      <div class="header-group" id="h-hijo">Alumno: —</div>
+<!-- ══ APP HEADER ══════════════════════════════════════════ -->
+<header class="app-header">
+  <div class="app-header-left">
+    <div class="app-header-badge">PADRE · TUTOR</div>
+    <div class="app-header-avatar-sm" id="header-avatar-sm">?</div>
+    <div class="app-header-info">
+      <span class="app-header-name" id="h-nombre">—</span>
+      <span class="app-header-sub">Tutor de <span id="h-hijo-sub">—</span></span>
     </div>
   </div>
-  <div class="header-user">
-    <div class="header-avatar" id="h-avatar" style="background:rgba(255,255,255,0.2);">?</div>
-    <button class="btn-logout" onclick="logout()">
+  <div class="app-header-right">
+    <div class="app-header-initials" id="header-initials">?</div>
+    <button class="app-btn-logout" onclick="logout()">
       <i data-lucide="log-out"></i><span>Salir</span>
     </button>
   </div>
 </header>
 
-<main class="portal-main">
+<!-- ══ CONTENIDO PRINCIPAL ═════════════════════════════════ -->
+<main class="app-main">
 
-  <!-- BLOQUE: SEMANA ACTUAL + EVENTOS SELECCIONADOS + UNIFORME DEL DÍA -->
-  <div id="btn-vista-dias-portal" style="display:none;text-align:right;margin-bottom:0.4rem;">
-    <button onclick="_toggleVistaDiasPortal()" id="btn-vdp-inner"
-      style="font-size:0.74rem;padding:0.28rem 0.85rem;border-radius:20px;border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;cursor:pointer;font-weight:700;transition:all 0.2s;">
-      📅 Ver semana detallada
-    </button>
-  </div>
-  <div id="bloque-semana-portal"></div>
-  <div id="vista-dias-portal" style="display:none;margin-bottom:1.1rem;"></div>
-
-  <!-- FECHAS -->
-  <div class="dates-banner">
-    <div class="date-chip captura">
-      <div class="date-chip-icon">
-        <i data-lucide="timer"></i>
-        <span class="date-chip-label">Límite de captura</span>
-      </div>
-      <div class="date-chip-value" id="fecha-captura">Cargando...</div>
-    </div>
-    <div class="date-chip aclaracion">
-      <div class="date-chip-icon">
-        <i data-lucide="message-circle-question"></i>
-        <span class="date-chip-label">Período de aclaraciones</span>
-      </div>
-      <div class="date-chip-value" id="fecha-aclaracion">Cargando...</div>
-    </div>
-    <div class="date-chip cierre">
-      <div class="date-chip-icon">
-        <i data-lucide="award"></i>
-        <span class="date-chip-label">Publicación final</span>
-      </div>
-      <div class="date-chip-value" id="fecha-cierre">Cargando...</div>
-    </div>
-  </div>
-
-  <!-- INFO HIJO + CALIFICACIÓN -->
-  <div class="section-header">
-    <div class="section-header-icon" style="background:#dbeafe;">
-      <i data-lucide="user-check" style="color:#1d4ed8;"></i>
-    </div>
+  <!-- PERFIL →  tarjeta flotante -->
+  <div class="profile-card">
+    <div class="profile-avatar" id="hero-avatar" style="background: linear-gradient(135deg,#0284c7,#1d4ed8);">?</div>
     <div>
-      <div class="section-title">Calificación PEC de <span id="hijo-nombre">tu hijo/a</span></div>
-      <div class="section-sub">Grupo <span id="hijo-grupo">—</span> · Escala 0 – 2 puntos por parcial</div>
+      <div class="profile-name" id="h-nombre-perfil">—</div>
+      <div class="profile-greeting">Padre / Tutor · Bienvenido de nuevo 👋</div>
+      <div class="profile-group">Alumno/a: <span id="hijo-nombre">—</span> · Grupo <span id="hijo-grupo">—</span></div>
     </div>
   </div>
+  <!-- IDs de compatibilidad con padre.js (ocultos) -->
+  <span id="h-hijo" style="display:none;"></span>
 
-  <div class="grades-grid" id="grades-grid">
-    <div class="grade-card locked"><div class="locked-msg"><i data-lucide="lock"></i><span>Cargando...</span></div></div>
-    <div class="grade-card locked"><div class="locked-msg"><i data-lucide="lock"></i><span>Cargando...</span></div></div>
-    <div class="grade-card locked"><div class="locked-msg"><i data-lucide="lock"></i><span>Cargando...</span></div></div>
-  </div>
-
-  <!-- REPORTES DE PREFECTURA ─────────────────────────────────────────────────
-       Sección modular independiente. Consulta: prefectura-portal.js
-       No toca calificaciones, cuestionario ni autenticación existentes.
-  ──────────────────────────────────────────────────────────────────────────── -->
-  <div class="section-header">
-    <div class="section-header-icon" style="background:#fce7f3;">
-      <i data-lucide="shield-alert" style="color:#be185d;"></i>
-    </div>
-    <div>
-      <div class="section-title">Reportes de Prefectura</div>
-      <div class="section-sub">Incidencias registradas a nombre de tu hijo/a</div>
-    </div>
-  </div>
-
-  <div id="section-prefectura">
-    <!-- Cargando mientras init() no ha terminado -->
-    <div style="background:white;border-radius:20px;padding:1.2rem 1.5rem;margin-bottom:1.75rem;box-shadow:0 2px 8px rgba(0,0,0,.06);border:1px solid #f1f5f9;">
-      <div style="display:flex;align-items:center;gap:0.5rem;color:#94a3b8;font-size:0.88rem;">
-        <div class="spinner-ring" style="width:14px;height:14px;border-width:2px;"></div>
-        Cargando...
+  <!-- FECHAS CLAVE — banner superior (igual que portal alumno) -->
+  <div class="fechas-row">
+    <div class="fecha-item amber">
+      <span class="fecha-dot"></span>
+      <div>
+        <div class="fecha-value" id="fecha-captura">…</div>
+        <div class="fecha-label">CAPTURA<br>CALIFICACIONES</div>
       </div>
     </div>
-  </div>
-  <!-- /REPORTES DE PREFECTURA ──────────────────────────────────────────────── -->
-
-  <!-- ══ EVALUACIÓN INSTITUCIONAL ══════════════════════════════════════════════
-       Controlada por eval_padres_activa en Google Sheets.
-       Empieza oculta (display:none). El interceptor de getCalPadre la muestra
-       solo cuando config.eval_padres_activa === true.
-       Si está desactivada desde el admin, el padre no ve esta sección.
-  ══════════════════════════════════════════════════════════════════════════ -->
-  <div id="section-eval-institucional" style="display:none;">
-
-  <!-- CUESTIONARIO PADRES — WIZARD 4 PASOS -->
-  <div class="section-header">
-    <div class="section-header-icon" style="background:#dbeafe;">
-      <i data-lucide="clipboard-list" style="color:#1d4ed8;"></i>
+    <div class="fecha-item blue">
+      <span class="fecha-dot"></span>
+      <div>
+        <div class="fecha-value" id="fecha-aclaracion">…</div>
+        <div class="fecha-label">ACLARACIÓN</div>
+      </div>
     </div>
-    <div>
-      <div class="section-title">Evaluación Institucional</div>
-      <div class="section-sub">4 secciones · Tu opinión es confidencial y muy valiosa</div>
-    </div>
-  </div>
-
-  <!-- ── TARJETA COMPACTA — colapsada por defecto ──────────────────────────
-       El formulario completo está abajo (survey-card), oculto.
-       Se abre solo cuando el padre da clic en "Responder".
-       Si ya fue respondida, el badge cambia y el botón desaparece.
-  ──────────────────────────────────────────────────────────────────────── -->
-  <div id="eval-resumen-card" style="background:white;border-radius:20px;padding:1.3rem 1.5rem;margin-bottom:1.75rem;box-shadow:0 2px 8px rgba(0,0,0,.06);border:1px solid #f1f5f9;">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
-
-      <!-- Icono + texto -->
-      <div style="display:flex;align-items:center;gap:0.85rem;">
-        <div style="background:#eff6ff;width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid #bfdbfe;">
-          <i data-lucide="star" style="width:22px;height:22px;color:#1d4ed8;"></i>
-        </div>
-        <div>
-          <div style="font-weight:700;font-size:0.95rem;color:#1e293b;margin-bottom:0.18rem;">Cuestionario para Padres y Tutores</div>
-          <div style="font-size:0.77rem;color:#64748b;">Institución · Director/a · Subdirector/a · General</div>
-        </div>
-      </div>
-
-      <!-- Badge + botón -->
-      <div style="display:flex;align-items:center;gap:0.65rem;flex-wrap:wrap;">
-        <span id="eval-badge"
-          style="font-size:0.71rem;font-weight:800;padding:3px 11px;border-radius:20px;background:#fef3c7;color:#b45309;white-space:nowrap;">
-          Pendiente
-        </span>
-        <button id="btn-abrir-eval" onclick="abrirEvaluacion()"
-          style="background:#1d4ed8;color:white;border:none;border-radius:12px;padding:0.52rem 1.1rem;font-size:0.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:0.38rem;transition:background 0.2s;"
-          onmouseover="this.style.background='#1e40af'" onmouseout="this.style.background='#1d4ed8'">
-          <i data-lucide="clipboard-check" style="width:15px;height:15px;"></i>
-          Responder
-        </button>
-      </div>
-
-    </div>
-  </div>
-  <!-- /TARJETA COMPACTA ──────────────────────────────────────────────────── -->
-
-  <!-- survey-card: oculto por defecto, se revela al dar clic en "Responder" -->
-  <div class="survey-card" id="survey-card" style="display:none;">
-
-    <!-- Estado: ya enviado -->
-    <div class="survey-done" id="survey-done" style="display:none;">
-      <div class="survey-done-icon" style="background:#dbeafe;">
-        <i data-lucide="check-circle-2" style="color:#1d4ed8;"></i>
-      </div>
-      <h3>¡Gracias por tu participación!</h3>
-      <p>Tu evaluación fue registrada correctamente. Tu retroalimentación ayuda a mejorar el plantel para todos.</p>
-    </div>
-
-    <!-- Formulario wizard -->
-    <div id="survey-form">
-      <div class="survey-head">
-        <h3>Cuestionario para Padres y Tutores</h3>
-        <p>Escala: 1 (Muy deficiente) — 5 (Excelente) · Responde con sinceridad</p>
-      </div>
-
-      <!-- Barra de progreso -->
-      <div class="survey-progress">
-        <div class="progress-steps">
-          <div class="progress-step active"  id="prog-1"></div>
-          <div class="progress-step"         id="prog-2"></div>
-          <div class="progress-step"         id="prog-3"></div>
-          <div class="progress-step"         id="prog-4"></div>
-        </div>
-        <div class="progress-label">
-          Sección <span id="prog-current">1</span> de 4 — <span id="prog-name">Institución</span>
-        </div>
-      </div>
-
-      <!-- PASO 1: Institución -->
-      <div class="survey-step active" id="step-1">
-        <div class="step-title" style="color:#059669;">
-          <i data-lucide="building-2"></i> A. Institución / Plantel
-        </div>
-      </div>
-
-      <!-- PASO 2: Director -->
-      <div class="survey-step" id="step-2">
-        <div class="step-title" style="color:#1d4ed8;">
-          <i data-lucide="briefcase"></i> B. Director/a — <span id="nombre-director">Director General</span>
-        </div>
-      </div>
-
-      <!-- PASO 3: Subdirector -->
-      <div class="survey-step" id="step-3">
-        <div class="step-title" style="color:#7c3aed;">
-          <i data-lucide="user-cog"></i> C. Subdirector/a — <span id="nombre-subdirector">Subdirector Académico</span>
-        </div>
-      </div>
-
-      <!-- PASO 4: General -->
-      <div class="survey-step" id="step-4">
-        <div class="step-title" style="color:#d97706;">
-          <i data-lucide="star"></i> D. Evaluación General
-        </div>
-      </div>
-
-      <!-- Navegación -->
-      <div class="survey-nav">
-        <button class="btn-back" id="btn-back" onclick="prevStep()" disabled>
-          <i data-lucide="arrow-left"></i> Anterior
-        </button>
-        <button class="btn-next" id="btn-next" onclick="nextStep()">
-          Siguiente <i data-lucide="arrow-right"></i>
-        </button>
-        <button class="btn-send" id="btn-send" style="display:none;" onclick="enviarEncuesta()">
-          <i data-lucide="send"></i> Enviar evaluación
-        </button>
+    <div class="fecha-item green">
+      <span class="fecha-dot"></span>
+      <div>
+        <div class="fecha-value" id="fecha-cierre">…</div>
+        <div class="fecha-label">PUBLICACIÓN</div>
       </div>
     </div>
   </div>
 
-  </div><!-- /section-eval-institucional -->
+  <!-- GRID 2 COLUMNAS -->
+  <div class="app-grid">
+
+    <!-- ── COLUMNA IZQUIERDA ── -->
+    <div class="app-col">
+
+      <!-- CALIFICACIONES PEC -->
+      <div class="app-card">
+        <div class="card-header">
+          <div class="card-icon blue-icon"><i data-lucide="bar-chart-2"></i></div>
+          <span class="card-title">Calificación PEC</span>
+          <span class="card-dots">···</span>
+        </div>
+        <div class="grades-grid" id="grades-grid">
+          <div class="grade-card locked"><div class="locked-msg"><i data-lucide="lock"></i><span>Cargando...</span></div></div>
+          <div class="grade-card locked"><div class="locked-msg"><i data-lucide="lock"></i><span>Cargando...</span></div></div>
+          <div class="grade-card locked"><div class="locked-msg"><i data-lucide="lock"></i><span>Cargando...</span></div></div>
+        </div>
+        <div class="grades-meta">
+          <span>Escala 0 – 2 puntos por parcial</span>
+        </div>
+      </div>
+
+      <!-- PROGRESO EVALUACIONES DEL ALUMNO (Nuevo para padres) -->
+      <div class="app-card">
+        <div class="card-header">
+          <div class="card-icon blue-icon"><i data-lucide="line-chart"></i></div>
+          <span class="card-title">Progreso alumno</span>
+          <span class="app-header-badge" style="margin-left:auto; background:#f1f5f9; color:#64748b; border:none; padding:1px 8px;">Supervisión</span>
+        </div>
+
+        <!-- Evaluación Docentes -->
+        <div id="section-eval-docentes-parent" style="margin-top:0.75rem;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:0.4rem;">
+            <span style="font-size:0.78rem; font-weight:700; color:#475569;">Evaluación Docente</span>
+            <span id="eval-percent-text" style="font-size:0.75rem; font-weight:800; color:#059669;">0%</span>
+          </div>
+          <div class="app-progress-bar">
+            <div id="eval-bar-fill" class="app-progress-fill green-gradient" style="width:0%;"></div>
+          </div>
+          <div id="eval-loading-status" style="font-size:0.72rem; color:#94a3b8; margin-top:0.35rem;">Actualizando...</div>
+        </div>
+
+        <!-- Evaluación Directivos -->
+        <div id="section-eval-directivos-parent" style="margin-top:1.1rem; padding-top:1.1rem; border-top:1px dashed #e2e8f0;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:0.4rem;">
+            <span style="font-size:0.78rem; font-weight:700; color:#475569;">Evaluación Directivos</span>
+            <span id="eval-dir-percent-text" style="font-size:0.75rem; font-weight:800; color:#0284c7;">0%</span>
+          </div>
+          <div class="app-progress-bar">
+            <div id="eval-dir-bar-fill" class="app-progress-fill blue-gradient" style="width:0%;"></div>
+          </div>
+          <div id="eval-dir-loading-status" style="font-size:0.72rem; color:#94a3b8; margin-top:0.35rem;">Actualizando...</div>
+        </div>
+      </div>
+
+      <!-- ESTA SEMANA -->
+      <div class="app-card">
+        <div class="card-header">
+          <div class="card-icon green-icon"><i data-lucide="calendar"></i></div>
+          <span class="card-title">Esta semana</span>
+          <div id="btn-vista-dias-portal" style="display:none; margin-left:auto;">
+            <button onclick="_toggleVistaDiasPortal()" id="btn-vdp-inner"
+              style="font-size:0.72rem;padding:0.22rem 0.75rem;border-radius:20px;border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;cursor:pointer;font-weight:700;">
+              📅 Detalle
+            </button>
+          </div>
+        </div>
+        <div id="bloque-semana-portal"></div>
+        <div id="vista-dias-portal" style="display:none;"></div>
+      </div>
+
+      <!-- PREFECTURA -->
+      <div id="section-prefectura">
+        <div class="app-card">
+          <div class="card-header">
+            <div class="card-icon" style="background:#fee2e2; color:#dc2626;"><i data-lucide="shield-alert"></i></div>
+            <span class="card-title">Prefectura</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem; color:#94a3b8; font-size:0.85rem; padding:0.5rem 0;">
+            <span class="spinner-ring" style="width:14px;height:14px;border-width:2px;flex-shrink:0;"></span>
+            Cargando reportes...
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /col izquierda -->
+
+    <!-- ── COLUMNA DERECHA ── -->
+    <div class="app-col">
+
+      <!-- ACCESO RÁPIDO CULTURA DIGITAL (botón compacto, renderizado por JS) -->
+      <div id="portal-cd-padre" style="display:none;"></div>
+
+      <!-- FECHAS CLAVE WIDGET (oculto — las fechas ya están arriba en el banner) -->
+      <div class="app-card" id="padre-fechas-sidebar">
+        <div class="card-header">
+          <div class="card-icon blue-icon"><i data-lucide="calendar-days"></i></div>
+          <span class="card-title">Fechas clave</span>
+          <span class="card-dots" style="margin-left:auto;">···</span>
+        </div>
+        <div class="fechas-sidebar">
+          <div class="fsb-item">
+            <span class="fsb-dot amber-dot"></span>
+            <div>
+              <div class="fsb-date" id="fsb-captura">—</div>
+              <div class="fsb-label">CAPTURA<br>CALIFICACIONES</div>
+            </div>
+          </div>
+          <div class="fsb-item">
+            <span class="fsb-dot blue-dot"></span>
+            <div>
+              <div class="fsb-date" id="fsb-aclaracion">—</div>
+              <div class="fsb-label">ACLARACIÓN</div>
+            </div>
+          </div>
+          <div class="fsb-item">
+            <span class="fsb-dot green-dot"></span>
+            <div>
+              <div class="fsb-date" id="fsb-cierre">—</div>
+              <div class="fsb-label">PUBLICACIÓN</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EVALUACIÓN INSTITUCIONAL PADRES -->
+      <div id="section-eval-institucional" style="display:none;">
+
+        <!-- Tarjeta compacta -->
+        <div class="app-card" id="eval-resumen-card">
+          <div class="card-header">
+            <div class="card-icon blue-icon"><i data-lucide="star"></i></div>
+            <span class="card-title">Evaluación Institucional</span>
+          </div>
+          <p style="font-size:0.8rem; color:#64748b; margin:0.25rem 0 0.85rem; line-height:1.5;">
+            Institución · Director/a · Subdirector/a · General<br>
+            <em style="font-size:0.75rem; color:#94a3b8;">Tu opinión es confidencial y muy valiosa</em>
+          </p>
+          <div style="display:flex; align-items:center; gap:0.65rem; flex-wrap:wrap;">
+            <span id="eval-badge"
+              style="font-size:0.71rem;font-weight:800;padding:3px 11px;border-radius:20px;background:#fef3c7;color:#b45309;white-space:nowrap;">
+              Pendiente
+            </span>
+            <button id="btn-abrir-eval" onclick="abrirEvaluacion()"
+              class="eval-access-btn blue-btn" style="flex:1; justify-content:center;">
+              <i data-lucide="clipboard-check"></i>
+              <span>Responder ahora</span>
+              <i data-lucide="arrow-right" class="eval-arrow"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Formulario wizard (oculto, se revela al clic en Responder) -->
+        <div class="survey-card" id="survey-card" style="display:none;">
+
+          <!-- Estado ya enviado -->
+          <div class="survey-done" id="survey-done" style="display:none;">
+            <div class="survey-done-icon" style="background:#dbeafe;">
+              <i data-lucide="check-circle-2" style="color:#1d4ed8;"></i>
+            </div>
+            <h3>¡Gracias por tu participación!</h3>
+            <p>Tu evaluación fue registrada correctamente. Tu retroalimentación ayuda a mejorar el plantel para todos.</p>
+          </div>
+
+          <!-- Formulario -->
+          <div id="survey-form">
+            <div class="survey-head">
+              <h3>Cuestionario para Padres y Tutores</h3>
+              <p>Escala: 1 (Muy deficiente) — 5 (Excelente) · Responde con sinceridad</p>
+            </div>
+
+            <div class="survey-progress">
+              <div class="progress-steps">
+                <div class="progress-step active" id="prog-1"></div>
+                <div class="progress-step"        id="prog-2"></div>
+                <div class="progress-step"        id="prog-3"></div>
+                <div class="progress-step"        id="prog-4"></div>
+              </div>
+              <div class="progress-label">
+                Sección <span id="prog-current">1</span> de 4 — <span id="prog-name">Institución</span>
+              </div>
+            </div>
+
+            <!-- PASO 1 -->
+            <div class="survey-step active" id="step-1">
+              <div class="step-title" style="color:#059669;">
+                <i data-lucide="building-2"></i> A. Institución / Plantel
+              </div>
+            </div>
+
+            <!-- PASO 2 -->
+            <div class="survey-step" id="step-2">
+              <div class="step-title" style="color:#1d4ed8;">
+                <i data-lucide="briefcase"></i> B. Director/a — <span id="nombre-director">Director General</span>
+              </div>
+            </div>
+
+            <!-- PASO 3 -->
+            <div class="survey-step" id="step-3">
+              <div class="step-title" style="color:#7c3aed;">
+                <i data-lucide="user-cog"></i> C. Subdirector/a — <span id="nombre-subdirector">Subdirector Académico</span>
+              </div>
+            </div>
+
+            <!-- PASO 4 -->
+            <div class="survey-step" id="step-4">
+              <div class="step-title" style="color:#d97706;">
+                <i data-lucide="star"></i> D. Evaluación General
+              </div>
+            </div>
+
+            <!-- Navegación -->
+            <div class="survey-nav">
+              <button class="btn-back" id="btn-back" onclick="prevStep()" disabled>
+                <i data-lucide="arrow-left"></i> Anterior
+              </button>
+              <button class="btn-next" id="btn-next" onclick="nextStep()">
+                Siguiente <i data-lucide="arrow-right"></i>
+              </button>
+              <button class="btn-send" id="btn-send" style="display:none;" onclick="enviarEncuesta()">
+                <i data-lucide="send"></i> Enviar evaluación
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /section-eval-institucional -->
+
+      <!-- SISTEMA INTEGRAL SAGYC (Nuevo) -->
+      <div class="app-card" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: none;">
+        <div class="card-header" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+          <div class="card-icon" style="background: rgba(255,255,255,0.1);"><i data-lucide="external-link" style="color:#fff;"></i></div>
+          <span class="card-title" style="color:#fff;">Sistema Sagyc</span>
+        </div>
+        <div style="padding:0.75rem 0.5rem 0.25rem;">
+          <p style="font-size:0.75rem; color:#cbd5e1; margin-bottom:1rem; line-height:1.4;">
+            Consulta las faltas y calificaciones oficiales de tu hijo/a con su cuenta institucional.
+          </p>
+          <div style="background:rgba(255,255,255,0.05); border-radius:10px; padding:0.75rem; border:1px solid rgba(255,255,255,0.1); margin-bottom:1rem;">
+             <div style="font-size:0.65rem; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.4rem;">Credenciales requeridas</div>
+             <div style="display:flex; flex-direction:column; gap:0.35rem;">
+                <div style="font-size:0.75rem; color:#fff; display:flex; align-items:center; gap:0.5rem;">
+                   <i data-lucide="user" style="width:12px; height:12px; color:#38bdf8;"></i>
+                   <span>Correo institucional del alumno</span>
+                </div>
+                <div style="font-size:0.75rem; color:#fff; display:flex; align-items:center; gap:0.5rem;">
+                   <i data-lucide="key" style="width:12px; height:12px; color:#38bdf8;"></i>
+                   <span>Contraseña: CURP del alumno</span>
+                </div>
+             </div>
+          </div>
+          <a href="https://ceb54.sistemas-sagyc.com/login/" target="_blank" class="app-btn-primary" style="background:#fff; color:#1e293b; width:100%; justify-content:center; font-weight:700;">
+             Entrar a Sagyc <i data-lucide="arrow-up-right" style="width:16px; height:16px;"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- MATERIAS INSCRITAS (2 columnas — al final de la columna derecha) -->
+      <div class="app-card">
+        <div class="card-header">
+          <div class="card-icon blue-icon"><i data-lucide="book-open"></i></div>
+          <span class="card-title">Materias inscritas</span>
+        </div>
+        <div id="materias-container" class="materias-2col">
+          <p style="font-size:0.75rem; color:#94a3b8; padding:0.55rem 0; grid-column:1/-1;">Cargando lista...</p>
+        </div>
+      </div>
+
+    </div><!-- /col derecha -->
+
+  </div><!-- /app-grid -->
 
 </main>
 
@@ -260,18 +365,8 @@
 <script src="js/prefectura-portal.js"></script>
 <script>
 /* ── FIX: eval_padres_activa — interceptor de getCalPadre ──────────────────
-   DIAGNÓSTICO: padre.js nunca usa config.eval_padres_activa aunque el backend
-   lo devuelve correctamente. Este interceptor captura la respuesta de
-   getCalPadre y muestra/oculta #section-eval-institucional según el flag.
-
-   FLUJO:
-     Sheets: eval_padres_activa = "si"
-     → GAS readConfig() → { eval_padres_activa: true }
-     → portalAPI.getCalPadre() → dataCal.config.eval_padres_activa = true
-     → interceptor → section-eval-institucional.display = ""  (visible)
-
-   Este wrapper se instala aquí (synchronously, antes de DOMContentLoaded)
-   para estar en place cuando padre.js llama a getCalPadre desde su listener.
+   No modificar. Intercepta la respuesta de getCalPadre para mostrar/ocultar
+   #section-eval-institucional según el flag del backend.
 ────────────────────────────────────────────────────────────────────────── */
 (function() {
   const _orig = portalAPI.getCalPadre.bind(portalAPI);
@@ -280,30 +375,240 @@
     if (data && data.config) {
       const sec = document.getElementById('section-eval-institucional');
       if (sec) sec.style.display = data.config.eval_padres_activa ? '' : 'none';
-      // Log de diagnóstico (quitar después de confirmar funcionamiento):
       console.log('[Portal Padres] eval_padres_activa =', data.config.eval_padres_activa);
+
+      // Sincronizar fechas clave en el sidebar del nuevo diseño
+      const cfg = data.config;
+      const fmtFecha = (s) => {
+        if (!s || s === '—') return '—';
+        // Si ya tiene formato "DD mes" (ej: "30 abr"), devolver tal cual
+        if (s.length < 10 && (s.includes(' ') || s.includes('/'))) return s;
+        try {
+          const d = new Date(s.includes('-') ? s + 'T00:00:00' : s);
+          if (isNaN(d.getTime())) return s; // Si no es fecha válida, devolver original
+          const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+          return `${d.getDate()} ${MESES[d.getMonth()]}`;
+        } catch(e) { return s; }
+      };
+      const setFsb = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = fmtFecha(val); };
+      setFsb('fsb-captura',   cfg.portal_fecha_captura);
+      setFsb('fsb-aclaracion',cfg.portal_fecha_aclaracion);
+      setFsb('fsb-cierre',    cfg.portal_fecha_cierre);
     }
     return data;
   };
 })();
 
-/* ── Reportes de Prefectura — inicialización independiente ─────────────────
-   Se ejecuta tras DOMContentLoaded, usando el usuario ya guardado en sesión.
-   No interfiere con padre.js ni con ninguna otra sección del portal.
-────────────────────────────────────────────────────────────────────────── */
-document.addEventListener("DOMContentLoaded", function() {
+/* ── Datos de sesión → header + perfil ─────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', function() {
   const u = portalSession.load();
-  if (u && u.tipo === "padre" && u.nombreHijo) {
-    prefecturaPortal.init("section-prefectura", u.nombreHijo, "#1d4ed8");
+  if (!u) return;
+
+  const setT = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  const initials = (u.nombre || '?').split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase();
+
+  // Header
+  setT('h-nombre', u.nombre || '—');
+  setT('h-hijo-sub', u.nombreHijo || '—');
+  setT('header-initials', initials);
+  const avSm = document.getElementById('header-avatar-sm');
+  if (avSm) avSm.textContent = initials;
+
+  // Perfil card
+  setT('h-nombre-perfil', u.nombre || '—');
+  const avatarEl = document.getElementById('hero-avatar');
+  if (avatarEl) {
+    avatarEl.insertBefore(document.createTextNode(initials), avatarEl.firstChild);
+  }
+
+  // Cargar datos extendidos (Materias y Eval Alumno)
+  if (u.nombreHijo && u.grupoHijo) {
+    renderCdBtnPadre(u.grupoHijo);
+    renderMateriasParent(u.grupoHijo);
+    renderEvalDocenteStatusParent(u.nombreHijo, u.grupoHijo);
+    renderEvalDirectivosStatusParent(u.nombreHijo, u.grupoHijo);
+  }
+
+  // Prefectura
+  if (u.tipo === 'padre' && u.nombreHijo) {
+    prefecturaPortal.init('section-prefectura', u.nombreHijo, '#1d4ed8');
   }
 });
+
+/* ── BOTÓN ACCESO RÁPIDO CULTURA DIGITAL (padre) ───────────────────────── */
+function renderCdBtnPadre(grupo) {
+  const container = document.getElementById('portal-cd-padre');
+  if (!container) return;
+
+  const semestre = String(grupo).substring(0, 1);
+  const configs = {
+    '2': { titulo:'Cultura Digital II',  semLabel:'2° Semestre',
+           url:'../cultura-digital/index.html',      icon:'monitor',
+           bg:'linear-gradient(135deg,#059669 0%,#10b981 100%)', shadow:'rgba(5,150,105,0.30)' },
+    '4': { titulo:'Cultura Digital III', semLabel:'4° Semestre',
+           url:'../cultura-digital-iii/index.html',  icon:'layers',
+           bg:'linear-gradient(135deg,#0284c7 0%,#38bdf8 100%)', shadow:'rgba(2,132,199,0.30)' },
+  };
+  const cfg = configs[semestre];
+  if (!cfg) return;
+
+  container.style.display = 'block';
+  container.innerHTML = `
+    <a href="${cfg.url}"
+       style="display:flex; align-items:center; gap:0.75rem;
+              background:${cfg.bg};
+              border-radius:16px; padding:0.9rem 1.1rem;
+              text-decoration:none; color:white;
+              box-shadow:0 4px 18px ${cfg.shadow};
+              width:100%; box-sizing:border-box;">
+      <div style="width:40px;height:40px;border-radius:11px;
+                  background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.3);
+                  display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <i data-lucide="${cfg.icon}" style="width:20px;height:20px;color:white;"></i>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:0.6rem;font-weight:700;color:rgba(255,255,255,0.72);
+                    text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.12rem;">
+          ${cfg.semLabel} · Portal del alumno
+        </div>
+        <div style="font-size:0.95rem;font-weight:800;line-height:1.15;">${cfg.titulo}</div>
+      </div>
+      <i data-lucide="arrow-right" style="width:17px;height:17px;color:rgba(255,255,255,0.7);flex-shrink:0;"></i>
+    </a>
+  `;
+  lucide.createIcons();
+}
+
+/* ── CACHÉ PEC COMPARTIDA (padre.html) ──────────────────────────────────── */
+let _pecDbPadre = null;
+async function _getPecDataPadre() {
+  if (_pecDbPadre) return _pecDbPadre;
+  const res = await fetch(`${portalAPI.PEC_API_URL}?_t=${Date.now()}`, { method: 'GET', redirect: 'follow' });
+  _pecDbPadre = await res.json();
+  return _pecDbPadre;
+}
+
+/* ── LÓGICA DE MATERIAS (Basada en docentes PEC) ─────────────────────────── */
+async function renderMateriasParent(grupo) {
+  const container = document.getElementById('materias-container');
+  if (!container) return;
+
+  try {
+    const db = await _getPecDataPadre();
+    if (!db || !db.directorio) throw new Error('sin directorio');
+
+    // Normalización idéntica a alumno.js
+    const norm        = (g) => String(g).toUpperCase().replace(/\s+/g,'').replace(/[°º]/g,'').replace(/^GRUPO/i,'');
+    const soloDigitos = (g) => String(g).replace(/[^0-9]/g,'');
+    const targetNorm  = norm(grupo);
+    const isNum       = /^\d+$/.test(targetNorm);
+
+    // Filtro exacto por grupo (excluye genéricos que son directivos)
+    const misMaestros = db.directorio.filter(d => {
+      const gd = String(d.grupo || '');
+      if (!gd || ['todos','all',''].includes(gd.toLowerCase())) return false;
+      if (isNum) return soloDigitos(gd) === targetNorm;
+      return norm(gd) === targetNorm;
+    });
+
+    if (misMaestros.length === 0) {
+      container.innerHTML = '<p style="font-size:0.75rem; color:#94a3b8; padding:0.5rem 0; grid-column:1/-1;">No se encontró lista de materias.</p>';
+      return;
+    }
+
+    const listaHtml = misMaestros.map(m => {
+      // Enlace a portal de Cultura Digital si aplica
+      let portalLink = '';
+      const matNom = (m.materia || '').toUpperCase();
+      if (matNom.includes('CULTURA DIGITAL II') || matNom.includes('TALLER DE CULTURA DIGITAL')) {
+        portalLink = `<a href="../cultura-digital/index.html" class="portal-mini-btn" title="Portal CD II" style="color:#059669; flex-shrink:0;"><i data-lucide="laptop" style="width:13px;height:13px;"></i></a>`;
+      } else if (matNom.includes('CULTURA DIGITAL III')) {
+        portalLink = `<a href="../cultura-digital-iii/index.html" class="portal-mini-btn" title="Portal CD III" style="color:#0284c7; flex-shrink:0;"><i data-lucide="layers" style="width:13px;height:13px;"></i></a>`;
+      }
+
+      return `
+      <div style="display:flex; align-items:flex-start; gap:0.45rem;">
+        <div style="width:24px; height:24px; border-radius:6px; background:#eff6ff; color:#1d4ed8;
+                    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+                    font-size:0.58rem; font-weight:800; margin-top:1px;">
+          ${(m.docente || '?').substring(0,2).toUpperCase()}
+        </div>
+        <div style="flex:1; min-width:0;">
+          <div style="font-size:0.7rem; font-weight:600; color:#1e293b; line-height:1.2;
+                      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${m.docente}">${m.docente || 'Docente'}</div>
+          <div style="font-size:0.62rem; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${m.materia || 'Materia'}</div>
+          <div style="display:flex; align-items:center; gap:0.3rem; margin-top:1px;">
+            ${m.correo ? `<a href="mailto:${m.correo}" style="font-size:0.56rem; color:#2563eb; text-decoration:none; font-family:monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">${m.correo}</a>` : ''}
+            ${portalLink}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    container.innerHTML = listaHtml;
+    lucide.createIcons();
+  } catch(e) {
+    container.innerHTML = '<p style="font-size:0.75rem; color:#94a3b8; padding:0.5rem 0; grid-column:1/-1;">No disponible.</p>';
+  }
+}
+
+
+/* ── PROGRESO EVALUACIÓN ALUMNO (Supervisión Tutor) ───────────────────────── */
+async function renderEvalDocenteStatusParent(nombre, grupo) {
+  const loadingEl = document.getElementById("eval-loading-status");
+  const barFill    = document.getElementById("eval-bar-fill");
+  const percentText= document.getElementById("eval-percent-text");
+
+  try {
+    const prog = await portalAPI.getEvalDocenteProgress(nombre, grupo);
+    if (loadingEl) {
+      if (prog.pendientes === 0 && prog.total > 0) {
+        loadingEl.innerHTML = '<span style="color:#059669; font-weight:700;">✨ Alumno al corriente</span>';
+      } else {
+        loadingEl.textContent = `${prog.listos} de ${prog.total} docentes evaluados`;
+      }
+    }
+    const percent = prog.total > 0 ? Math.round((prog.listos / prog.total) * 100) : 0;
+    if (barFill) barFill.style.width = percent + "%";
+    if (percentText) percentText.textContent = percent + "%";
+  } catch (e) {
+    if (loadingEl) loadingEl.textContent = "Error de sincronización.";
+  }
+}
+
+async function renderEvalDirectivosStatusParent(nombre, grupo) {
+  const loadingEl   = document.getElementById("eval-dir-loading-status");
+  const barFill     = document.getElementById("eval-dir-bar-fill");
+  const percentText = document.getElementById("eval-dir-percent-text");
+
+  try {
+    const db = await _getPecDataPadre();
+    if (!db) return;
+
+    // Lógica simplificada de conteo para tutor
+    const historial = (db.feedbackHistory || []).filter(h => h.alumno === nombre && h.parcial === "Semestral");
+    // Directivos estimados = 2 (Director + Subdirector)
+    const listos = historial.filter(h => {
+       const d = h.docente.toLowerCase();
+       return d.includes('direct') || d.includes('subdi') || d.includes('admin');
+    }).length;
+    
+    const percent = listos >= 2 ? 100 : (listos === 1 ? 50 : 0);
+    if (barFill) barFill.style.width = percent + "%";
+    if (percentText) percentText.textContent = percent + "%";
+    if (loadingEl) {
+      loadingEl.textContent = percent === 100 ? "✨ Alumno al corriente" : `${listos} de 2 directivos evaluados`;
+    }
+  } catch(e) {}
+}
 </script>
 
-<!-- Fuente única de datos del calendario — FECHAS_CLAVE + lógica de semanas -->
+<!-- Fuente única de datos del calendario -->
 <script src="../pec/js/api_calendario.js"></script>
 <script src="../pec/js/app_calendario.js"></script>
 
 <script>
+/* ══ SEMANA ACTUAL — misma lógica visual que alumno ══════════════════════ */
 function renderInfoSemanal() {
     const container = document.getElementById('bloque-semana-portal');
     if (!container) return;
@@ -327,17 +632,9 @@ function renderInfoSemanal() {
         });
     }
 
-    function getUniforme() {
-        const dia = new Date().getDay();
-        if (dia === 0 || dia === 6) return { texto: "Sin clases hoy",   emoji: "🏡", color: "#94a3b8" };
-        if (dia === 2 || dia === 4) return { texto: "Uniforme de gala", emoji: "👔", color: "#1d4ed8" };
-        return                             { texto: "Pants",            emoji: "👟", color: "#059669" };
-    }
-
     function fmtD(d) {
-        const DIAS  = ['dom','lun','mar','mié','jue','vie','sáb'];
         const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-        return `${DIAS[d.getDay()]} ${d.getDate()} ${MESES[d.getMonth()]}`;
+        return `${d.getDate()} ${MESES[d.getMonth()]}`;
     }
 
     const CAT = {
@@ -349,43 +646,69 @@ function renderInfoSemanal() {
 
     const semana   = getSemanaActual();
     const eventos  = getEventosSemana(semana);
-    const uniforme = getUniforme();
 
-    const semanaTxt = !semana
-        ? 'Fuera del período escolar'
-        : semana.esVacaciones
-            ? `Periodo vacacional &nbsp;·&nbsp; ${fmtD(semana.start)} – ${fmtD(semana.end)}`
-            : `Sem. ${semana.num} &nbsp;·&nbsp; ${fmtD(semana.start)} – ${fmtD(semana.end)}`;
+    // Config visual por día (misma lógica que alumno)
+    const dia       = new Date().getDay();
+    const esFinde   = (dia === 0 || dia === 6);
+    const esGala    = (dia === 2 || dia === 4);
+    const esVacacio = semana && semana.esVacaciones;
 
+    let iconoColor, bgBox, numColor, subTexto, badgeBg, badgeColor, badgeText, iconName;
+    if (esVacacio) {
+        iconoColor = '#7c3aed'; bgBox = '#ede9fe'; numColor = '#5b21b6';
+        subTexto = 'Periodo vacacional'; badgeBg = '#ede9fe'; badgeColor = '#7c3aed';
+        badgeText = '🌴 Vacaciones'; iconName = 'palmtree';
+    } else if (esFinde) {
+        iconoColor = '#94a3b8'; bgBox = '#f1f5f9'; numColor = '#475569';
+        subTexto = 'Día de descanso · Sin clases'; badgeBg = '#f1f5f9'; badgeColor = '#64748b';
+        badgeText = '🏡 Fin de semana'; iconName = 'house';
+    } else if (esGala) {
+        iconoColor = '#1d4ed8'; bgBox = '#dbeafe'; numColor = '#1e3a8a';
+        subTexto = 'Mar y Jue: Uniforme de gala'; badgeBg = '#dbeafe'; badgeColor = '#1d4ed8';
+        badgeText = '👔 Uniforme de gala'; iconName = 'shirt';
+    } else {
+        iconoColor = '#059669'; bgBox = '#d1fae5'; numColor = '#065f46';
+        subTexto = 'Lun, Mié y Vie: Pants + tenis'; badgeBg = '#d1fae5'; badgeColor = '#059669';
+        badgeText = '👟 Pants'; iconName = 'footprints';
+    }
+
+    const rangoFmt = semana
+        ? `${fmtD(semana.start)} – ${fmtD(semana.end)}`
+        : 'Fuera del período';
+
+    // Eventos de la semana
     const eventosHTML = eventos.length === 0
-        ? `<p style="font-size:0.82rem;color:#94a3b8;margin:0;">Sin eventos destacados esta semana.</p>`
+        ? `<p style="font-size:0.8rem;color:#94a3b8;margin:0.75rem 0 0;">Sin eventos destacados esta semana.</p>`
         : eventos.map(ev => {
             const c = CAT[ev.categoria] || CAT.academico;
             const d = new Date(ev.fecha + 'T00:00:00');
             return `
               <div style="display:flex;align-items:center;gap:0.6rem;padding:0.4rem 0;border-bottom:1px solid #f8fafc;">
                 <div style="width:7px;height:7px;border-radius:50%;background:${c.dot};flex-shrink:0;"></div>
-                <div style="flex:1;font-size:0.83rem;color:#1e293b;font-weight:500;line-height:1.3;">${ev.titulo}</div>
-                <div style="font-size:0.75rem;color:#94a3b8;flex-shrink:0;white-space:nowrap;">${fmtD(d)}</div>
+                <div style="flex:1;font-size:0.82rem;color:#1e293b;font-weight:500;">${ev.titulo}</div>
+                <div style="font-size:0.72rem;color:#94a3b8;flex-shrink:0;">${fmtD(d)}</div>
               </div>`;
-          }).join('');
+        }).join('');
 
     container.innerHTML = `
-      <div style="background:white;border-radius:18px;padding:1.1rem 1.4rem;box-shadow:0 2px 8px rgba(0,0,0,.06);border:1px solid #f1f5f9;margin-bottom:1.1rem;display:grid;grid-template-columns:1fr auto;gap:1.1rem;align-items:start;">
-        <div>
-          <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.7rem;">
-            <span style="font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#1d4ed8;background:#dbeafe;padding:2px 9px;border-radius:20px;">Esta semana</span>
-            <span style="font-size:0.78rem;color:#64748b;font-weight:600;">${semanaTxt}</span>
-          </div>
-          ${eventosHTML}
+      <div class="semana-row">
+        <div class="semana-icon-box" style="background:${bgBox};">
+          <i data-lucide="${iconName}" style="width:22px; height:22px; color:${iconoColor};"></i>
         </div>
-        <div style="background:#f8fafc;border-radius:14px;padding:0.9rem 0.75rem;text-align:center;min-width:90px;border:1px solid #e2e8f0;flex-shrink:0;">
-          <div style="font-size:1.6rem;margin-bottom:0.3rem;">${uniforme.emoji}</div>
-          <div style="font-size:0.63rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;margin-bottom:3px;">Hoy</div>
-          <div style="font-size:0.78rem;font-weight:800;color:${uniforme.color};line-height:1.2;">${uniforme.texto}</div>
+        <div class="semana-body">
+          <div class="semana-num" style="color:${numColor};">Semana ${semana ? semana.num : '—'}</div>
+          <div class="semana-sub">${subTexto}</div>
+        </div>
+        <div class="semana-right">
+          <div class="semana-rango" style="color:${iconoColor};">◂ ${rangoFmt}</div>
         </div>
       </div>
+      <div style="margin-top:0.85rem; padding:0.55rem 0.85rem; border-radius:10px; background:${badgeBg}; display:inline-flex; align-items:center; gap:0.5rem;">
+        <span style="font-size:0.82rem; font-weight:700; color:${badgeColor};">${badgeText}</span>
+      </div>
+      ${eventosHTML}
     `;
+    lucide.createIcons();
 }
 
 document.addEventListener('calendarioDataLista', function() {
@@ -403,26 +726,21 @@ function _toggleVistaDiasPortal() {
         bloque.style.display  = 'none';
         diasDiv.style.display = 'block';
         window.renderVistaDiasPortal(diasDiv, new Date());
-        btn.textContent = '⬅ Vista resumida';
+        btn.textContent = '⬅ Resumida';
     } else {
         bloque.style.display  = 'block';
         diasDiv.style.display = 'none';
-        btn.textContent = '📅 Ver semana detallada';
+        btn.textContent = '📅 Detalle';
     }
 }
 
-// Restaurar logout correcto del portal (app_calendario.js lo sobreescribe con 'login.html')
+// Restaurar logout correcto
 window.logout = function() {
     portalSession.clear();
     window.location.href = "index.html";
 };
 
-/* ── Evaluación Institucional — tarjeta compacta ───────────────────────────
-   Lógica de presentación únicamente. No toca preguntas, guardado ni backend.
-   - abrirEvaluacion(): revela el formulario al dar clic en "Responder"
-   - marcarEvaluacionRespondida(): actualiza badge cuando ya fue enviada
-   - MutationObserver: detecta cuando padre.js llama mostrarEncuestaEnviada()
-──────────────────────────────────────────────────────────────────────────── */
+/* ── Evaluación Institucional ──────────────────────────────────────────── */
 function abrirEvaluacion() {
     const card = document.getElementById('survey-card');
     const btn  = document.getElementById('btn-abrir-eval');
@@ -434,23 +752,19 @@ function marcarEvaluacionRespondida() {
     const badge = document.getElementById('eval-badge');
     const btn   = document.getElementById('btn-abrir-eval');
     if (badge) {
-        badge.textContent       = 'Respondida';
-        badge.style.background  = '#d1fae5';
-        badge.style.color       = '#065f46';
+        badge.textContent      = '✨ Respondida';
+        badge.style.background = '#d1fae5';
+        badge.style.color      = '#065f46';
     }
-    // Ocultar botón — ya no se puede volver a contestar
     if (btn) btn.style.display = 'none';
 }
 
-// Observar survey-done: cuando padre.js lo hace visible (display:flex),
-// la evaluación fue enviada → actualizar la tarjeta compacta.
 document.addEventListener('DOMContentLoaded', function() {
     const surveyDone = document.getElementById('survey-done');
     if (!surveyDone) return;
     const obs = new MutationObserver(function() {
         if (surveyDone.style.display && surveyDone.style.display !== 'none') {
             marcarEvaluacionRespondida();
-            // Mostrar el card para que el mensaje de confirmación sea visible
             const card = document.getElementById('survey-card');
             if (card) card.style.display = 'block';
         }

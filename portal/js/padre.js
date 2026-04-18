@@ -61,14 +61,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!usuario) return;
 
   // Header
-  document.getElementById("h-nombre").textContent = usuario.nombre;
-  document.getElementById("h-hijo").textContent   = `Alumno: ${usuario.nombreHijo}`;
-  document.getElementById("h-avatar").textContent =
-    usuario.nombre.split(" ").slice(0,2).map(w => w[0]).join("").toUpperCase();
+  const setP = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setP("h-nombre",  usuario.nombre);
+  setP("h-hijo",    `Alumno: ${usuario.nombreHijo}`);
+  setP("h-hijo-sub", usuario.nombreHijo || '—');
+
+  const initials = usuario.nombre.split(" ").slice(0,2).map(w => w[0]).join("").toUpperCase();
+  // Nuevo diseño: header-avatar-sm, header-initials, hero-avatar
+  setP("h-avatar",          initials);  // fallback legacy (puede ser null)
+  setP("header-avatar-sm",  initials);
+  setP("header-initials",   initials);
+  setP("h-nombre-perfil",   usuario.nombre);
+  const heroAv = document.getElementById("hero-avatar");
+  if (heroAv) heroAv.insertBefore(document.createTextNode(initials), heroAv.firstChild);
 
   // Info del hijo en la sección de calificaciones
-  document.getElementById("hijo-nombre").textContent = usuario.nombreHijo || "tu hijo/a";
-  document.getElementById("hijo-grupo").textContent  = usuario.grupoHijo  || "—";
+  setP("hijo-nombre", usuario.nombreHijo || "tu hijo/a");
+  setP("hijo-grupo",  usuario.grupoHijo  || "—");
 
   // Renderizar cuestionario vacío primero
   renderCuestionario();
@@ -105,6 +114,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 function renderFechas(config) {
   const set = (id, val) => {
     const el = document.getElementById(id);
+    if (!el) return;
     el.textContent = val || "Por definir";
     if (!val) el.classList.add("empty");
   };
@@ -138,7 +148,10 @@ function renderCalificaciones(cal, config) {
 
     return `
       <div class="grade-card">
-        <div class="grade-card-label">Parcial ${p}</div>
+        <div class="grade-card-label">
+          Parcial ${p}
+          ${p == config.parcial_activo && p > 1 ? '<span class="status-proceso">Captura en proceso</span>' : ''}
+        </div>
         <div class="grade-number ${colorClass}">${val.toFixed(2)}</div>
         <div class="grade-of">de 2.00 pts</div>
         <div style="width:100%;background:#f1f5f9;border-radius:999px;height:6px;overflow:hidden;margin:2px 0;">

@@ -31,46 +31,81 @@ const prefecturaPortal = {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    let itemsHTML;
+    // Colores por tipo de incidencia
+    const TIPO_STYLE = {
+      falta:     { bg: '#fee2e2', color: '#dc2626', icon: 'x-circle'      },
+      tardanza:  { bg: '#fef3c7', color: '#d97706', icon: 'clock'         },
+      retraso:   { bg: '#fef3c7', color: '#d97706', icon: 'clock'         },
+      reporte:   { bg: '#dbeafe', color: '#1d4ed8', icon: 'file-text'     },
+      uniforme:  { bg: '#ede9fe', color: '#7c3aed', icon: 'shirt'         },
+    };
+    const getStyle = (tipo = '') => {
+      const t = tipo.toLowerCase();
+      for (const [k, v] of Object.entries(TIPO_STYLE)) if (t.includes(k)) return v;
+      return { bg: '#f1f5f9', color: '#475569', icon: 'alert-circle' };
+    };
+
+    let bodyHTML;
 
     if (!incidencias || incidencias.length === 0) {
-      itemsHTML = `
-        <div style="display:flex;align-items:center;gap:0.5rem;color:#94a3b8;font-size:0.88rem;padding:0.4rem 0;">
-          <i data-lucide="check-circle-2" style="width:16px;height:16px;color:#86efac;flex-shrink:0;"></i>
-          Sin reportes
+      bodyHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; gap:0.5rem; padding:1rem 0; text-align:center;">
+          <div style="width:44px; height:44px; border-radius:50%; background:#d1fae5; display:flex; align-items:center; justify-content:center; margin-bottom:0.25rem;">
+            <i data-lucide="shield-check" style="width:22px; height:22px; color:#059669;"></i>
+          </div>
+          <div style="font-weight:800; color:#1e293b; font-size:0.92rem;">Sin reportes registrados</div>
+          <div style="font-size:0.78rem; color:#94a3b8; font-weight:500;">Todo en orden 👋</div>
         </div>`;
     } else {
-      itemsHTML = incidencias.map(r => {
-        const fecha = r.fecha_registro || "—";
-        const tipo  = r.tipo_incidencia || "—";
-        const desc  = r.descripcion     || "";
-        const obs   = r.observaciones   || "";
-        const texto = desc || obs;       // mostrar descripción si existe, si no observaciones
+      const rows = incidencias.map(r => {
+        const fecha = r.fecha_registro || '—';
+        const tipo  = r.tipo_incidencia || 'Reporte';
+        const texto = r.descripcion || r.observaciones || '';
+        const st    = getStyle(tipo);
 
-        const laborBadge = r.requiere_labor_social
-          ? `<span style="font-size:0.68rem;background:#fef3c7;color:#b45309;padding:1px 8px;border-radius:20px;font-weight:700;white-space:nowrap;">
-               ${r.labor_social_realizada ? "Labor social: cumplida" : "Labor social pendiente"}
+        const laborHTML = r.requiere_labor_social
+          ? `<span style="font-size:0.65rem; background:${r.labor_social_realizada ? '#d1fae5' : '#fef3c7'}; color:${r.labor_social_realizada ? '#065f46' : '#b45309'}; padding:2px 8px; border-radius:20px; font-weight:700; white-space:nowrap; margin-left:auto; flex-shrink:0;">
+               ${r.labor_social_realizada ? '✔ Labor cumplida' : '⏳ Labor pendiente'}
              </span>`
-          : "";
+          : '';
 
         return `
-          <div style="padding:0.65rem 0;border-bottom:1px solid #f1f5f9;">
-            <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:${texto ? "0.2rem" : "0"};">
-              <span style="font-size:0.75rem;color:#94a3b8;font-weight:600;">${fecha}</span>
-              <span style="font-size:0.82rem;color:#1e293b;font-weight:700;">· ${tipo}</span>
-              ${laborBadge}
+          <div style="display:flex; align-items:flex-start; gap:0.75rem; padding:0.75rem 0; border-bottom:1px solid #f1f5f9;">
+            <div style="width:32px; height:32px; border-radius:9px; background:${st.bg}; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px;">
+              <i data-lucide="${st.icon}" style="width:15px; height:15px; color:${st.color};"></i>
             </div>
-            ${texto ? `<div style="font-size:0.78rem;color:#64748b;line-height:1.45;padding-left:0.1rem;">${texto}</div>` : ""}
+            <div style="flex:1; min-width:0;">
+              <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                <span style="font-size:0.82rem; font-weight:800; color:#1e293b;">${tipo}</span>
+                ${laborHTML}
+              </div>
+              ${texto ? `<div style="font-size:0.75rem; color:#64748b; margin-top:0.2rem; line-height:1.45;">${texto}</div>` : ''}
+              <div style="font-size:0.68rem; color:#94a3b8; font-weight:600; margin-top:0.2rem;">${fecha}</div>
+            </div>
           </div>`;
-      }).join("");
+      }).join('');
+
+      const conteo = incidencias.length;
+      bodyHTML = `
+        <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.75rem; padding-bottom:0.65rem; border-bottom:1.5px solid #f1f5f9;">
+          <span style="font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em;">Historial de incidencias</span>
+          <span style="margin-left:auto; background:#fee2e2; color:#dc2626; font-size:0.65rem; font-weight:800; padding:2px 8px; border-radius:20px;">${conteo} registro${conteo !== 1 ? 's' : ''}</span>
+        </div>
+        ${rows}`;
     }
 
     container.innerHTML = `
-      <div style="background:white;border-radius:20px;padding:1.2rem 1.5rem;margin-bottom:1.75rem;box-shadow:0 2px 8px rgba(0,0,0,.06);border:1px solid #f1f5f9;">
-        ${itemsHTML}
+      <div class="app-card">
+        <div class="card-header">
+          <div class="card-icon" style="background:#fee2e2; color:#dc2626;">
+            <i data-lucide="shield-alert"></i>
+          </div>
+          <span class="card-title">Prefectura</span>
+        </div>
+        ${bodyHTML}
       </div>`;
 
-    if (typeof lucide !== "undefined") lucide.createIcons();
+    if (typeof lucide !== 'undefined') lucide.createIcons();
   },
 
   // ── PUNTO DE ENTRADA ─────────────────────────────────────────────────

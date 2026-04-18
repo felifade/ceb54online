@@ -79,6 +79,7 @@ function readConfig(ss) {
     if (k === "eval_docentes_activa")   cfg.eval_docentes_activa   = norm(String(v)) === "si";
     if (k === "eval_pec_activa")        cfg.eval_pec_activa        = norm(String(v)) === "si";
     if (k === "eval_padres_activa")     cfg.eval_padres_activa     = norm(String(v)) === "si";
+    if (k === "parcial_activo")         cfg.parcial_activo         = String(v || "").trim();
   });
   return cfg;
 }

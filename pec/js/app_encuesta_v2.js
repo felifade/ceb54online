@@ -84,10 +84,19 @@
 
                 // Chip de identidad en step-choice (si el alumno llega ahí)
                 const loginInfo = document.getElementById('portal-student-info');
+                const btnPortalBack = document.getElementById('btn-portal-back');
+
                 if (loginInfo) {
                     loginInfo.style.display = 'flex';
                     document.getElementById('portal-student-name').textContent = pNombre;
                     document.getElementById('portal-student-group').textContent = `Grupo ${pGrupo}`;
+                }
+
+                if (btnPortalBack) {
+                    btnPortalBack.style.display = 'flex';
+                    btnPortalBack.onclick = () => {
+                        window.location.href = '../portal/alumno.html';
+                    };
                 }
 
                 // Banner de bienvenida en step-teachers (acceso directo sin pasar por choice)

@@ -400,7 +400,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         tbody.innerHTML = filtered.map(t => `
             <tr style="border-bottom: 1px solid #f8fafc;">
-                <td style="padding:1rem; font-size:0.85rem;">${formatDateLocale(t.fecha)}</td>
+                <td style="padding:1rem; font-size:0.85rem;">${formatDateLocale(t.fecha_tutoria || t.fecha)}</td>
                 <td style="padding:1rem; font-size:0.85rem;">
                     <span onclick="toggleTutoriaParcial(event, '${t.fecha}', '${t.alumno.replace(/'/g, "\\'")}', ${t.parcial})"
                           title="Click para cambiar parcial"
@@ -553,8 +553,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('report-teacher-name').textContent = displayName ? displayName.toUpperCase() : "---";
         }
 
-        // 2. Filtrar por el parcial seleccionado para la tabla de abajo
-        const filtered = baseData.filter(t => String(t.parcial) === String(pFilter));
+        // 2. Filtrar por el parcial seleccionado y ORDENAR por fecha ascendente
+        const filtered = baseData
+            .filter(t => String(t.parcial) === String(pFilter))
+            .sort((a, b) => new Date(a.fecha_tutoria || a.fecha) - new Date(b.fecha_tutoria || b.fecha));
         
         // 3. Lógica de Totales (Basada en baseData para llenar la tabla resumen de arriba)
         const stats = {
@@ -594,7 +596,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td style="border:1px solid #000; padding:4px; text-align:center; font-size:1.1rem;">${t.asistencia === 'NO' ? '❌' : '✅'}</td>
                 <td style="border:1px solid #000; padding:4px; text-align:center;">${t.grupal ? 'X' : ''}</td>
                 <td style="border:1px solid #000; padding:4px; text-align:center;">${t.individual ? 'X' : ''}</td>
-                <td style="border:1px solid #000; padding:4px;">${formatDateLocale(t.fecha)}</td>
+                <td style="border:1px solid #000; padding:4px;">${formatDateLocale(t.fecha_tutoria || t.fecha)}</td>
             </tr>
         `).join('') || '<tr><td colspan="8" style="text-align:center; padding:10px;">No hay datos para este parcial</td></tr>';
     }

@@ -34,6 +34,47 @@ const portalAPI = {
     portalAPI._post({ action: "encuestaPadre", folio, respuestas }),
   adminToggle: (key, value) =>
     portalAPI._get({ action: "adminPortal", adminKey: "CEB54_ADMIN_PORTAL", [key]: value ? "si" : "no" }),
+
+  // ── INTEGRACIÓN PEC (Evaluación Docente) ───────────────────────────
+  PEC_API_URL: "https://script.google.com/macros/s/AKfycbz4q9VlhAvvVJ1XYOwqNTJ9eMkVRm3HgoyFJNpEQaPJsDdK1JcfhbTX1CRfDg38x79fsA/exec",
+
+  async getEvalDocenteProgress(nombre, grupo) {
+    try {
+      const url = `${this.PEC_API_URL}?_t=${Date.now()}`;
+      const res = await fetch(url, { method: "GET", redirect: "follow" });
+      const db = await res.json();
+      if (!db || !db.directorio) return { pendientes: 0, total: 0 };
+
+      const norm = (g) => String(g).toUpperCase().replace(/\s+/g, '').replace(/[°º]/g, '').replace(/^GRUPO/i, '');
+      const soloDigitos = (g) => String(g).replace(/[^0-9]/g, '');
+      const targetNorm = norm(grupo);
+      const isNum = /^\d+$/.test(targetNorm);
+
+      // Docentes del grupo
+      const misMaestros = db.directorio.filter(d => {
+        if (isNum) return soloDigitos(d.grupo) === targetNorm;
+        return norm(d.grupo) === targetNorm;
+      });
+
+      // Deduplicar maestros
+      const docentesUnicos = new Set(misMaestros.map(m => m.docente));
+      const total = docentesUnicos.size;
+
+      // Respuestas enviadas por el alumno
+      const respondidos = (db.feedbackHistory || []).filter(h => 
+        h.alumno === nombre && h.parcial === "Semestral"
+      ).map(h => h.docente);
+
+      const respondidosUnicos = new Set(respondidos);
+      let listos = 0;
+      docentesUnicos.forEach(d => { if(respondidosUnicos.has(d)) listos++; });
+
+      return { listos, total, pendientes: Math.max(0, total - listos) };
+    } catch (e) {
+      console.error("Error consultando progreso PEC:", e);
+      return { pendientes: 0, total: 0 };
+    }
+  }
 };
 
 // ── Utilidades de sesión ────────────────────────────────────────────

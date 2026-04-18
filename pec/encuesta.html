@@ -118,9 +118,127 @@
             background: #e2e8f0;
         }
         .step-dot.active { background: var(--clr-student); width: 30px; border-radius: 5px; }
+
+        /* Pantalla de Carga Institucional Modernizada */
+        #student-loader {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .loader-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: loaderFadeIn 0.8s ease-out;
+        }
+
+        .spinner-container {
+            position: relative;
+            width: 90px;
+            height: 90px;
+            margin-bottom: 2rem;
+        }
+
+        .spinner-gradient {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, transparent 10%, #3884C0, #6366f1);
+            -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 0);
+            mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 0);
+            animation: spin 1s linear infinite;
+        }
+
+        .central-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #3884C0, #6366f1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 8px 16px rgba(99, 102, 241, 0.2);
+            animation: loaderPulse 2s infinite ease-in-out;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes loaderPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.8; }
+            50% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
+        }
+
+        @keyframes loaderFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #loader-text-main {
+            font-family: 'Outfit';
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: #1e293b;
+            margin: 0;
+            background: linear-gradient(to right, #1e293b, #475569);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #loader-text-sub {
+            font-family: 'Inter';
+            font-size: 0.95rem;
+            color: #64748b;
+            margin-top: 0.5rem;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        #btn-portal-back {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1000;
+            background: white;
+            border: 1px solid #e2e8f0;
+            padding: 0.6rem 1rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #475569;
+            display: none; /* Se activa por JS */
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+        #btn-portal-back:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+            border-color: var(--clr-student);
+            color: var(--clr-student);
+        }
     </style>
 </head>
 <body style="background-color: #f1f5f9;">
+    <button id="btn-portal-back">
+        <i data-feather="arrow-left" style="width: 16px;"></i>
+        <span>Regresar al portal</span>
+    </button>
     <div class="student-layout">
         <header style="text-align: center; margin-bottom: 3rem;">
             <div style="background: var(--clr-student); width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);">
@@ -240,10 +358,20 @@
             </button>
         </section>
 
-        <!-- Loading -->
-        <div id="student-loader" style="display:none; text-align: center; margin-top: 2rem;">
-            <div class="spinner"></div>
-            <p style="color: #64748b; margin-top: 1rem;">Guardando respuestas...</p>
+        <!-- Loading (UI Institucional / Estilo App) -->
+        <div id="student-loader" style="display:none;">
+            <div class="loader-wrapper">
+                <div class="spinner-container">
+                    <div class="spinner-gradient"></div>
+                    <div class="central-icon">
+                        <i data-feather="book-open" style="width: 22px; height: 22px;"></i>
+                    </div>
+                </div>
+                <div style="text-align: center;">
+                    <h3 id="loader-text-main">Preparando tu evaluación…</h3>
+                    <p id="loader-text-sub">Estamos cargando a tus docentes</p>
+                </div>
+            </div>
         </div>
 
         <!-- Éxito -->
