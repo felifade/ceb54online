@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <script>const APP_VERSION = "v20260418";</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portal Alumno | CEB 5/4</title>
@@ -14,7 +15,7 @@
   <!-- /PWA -->
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="css/portal.css">
+  <link rel="stylesheet" href="css/portal.css?v=20260418">
 </head>
 <body>
 
@@ -278,9 +279,9 @@
 
 </main>
 
-<script src="js/portal-api.js"></script>
-<script src="js/alumno.js"></script>
-<script src="js/prefectura-portal.js"></script>
+<script src="js/portal-api.js?v=20260418"></script>
+<script src="js/alumno.js?v=20260418"></script>
+<script src="js/prefectura-portal.js?v=20260418"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
   const u = portalSession.load();
@@ -291,8 +292,8 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 
 <!-- Fuente única de datos del calendario -->
-<script src="../pec/js/api_calendario.js"></script>
-<script src="../pec/js/app_calendario.js"></script>
+<script src="../pec/js/api_calendario.js?v=20260418"></script>
+<script src="../pec/js/app_calendario.js?v=20260418"></script>
 
 <script>
 /* ══ BLOQUE SEMANA ACTUAL ══════════════════════════════════════════ */
@@ -449,6 +450,6 @@ function syncFechasSidebar() {
 });
 
 </script>
-<script src="js/pwa.js"></script>
+<script src="js/pwa.js?v=20260418"></script>
 </body>
 </html>
