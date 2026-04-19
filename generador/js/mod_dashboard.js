@@ -46,7 +46,7 @@ function _dashHTML(r) {
     </div>
     <div class="gen-stat-info">
       <span class="gen-stat-value">${r.totalDocentes}</span>
-      <span class="gen-stat-label">Docentes</span>
+      <span class="gen-stat-label">Docentes activos</span>
     </div>
   </div>
   <div class="gen-stat-card">

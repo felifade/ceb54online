@@ -117,6 +117,114 @@ function _cargaBind() {
   });
 }
 
+/**
+ * Devuelve los semestres esperados de un grupo a partir de su grado.
+ * Grado 1 → semestres 1 y 2, Grado 2 → 3 y 4, Grado 3 → 5 y 6.
+ */
+function _cargaGrupoSemestres(grupoId) {
+  var g = genById(_genApp.grupos, grupoId);
+  if (!g || !g.grado) return [];
+  var gr = parseInt(g.grado, 10);
+  if (isNaN(gr) || gr < 1 || gr > 3) return [];
+  return [String(gr * 2 - 1), String(gr * 2)];
+}
+
+/** Retorna la capacitación del grupo (vacío si no tiene). */
+function _cargaGrupoCapacitacion(grupoId) {
+  var g = genById(_genApp.grupos, grupoId);
+  return (g && g.capacitacion) ? String(g.capacitacion).trim() : '';
+}
+
+/**
+ * Genera las <option> del selector de materias priorizadas por semestre y capacitación.
+ *
+ * Grupos de opciones (de mayor a menor prioridad):
+ *   1. ✓ Semestre X/Y° · <Capacitación>  — coincide en semestre y capacitación
+ *   2. · Semestre X/Y° (generales)        — mismo semestre, materia general (o sin cap)
+ *   3. ── Otras materias ──               — resto, con hint de semestre entre paréntesis
+ *
+ * Si no hay info de grupo: lista plana con semestre entre paréntesis.
+ */
+function _cargaMateriaOpts(grupoId, selectedId) {
+  var activas = (_genApp.materias || []).filter(function(m) { return String(m.activo) !== 'false'; });
+  var sems    = grupoId ? _cargaGrupoSemestres(grupoId) : [];
+  var cap     = grupoId ? _cargaGrupoCapacitacion(grupoId) : '';
+
+  if (!sems.length && !cap) {
+    // Sin info de grupo: lista plana
+    return '<option value="">-- Selecciona materia --</option>' +
+      activas.map(function(m) {
+        var hint = m.semestre ? ' (Sem '+m.semestre+'°)' : '';
+        return '<option value="'+genEsc(m.id)+'"'+(String(selectedId)===String(m.id)?' selected':'')+'>'+genEsc(m.nombre+hint)+'</option>';
+      }).join('');
+  }
+
+  // Clasificar cada materia en uno de tres cubos
+  var primerCubo = [], segundoCubo = [], tercerCubo = [];
+  activas.forEach(function(m) {
+    var enSem  = sems.length ? (m.semestre && sems.indexOf(String(m.semestre)) !== -1) : false;
+    var mCap   = genGetCap(m.componente);
+    var enCap  = cap ? (mCap === cap) : false;
+
+    if (enSem && (cap ? enCap : !mCap)) {
+      primerCubo.push(m);   // semestre correcto + (cap coincide o es general si grupo sin cap)
+    } else if (enSem) {
+      segundoCubo.push(m);  // mismo semestre pero distinta cap o general
+    } else {
+      tercerCubo.push(m);   // todo lo demás
+    }
+  });
+
+  var html = '<option value="">-- Selecciona materia --</option>';
+
+  function optTag(m, extraHint) {
+    var label = m.nombre + (extraHint || '');
+    return '<option value="'+genEsc(m.id)+'"'+(String(selectedId)===String(m.id)?' selected':'')+'>'+genEsc(label)+'</option>';
+  }
+
+  if (primerCubo.length) {
+    var g1 = sems.length && cap
+      ? '✓ Semestre '+sems.join('/')+'° · '+cap
+      : '✓ Semestre '+sems.join('/')+'°';
+    html += '<optgroup label="'+genEsc(g1)+'">';
+    html += primerCubo.map(function(m) { return optTag(m); }).join('');
+    html += '</optgroup>';
+  }
+
+  if (segundoCubo.length) {
+    var g2 = cap ? '· Semestre '+sems.join('/')+'° (otras materias)' : '· Otras materias del semestre';
+    html += '<optgroup label="'+genEsc(g2)+'">';
+    html += segundoCubo.map(function(m) {
+      var mCap = genGetCap(m.componente);
+      return optTag(m, mCap ? ' ['+mCap+']' : '');
+    }).join('');
+    html += '</optgroup>';
+  }
+
+  if (tercerCubo.length) {
+    html += '<optgroup label="── Otras materias ──">';
+    html += tercerCubo.map(function(m) {
+      var hint = m.semestre ? ' (Sem '+m.semestre+'°)' : '';
+      return optTag(m, hint);
+    }).join('');
+    html += '</optgroup>';
+  }
+
+  return html;
+}
+
+function _cargaActualizarHint(grupoId) {
+  var hint = document.getElementById('gc-materia-hint');
+  if (!hint) return;
+  if (!grupoId) { hint.textContent = ''; return; }
+  var sems = _cargaGrupoSemestres(grupoId);
+  var cap  = _cargaGrupoCapacitacion(grupoId);
+  var partes = [];
+  if (sems.length) partes.push('Sem '+sems.join('/') + '°');
+  if (cap) partes.push(cap);
+  hint.textContent = partes.length ? partes.join(' · ') + ' arriba' : '';
+}
+
 function genCargaForm(id) {
   var c = id ? genById(_genApp.carga, id) : {};
   if (!c) { genToast('Asignación no encontrada.', 'error'); return; }
@@ -128,17 +236,13 @@ function genCargaForm(id) {
       return '<option value="'+genEsc(g.id)+'" '+(c.grupo_id===g.id?'selected':'')+'>'+genEsc(genLabelGrupo(g))+'</option>';
     }).join('');
 
-  var materiaOpts = _genApp.materias
-    .filter(function(m) { return String(m.activo) !== 'false'; })
-    .map(function(m) {
-      return '<option value="'+genEsc(m.id)+'" '+(c.materia_id===m.id?'selected':'')+'>'+genEsc(m.nombre)+'</option>';
-    }).join('');
-
   var docenteOpts = '<option value="">Sin asignar</option>' + _genApp.docentes
     .filter(function(d) { return String(d.activo) !== 'false'; })
     .map(function(d) {
       return '<option value="'+genEsc(d.id)+'" '+(c.docente_id===d.id?'selected':'')+'>'+genEsc(genNombreDocente(d))+'</option>';
     }).join('');
+
+  var materiaOptsHtml = _cargaMateriaOpts(c.grupo_id, c.materia_id);
 
   _genModal.open(
     isNew ? 'Nueva asignación de carga' : 'Editar asignación',
@@ -149,7 +253,8 @@ function genCargaForm(id) {
       </div>
       <div class="gen-form-group gen-span-2">
         <label class="gen-label">Materia / UAC *</label>
-        <select id="gc-materia" class="gen-select"><option value="">-- Selecciona materia --</option>${materiaOpts}</select>
+        <span id="gc-materia-hint" class="gen-hint" style="float:right;margin-top:2px"></span>
+        <select id="gc-materia" class="gen-select">${materiaOptsHtml}</select>
       </div>
       <div class="gen-form-group gen-span-2">
         <label class="gen-label">Docente</label>
@@ -163,6 +268,15 @@ function genCargaForm(id) {
     `<button class="gen-btn gen-btn-secondary" onclick="_genModal.close()">Cancelar</button>
      <button class="gen-btn gen-btn-primary" id="gc-save">Guardar</button>`
   );
+
+  // Al cambiar grupo, actualizar opciones de materia priorizadas por semestre
+  document.getElementById('gc-grupo').addEventListener('change', function() {
+    var grupoId = this.value;
+    var sel = document.getElementById('gc-materia');
+    if (sel) sel.innerHTML = _cargaMateriaOpts(grupoId, '');
+    _cargaActualizarHint(grupoId);
+  });
+  _cargaActualizarHint(c.grupo_id);
 
   document.getElementById('gc-save').addEventListener('click', async function() {
     var record = {

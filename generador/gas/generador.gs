@@ -29,15 +29,15 @@ const GEN_SHEETS_ = {
   },
   GRUPOS: {
     name: 'GEN_GRUPOS',
-    headers: ['id', 'clave', 'grado', 'grupo', 'turno', 'capacidad', 'ciclo', 'activo']
+    headers: ['id', 'clave', 'grado', 'grupo', 'turno', 'capacidad', 'ciclo', 'capacitacion', 'activo']
   },
   MATERIAS: {
     name: 'GEN_MATERIAS',
-    headers: ['id', 'clave', 'nombre', 'componente', 'hrs_semana', 'activo']
+    headers: ['id', 'clave', 'nombre', 'componente', 'hrs_semana', 'semestre', 'activo']
   },
   AULAS: {
     name: 'GEN_AULAS',
-    headers: ['id', 'clave', 'nombre', 'capacidad', 'tipo', 'activo']
+    headers: ['id', 'clave', 'nombre', 'tipo', 'capacidad', 'ubicacion', 'activo', 'disponible', 'observaciones']
   },
   CARGA: {
     name: 'GEN_CARGA_HORARIA',
@@ -58,6 +58,22 @@ const GEN_SHEETS_ = {
   VERSIONES: {
     name: 'GEN_VERSIONES',
     headers: ['id', 'ciclo', 'version', 'fecha', 'descripcion', 'activa']
+  },
+  HORARIOS_INICIALES: {
+    name: 'GEN_HORARIOS_INICIALES',
+    headers: ['id', 'ciclo', 'periodo', 'docente', 'docente_id', 'grupo', 'grupo_id',
+              'turno', 'semestre', 'uac', 'materia_id', 'componente',
+              'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'horas',
+              'tipo', 'activo']
+  },
+  ESTRUCTURA: {
+    name: 'GEN_ESTRUCTURA',
+    headers: ['id', 'ciclo', 'periodo', 'plantel', 'grupo', 'turno', 'semestre',
+              'campo_disciplinar', 'uac', 'num_componente', 'curriculum_ampliado',
+              'componente', 'tot_horas', 'propiedad_uac', 'laboral',
+              'docente', 'formacion_docente',
+              'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'horas',
+              'grupo_id', 'materia_id', 'docente_id']
   }
 };
 
@@ -487,6 +503,63 @@ function _genDetectarConflictos_(ciclo, version) {
 }
 
 // ══════════════════════════════════════════════════════════════════
+// OCUPACIÓN DE ESPACIOS
+// ══════════════════════════════════════════════════════════════════
+
+function _genGetOcupacionEspacios_(ciclo, version) {
+  var aulas    = _genGetAulas_();
+  var horarios = _genGetHorarios_(ciclo, version);
+
+  // Índice: aula_id → array de bloques asignados
+  var bloquesPorAula = {};
+  horarios.forEach(function(h) {
+    if (!h.aula_id) return;
+    var k = String(h.aula_id);
+    if (!bloquesPorAula[k]) bloquesPorAula[k] = [];
+    bloquesPorAula[k].push({
+      dia:        h.dia,
+      bloque:     h.bloque,
+      grupo_id:   h.grupo_id,
+      materia_id: h.materia_id,
+      docente_id: h.docente_id
+    });
+  });
+
+  // Detectar conflictos de aula (mismo espacio, mismo bloque)
+  var conflictosPorAula = {};
+  var aulaSlot = {};
+  horarios.forEach(function(h) {
+    if (!h.aula_id) return;
+    var key = String(h.aula_id) + '|' + h.dia + '|' + String(h.bloque);
+    if (aulaSlot[key]) {
+      var k = String(h.aula_id);
+      if (!conflictosPorAula[k]) conflictosPorAula[k] = 0;
+      conflictosPorAula[k]++;
+    }
+    aulaSlot[key] = true;
+  });
+
+  return aulas.map(function(a) {
+    var id     = String(a.id);
+    var bloqs  = bloquesPorAula[id] || [];
+    return {
+      id:              a.id,
+      clave:           a.clave,
+      nombre:          a.nombre,
+      tipo:            a.tipo,
+      capacidad:       a.capacidad,
+      ubicacion:       a.ubicacion || '',
+      disponible:      a.disponible,
+      activo:          a.activo,
+      observaciones:   a.observaciones || '',
+      bloques_ocupados: bloqs.length,
+      conflictos:      conflictosPorAula[id] || 0,
+      detalle:         bloqs
+    };
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════
 // DASHBOARD / RESUMEN
 // ══════════════════════════════════════════════════════════════════
 
@@ -507,7 +580,7 @@ function _genGetResumen_(ciclo, version) {
   var docentesConCarga = new Set(carga.map(function(c) { return c.docente_id; })).size;
 
   return {
-    totalDocentes:    docentes.length,
+    totalDocentes:    docentes.filter(function(d){ return String(d.activo) !== 'false'; }).length,
     totalGrupos:      gruposTotales,
     totalMaterias:    materias.length,
     totalAulas:       aulas.length,
@@ -516,6 +589,329 @@ function _genGetResumen_(ciclo, version) {
     totalConflictos:  conflictos.filter(function(c) { return c.severidad === 'error'; }).length,
     totalWarnings:    conflictos.filter(function(c) { return c.severidad === 'warning'; }).length,
     porcentajeAvance: gruposTotales > 0 ? Math.round((gruposConHorario / gruposTotales) * 100) : 0
+  };
+}
+
+// ══════════════════════════════════════════════════════════════════
+// HORARIOS INICIALES
+// ══════════════════════════════════════════════════════════════════
+
+function _genGetHorariosIniciales_(ciclo, periodo) {
+  return _genGetAll_('HORARIOS_INICIALES', function(r) {
+    if (ciclo && String(r.ciclo) !== String(ciclo)) return false;
+    if (periodo && String(r.periodo || '') !== String(periodo)) return false;
+    return true;
+  });
+}
+
+function _genSaveHoraInicial_(fila) { return _genUpsert_('HORARIOS_INICIALES', fila); }
+
+function _genDeleteHoraInicial_(id) { return _genDelete_('HORARIOS_INICIALES', id); }
+
+/** Reemplaza todas las filas de un docente en un ciclo+periodo. */
+function _genReplaceHorariosInicialesDocente_(ciclo, periodo, docente_id, filas) {
+  var sheet      = _genGetSheet_('HORARIOS_INICIALES');
+  var data       = sheet.getDataRange().getValues();
+  var headers    = data[0].map(String);
+  var cicloIdx   = headers.indexOf('ciclo');
+  var perIdx     = headers.indexOf('periodo');
+  var docIdx     = headers.indexOf('docente_id');
+  for (var i = data.length - 1; i >= 1; i--) {
+    if (String(data[i][cicloIdx]) !== String(ciclo)) continue;
+    if (periodo && String(data[i][perIdx] || '') !== String(periodo)) continue;
+    if (docente_id && String(data[i][docIdx]) !== String(docente_id)) continue;
+    sheet.deleteRow(i + 1);
+  }
+  filas.forEach(function(f) {
+    f.ciclo      = ciclo;
+    f.periodo    = periodo || '';
+    f.docente_id = docente_id;
+    f.activo     = 'true';
+    if (!f.id) f.id = _genNewId_();
+    var row = GEN_SHEETS_.HORARIOS_INICIALES.headers.map(function(h) {
+      return f[h] !== undefined ? f[h] : '';
+    });
+    sheet.appendRow(row);
+  });
+  return { status: 'ok', message: filas.length + ' filas guardadas.' };
+}
+
+/**
+ * Promueve las filas de HORARIOS_INICIALES a GEN_ESTRUCTURA.
+ * Solo copia las filas que aún no están en ESTRUCTURA (por uac+grupo+ciclo).
+ * Retorna cuántas se insertaron y cuántas ya existían.
+ */
+function _genHorariosInicialesAEstructura_(ciclo, periodo) {
+  var iniciales  = _genGetHorariosIniciales_(ciclo, periodo);
+  var estructura = _genGetEstructura_(ciclo, periodo);
+
+  // Índice rápido: "ciclo|grupo|uac" para deduplicar
+  var estIdx = {};
+  estructura.forEach(function(r) {
+    var k = String(r.ciclo) + '|' + String(r.grupo||'').trim() + '|' + String(r.uac||'').trim();
+    estIdx[k] = true;
+  });
+
+  var sheet    = _genGetSheet_('ESTRUCTURA');
+  var inserted = 0, omitidos = 0;
+
+  iniciales.forEach(function(f) {
+    var k = String(ciclo) + '|' + String(f.grupo||'').trim() + '|' + String(f.uac||'').trim();
+    if (estIdx[k]) { omitidos++; return; }
+
+    var fila = {
+      id:              _genNewId_(),
+      ciclo:           ciclo,
+      periodo:         periodo || '',
+      plantel:         '',
+      grupo:           f.grupo         || '',
+      grupo_id:        f.grupo_id      || '',
+      turno:           f.turno         || '',
+      semestre:        f.semestre      || '',
+      campo_disciplinar: '',
+      uac:             f.uac           || '',
+      materia_id:      f.materia_id    || '',
+      num_componente:  '',
+      curriculum_ampliado: '',
+      componente:      f.componente    || '',
+      tot_horas:       f.horas         || '',
+      propiedad_uac:   '',
+      laboral:         '',
+      docente:         f.docente       || '',
+      docente_id:      f.docente_id    || '',
+      formacion_docente: '',
+      lunes:           f.lunes         || '',
+      martes:          f.martes        || '',
+      miercoles:       f.miercoles     || '',
+      jueves:          f.jueves        || '',
+      viernes:         f.viernes       || '',
+      horas:           f.horas         || ''
+    };
+
+    var row = GEN_SHEETS_.ESTRUCTURA.headers.map(function(h) {
+      return fila[h] !== undefined ? fila[h] : '';
+    });
+    sheet.appendRow(row);
+    estIdx[k] = true;
+    inserted++;
+  });
+
+  return {
+    status:   'ok',
+    message:  inserted + ' filas promovidas a Estructura Educativa. ' + omitidos + ' ya existían.',
+    insertadas: inserted,
+    omitidas:   omitidos
+  };
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ESTRUCTURA EDUCATIVA
+// ══════════════════════════════════════════════════════════════════
+
+function _genGetEstructura_(ciclo, periodo) {
+  return _genGetAll_('ESTRUCTURA', function(r) {
+    if (ciclo && String(r.ciclo) !== String(ciclo)) return false;
+    if (periodo && String(r.periodo || '') !== String(periodo)) return false;
+    return true;
+  });
+}
+
+function _genSaveEstructuraFila_(fila) { return _genUpsert_('ESTRUCTURA', fila); }
+
+function _genDeleteEstructuraFila_(id) { return _genDelete_('ESTRUCTURA', id); }
+
+/**
+ * Reemplaza la estructura de un ciclo (y periodo si se indica).
+ * Si periodo está vacío, elimina todas las filas del ciclo.
+ * Si periodo es 'A' o 'B', elimina solo las filas de ese periodo.
+ */
+function _genReplaceEstructura_(ciclo, filas, periodo) {
+  var sheet      = _genGetSheet_('ESTRUCTURA');
+  var data       = sheet.getDataRange().getValues();
+  var headers    = data[0].map(String);
+  var cicloIdx   = headers.indexOf('ciclo');
+  var periodoIdx = headers.indexOf('periodo');
+  for (var i = data.length - 1; i >= 1; i--) {
+    var rowCiclo   = String(data[i][cicloIdx]);
+    var rowPeriodo = periodoIdx >= 0 ? String(data[i][periodoIdx] || '') : '';
+    if (rowCiclo !== String(ciclo)) continue;
+    if (periodo && rowPeriodo && rowPeriodo !== String(periodo)) continue;
+    sheet.deleteRow(i + 1);
+  }
+  filas.forEach(function(f) {
+    f.ciclo = ciclo;
+    if (periodo) f.periodo = periodo;
+    if (!f.id) f.id = _genNewId_();
+    var row = GEN_SHEETS_.ESTRUCTURA.headers.map(function(h) { return f[h] !== undefined ? f[h] : ''; });
+    sheet.appendRow(row);
+  });
+  return { status: 'ok', message: 'Estructura guardada (' + filas.length + ' filas).' };
+}
+
+/** Estado actual de la estructura para un ciclo+periodo (guardado en GEN_CONFIG). */
+function _genGetEstadoEstructura_(ciclo, periodo) {
+  var cfg  = _genGetConfig_();
+  var base = (ciclo || '') + (periodo ? '_' + periodo : '');
+  return {
+    estado: cfg['est_estado_' + base] || 'EN_CAPTURA',
+    fecha:  cfg['est_fecha_'  + base] || ''
+  };
+}
+
+function _genSaveEstadoEstructura_(ciclo, estado, periodo) {
+  var cfg  = {};
+  var base = (ciclo || '') + (periodo ? '_' + periodo : '');
+  cfg['est_estado_' + base] = estado;
+  cfg['est_fecha_'  + base] = new Date().toISOString().slice(0, 10);
+  _genSaveConfig_(cfg);
+  return { status: 'ok', estado: estado };
+}
+
+/** Validaciones server-side de la estructura educativa para un ciclo (y periodo si se indica). */
+function _genValidarEstructura_(ciclo, periodo) {
+  var data    = _genGetEstructura_(ciclo, periodo);
+  var errores = [];
+  var advert  = [];
+
+  // Validación de periodo vs semestre
+  if (periodo) {
+    var GEN_PERIODO_SEMS = { A: ['1','3','5'], B: ['2','4','6'] };
+    var semsPeriodo    = GEN_PERIODO_SEMS[periodo] || [];
+    var semsIncorrectos = periodo === 'A' ? ['2','4','6'] : ['1','3','5'];
+    data.forEach(function(row, i) {
+      var rowSem = String(row.semestre || '').trim();
+      if (rowSem && semsIncorrectos.indexOf(rowSem) !== -1) {
+        errores.push({ tipo: 'SEMESTRE_PERIODO_INCORRECTO', fila: i + 1, grupo: row.grupo,
+          mensaje: 'Fila '+(i+1)+' ('+( row.grupo||'sin grupo')+'): semestre '+rowSem+
+            '° no corresponde al Periodo '+periodo+
+            '. Se esperan semestres '+semsPeriodo.join(', ')+'°.' });
+      }
+    });
+  }
+
+  data.forEach(function(row, i) {
+    if (!row.uac || !String(row.uac).trim()) return;
+    // UAC sin docente
+    if (!row.docente || !String(row.docente).trim()) {
+      errores.push({ tipo: 'SIN_DOCENTE', fila: i + 1, grupo: row.grupo,
+        mensaje: 'Fila '+(i+1)+': "'+row.uac+'" sin docente asignado.' });
+    }
+    // Suma de días ≠ TOT_HORAS
+    var dias = ['lunes','martes','miercoles','jueves','viernes'];
+    var sumaDias = dias.reduce(function(s,d) { return s + (Number(row[d])||0); }, 0);
+    var tot = Number(row.tot_horas) || 0;
+    if (tot > 0 && sumaDias > 0 && sumaDias !== tot) {
+      advert.push({ tipo: 'HORAS_INCONSISTENTES', fila: i + 1, grupo: row.grupo,
+        mensaje: 'Fila '+(i+1)+' ('+row.uac+'): días='+sumaDias+' ≠ TOT='+tot+'.' });
+    }
+  });
+
+  // Docente >6h en un día
+  var docenteDia = {};
+  data.forEach(function(row) {
+    if (!row.docente) return;
+    ['lunes','martes','miercoles','jueves','viernes'].forEach(function(dia) {
+      var h = Number(row[dia]) || 0;
+      if (!h) return;
+      var k = String(row.docente).trim() + '|' + dia;
+      docenteDia[k] = (docenteDia[k] || 0) + h;
+    });
+  });
+  Object.keys(docenteDia).forEach(function(k) {
+    if (docenteDia[k] > 6) {
+      var p = k.split('|');
+      errores.push({ tipo: 'DOCENTE_EXCEDE_DIA',
+        mensaje: '"'+p[0]+'" tiene '+docenteDia[k]+' hrs el '+p[1]+' (máx 6).',
+        docente: p[0], dia: p[1] });
+    }
+  });
+
+  // Grupo con pocas horas
+  var grupoHoras = {};
+  data.forEach(function(row) {
+    if (!row.grupo) return;
+    grupoHoras[row.grupo] = (grupoHoras[row.grupo] || 0) + (Number(row.tot_horas) || 0);
+  });
+  Object.keys(grupoHoras).forEach(function(g) {
+    if (grupoHoras[g] > 0 && grupoHoras[g] < 25) {
+      advert.push({ tipo: 'GRUPO_INCOMPLETO',
+        mensaje: 'Grupo "'+g+'" tiene solo '+grupoHoras[g]+' hrs (esperado ≥25).', grupo: g });
+    }
+  });
+
+  // Docente con carga total excesiva
+  var docenteTotal = {};
+  data.forEach(function(row) {
+    if (!row.docente) return;
+    docenteTotal[row.docente] = (docenteTotal[row.docente]||0) + (Number(row.tot_horas)||0);
+  });
+  Object.keys(docenteTotal).forEach(function(d) {
+    if (docenteTotal[d] > 35) {
+      advert.push({ tipo: 'DOCENTE_SOBRECARGA',
+        mensaje: '"'+d+'" tiene '+docenteTotal[d]+' hrs semanales en total.', docente: d });
+    }
+  });
+
+  return {
+    errores: errores, advertencias: advert,
+    total_errores: errores.length, total_advertencias: advert.length,
+    valida: errores.length === 0
+  };
+}
+
+/**
+ * Convierte las filas de estructura en entradas de CARGA_HORARIA.
+ * Empareja UAC y DOCENTE con los catálogos existentes por nombre/clave.
+ */
+function _genEstructuraACarga_(ciclo, periodo) {
+  var data     = _genGetEstructura_(ciclo, periodo);
+  var grupos   = _genGetGrupos_();
+  var materias = _genGetMaterias_();
+  var docentes = _genGetDocentes_();
+
+  function norm(s) { return String(s||'').trim().toLowerCase(); }
+
+  var creados = 0, omitidos = 0, sinMatch = [];
+
+  data.forEach(function(row) {
+    if (!row.uac) { omitidos++; return; }
+
+    var g = grupos.filter(function(x) {
+      return norm(x.grado)+'°'+norm(x.grupo) === norm(row.grupo) ||
+             norm(x.clave) === norm(row.grupo);
+    })[0] || null;
+
+    var m = materias.filter(function(x) {
+      return norm(x.nombre) === norm(row.uac) || norm(x.clave) === norm(row.uac);
+    })[0] || null;
+
+    var d = row.docente ? docentes.filter(function(x) {
+      var nombre = [x.nombre, x.apellido_paterno, x.apellido_materno].filter(Boolean).join(' ');
+      return norm(nombre) === norm(row.docente);
+    })[0] || null : null;
+
+    if (!g || !m) {
+      omitidos++;
+      if (!g) sinMatch.push('Grupo: "' + row.grupo + '"');
+      if (!m) sinMatch.push('UAC: "' + row.uac + '"');
+      return;
+    }
+
+    _genUpsert_('CARGA', {
+      ciclo:         ciclo,
+      grupo_id:      g.id,
+      materia_id:    m.id,
+      docente_id:    d ? d.id : '',
+      hrs_asignadas: row.tot_horas || row.horas || ''
+    });
+    creados++;
+  });
+
+  return {
+    status: 'ok',
+    message: creados + ' asignaciones generadas, ' + omitidos + ' omitidas.',
+    creados: creados, omitidos: omitidos,
+    sin_match: sinMatch.slice(0, 30)
   };
 }
 
@@ -565,6 +961,21 @@ function doGet(e) {
         break;
       case 'getResumen':
         result = { status: 'ok', data: _genGetResumen_(p.ciclo, p.version) };
+        break;
+      case 'getOcupacionEspacios':
+        result = { status: 'ok', data: _genGetOcupacionEspacios_(p.ciclo, p.version) };
+        break;
+      case 'getHorariosIniciales':
+        result = { status: 'ok', data: _genGetHorariosIniciales_(p.ciclo, p.periodo || '') };
+        break;
+      case 'getEstructura':
+        result = { status: 'ok', data: _genGetEstructura_(p.ciclo, p.periodo || '') };
+        break;
+      case 'getEstadoEstructura':
+        result = { status: 'ok', data: _genGetEstadoEstructura_(p.ciclo, p.periodo || '') };
+        break;
+      case 'validarEstructura':
+        result = { status: 'ok', data: _genValidarEstructura_(p.ciclo, p.periodo || '') };
         break;
       case 'ping':
         result = { status: 'ok', message: 'Generador de Horarios Online v1.0.0' };
@@ -701,6 +1112,49 @@ function doPost(e) {
         _genCheckAdmin_(key);
         var r10 = _genSaveVersion_(body.record);
         result = { status: 'ok', message: 'Versión guardada.', result: r10 };
+        break;
+
+      // ── HORARIOS INICIALES ────────────────────────────────────
+      case 'saveHoraInicial':
+        _genCheckAdmin_(key);
+        result = { status: 'ok', message: 'Fila guardada.', result: _genSaveHoraInicial_(body.record) };
+        break;
+      case 'deleteHoraInicial':
+        _genCheckAdmin_(key);
+        _genDeleteHoraInicial_(body.id);
+        result = { status: 'ok', message: 'Fila eliminada.' };
+        break;
+      case 'replaceHorariosInicialesDocente':
+        _genCheckAdmin_(key);
+        result = _genReplaceHorariosInicialesDocente_(body.ciclo, body.periodo || '', body.docente_id, body.filas || []);
+        break;
+      case 'horariosInicialesAEstructura':
+        _genCheckAdmin_(key);
+        result = _genHorariosInicialesAEstructura_(body.ciclo, body.periodo || '');
+        break;
+
+      // ── ESTRUCTURA EDUCATIVA ──────────────────────────────────
+      case 'saveEstructuraFila':
+        _genCheckAdmin_(key);
+        var re1 = _genSaveEstructuraFila_(body.record);
+        result = { status: 'ok', message: 'Fila guardada.', result: re1 };
+        break;
+      case 'deleteEstructuraFila':
+        _genCheckAdmin_(key);
+        _genDeleteEstructuraFila_(body.id);
+        result = { status: 'ok', message: 'Fila eliminada.' };
+        break;
+      case 'replaceEstructura':
+        _genCheckAdmin_(key);
+        result = _genReplaceEstructura_(body.ciclo, body.filas || [], body.periodo || '');
+        break;
+      case 'saveEstadoEstructura':
+        _genCheckAdmin_(key);
+        result = _genSaveEstadoEstructura_(body.ciclo, body.estado, body.periodo || '');
+        break;
+      case 'estructuraACarga':
+        _genCheckAdmin_(key);
+        result = _genEstructuraACarga_(body.ciclo, body.periodo || '');
         break;
 
       default:

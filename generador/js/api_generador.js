@@ -17,7 +17,13 @@ const _GEN_CACHE_ = {
   cargaKey: null,   // 'ciclo'
   carga: null,
   horariosKey: null,  // 'ciclo|version'
-  horarios: null
+  horarios: null,
+  hiKey: null,          // 'ciclo|periodo'
+  hi: null,
+  estructuraKey: null,  // 'ciclo|periodo'
+  estructura: null,
+  estadoEstKey: null,   // 'ciclo|periodo'
+  estadoEst: null
 };
 
 function genClearCache() {
@@ -218,7 +224,96 @@ const genAPI = {
     return _genGet_('getConflictos', { ciclo: ciclo || '', version: version || '' });
   },
 
+  async getOcupacionEspacios(ciclo, version) {
+    return _genGet_('getOcupacionEspacios', { ciclo: ciclo || '', version: version || '' });
+  },
+
   async getResumen(ciclo, version) {
     return _genGet_('getResumen', { ciclo: ciclo || '', version: version || '' });
+  },
+
+  // ── HORARIOS INICIALES ────────────────────────────────────────
+  async getHorariosIniciales(ciclo, force) {
+    var periodo = (typeof _genApp !== 'undefined' ? _genApp.periodo : '') || '';
+    var key = (ciclo || '') + '|' + periodo;
+    if (!force && _GEN_CACHE_.hiKey === key && _GEN_CACHE_.hi) return _GEN_CACHE_.hi;
+    _GEN_CACHE_.hiKey = key;
+    _GEN_CACHE_.hi = await _genGet_('getHorariosIniciales', { ciclo: ciclo || '', periodo: periodo });
+    return _GEN_CACHE_.hi;
+  },
+
+  async saveHoraInicial(adminKey, record) {
+    _GEN_CACHE_.hi = null;
+    return _genPost_({ action: 'saveHoraInicial', adminKey, record });
+  },
+
+  async deleteHoraInicial(adminKey, id) {
+    _GEN_CACHE_.hi = null;
+    return _genPost_({ action: 'deleteHoraInicial', adminKey, id });
+  },
+
+  async replaceHorariosInicialesDocente(adminKey, ciclo, docente_id, filas) {
+    var periodo = (typeof _genApp !== 'undefined' ? _genApp.periodo : '') || '';
+    _GEN_CACHE_.hi = null;
+    return _genPost_({ action: 'replaceHorariosInicialesDocente', adminKey, ciclo, periodo, docente_id, filas });
+  },
+
+  async horariosInicialesAEstructura(adminKey, ciclo) {
+    var periodo = (typeof _genApp !== 'undefined' ? _genApp.periodo : '') || '';
+    _GEN_CACHE_.hi = null;
+    _GEN_CACHE_.estructura = null;
+    return _genPost_({ action: 'horariosInicialesAEstructura', adminKey, ciclo, periodo });
+  },
+
+  // ── ESTRUCTURA EDUCATIVA ──────────────────────────────────────
+  async getEstructura(ciclo, force) {
+    var periodo = (typeof _genApp !== 'undefined' ? _genApp.periodo : '') || '';
+    var key = (ciclo || '') + '|' + periodo;
+    if (!force && _GEN_CACHE_.estructuraKey === key && _GEN_CACHE_.estructura) return _GEN_CACHE_.estructura;
+    _GEN_CACHE_.estructuraKey = key;
+    _GEN_CACHE_.estructura = await _genGet_('getEstructura', { ciclo: ciclo || '', periodo: periodo });
+    return _GEN_CACHE_.estructura;
+  },
+
+  async saveEstructuraFila(adminKey, record) {
+    _GEN_CACHE_.estructura = null;
+    return _genPost_({ action: 'saveEstructuraFila', adminKey, record });
+  },
+
+  async deleteEstructuraFila(adminKey, id) {
+    _GEN_CACHE_.estructura = null;
+    return _genPost_({ action: 'deleteEstructuraFila', adminKey, id });
+  },
+
+  async replaceEstructura(adminKey, ciclo, filas) {
+    var periodo = (typeof _genApp !== 'undefined' ? _genApp.periodo : '') || '';
+    _GEN_CACHE_.estructura = null;
+    return _genPost_({ action: 'replaceEstructura', adminKey, ciclo, periodo, filas });
+  },
+
+  async getEstadoEstructura(ciclo, force) {
+    var periodo = (typeof _genApp !== 'undefined' ? _genApp.periodo : '') || '';
+    var key = (ciclo || '') + '|' + periodo;
+    if (!force && _GEN_CACHE_.estadoEstKey === key && _GEN_CACHE_.estadoEst) return _GEN_CACHE_.estadoEst;
+    _GEN_CACHE_.estadoEstKey = key;
+    _GEN_CACHE_.estadoEst = await _genGet_('getEstadoEstructura', { ciclo: ciclo || '', periodo: periodo });
+    return _GEN_CACHE_.estadoEst;
+  },
+
+  async saveEstadoEstructura(adminKey, ciclo, estado) {
+    var periodo = (typeof _genApp !== 'undefined' ? _genApp.periodo : '') || '';
+    _GEN_CACHE_.estadoEst = null;
+    return _genPost_({ action: 'saveEstadoEstructura', adminKey, ciclo, estado, periodo });
+  },
+
+  async validarEstructura(ciclo) {
+    var periodo = (typeof _genApp !== 'undefined' ? _genApp.periodo : '') || '';
+    return _genGet_('validarEstructura', { ciclo: ciclo || '', periodo: periodo });
+  },
+
+  async estructuraACarga(adminKey, ciclo) {
+    var periodo = (typeof _genApp !== 'undefined' ? _genApp.periodo : '') || '';
+    _GEN_CACHE_.carga = null;
+    return _genPost_({ action: 'estructuraACarga', adminKey, ciclo, periodo });
   }
 };

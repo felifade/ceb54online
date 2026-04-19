@@ -57,6 +57,7 @@ function _armadoHTML(grupos, nBloques, horaIni, duracion, dias) {
       <option value="v2" ${_genApp.version==='v2'?'selected':''}>v2</option>
       <option value="v3" ${_genApp.version==='v3'?'selected':''}>v3</option>
     </select>
+    <button class="gen-btn gen-btn-sm gen-btn-secondary" id="gen-arm-precargar-btn" title="Genera la carga horaria a partir de la Estructura Educativa validada">⚡ Precargar desde Estructura</button>
     <button class="gen-btn gen-btn-secondary" id="gen-arm-conflictos-btn">Ver conflictos</button>
   </div>
 </div>
@@ -107,6 +108,9 @@ function _armadoBind(nBloques, horaIni, duracion, dias) {
   document.getElementById('gen-arm-conflictos-btn').addEventListener('click', function() {
     genNavTo('conflictos');
   });
+
+  var btnPrecargar = document.getElementById('gen-arm-precargar-btn');
+  if (btnPrecargar) btnPrecargar.addEventListener('click', _armadoPrecargarDesdeEstructura);
 }
 
 function _armadoCargarGrupo(grupoId, nBloques, horaIni, duracion, dias) {
@@ -277,6 +281,58 @@ function _armadoAbrirAsignacion(dia, bloque, grupoId, materiaId, docenteId) {
         btn.disabled = false; btn.textContent = 'Asignar';
       }
     });
+  });
+}
+
+/**
+ * Genera la carga horaria desde la Estructura Educativa validada del ciclo actual.
+ * Equivale a ejecutar "Generar carga horaria" desde el módulo de Estructura,
+ * pero desde el contexto del Armado para que el usuario no tenga que cambiar de módulo.
+ */
+async function _armadoPrecargarDesdeEstructura() {
+  genRequireAdmin(function() {
+    genConfirm(
+      'Esto generará asignaciones de Carga Horaria a partir de la Estructura Educativa del ciclo "' +
+      _genApp.ciclo + '". Las asignaciones existentes no se eliminan; se agregan las nuevas. ¿Continuar?',
+      async function() {
+        try {
+          var res = await genAPI.estructuraACarga(_genApp.adminKey, _genApp.ciclo);
+          genToast(res.message, 'ok');
+          if (res.sin_match && res.sin_match.length) {
+            genToast('Sin coincidencia: ' + res.sin_match.slice(0,3).join(', ') + (res.sin_match.length>3?'…':''), 'warning');
+          }
+          // Refrescar carga en memoria
+          _genApp.carga = await genAPI.getCarga(_genApp.ciclo, true);
+          // Si hay un grupo seleccionado, reconstruir su pool
+          if (_armadoCurrentGrupo_) {
+            var poolWrap = document.getElementById('gen-arm-pool-wrapper');
+            if (poolWrap) {
+              var cargaGrupo = _genApp.carga.filter(function(c){ return String(c.grupo_id) === String(_armadoCurrentGrupo_); });
+              document.getElementById('gen-arm-pool').innerHTML = cargaGrupo.length === 0
+                ? '<p class="gen-muted" style="font-size:12px">Sin carga horaria asignada para este grupo.</p>'
+                : cargaGrupo.map(function(c) {
+                    var m     = genById(_genApp.materias, c.materia_id);
+                    var d     = genById(_genApp.docentes, c.docente_id);
+                    var color = m ? genGetMateriaColor(m.id) : '#94a3b8';
+                    return '<div class="gen-arm-pool-item" data-carga-id="'+genEsc(c.id)+'" data-materia-id="'+genEsc(c.materia_id)+'" data-docente-id="'+genEsc(c.docente_id||'')+'" style="border-left:4px solid '+color+'">'+
+                      '<strong style="color:'+color+'">'+(m ? genEsc(m.nombre) : '?')+'</strong>'+
+                      '<span>'+(d ? genEsc(genNombreDocente(d)) : 'Sin docente')+'</span>'+
+                      '</div>';
+                  }).join('');
+              document.querySelectorAll('.gen-arm-pool-item').forEach(function(el) {
+                el.addEventListener('click', function() {
+                  document.querySelectorAll('.gen-arm-pool-item').forEach(function(x){ x.classList.remove('selected'); });
+                  this.classList.add('selected');
+                });
+              });
+              poolWrap.style.display = '';
+            }
+          }
+        } catch(err) {
+          genToast('Error: ' + err.message, 'error');
+        }
+      }
+    );
   });
 }
 

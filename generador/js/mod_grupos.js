@@ -15,18 +15,15 @@ genRegisterModule('grupos', {
 });
 
 function _grpHTML(grupos) {
-  // Organizar por grado
-  var byGrado = {};
-  grupos.forEach(function(g) {
-    var key = g.grado || '?';
-    if (!byGrado[key]) byGrado[key] = [];
-    byGrado[key].push(g);
-  });
+  var periodoInfo = _genApp.periodo
+    ? '<span class="gen-periodo-badge gen-periodo-badge-'+_genApp.periodo+'">Periodo '+_genApp.periodo+
+      ' · Sems '+GEN_PERIODO_SEMESTRES_[_genApp.periodo].join(', ')+'°</span>'
+    : '';
   return `
 <div class="gen-page-header">
   <div>
     <h1 class="gen-page-title">Catálogo de Grupos</h1>
-    <p class="gen-page-sub">${grupos.length} grupos registrados</p>
+    <p class="gen-page-sub">${grupos.length} grupos registrados${periodoInfo ? ' &nbsp;' + periodoInfo : ''}</p>
   </div>
   <div class="gen-header-actions">
     <input type="text" id="gen-grp-search" class="gen-search-input" placeholder="Buscar grupo…">
@@ -44,17 +41,26 @@ function _grpHTML(grupos) {
         <th>Turno</th>
         <th>Ciclo</th>
         <th>Capacidad</th>
+        <th>Capacitación</th>
+        <th>Sem. actual</th>
         <th>Estado</th>
         <th class="gen-th-actions">Acciones</th>
       </tr>
     </thead>
     <tbody id="gen-grp-tbody">
       ${grupos.length === 0
-        ? '<tr><td colspan="8" class="gen-td-empty">No hay grupos registrados. Agrega el primero.</td></tr>'
+        ? '<tr><td colspan="10" class="gen-td-empty">No hay grupos registrados. Agrega el primero.</td></tr>'
         : grupos.map(_grpRow).join('')}
     </tbody>
   </table>
 </div>`;
+}
+
+function _grpCapBadge(cap) {
+  if (!cap) return '<span class="gen-badge gen-badge-gray" style="font-size:10px">General</span>';
+  var s = _GEN_CAP_STYLE_[cap];
+  if (s) return '<span class="gen-grp-cap-badge" style="background:'+s.bg+';color:'+s.text+';border-color:'+s.border+'">'+genEsc(s.short)+'</span>';
+  return '<span class="gen-badge gen-badge-gray" style="font-size:10px">'+genEsc(cap)+'</span>';
 }
 
 function _grpRow(g) {
@@ -63,13 +69,23 @@ function _grpRow(g) {
     ? '<span class="gen-badge gen-badge-ok">Activo</span>'
     : '<span class="gen-badge gen-badge-gray">Inactivo</span>';
   var label  = (g.grado || '') + '°' + (g.grupo || '');
-  return `<tr data-id="${genEsc(g.id)}" data-label="${label.toLowerCase()}">
+  var cap    = g.capacitacion ? String(g.capacitacion).trim() : '';
+
+  // Semestre activo en el periodo seleccionado
+  var semActual = _genApp.periodo ? genSemestreDeGrado(g.grado, _genApp.periodo) : null;
+  var semCell   = semActual
+    ? '<span class="gen-badge gen-badge-blue" style="font-size:10px">Sem '+semActual+'°</span>'
+    : '<span class="gen-badge gen-badge-gray" style="font-size:10px">—</span>';
+
+  return `<tr data-id="${genEsc(g.id)}" data-label="${label.toLowerCase()}" data-cap="${genEsc(cap)}">
     <td><span class="gen-mono">${genEsc(g.clave || '—')}</span></td>
     <td>${genEsc(g.grado || '—')}</td>
     <td><strong>${genEsc(g.grupo || '—')}</strong></td>
     <td>${genEsc(g.turno || '—')}</td>
     <td>${genEsc(g.ciclo || '—')}</td>
     <td>${genEsc(g.capacidad || '—')}</td>
+    <td>${_grpCapBadge(cap)}</td>
+    <td>${semCell}</td>
     <td>${badge}</td>
     <td class="gen-td-actions">
       <button class="gen-btn-icon gen-btn-edit" title="Editar" onclick="genGrpEditar('${genEsc(g.id)}')">
@@ -134,7 +150,16 @@ function genGrpForm(id) {
       </div>
       <div class="gen-form-group">
         <label class="gen-label">Capacidad</label>
-        <input type="number" id="gg-cap" class="gen-input" value="${genEsc(g.capacidad||'35')}" min="1" max="60">
+        <input type="number" id="gg-capacidad" class="gen-input" value="${genEsc(g.capacidad||'35')}" min="1" max="60">
+      </div>
+      <div class="gen-form-group gen-span-2">
+        <label class="gen-label">Capacitación</label>
+        <select id="gg-cap" class="gen-select">
+          <option value="" ${!g.capacitacion?'selected':''}>Sin capacitación (grupo general)</option>
+          ${GEN_CAPACITACIONES_.map(function(c){
+            return '<option value="'+genEsc(c)+'" '+(g.capacitacion===c?'selected':'')+'>'+genEsc(c)+'</option>';
+          }).join('')}
+        </select>
       </div>
       <div class="gen-form-group">
         <label class="gen-label">Estado</label>
@@ -149,14 +174,15 @@ function genGrpForm(id) {
   );
   document.getElementById('gg-save').addEventListener('click', async function() {
     var record = {
-      id:         id || '',
-      clave:      document.getElementById('gg-clave').value.trim(),
-      grado:      document.getElementById('gg-grado').value,
-      grupo:      document.getElementById('gg-grupo').value.trim().toUpperCase(),
-      turno:      document.getElementById('gg-turno').value,
-      ciclo:      document.getElementById('gg-ciclo').value.trim(),
-      capacidad:  document.getElementById('gg-cap').value,
-      activo:     document.getElementById('gg-activo').value
+      id:           id || '',
+      clave:        document.getElementById('gg-clave').value.trim(),
+      grado:        document.getElementById('gg-grado').value,
+      grupo:        document.getElementById('gg-grupo').value.trim().toUpperCase(),
+      turno:        document.getElementById('gg-turno').value,
+      ciclo:        document.getElementById('gg-ciclo').value.trim(),
+      capacidad:    document.getElementById('gg-capacidad').value,
+      capacitacion: document.getElementById('gg-cap').value,
+      activo:       document.getElementById('gg-activo').value
     };
     if (!record.clave || !record.grado || !record.grupo) {
       genToast('Clave, grado y grupo son obligatorios.', 'warning');

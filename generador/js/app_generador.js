@@ -8,6 +8,7 @@ var _genApp = {
   adminKey:   null,       // null = no autenticado como admin
   config:     {},
   ciclo:      '',
+  periodo:    '',         // '' = ambos, 'A' = semestres 1,3,5; 'B' = semestres 2,4,6
   version:    'v1',
   docentes:   [],
   grupos:     [],
@@ -17,6 +18,33 @@ var _genApp = {
   horarios:   [],
   currentMod: null
 };
+
+// ── PERIODOS ──────────────────────────────────────────────────────
+
+/** Semestres que corresponden a cada periodo escolar. */
+var GEN_PERIODO_SEMESTRES_ = {
+  A: ['1', '3', '5'],
+  B: ['2', '4', '6']
+};
+
+/**
+ * Retorna los semestres activos para el periodo actual.
+ * Si no hay periodo seleccionado, retorna null (sin restricción).
+ */
+function genGetSemestresPeriodo(periodo) {
+  var p = periodo !== undefined ? periodo : _genApp.periodo;
+  return GEN_PERIODO_SEMESTRES_[p] || null;
+}
+
+/**
+ * Dado un grado (1-3) y un periodo ('A' o 'B'), calcula el semestre activo.
+ * Grado 1 → A:1, B:2 | Grado 2 → A:3, B:4 | Grado 3 → A:5, B:6
+ */
+function genSemestreDeGrado(grado, periodo) {
+  var g = parseInt(grado, 10);
+  if (!g || !periodo) return null;
+  return periodo === 'A' ? String(g * 2 - 1) : String(g * 2);
+}
 
 // Paleta de colores para materias (hasta 20)
 var _GEN_PALETTE_ = [
@@ -33,6 +61,46 @@ function genGetMateriaColor(materia_id) {
     _genColorMap_[materia_id] = _GEN_PALETTE_[keys.length % _GEN_PALETTE_.length];
   }
   return _genColorMap_[materia_id];
+}
+
+// ── CAPACITACIONES ────────────────────────────────────────────────
+
+/** Capacitaciones reconocidas en el plantel. Se detectan desde el campo `componente`. */
+var GEN_CAPACITACIONES_ = [
+  'Tecnologías de la Información',
+  'Higiene y Salud Comunitaria',
+  'Auxiliar Educativo'
+];
+
+/** Paleta visual indexada por nombre canónico de capacitación. */
+var _GEN_CAP_STYLE_ = {
+  'Tecnologías de la Información': { bg: '#eff6ff', border: '#3b82f6', text: '#1d4ed8', short: 'TIC' },
+  'Higiene y Salud Comunitaria':   { bg: '#f0fdf4', border: '#22c55e', text: '#15803d', short: 'HSC' },
+  'Auxiliar Educativo':            { bg: '#fffbeb', border: '#f59e0b', text: '#b45309', short: 'AE'  }
+};
+
+/** Normaliza texto: minúsculas, sin acentos, sin espacios extra. */
+function _genNormText_(str) {
+  return String(str || '').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Si el valor de `componente` coincide con una capacitación reconocida,
+ * retorna su nombre canónico. Si no, retorna null.
+ * La comparación es tolerante: normaliza acentos, mayúsculas y variantes menores.
+ */
+function genGetCap(componente) {
+  if (!componente) return null;
+  var n = _genNormText_(componente);
+  for (var i = 0; i < GEN_CAPACITACIONES_.length; i++) {
+    var cn = _genNormText_(GEN_CAPACITACIONES_[i]);
+    if (n === cn || n.indexOf(cn) !== -1 || cn.indexOf(n) !== -1) {
+      return GEN_CAPACITACIONES_[i];
+    }
+  }
+  return null;
 }
 
 // ── HELPERS UI ────────────────────────────────────────────────────
@@ -224,7 +292,21 @@ function genSetCiclo(ciclo) {
   sessionStorage.setItem('gen_ciclo', ciclo);
   genUpdateCicloDisplay();
   genClearCache();
-  // Recargar módulo actual
+  if (_genApp.currentMod) genNavTo(_genApp.currentMod);
+}
+
+// ── SELECTOR DE PERIODO ───────────────────────────────────────────
+
+function genUpdatePeriodoDisplay() {
+  document.querySelectorAll('.gen-per-opt').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.per === _genApp.periodo);
+  });
+}
+
+function genSetPeriodo(p) {
+  _genApp.periodo = p || '';
+  sessionStorage.setItem('gen_periodo', _genApp.periodo);
+  genUpdatePeriodoDisplay();
   if (_genApp.currentMod) genNavTo(_genApp.currentMod);
 }
 
@@ -247,6 +329,11 @@ async function genInit() {
   if (savedCiclo) _genApp.ciclo = savedCiclo;
   genUpdateCicloDisplay();
 
+  // Restaurar periodo
+  var savedPeriodo = sessionStorage.getItem('gen_periodo');
+  if (savedPeriodo) _genApp.periodo = savedPeriodo;
+  genUpdatePeriodoDisplay();
+
   // Wire nav items
   document.querySelectorAll('.gen-nav-item').forEach(function(el) {
     el.addEventListener('click', function() {
@@ -264,6 +351,13 @@ async function genInit() {
     _genApp.adminKey = null;
     sessionStorage.removeItem('gen_admin_key');
     genToast('Sesión de administrador cerrada.', 'info');
+  });
+
+  // Botones de periodo
+  document.querySelectorAll('.gen-per-opt').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      genSetPeriodo(btn.dataset.per);
+    });
   });
 
   // Botón cambiar ciclo
