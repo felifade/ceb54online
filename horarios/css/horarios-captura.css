@@ -1,0 +1,415 @@
+/* ================================================================
+   horarios-captura.css — Estilos exclusivos del formulario de
+   Captura dentro del módulo de Horarios CEB 5/4
+   NO afecta las pestañas de consulta existentes.
+   Prefijo: hc- (horarios-captura)
+   ================================================================ */
+
+/* ── Pestaña Captura — color diferenciado ─────────────────────── */
+.hor-tab-capture {
+  border-left: 2px solid #e2e8f0;
+  margin-left: 0.5rem;
+  color: #0f172a !important;
+}
+.hor-tab-capture.active {
+  background: #0f172a !important;
+  color: #fff !important;
+  border-color: #0f172a !important;
+}
+.hor-tab-capture:not(.active):hover {
+  background: #f1f5f9 !important;
+}
+
+/* ── Banner de autenticación ──────────────────────────────────── */
+.hc-auth-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  font-size: 0.82rem;
+  color: #78350f;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Bloques del formulario ───────────────────────────────────── */
+.hc-block {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.hc-block-summary {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.hc-block-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.hc-block-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.hc-block-icon svg { width: 16px; height: 16px; }
+
+.hc-icon-blue   { background: #dbeafe; color: #1d4ed8; }
+.hc-icon-indigo { background: #e0e7ff; color: #4338ca; }
+.hc-icon-green  { background: #d1fae5; color: #059669; }
+.hc-icon-amber  { background: #fef3c7; color: #d97706; }
+
+.hc-block-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.hc-ml-auto { margin-left: auto; }
+
+/* ── Filas de campos ──────────────────────────────────────────── */
+.hc-row {
+  display: flex;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: 0.75rem;
+}
+.hc-row:last-child { margin-bottom: 0; }
+
+.hc-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+  min-width: 120px;
+}
+
+.hc-label-grow { flex: 1; }
+
+.hc-input {
+  height: 36px;
+  padding: 0 0.7rem;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-family: inherit;
+  color: #0f172a;
+  background: #f8fafc;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+.hc-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+  background: #fff;
+}
+.hc-input.hc-error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.12);
+}
+
+.hc-mono { font-family: 'Courier New', monospace; font-size: 0.82rem; }
+
+/* ── Botones ──────────────────────────────────────────────────── */
+.hc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 1rem;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.hc-btn-primary {
+  background: #1d4ed8;
+  color: #fff;
+  border-color: #1d4ed8;
+}
+.hc-btn-primary:hover:not(:disabled) { background: #1e40af; border-color: #1e40af; }
+
+.hc-btn-sec {
+  background: #fff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+.hc-btn-sec:hover:not(:disabled) { background: #eff6ff; }
+
+.hc-btn-ghost {
+  background: transparent;
+  color: #64748b;
+  border-color: #e2e8f0;
+}
+.hc-btn-ghost:hover:not(:disabled) { background: #f1f5f9; color: #334155; }
+
+.hc-btn-danger {
+  background: #fff;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+.hc-btn-danger:hover:not(:disabled) { background: #fef2f2; }
+
+.hc-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Tablas de carga y extraescolares ─────────────────────────── */
+.hc-table-wrap {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  display: none; /* se muestra al agregar primera fila */
+}
+.hc-table-wrap.hc-visible { display: block; }
+
+.hc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.hc-table thead th {
+  padding: 0.5rem 0.6rem;
+  background: #f8fafc;
+  font-weight: 700;
+  color: #475569;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.hc-table tbody tr:not(:last-child) td {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.hc-table tbody td {
+  padding: 0.35rem 0.4rem;
+  vertical-align: middle;
+}
+
+/* Inputs dentro de la tabla */
+.hc-td-input {
+  height: 30px;
+  padding: 0 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-family: inherit;
+  color: #0f172a;
+  background: #fff;
+  transition: border-color 0.12s;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+}
+.hc-td-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.1);
+}
+.hc-td-input.hc-time { font-family: 'Courier New', monospace; font-size: 0.75rem; width: 90px; }
+.hc-td-input.hc-total { width: 60px; text-align: right; background: #f8fafc; }
+
+.hc-td-calc {
+  text-align: right;
+  font-weight: 700;
+  color: #0f172a;
+  font-family: 'Courier New', monospace;
+  font-size: 0.78rem;
+  min-width: 50px;
+}
+
+.hc-btn-del {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.hc-btn-del:hover { background: #fee2e2; color: #dc2626; }
+.hc-btn-del svg { width: 13px; height: 13px; }
+
+/* ── Hint vacío ───────────────────────────────────────────────── */
+.hc-empty-hint {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  text-align: center;
+  padding: 0.75rem 0 0;
+  margin: 0;
+}
+
+/* ── Tarjetas resumen ─────────────────────────────────────────── */
+.hc-summary-chips {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.hc-chip {
+  flex: 1;
+  min-width: 130px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.hc-chip-val {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #1d4ed8;
+  font-family: 'Outfit', sans-serif;
+}
+
+.hc-chip-lbl {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748b;
+  text-align: center;
+}
+
+.hc-chip-green .hc-chip-val { color: #059669; }
+.hc-chip-dark  .hc-chip-val { color: #0f172a; }
+
+/* ── Barra de acciones ────────────────────────────────────────── */
+.hc-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Mensajes de estado ───────────────────────────────────────── */
+.hc-status {
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 500;
+  margin-top: 0.25rem;
+}
+.hc-status.hc-ok    { background: #d1fae5; color: #064e3b; border: 1px solid #6ee7b7; }
+.hc-status.hc-error { background: #fee2e2; color: #7f1d1d; border: 1px solid #fca5a5; }
+.hc-status.hc-info  { background: #dbeafe; color: #1e3a8a; border: 1px solid #93c5fd; }
+
+/* ── Responsive ───────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .hc-row { flex-direction: column; }
+  .hc-label { min-width: unset; width: 100%; }
+  .hc-actions { flex-direction: column; }
+  .hc-btn  { width: 100%; justify-content: center; }
+  .hc-summary-chips { flex-direction: column; }
+}
+
+/* ── Selects dentro de la tabla de captura ───────────────────── */
+.hc-td-select {
+  height: 30px;
+  padding: 0 0.35rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-family: inherit;
+  color: #0f172a;
+  background: #fff;
+  outline: none;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.12s;
+}
+.hc-td-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.1);
+}
+
+/* UAC: más ancho para nombres largos */
+.hc-td-select-uac {
+  min-width: 160px;
+}
+
+/* Bloque horario: ancho fijo tipo monoespaciado */
+.hc-td-select-bloque {
+  min-width: 90px;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.75rem;
+}
+
+/* Input readonly dentro de tabla (componente auto-llenado) */
+.hc-td-readonly {
+  background: #f8fafc !important;
+  color: #64748b !important;
+  cursor: default;
+  min-width: 90px;
+}
+.hc-td-readonly:focus {
+  border-color: #e2e8f0 !important;
+  box-shadow: none !important;
+}
+
+/* Clave/CURP bloqueado en modo edición */
+.hc-input-readonly {
+  background: #f1f5f9 !important;
+  color: #64748b !important;
+  cursor: not-allowed;
+  border-color: #cbd5e1 !important;
+  font-style: italic;
+}
+
+/* ── Badge de modo (Alta / Edición) ──────────────────────────── */
+.hc-modo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 50px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background 0.25s, color 0.25s;
+}
+
+.hc-modo-alta {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+.hc-modo-edicion {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}

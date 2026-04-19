@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <script>const APP_VERSION = "v20260419";</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Horarios | Subdirección | CEB 5/4</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/horarios.css?v=20260419">
+  <link rel="stylesheet" href="css/horarios-captura.css?v=20260419">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Auth check — mismo patrón que otros módulos del sistema -->
+  <script>
+    (function() {
+      var auth  = sessionStorage.getItem('tutorias_auth');
+      var email = sessionStorage.getItem('user_email');
+      if (!auth || !email) {
+        sessionStorage.setItem('pec_redirect_after_login', window.location.href);
+        window.location.href = '../pec/login.html';
+      }
+    })();
+  </script>
+</head>
+<body style="background:#f1f5f9;">
+
+<div class="hor-layout">
+
+  <!-- BOTÓN REGRESAR -->
+  <a href="../area_subdireccion.html"
+     style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.6rem 1.25rem;
+            background:white; color:#1e293b; border-radius:12px; font-weight:700;
+            text-decoration:none; font-size:0.9rem; margin-bottom:2rem;
+            box-shadow:0 4px 6px -1px rgba(0,0,0,0.05); border:1.5px solid #e2e8f0;
+            transition:all 0.2s;">
+    <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
+    Subdirección
+  </a>
+
+  <!-- ENCABEZADO -->
+  <header class="hor-header">
+    <span style="display:inline-block; margin-bottom:0.8rem; background:rgba(56,132,192,0.2);
+                 color:#93c5fd; padding:0.35rem 0.9rem; border-radius:50px;
+                 font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:1px;">
+      Subdirección
+    </span>
+    <h1 class="hor-title">Horarios Escolares</h1>
+    <p class="hor-subtitle">Consulta por grupo, por docente o vista general administrativa</p>
+  </header>
+
+  <!-- CARGANDO -->
+  <div id="hor-loading" class="hor-loading">
+    <div class="hor-loading-spinner"></div>
+    Cargando horarios…
+  </div>
+
+  <!-- ERROR (se llena desde JS si aplica) -->
+  <div id="hor-error" style="display:none;"></div>
+
+  <!-- MÓDULO PRINCIPAL (oculto hasta que carguen los datos) -->
+  <div id="hor-main" style="display:none;">
+
+    <!-- PESTAÑAS -->
+    <div class="hor-tabs">
+      <button class="hor-tab-btn active" data-tab="grupo">
+        Por Grupo
+      </button>
+      <button class="hor-tab-btn" data-tab="docente">
+        Por Docente
+      </button>
+      <!-- Vista General oculta; cambiar display:none → '' para reactivar -->
+      <button class="hor-tab-btn" data-tab="general" style="display:none">
+        Vista General
+      </button>
+      <button class="hor-tab-btn hor-tab-capture" data-tab="captura">
+        <i data-lucide="pencil-line" style="width:14px;height:14px;vertical-align:-2px;"></i>
+        Captura
+      </button>
+    </div>
+
+    <!-- ── PESTAÑA: POR GRUPO ────────────────────────────── -->
+    <div id="pane-grupo" class="hor-tab-pane active">
+      <div class="hor-filters">
+        <label>Ciclo escolar
+          <select id="sel-ciclo-grupo"></select>
+        </label>
+        <label>Grupo
+          <select id="sel-grupo"></select>
+        </label>
+        <button class="hor-print-btn hor-print-all-btn" onclick="horImprimirTodosGrupos()" title="Genera un PDF con todos los grupos del ciclo seleccionado">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          Imprimir todos los grupos
+        </button>
+      </div>
+      <div id="view-grupo">
+        <p class="hor-hint">Selecciona un ciclo y grupo para ver el horario.</p>
+      </div>
+    </div>
+
+    <!-- ── PESTAÑA: POR DOCENTE ──────────────────────────── -->
+    <div id="pane-docente" class="hor-tab-pane">
+      <div class="hor-filters">
+        <label>Ciclo escolar
+          <select id="sel-ciclo-doc"></select>
+        </label>
+        <label>Docente
+          <select id="sel-docente"></select>
+        </label>
+        <button class="hor-print-btn hor-print-all-btn" onclick="horImprimirTodosDocentes()" title="Genera un PDF con todos los docentes del ciclo seleccionado">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          Imprimir todos los docentes
+        </button>
+      </div>
+      <div id="view-docente">
+        <p class="hor-hint">Selecciona un ciclo y docente para ver el horario.</p>
+      </div>
+    </div>
+
+    <!-- ── PESTAÑA: VISTA GENERAL ────────────────────────── -->
+    <div id="pane-general" class="hor-tab-pane">
+      <div class="hor-filters">
+        <label class="hor-search-wrap">Buscar
+          <input type="text" id="search-gen" placeholder="Grupo, materia, docente, ciclo…">
+        </label>
+        <label>Día
+          <select id="filter-dia-gen">
+            <option value="">Todos los días</option>
+            <option value="LUNES">Lunes</option>
+            <option value="MARTES">Martes</option>
+            <option value="MIERCOLES">Miércoles</option>
+            <option value="JUEVES">Jueves</option>
+            <option value="VIERNES">Viernes</option>
+          </select>
+        </label>
+      </div>
+      <div id="view-general">
+        <p class="hor-hint">Usa los filtros para buscar sesiones.</p>
+      </div>
+    </div>
+
+    <!-- ── PESTAÑA: CAPTURA ──────────────────────────────── -->
+    <div id="pane-captura" class="hor-tab-pane">
+
+      <!-- Barra superior: aviso admin + badge de modo -->
+      <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+        <div id="hc-auth-banner" class="hc-auth-banner" style="margin-bottom:0; flex:1;">
+          <i data-lucide="shield-check" style="width:16px;height:16px;"></i>
+          <span>Esta sección requiere la <strong>clave de administrador</strong> al guardar.</span>
+        </div>
+        <span id="hc-modo-badge" class="hc-modo-badge hc-modo-alta">✨ Nuevo docente</span>
+      </div>
+
+      <!-- ── BLOQUE A: Datos del docente ── -->
+      <div class="hc-block">
+        <div class="hc-block-header">
+          <div class="hc-block-icon hc-icon-blue"><i data-lucide="user"></i></div>
+          <span class="hc-block-title">A · Datos del docente</span>
+        </div>
+
+        <div class="hc-row">
+          <label class="hc-label">Ciclo escolar
+            <select id="hc-ciclo" class="hc-input">
+              <option value="">— Seleccionar —</option>
+              <option value="2021-2022">2021-2022</option>
+              <option value="2022-2023">2022-2023</option>
+              <option value="2023-2024">2023-2024</option>
+              <option value="2024-2025">2024-2025</option>
+              <option value="2025-2026" selected>2025-2026</option>
+              <option value="2026-2027">2026-2027</option>
+              <option value="2027-2028">2027-2028</option>
+            </select>
+          </label>
+          <label class="hc-label">Seleccionar docente existente
+            <select id="hc-sel-docente" class="hc-input">
+              <option value="">— Nuevo docente —</option>
+            </select>
+          </label>
+          <button id="hc-btn-cargar" class="hc-btn hc-btn-sec">
+            <i data-lucide="download" style="width:14px;height:14px;"></i> Cargar
+          </button>
+        </div>
+
+        <div class="hc-row">
+          <label class="hc-label hc-label-grow">Nombre completo *
+            <input type="text" id="hc-nombre" placeholder="Apellido Apellido Nombre" class="hc-input">
+          </label>
+          <label class="hc-label">Clave / CURP *
+            <input type="text" id="hc-clave" placeholder="Clave económica o CURP" class="hc-input hc-mono">
+          </label>
+        </div>
+
+        <div class="hc-row">
+          <label class="hc-label hc-label-grow">Formación académica
+            <input type="text" id="hc-formacion" list="hc-formaciones"
+                   placeholder="Ej. Licenciatura en Matemáticas" class="hc-input" autocomplete="off">
+            <datalist id="hc-formaciones">
+              <option value="Licenciatura en Matemáticas">
+              <option value="Licenciatura en Física">
+              <option value="Licenciatura en Química">
+              <option value="Licenciatura en Biología">
+              <option value="Licenciatura en Historia">
+              <option value="Licenciatura en Geografía">
+              <option value="Licenciatura en Letras Españolas">
+              <option value="Licenciatura en Lingüística y Literatura">
+              <option value="Licenciatura en Educación">
+              <option value="Licenciatura en Ciencias de la Educación">
+              <option value="Licenciatura en Administración">
+              <option value="Licenciatura en Contaduría">
+              <option value="Licenciatura en Informática">
+              <option value="Licenciatura en Ciencias Computacionales">
+              <option value="Licenciatura en Derecho">
+              <option value="Licenciatura en Psicología">
+              <option value="Licenciatura en Ciencias Políticas">
+              <option value="Licenciatura en Filosofía">
+              <option value="Licenciatura en Comunicación">
+              <option value="Ingeniería en Sistemas Computacionales">
+              <option value="Ingeniería Industrial">
+              <option value="Ingeniería Civil">
+              <option value="Ingeniería en Electrónica">
+              <option value="Ingeniería Química">
+              <option value="Maestría en Educación">
+              <option value="Maestría en Matemáticas">
+              <option value="Maestría en Ciencias">
+              <option value="Doctorado en Educación">
+              <option value="Doctorado en Ciencias">
+            </datalist>
+          </label>
+        </div>
+      </div>
+
+      <!-- ── BLOQUE B: Carga horaria ── -->
+      <div class="hc-block">
+        <div class="hc-block-header">
+          <div class="hc-block-icon hc-icon-indigo"><i data-lucide="calendar"></i></div>
+          <span class="hc-block-title">B · Carga horaria frente a grupo</span>
+          <button id="hc-btn-add-carga" class="hc-btn hc-btn-ghost hc-ml-auto">
+            <i data-lucide="plus" style="width:14px;height:14px;"></i> Agregar materia
+          </button>
+        </div>
+        <div class="hc-table-wrap">
+          <table class="hc-table" id="hc-tabla-carga">
+            <thead>
+              <tr>
+                <th>Grupo</th><th>Turno</th><th>Materia / UAC</th><th>Componente</th>
+                <th>Lun</th><th>Mar</th><th>Mié</th><th>Jue</th><th>Vie</th>
+                <th>Total hrs</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="hc-body-carga">
+              <!-- filas dinámicas -->
+            </tbody>
+          </table>
+        </div>
+        <p id="hc-carga-empty" class="hc-empty-hint">Presiona «Agregar materia» para añadir la primera fila.</p>
+      </div>
+
+      <!-- ── BLOQUE C: Extraescolares ── -->
+      <div class="hc-block">
+        <div class="hc-block-header">
+          <div class="hc-block-icon hc-icon-green"><i data-lucide="star"></i></div>
+          <span class="hc-block-title">C · Fortalecimiento / Extraescolares</span>
+          <button id="hc-btn-add-ext" class="hc-btn hc-btn-ghost hc-ml-auto">
+            <i data-lucide="plus" style="width:14px;height:14px;"></i> Agregar actividad
+          </button>
+        </div>
+        <div class="hc-table-wrap">
+          <table class="hc-table" id="hc-tabla-ext">
+            <thead>
+              <tr>
+                <th>Actividad</th>
+                <th>Lun</th><th>Mar</th><th>Mié</th><th>Jue</th><th>Vie</th>
+                <th>Total hrs</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="hc-body-ext">
+              <!-- filas dinámicas -->
+            </tbody>
+          </table>
+        </div>
+        <p id="hc-ext-empty" class="hc-empty-hint">Presiona «Agregar actividad» para añadir la primera fila.</p>
+      </div>
+
+      <!-- ── BLOQUE D: Resumen ── -->
+      <div class="hc-block hc-block-summary">
+        <div class="hc-block-header">
+          <div class="hc-block-icon hc-icon-amber"><i data-lucide="bar-chart-2"></i></div>
+          <span class="hc-block-title">D · Resumen de horas</span>
+        </div>
+        <div class="hc-summary-chips">
+          <div class="hc-chip">
+            <span class="hc-chip-val" id="hc-sum-frente">0</span>
+            <span class="hc-chip-lbl">Hrs frente a grupo</span>
+          </div>
+          <div class="hc-chip hc-chip-green">
+            <span class="hc-chip-val" id="hc-sum-extra">0</span>
+            <span class="hc-chip-lbl">Hrs extraescolares</span>
+          </div>
+          <div class="hc-chip hc-chip-dark">
+            <span class="hc-chip-val" id="hc-sum-total">0</span>
+            <span class="hc-chip-lbl">Total general</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ACCIONES ── -->
+      <div class="hc-actions">
+        <button id="hc-btn-guardar" class="hc-btn hc-btn-primary">
+          <i data-lucide="save" style="width:15px;height:15px;"></i> Guardar
+        </button>
+        <button id="hc-btn-nuevo" class="hc-btn hc-btn-sec">
+          <i data-lucide="user-plus" style="width:15px;height:15px;"></i> Nuevo docente
+        </button>
+        <button id="hc-btn-limpiar" class="hc-btn hc-btn-ghost">
+          <i data-lucide="trash-2" style="width:15px;height:15px;"></i> Limpiar
+        </button>
+        <button id="hc-btn-regen" class="hc-btn hc-btn-ghost">
+          <i data-lucide="refresh-cw" style="width:15px;height:15px;"></i> Regenerar horario
+        </button>
+      </div>
+
+      <!-- Mensajes de estado -->
+      <div id="hc-status" class="hc-status" style="display:none;"></div>
+
+    </div><!-- /pane-captura -->
+
+    <!-- ── ACCIÓN ADMINISTRATIVA ─────────────────────────── -->
+    <div class="hor-admin-bar">
+      <div class="hor-admin-label">
+        <strong>Actualizar datos:</strong>
+        Regenera <code>HORARIOS_WEB</code> a partir de <code>HORARIOS_RAW</code> + <code>DOCENTES_RAW</code>.
+        Requiere la clave de administrador definida en el GAS.
+      </div>
+      <button id="btn-regenerar">
+        <i data-lucide="refresh-cw" style="width:15px;height:15px;"></i>
+        Regenerar HORARIOS_WEB
+      </button>
+    </div>
+
+  </div><!-- /hor-main -->
+
+  <footer style="text-align:center; margin-top:4rem; padding-bottom:3rem;
+                 color:#94a3b8; font-size:0.82rem;">
+    <p>&copy; 2026 Centro de Estudios de Bachillerato 5/4 "Profr. Rafael Ramírez"</p>
+  </footer>
+
+</div><!-- /hor-layout -->
+
+<script src="js/api_horarios.js?v=20260419"></script>
+<script src="js/app_horarios.js?v=20260419"></script>
+<script src="js/print_horarios.js?v=20260419"></script>
+<script src="js/app_horarios_captura.js?v=20260419"></script>
+<script>
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+</script>
+</body>
+</html>
