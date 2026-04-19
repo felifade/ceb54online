@@ -359,11 +359,31 @@
 
   </div><!-- /app-grid -->
 
+  <!-- ══ HORARIO DEL GRUPO (sección completa bajo el grid) ══════════════ -->
+  <div class="hp-section">
+    <div class="app-card hp-card">
+      <div class="card-header">
+        <div class="card-icon" style="background:#eff6ff; color:#1d4ed8;"><i data-lucide="calendar-days"></i></div>
+        <span class="card-title">Horario del grupo</span>
+        <span class="hp-badge" id="hp-grupo-badge"></span>
+        <button class="hp-toggle" id="hp-toggle" aria-label="Colapsar horario"
+          onclick="(function(){var b=document.getElementById('hp-body');var t=document.getElementById('hp-toggle');if(b.classList.toggle('hp-hidden')){t.classList.add('collapsed');}else{t.classList.remove('collapsed');}})()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </div>
+      <div id="hp-body" class="hp-body">
+        <!-- Renderizado por horario-portal.js -->
+        <div class="hp-loading"><div class="hp-spinner"></div><span>Cargando horario…</span></div>
+      </div>
+    </div>
+  </div>
+
 </main>
 
 <script src="js/portal-api.js?v=20260418"></script>
 <script src="js/padre.js?v=20260418"></script>
 <script src="js/prefectura-portal.js?v=20260418"></script>
+<script src="js/horario-portal.js?v=20260418"></script>
 <script>
 /* ── FIX: eval_padres_activa — interceptor de getCalPadre ──────────────────
    No modificar. Intercepta la respuesta de getCalPadre para mostrar/ocultar
@@ -428,6 +448,7 @@ document.addEventListener('DOMContentLoaded', function() {
     renderMateriasParent(u.grupoHijo);
     renderEvalDocenteStatusParent(u.nombreHijo, u.grupoHijo);
     renderEvalDirectivosStatusParent(u.nombreHijo, u.grupoHijo);
+    horarioPortal.render(u.grupoHijo, document.getElementById('hp-body'));
   }
 
   // Prefectura

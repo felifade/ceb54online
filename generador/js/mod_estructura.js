@@ -24,11 +24,12 @@ genRegisterModule('estructura', {
       _genApp.docentes = results[2];
       _estData    = results[3].slice();
       // El estado es independiente por periodo (la clave incluye el periodo)
-      _estEstado  = results[4].estado || 'EN_CAPTURA';
-      _estPeriodo = _genApp.periodo || '';
-      _estDirty   = false;
-      _estView    = 'grid';
-      _estConflictos = { errores: [], advertencias: [] };
+      _estEstado         = results[4].estado || 'EN_CAPTURA';
+      _estPeriodo        = _genApp.periodo || '';
+      _estDirty          = false;
+      _estView           = 'grid';
+      _estConflictos     = { errores: [], advertencias: [] };
+      _estGrupoFiltroSem = '';
 
       container.innerHTML = _estPageHTML();
       _estBind();
@@ -73,12 +74,30 @@ var _EST_COLS_ = [
 
 // ── ESTADO DEL MÓDULO ────────────────────────────────────────────────
 
-var _estData       = [];
-var _estEstado     = 'EN_CAPTURA';
-var _estPeriodo    = '';   // snapshot del periodo al renderizar
-var _estDirty      = false;
-var _estView       = 'grid';
-var _estConflictos = { errores: [], advertencias: [] };
+var _estData           = [];
+var _estEstado         = 'EN_CAPTURA';
+var _estPeriodo        = '';   // snapshot del periodo al renderizar
+var _estDirty          = false;
+var _estView           = 'grid';
+var _estConflictos     = { errores: [], advertencias: [] };
+var _estGrupoFiltroSem = '';   // '' = todos | '2'|'4'|'6' = solo ese | '246' = conjunto
+
+// ── PALETAS VISUALES ─────────────────────────────────────────────────
+
+var _EST_SEM_COLORS_ = {
+  '1': { bg: '#eff6ff', border: '#3b82f6', text: '#1d4ed8', light: '#dbeafe' },
+  '2': { bg: '#eef2ff', border: '#6366f1', text: '#3730a3', light: '#e0e7ff' },
+  '3': { bg: '#faf5ff', border: '#a855f7', text: '#7e22ce', light: '#f3e8ff' },
+  '4': { bg: '#f0fdfa', border: '#14b8a6', text: '#0f766e', light: '#ccfbf1' },
+  '5': { bg: '#f0fdf4', border: '#22c55e', text: '#15803d', light: '#dcfce7' },
+  '6': { bg: '#fff7ed', border: '#f97316', text: '#c2410c', light: '#ffedd5' }
+};
+
+var _EST_TURNO_COLORS_ = {
+  'Matutino':   { bg: '#fef9c3', text: '#854d0e', border: '#fde047' },
+  'Vespertino': { bg: '#f0f9ff', text: '#0369a1', border: '#7dd3fc' },
+  'Mixto':      { bg: '#f5f3ff', text: '#5b21b6', border: '#c4b5fd' }
+};
 
 // ── DATALISTS (para autocompletado en celdas) ────────────────────────
 
@@ -131,6 +150,12 @@ function _estPageHTML() {
     ? '<button class="gen-btn gen-btn-sm est-btn-horario" id="est-btn-horario">⚡ Generar carga horaria</button>'
     : '';
 
+  var workflowGroup = (btnAvanzar || btnHorario)
+    ? '<div class="est-action-sep"></div><div class="est-action-group">' + btnAvanzar + btnHorario + '</div>'
+    : '';
+
+  var guardarStyle = _estDirty ? ' style="background:#f59e0b;border-color:#f59e0b;"' : '';
+
   return `
 <div class="gen-page-header">
   <div>
@@ -138,13 +163,15 @@ function _estPageHTML() {
     <p class="gen-page-sub">Ciclo: <strong>${genEsc(_genApp.ciclo)}</strong>
       &nbsp;&nbsp;${estadoBadge}${periodoBadge}</p>
   </div>
-  <div class="gen-header-actions">
-    <button class="gen-btn gen-btn-sm gen-btn-secondary" id="est-btn-validar">✓ Validar</button>
-    <button class="gen-btn gen-btn-sm gen-btn-secondary" id="est-btn-exportar">↓ Exportar CSV</button>
-    ${btnAvanzar}
-    ${btnHorario}
-    <button class="gen-btn gen-btn-sm gen-btn-primary" id="est-btn-guardar"${_estDirty?' style="background:#f59e0b;border-color:#f59e0b"':''}>
-      ${_estDirty ? '● ' : ''}Guardar todo
+  <div class="gen-header-actions est-header-actions">
+    <div class="est-action-group">
+      <button class="gen-btn gen-btn-sm gen-btn-ghost" id="est-btn-exportar">↓ CSV</button>
+      <button class="gen-btn gen-btn-sm gen-btn-secondary" id="est-btn-validar">✓ Validar</button>
+    </div>
+    ${workflowGroup}
+    <div class="est-action-sep"></div>
+    <button class="gen-btn gen-btn-sm gen-btn-primary" id="est-btn-guardar"${guardarStyle}>
+      ${_estDirty ? '<span style="opacity:.7;margin-right:2px;">●</span>' : ''}Guardar todo
     </button>
   </div>
 </div>
@@ -239,39 +266,113 @@ function _estGridRow(row, idx, cerrada) {
 // ── VISTA POR GRUPO ──────────────────────────────────────────────────
 
 function _estPorGrupoHTML() {
+  if (!_estData.length) {
+    return '<div class="gen-empty-state" style="margin-top:32px"><p>No hay datos en la estructura todavía.</p></div>';
+  }
+
+  // Chips de filtro
+  var chips = [
+    { val: '',    label: 'Todos' },
+    { val: '2',   label: '2°' },
+    { val: '4',   label: '4°' },
+    { val: '6',   label: '6°' },
+    { val: '246', label: '2°, 4° y 6°' }
+  ];
+  var filtroBar = '<div class="est-filtro-bar">' +
+    '<span class="est-filtro-label">Semestre:</span>' +
+    chips.map(function(c) {
+      var active = _estGrupoFiltroSem === c.val ? ' active' : '';
+      return '<button class="est-filtro-chip' + active + '" onclick="_estSetGrupoFiltro(\'' + c.val + '\')">' + c.label + '</button>';
+    }).join('') +
+    '</div>';
+
+  return filtroBar + '<div id="est-grupo-cards" class="est-cards-grid">' + _estGrupoCardsHTML() + '</div>';
+}
+
+function _estGrupoCardsHTML() {
+  var filtro = _estGrupoFiltroSem;
   var porGrupo = {};
   _estData.forEach(function(row) {
+    var sem = String(row.semestre || '').trim();
+    // Aplicar filtro
+    if (filtro === '246') {
+      if (['2','4','6'].indexOf(sem) === -1) return;
+    } else if (filtro && sem !== filtro) {
+      return;
+    }
     var g = row.grupo || '(sin grupo)';
     if (!porGrupo[g]) porGrupo[g] = [];
     porGrupo[g].push(row);
   });
 
-  if (!Object.keys(porGrupo).length) {
-    return '<div class="gen-empty-state" style="margin-top:32px"><p>No hay datos en la estructura todavía.</p></div>';
+  var grupos = Object.keys(porGrupo).sort();
+  if (!grupos.length) {
+    return '<div class="gen-empty-state" style="grid-column:1/-1;padding:32px 0;"><p>No hay grupos para el filtro seleccionado.</p></div>';
   }
 
-  return '<div class="est-cards-grid">' +
-    Object.keys(porGrupo).sort().map(function(g) {
-      var filas = porGrupo[g];
-      var totalHrs = filas.reduce(function(s,f) { return s + (Number(f.tot_horas)||0); }, 0);
-      var semestre = filas[0] ? filas[0].semestre : '';
-      var turno    = filas[0] ? filas[0].turno    : '';
-      var rows = filas.map(function(f) {
-        var cap = genGetCap(f.componente);
-        var s   = cap ? _GEN_CAP_STYLE_[cap] : null;
-        var capTag = cap && s ? '<span class="gen-mat-cap-badge" style="background:'+s.bg+';color:'+s.text+';border-color:'+s.border+';font-size:10px">'+genEsc(cap)+'</span>' : '';
-        return '<tr><td>'+genEsc(f.uac||'—')+'</td><td>'+capTag+'</td><td>'+genEsc(f.docente||'—')+'</td><td class="est-card-hrs">'+genEsc(f.tot_horas||'—')+'</td></tr>';
-      }).join('');
-      return '<div class="est-card">' +
-        '<div class="est-card-head">' +
-          '<strong>'+genEsc(g)+'</strong>' +
-          '<span class="gen-hint">'+(semestre?'Sem '+semestre+'° ':'')+(turno||'')+'</span>' +
-        '</div>' +
-        '<table class="est-card-table"><thead><tr><th>UAC</th><th>Componente</th><th>Docente</th><th>H</th></tr></thead>' +
-        '<tbody>'+rows+'</tbody></table>' +
-        '<div class="est-card-foot">Total: <strong>'+totalHrs+' hrs</strong></div>' +
-        '</div>';
-    }).join('') + '</div>';
+  return grupos.map(function(g) {
+    var filas    = porGrupo[g];
+    var totalHrs = filas.reduce(function(s, f) { return s + (Number(f.tot_horas) || 0); }, 0);
+    var sem      = String(filas[0] ? filas[0].semestre : '').trim();
+    var turno    = filas[0] ? (filas[0].turno || '') : '';
+    var sc       = _EST_SEM_COLORS_[sem] || { bg: '#f8fafc', border: '#cbd5e1', text: '#475569', light: '#f1f5f9' };
+    var tc       = _EST_TURNO_COLORS_[turno] || null;
+
+    var semBadge = sem
+      ? '<span class="est-v2-badge" style="background:'+sc.light+';color:'+sc.text+';border-color:'+sc.border+'">Sem '+genEsc(sem)+'°</span>'
+      : '';
+    var turnoBadge = tc
+      ? '<span class="est-v2-badge" style="background:'+tc.bg+';color:'+tc.text+';border-color:'+tc.border+'">'+genEsc(turno)+'</span>'
+      : (turno ? '<span class="est-v2-badge est-v2-badge-gray">'+genEsc(turno)+'</span>' : '');
+
+    var rows = filas.map(function(f) {
+      var cap    = genGetCap(f.componente);
+      var cs     = cap ? _GEN_CAP_STYLE_[cap] : null;
+      var capTag = cap && cs
+        ? '<span class="gen-mat-cap-badge" style="background:'+cs.bg+';color:'+cs.text+';border-color:'+cs.border+';font-size:10px">'+genEsc(cap)+'</span>'
+        : '<span style="color:var(--gen-muted);font-size:10px">'+genEsc(f.componente||'—')+'</span>';
+      var docenteTag = f.docente
+        ? '<span style="font-size:11px;color:var(--gen-muted);">'+genEsc(f.docente)+'</span>'
+        : '<span style="color:#ef4444;font-size:11px;">Sin asignar</span>';
+      return '<tr>' +
+        '<td>' +
+          '<div class="est-v2-uac" style="margin-bottom:2px;">'+genEsc(f.uac||'—')+'</div>' +
+          '<div>'+capTag+'</div>' +
+        '</td>' +
+        '<td>'+docenteTag+'</td>' +
+        '<td class="est-v2-hrs">'+genEsc(String(f.tot_horas||'—'))+'</td>' +
+        '</tr>';
+    }).join('');
+
+    return '<div class="est-card-v2" style="border-top:3px solid '+sc.border+';">' +
+      '<div class="est-v2-head" style="background:'+sc.bg+';">' +
+        '<div class="est-v2-grupo">'+genEsc(g)+'</div>' +
+        '<div class="est-v2-badges">'+semBadge+turnoBadge+'</div>' +
+      '</div>' +
+      '<table class="est-card-table est-v2-table">' +
+        '<thead><tr><th>UAC / Componente</th><th>Docente</th><th>H</th></tr></thead>' +
+        '<tbody>'+rows+'</tbody>' +
+      '</table>' +
+      '<div class="est-v2-foot">' +
+        '<span style="color:var(--gen-muted);font-size:12px;">'+filas.length+' materia'+(filas.length!==1?'s':'')+'</span>' +
+        '<span class="est-v2-total-badge" style="background:'+sc.light+';color:'+sc.text+';border-color:'+sc.border+'">'+totalHrs+' hrs / sem</span>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function _estSetGrupoFiltro(sem) {
+  _estGrupoFiltroSem = sem;
+  // Actualizar chips activos
+  document.querySelectorAll('.est-filtro-chip').forEach(function(btn) {
+    var matches = btn.textContent.trim() === (['','2','4','6','246'].indexOf(sem) !== -1
+      ? [{ val:'',label:'Todos'},{val:'2',label:'2°'},{val:'4',label:'4°'},{val:'6',label:'6°'},{val:'246',label:'2°, 4° y 6°'}].find(function(c){return c.val===sem;}).label
+      : '');
+    btn.classList.toggle('active', btn.getAttribute('onclick').indexOf("'"+sem+"'") !== -1);
+  });
+  // Refrescar solo las tarjetas
+  var cards = document.getElementById('est-grupo-cards');
+  if (cards) cards.innerHTML = _estGrupoCardsHTML();
 }
 
 // ── VISTA POR DOCENTE ────────────────────────────────────────────────
@@ -288,24 +389,80 @@ function _estPorDocenteHTML() {
     return '<div class="gen-empty-state" style="margin-top:32px"><p>No hay datos en la estructura todavía.</p></div>';
   }
 
+  var sinDocente = porDocente['(sin docente)'];
+
   return '<div class="est-cards-grid">' +
-    Object.keys(porDocente).sort().map(function(d) {
-      var filas = porDocente[d];
-      var totalHrs = filas.reduce(function(s,f) { return s + (Number(f.tot_horas)||0); }, 0);
-      var alertaCls = totalHrs > 35 ? ' est-card-overload' : '';
+    Object.keys(porDocente).sort(function(a, b) {
+      // Sin docente al final
+      if (a === '(sin docente)') return 1;
+      if (b === '(sin docente)') return -1;
+      return a.localeCompare(b);
+    }).map(function(d) {
+      var filas     = porDocente[d];
+      var totalHrs  = filas.reduce(function(s, f) { return s + (Number(f.tot_horas) || 0); }, 0);
+      var formacion = '';
+      for (var i = 0; i < filas.length; i++) {
+        if (filas[i].formacion_docente) { formacion = filas[i].formacion_docente; break; }
+      }
+      var grupos = Array.from(new Set(filas.map(function(f) { return f.grupo || ''; }).filter(Boolean))).sort();
+
+      // Color de horas según carga
+      var hrsColor, hrsBg, hrsBorder;
+      if (totalHrs === 0)       { hrsColor='#64748b'; hrsBg='#f1f5f9'; hrsBorder='#cbd5e1'; }
+      else if (totalHrs <= 25)  { hrsColor='#0369a1'; hrsBg='#e0f2fe'; hrsBorder='#7dd3fc'; }
+      else if (totalHrs <= 35)  { hrsColor='#15803d'; hrsBg='#dcfce7'; hrsBorder='#86efac'; }
+      else if (totalHrs <= 40)  { hrsColor='#92400e'; hrsBg='#fef3c7'; hrsBorder='#fcd34d'; }
+      else                      { hrsColor='#991b1b'; hrsBg='#fee2e2'; hrsBorder='#fca5a5'; }
+
+      var hrsIcon = totalHrs > 35 ? '⚠ ' : '';
+      var hrsBadge = '<span class="est-v2-hrs-badge" style="background:'+hrsBg+';color:'+hrsColor+';border-color:'+hrsBorder+'">'+hrsIcon+totalHrs+' hrs</span>';
+
+      // Avatar con iniciales
+      var initials = d === '(sin docente)' ? '?' :
+        d.split(/\s+/).filter(Boolean).slice(0, 2).map(function(w) { return w[0] || ''; }).join('').toUpperCase();
+      var avatarBg = d === '(sin docente)' ? '#ef4444' : '#3b82f6';
+
       var rows = filas.map(function(f) {
-        return '<tr><td>'+genEsc(f.grupo||'—')+'</td><td>'+genEsc(f.uac||'—')+'</td><td class="est-card-hrs">'+genEsc(f.tot_horas||'—')+'</td></tr>';
+        var sc2 = _EST_SEM_COLORS_[String(f.semestre||'').trim()] || null;
+        var grupoTag = f.grupo
+          ? '<span class="est-v2-badge" style="'+(sc2?'background:'+sc2.light+';color:'+sc2.text+';border-color:'+sc2.border+';':'')+' font-size:10px;">'+genEsc(f.grupo)+'</span>'
+          : '<span style="color:var(--gen-muted);">—</span>';
+        return '<tr>' +
+          '<td>'+grupoTag+'</td>' +
+          '<td class="est-v2-uac">'+genEsc(f.uac||'—')+'</td>' +
+          '<td class="est-v2-hrs">'+genEsc(String(f.tot_horas||'—'))+'</td>' +
+          '</tr>';
       }).join('');
-      var badge = totalHrs > 35
-        ? '<span class="gen-badge gen-badge-warn" style="font-size:10px;margin-left:8px">⚠ '+totalHrs+' hrs</span>'
-        : '<span class="gen-badge gen-badge-ok" style="font-size:10px;margin-left:8px">'+totalHrs+' hrs</span>';
-      return '<div class="est-card'+alertaCls+'">' +
-        '<div class="est-card-head"><strong>'+genEsc(d)+'</strong>'+badge+'</div>' +
-        '<table class="est-card-table"><thead><tr><th>Grupo</th><th>UAC</th><th>H</th></tr></thead>' +
-        '<tbody>'+rows+'</tbody></table>' +
-        '<div class="est-card-foot">'+filas.length+' materias · <strong>'+totalHrs+' hrs semanales</strong></div>' +
-        '</div>';
+
+      var overloadBorder = totalHrs > 35 ? 'border-top:3px solid #f97316;' : 'border-top:3px solid #3b82f6;';
+
+      return '<div class="est-card-v2" style="'+overloadBorder+'">' +
+        '<div class="est-v2-head" style="background:'+(totalHrs>35?'#fff7ed':'#f0f9ff')+';">' +
+          '<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">' +
+            '<div class="est-v2-avatar" style="background:'+avatarBg+';">'+genEsc(initials)+'</div>' +
+            '<div style="min-width:0;">' +
+              '<div class="est-v2-grupo" style="font-size:13px;">'+genEsc(d)+'</div>' +
+              (formacion ? '<div style="font-size:11px;color:var(--gen-muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+genEsc(formacion)+'</div>' : '') +
+            '</div>' +
+          '</div>' +
+          hrsBadge +
+        '</div>' +
+        '<table class="est-card-table est-v2-table">' +
+          '<thead><tr><th>Grupo</th><th>UAC</th><th>H</th></tr></thead>' +
+          '<tbody>'+rows+'</tbody>' +
+        '</table>' +
+        '<div class="est-v2-foot">' +
+          '<span style="color:var(--gen-muted);font-size:12px;">'+filas.length+' materia'+(filas.length!==1?'s':'')+'</span>' +
+          '<span style="font-size:12px;color:var(--gen-muted);">'+grupos.length+' grupo'+(grupos.length!==1?'s':'')+'</span>' +
+        '</div>' +
+      '</div>';
     }).join('') + '</div>';
+}
+
+function _estGrupoSemFromGrupo_(grupo) {
+  // Intenta inferir semestre desde el nombre del grupo (ej. "201" → sem 2)
+  var m = String(grupo).match(/^[A-Z]?(\d)/i);
+  return m ? m[1] : '';
 }
 
 // ── VISTA CONFLICTOS ─────────────────────────────────────────────────
