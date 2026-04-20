@@ -1322,6 +1322,104 @@ input, select, textarea { font-family: var(--font); }
 }
 
 /* ══════════════════════════════════════════════════════
+   PORTAL TABS — barra de navegación por pestañas
+══════════════════════════════════════════════════════ */
+
+/* Contenedor sticky con scroll horizontal en móvil */
+.ptabs-wrap {
+  position: sticky;
+  top: 60px;
+  z-index: 60;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  margin-bottom: 1.25rem;
+  background: rgba(255,255,255,0.90);
+  backdrop-filter: blur(14px);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.92);
+  box-shadow: 0 2px 14px rgba(0,0,0,0.07);
+}
+.ptabs-wrap::-webkit-scrollbar { display: none; }
+
+/* Row de botones */
+.ptabs {
+  display: flex;
+  padding: 0.35rem;
+  gap: 0.15rem;
+  min-width: max-content;
+}
+
+/* Botón individual */
+.ptab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  padding: 0.52rem 1rem;
+  border-radius: 11px;
+  border: none;
+  background: transparent;
+  font-family: var(--font);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.16s, color 0.16s;
+  position: relative;
+  line-height: 1;
+}
+.ptab svg { width: 14px; height: 14px; flex-shrink: 0; }
+.ptab:hover { background: rgba(5,150,105,0.08); color: #059669; }
+
+/* Estado activo */
+.ptab--active {
+  background: #059669;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(5,150,105,0.30);
+}
+.ptab--active:hover { background: #047857; color: #fff; }
+.ptab--active svg { color: #fff; }
+
+/* Punto indicador de estado (Evaluación) */
+.ptab-dot {
+  display: none;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.6);
+  flex-shrink: 0;
+  margin-left: 1px;
+}
+.ptab-dot--show   { display: inline-block; }
+.ptab-dot--ok     { background: #10b981; }
+.ptab-dot--warn   { background: #f59e0b; }
+
+/* Cuando el tab no está activo, el borde del dot usa el color del fondo */
+.ptab:not(.ptab--active) .ptab-dot { border-color: #e2e8f0; }
+
+/* Paneles */
+.ptab-panels {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.ptab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.ptab-panel--hidden { display: none !important; }
+
+/* Animación de entrada del panel */
+.ptab-panel:not(.ptab-panel--hidden) {
+  animation: ptab-fade-in 0.18s ease;
+}
+@keyframes ptab-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ══════════════════════════════════════════════════════
    MI HORARIO — Portal Alumno / Portal Padre
 ══════════════════════════════════════════════════════ */
 

@@ -395,8 +395,8 @@ async function genInit() {
     });
   });
 
-  // Navegar al dashboard por defecto
-  genNavTo('dashboard');
+  // Abrir Estructura Educativa por defecto (es el módulo central del sistema)
+  genNavTo('estructura');
 }
 
 document.addEventListener('DOMContentLoaded', genInit);

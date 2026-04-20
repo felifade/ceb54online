@@ -31,6 +31,17 @@ genRegisterModule('estructura', {
       _estConflictos     = { errores: [], advertencias: [] };
       _estGrupoFiltroSem   = '';
       _estGrupoFiltroTurno = '';
+      _estDocFiltro        = '';
+      _estColFilters_      = {};
+      _estQuickGrupo       = '';
+      _estQuickTipo        = '';
+      _estQuickStatus      = '';
+      _estSelRow           = -1;
+      _estDirtySet         = new Set();
+      _estDeleteIds        = [];
+      _estHorGrupoSem    = '';
+      _estHorGrupoTurno  = '';
+      _estHorDocTurno    = '';
 
       container.innerHTML = _estPageHTML();
       _estBind();
@@ -63,14 +74,17 @@ var _EST_COLS_ = [
   { key: 'tot_horas',          label: 'TOT_H',           w: 55,  t: 'num'    },
   { key: 'propiedad_uac',      label: 'PROP. UAC',       w: 88,  t: 'text'   },
   { key: 'laboral',            label: 'LAB.',            w: 55,  t: 'text'   },
-  { key: 'docente',            label: 'DOCENTE',         w: 170, t: 'docente'},
-  { key: 'formacion_docente',  label: 'FORMACIÓN',       w: 145, t: 'text'   },
-  { key: 'lunes',              label: 'LUN',             w: 38,  t: 'num'    },
-  { key: 'martes',             label: 'MAR',             w: 38,  t: 'num'    },
-  { key: 'miercoles',          label: 'MIÉ',             w: 38,  t: 'num'    },
-  { key: 'jueves',             label: 'JUE',             w: 38,  t: 'num'    },
-  { key: 'viernes',            label: 'VIE',             w: 38,  t: 'num'    },
-  { key: 'horas',              label: 'HRS',             w: 45,  t: 'num'    }
+  { key: 'docente',                label: 'DOCENTE',         w: 170, t: 'docente'    },
+  { key: 'tipo_asignacion_docente', label: 'TIPO ASIG.',      w: 115, t: 'tipo_asig'  },
+  { key: 'docente_tiempo_fijo',     label: 'DOC. T.FIJO',     w: 165, t: 'docente'    },
+  { key: 'estatus_cobertura',       label: 'ESTATUS COB.',    w: 145, t: 'estatus_cob'},
+  { key: 'formacion_docente',  label: 'FORMACIÓN',       w: 145, t: 'text'     },
+  { key: 'lunes',              label: 'LUN',             w: 105, t: 'time_slot' },
+  { key: 'martes',             label: 'MAR',             w: 105, t: 'time_slot' },
+  { key: 'miercoles',          label: 'MIÉ',             w: 105, t: 'time_slot' },
+  { key: 'jueves',             label: 'JUE',             w: 105, t: 'time_slot' },
+  { key: 'viernes',            label: 'VIE',             w: 105, t: 'time_slot' },
+  { key: 'horas',              label: 'HRS',             w: 45,  t: 'readonly' }
 ];
 
 // ── ESTADO DEL MÓDULO ────────────────────────────────────────────────
@@ -83,6 +97,20 @@ var _estView           = 'grid';
 var _estConflictos     = { errores: [], advertencias: [] };
 var _estGrupoFiltroSem   = '';  // '' = todos | '1'–'6' = solo ese | '135'|'246' = conjunto
 var _estGrupoFiltroTurno = '';  // '' = todos | 'Matutino' | 'Vespertino'
+var _estDocFiltro        = '';  // '' = todos | 'base' | 'tiempo_fijo' | 'vacante'
+var _estColWidths_       = {};  // colKey → px (persiste durante la sesión)
+var _estColFilters_      = {};  // colKey → [] (vacío=todos) | [val1, val2, ...]
+var _estHorGrupoSel      = '';  // grupo seleccionado en vista horario-grupo
+var _estHorDocSel        = '';  // docente seleccionado en vista horario-docente
+var _estQuickGrupo       = '';  // filtro rápido: texto de grupo
+var _estQuickTipo        = '';  // filtro rápido: '' | 'base' | 'tiempo_fijo' | 'vacante'
+var _estQuickStatus      = '';  // filtro rápido: '' | 'completo' | 'pendiente' | 'conflicto'
+var _estSelRow           = -1;  // índice de fila resaltada (por clic)
+var _estDirtySet         = new Set(); // referencias a filas modificadas (guardado inteligente)
+var _estDeleteIds        = [];        // ids de filas eliminadas del servidor
+var _estHorGrupoSem    = '';  // filtro semestre en vista horario-grupo
+var _estHorGrupoTurno  = '';  // filtro turno en vista horario-grupo
+var _estHorDocTurno    = '';  // filtro turno en vista horario-docente
 
 // ── PALETAS VISUALES ─────────────────────────────────────────────────
 
@@ -100,6 +128,10 @@ var _EST_TURNO_COLORS_ = {
   'Vespertino': { bg: '#f0f9ff', text: '#0369a1', border: '#7dd3fc' },
   'Mixto':      { bg: '#f5f3ff', text: '#5b21b6', border: '#c4b5fd' }
 };
+
+// ── CONSTANTES DE DÍAS ────────────────────────────────────────────────
+
+var _EST_DIAS_ = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'];
 
 // ── DATALISTS (para autocompletado en celdas) ────────────────────────
 
@@ -129,6 +161,150 @@ function _estDatalistsHTML() {
 function _estDatalistAttr(t) {
   var map = { grupo:'estdl-grupos', docente:'estdl-docentes', uac:'estdl-uac', comp:'estdl-comp', turno:'estdl-turno' };
   return map[t] ? ' list="'+map[t]+'"' : '';
+}
+
+// ── DASHBOARD DE INDICADORES ─────────────────────────────────────────
+
+function _estDashboardHTML() {
+  if (!_estData.length) return '';
+  var grupos = {}, nVac = 0, nTF = 0, nComp = 0, nSinDoc = 0;
+  _estData.forEach(function(r) {
+    var g = String(r.grupo || '').trim(); if (g) grupos[g] = true;
+    var t = String(r.tipo_asignacion_docente || '').trim();
+    if (t === 'Vacante') { nVac++; return; }
+    if (t === 'Tiempo fijo') { nTF++; }
+    var tot = Number(r.tot_horas) || 0;
+    if (tot > 0) {
+      var suma = _EST_DIAS_.reduce(function(s, d) { return s + _estParseHorasDia(r[d]); }, 0);
+      if (suma === tot) nComp++;
+    }
+    if (!String(r.docente || '').trim() && t !== 'Tiempo fijo') nSinDoc++;
+  });
+  var nGrupos = Object.keys(grupos).length;
+  var nTotal  = _estData.length;
+  var nErr    = _estConflictos.errores.length;
+  var nIncomp = nTotal - nComp;
+
+  function stat(val, lbl, cls) {
+    return '<button class="est-dash-stat' + (cls ? ' est-dash-stat--' + cls : '') +
+      '" onclick="_estSetQuickStatus(\'' + (cls==='completo'?'completo':cls==='pendiente'?'pendiente':cls==='conflicto'?'conflicto':'') + '\')">' +
+      '<span class="est-dash-val">' + val + '</span>' +
+      '<span class="est-dash-lbl">' + lbl + '</span>' +
+      '</button>';
+  }
+
+  return '<div class="est-dashboard-bar">' +
+    stat(nGrupos, 'grupos', '') +
+    stat(nTotal,  'materias', '') +
+    stat(nComp,   'completas', nComp === nTotal ? 'ok' : 'completo') +
+    stat(nIncomp, 'pendientes', nIncomp > 0 ? 'pendiente' : 'ok') +
+    stat(nVac,    'vacantes', nVac > 0 ? 'vac' : '') +
+    stat(nTF,     'tiempo fijo', nTF > 0 ? 'tf' : '') +
+    stat(nErr,    'conflictos', nErr > 0 ? 'conflicto' : 'ok') +
+  '</div>';
+}
+
+function _estUpdateDashboard() {
+  var el = document.getElementById('est-dashboard');
+  if (el) el.innerHTML = _estDashboardHTML();
+}
+
+// ── FILTRO RÁPIDO ────────────────────────────────────────────────────
+
+function _estQuickFilterBarHTML() {
+  var tipoChips = [
+    { val: '',            lbl: 'Todos' },
+    { val: 'base',        lbl: 'Base' },
+    { val: 'tiempo_fijo', lbl: 'Tiempo fijo' },
+    { val: 'vacante',     lbl: 'Vacante' }
+  ];
+  var statusChips = [
+    { val: '',          lbl: 'Todos' },
+    { val: 'completo',  lbl: '✓ Completo' },
+    { val: 'pendiente', lbl: '⚠ Pendiente' },
+    { val: 'conflicto', lbl: '❌ Conflicto' }
+  ];
+
+  return '<div class="est-qf-bar">' +
+    '<div class="est-qf-group">' +
+      '<span class="est-qf-label">Tipo:</span>' +
+      tipoChips.map(function(c) {
+        return '<button class="est-qf-chip' + (c.val === _estQuickTipo ? ' active' : '') +
+          '" data-qf-tipo="' + c.val + '" onclick="_estSetQuickTipo(\'' + c.val + '\')">' + c.lbl + '</button>';
+      }).join('') +
+    '</div>' +
+    '<div class="est-qf-group">' +
+      '<span class="est-qf-label">Estado:</span>' +
+      statusChips.map(function(c) {
+        return '<button class="est-qf-chip' + (c.val === _estQuickStatus ? ' active' : '') +
+          '" data-qf-status="' + c.val + '" onclick="_estSetQuickStatus(\'' + c.val + '\')">' + c.lbl + '</button>';
+      }).join('') +
+    '</div>' +
+    '<div class="est-qf-group est-qf-grupo-wrap">' +
+      '<span class="est-qf-label">Grupo:</span>' +
+      '<input type="text" id="est-qf-grupo-inp" class="est-qf-grupo-inp" value="' + genEsc(_estQuickGrupo) + '"' +
+        ' placeholder="Filtrar grupo…" oninput="_estSetQuickGrupo(this.value)">' +
+    '</div>' +
+    (_estQuickGrupo || _estQuickTipo || _estQuickStatus ?
+      '<button class="est-qf-chip est-qf-clear" onclick="_estClearQuickFilters()" title="Limpiar filtros">✕ Limpiar</button>' : '') +
+  '</div>';
+}
+
+function _estSetQuickTipo(tipo) {
+  _estQuickTipo = tipo;
+  document.querySelectorAll('[data-qf-tipo]').forEach(function(b) {
+    b.classList.toggle('active', b.getAttribute('data-qf-tipo') === tipo);
+  });
+  _estToggleClearBtn();
+  _estApplyFilters();
+}
+
+function _estSetQuickStatus(status) {
+  _estQuickStatus = status;
+  document.querySelectorAll('[data-qf-status]').forEach(function(b) {
+    b.classList.toggle('active', b.getAttribute('data-qf-status') === status);
+  });
+  _estToggleClearBtn();
+  _estApplyFilters();
+}
+
+function _estSetQuickGrupo(val) {
+  _estQuickGrupo = String(val || '').trim();
+  _estToggleClearBtn();
+  _estApplyFilters();
+}
+
+function _estClearQuickFilters() {
+  _estQuickGrupo = ''; _estQuickTipo = ''; _estQuickStatus = '';
+  var inp = document.getElementById('est-qf-grupo-inp');
+  if (inp) inp.value = '';
+  document.querySelectorAll('[data-qf-tipo]').forEach(function(b) {
+    b.classList.toggle('active', b.getAttribute('data-qf-tipo') === '');
+  });
+  document.querySelectorAll('[data-qf-status]').forEach(function(b) {
+    b.classList.toggle('active', b.getAttribute('data-qf-status') === '');
+  });
+  _estToggleClearBtn();
+  _estApplyFilters();
+}
+
+function _estToggleClearBtn() {
+  var hasAny = !!(  _estQuickGrupo || _estQuickTipo || _estQuickStatus);
+  var btn = document.querySelector('.est-qf-clear');
+  if (btn) {
+    btn.style.display = hasAny ? '' : 'none';
+  } else if (hasAny) {
+    // Inject clear button if not present yet
+    var bar = document.querySelector('.est-qf-bar');
+    if (bar) {
+      var clearBtn = document.createElement('button');
+      clearBtn.className = 'est-qf-chip est-qf-clear';
+      clearBtn.setAttribute('onclick', '_estClearQuickFilters()');
+      clearBtn.title = 'Limpiar filtros rápidos';
+      clearBtn.textContent = '✕ Limpiar';
+      bar.appendChild(clearBtn);
+    }
+  }
 }
 
 // ── HTML PRINCIPAL ───────────────────────────────────────────────────
@@ -180,6 +356,8 @@ function _estPageHTML() {
 
 <div id="est-conflict-bar" class="est-conflict-bar" style="display:none"></div>
 
+<div id="est-dashboard">${_estDashboardHTML()}</div>
+
 <div class="est-view-tabs">
   <button class="est-view-tab${_estView==='grid'?' active':''}" data-view="grid">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
@@ -202,6 +380,14 @@ function _estPageHTML() {
     Conflictos
     <span id="est-conflict-count" class="est-conf-count" style="display:none"></span>
   </button>
+  <button class="est-view-tab${_estView==='horario_grupo'?' active':''}" data-view="horario_grupo">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Horario grupo
+  </button>
+  <button class="est-view-tab${_estView==='horario_docente'?' active':''}" data-view="horario_docente">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    Horario docente
+  </button>
 </div>
 
 <div id="est-view-content">
@@ -211,11 +397,13 @@ ${_estDatalistsHTML()}`;
 }
 
 function _estViewHTML() {
-  if (_estView === 'grid')       return _estGridHTML();
-  if (_estView === 'grupo')      return _estPorGrupoHTML();
-  if (_estView === 'docente')    return _estPorDocenteHTML();
-  if (_estView === 'materia')    return _estPorMateriaHTML();
-  if (_estView === 'conflictos') return _estConflictosHTML();
+  if (_estView === 'grid')           return _estGridHTML();
+  if (_estView === 'grupo')          return _estPorGrupoHTML();
+  if (_estView === 'docente')        return _estPorDocenteHTML();
+  if (_estView === 'materia')        return _estPorMateriaHTML();
+  if (_estView === 'conflictos')     return _estConflictosHTML();
+  if (_estView === 'horario_grupo')  return _estHorarioGrupoHTML();
+  if (_estView === 'horario_docente')return _estHorarioDocenteHTML();
   return '';
 }
 
@@ -223,37 +411,226 @@ function _estViewHTML() {
 
 function _estGridHTML() {
   var cerrada = _estEstado === 'CERRADA';
+
+  /* ── colgroup: control de anchos ─────────────────────────────── */
+  var colgroup = '<colgroup>' +
+    '<col style="width:35px;min-width:35px">' +
+    _EST_COLS_.map(function(c) {
+      var w = _estColWidths_[c.key] || c.w;
+      return '<col data-col="' + c.key + '" style="width:' + w + 'px;min-width:40px">';
+    }).join('') +
+    '<col style="width:38px;min-width:38px">' +
+    '<col style="width:36px;min-width:36px">' +
+    '</colgroup>';
+
+  /* ── thead con botón de filtro + manejador de resize ─────────── */
   var thead = '<tr><th class="est-th-num">#</th>' +
     _EST_COLS_.map(function(c) {
-      return '<th style="min-width:'+c.w+'px;max-width:'+(c.w+40)+'px">'+c.label+'</th>';
+      var hasFilter = _estColFilters_[c.key] && _estColFilters_[c.key].length;
+      return '<th class="est-th-col" data-col="' + c.key + '">' +
+        '<div class="est-th-inner">' +
+          '<span class="est-th-label">' + c.label + '</span>' +
+          '<button class="est-col-filter-btn' + (hasFilter ? ' active' : '') +
+            '" data-col="' + genEsc(c.key) + '" title="Filtrar" tabindex="-1">▾</button>' +
+        '</div>' +
+        '<div class="est-col-resizer" data-col="' + genEsc(c.key) + '"></div>' +
+      '</th>';
     }).join('') +
+    '<th class="est-th-ind" title="Completitud de horas">✓</th>' +
     '<th class="est-th-del"></th></tr>';
 
   var rows = _estData.length === 0
-    ? '<tr><td colspan="'+ (_EST_COLS_.length + 2) +'" class="gen-td-empty">Sin filas. Usa "+ Agregar fila" o pega desde Excel.</td></tr>'
+    ? '<tr><td colspan="' + (_EST_COLS_.length + 3) + '" class="gen-td-empty">Sin filas. Usa "+ Agregar fila" o pega desde Excel.</td></tr>'
     : _estData.map(function(row, i) { return _estGridRow(row, i, cerrada); }).join('');
 
   var addBtn = cerrada ? '' :
     '<div style="padding:10px 0"><button class="gen-btn gen-btn-secondary gen-btn-sm" id="est-add-row">+ Agregar fila</button>' +
     '<span class="gen-hint" style="margin-left:12px">Pega desde Excel con Ctrl+V en cualquier celda</span></div>';
 
-  return '<div class="est-grid-wrap"><table class="est-grid" id="est-grid-table">' +
-         '<thead>'+thead+'</thead>' +
-         '<tbody id="est-grid-tbody">'+rows+'</tbody>' +
-         '</table></div>' + addBtn;
+  return _estQuickFilterBarHTML() +
+    '<div class="est-grid-wrap"><table class="est-grid est-grid--fixed" id="est-grid-table">' +
+    colgroup +
+    '<thead>' + thead + '</thead>' +
+    '<tbody id="est-grid-tbody">' + rows + '</tbody>' +
+    '</table></div>' + addBtn + _estInlineHorariosHTML();
+}
+
+function _estInlineHorariosHTML() {
+  var grupos = [], seenG = {};
+  _estData.forEach(function(r) {
+    var g = String(r.grupo || '').trim();
+    if (g && !seenG[g]) { seenG[g] = true; grupos.push(g); }
+  });
+  grupos.sort();
+
+  var docentes = [], seenD = {};
+  _estData.forEach(function(r) {
+    var tipo = String(r.tipo_asignacion_docente || '').trim();
+    if (tipo === 'Vacante') return;
+    var d = String(r.docente || '').trim();
+    if (d && !seenD[d]) { seenD[d] = true; docentes.push(d); }
+  });
+  docentes.sort();
+
+  var cfFilas = {};
+  _estConflictos.errores.forEach(function(e) { if (e.fila) cfFilas[e.fila] = true; });
+
+  // ── Sección grupo ──────────────────────────────────────
+  var grupoOpts = '<option value="">— Selecciona grupo —</option>' +
+    grupos.map(function(g) {
+      return '<option value="' + genEsc(g) + '"' + (g === _estHorGrupoSel ? ' selected' : '') + '>' + genEsc(g) + '</option>';
+    }).join('');
+
+  var grupoGrid = _estHorGrupoSel
+    ? _estTimetableGridHTML(
+        _estData.map(function(r, i) { r._fila_ = i + 1; return r; })
+          .filter(function(r) { return String(r.grupo || '').trim() === _estHorGrupoSel; }),
+        function(row, e) {
+          var slot = e && e.isFirst ? (row[e.dia] || '') : '';
+          return '<span class="arm-tt-uac">' + genEsc(row.uac || '?') + '</span>' +
+                 '<span class="arm-tt-meta">' + genEsc(row.docente || '—') + '</span>' +
+                 (slot ? '<span class="arm-tt-time">' + genEsc(slot) + '</span>' : '');
+        }, cfFilas)
+    : '<p class="gen-hint" style="margin:8px 0">Selecciona un grupo para ver su horario.</p>';
+
+  // ── Sección docente ─────────────────────────────────────
+  var docOpts = '<option value="">— Selecciona docente —</option>' +
+    docentes.map(function(d) {
+      return '<option value="' + genEsc(d) + '"' + (d === _estHorDocSel ? ' selected' : '') + '>' + genEsc(d) + '</option>';
+    }).join('');
+
+  var docGrid = _estHorDocSel
+    ? _estTimetableGridHTML(
+        _estData.map(function(r, i) { r._fila_ = i + 1; return r; })
+          .filter(function(r) {
+            var tipo = String(r.tipo_asignacion_docente || '').trim();
+            if (tipo === 'Vacante' || tipo === 'Tiempo fijo') return false;
+            return String(r.docente || '').trim() === _estHorDocSel;
+          }),
+        function(row, e) {
+          var slot = e && e.isFirst ? (row[e.dia] || '') : '';
+          return '<span class="arm-tt-uac">' + genEsc(row.uac || '?') + '</span>' +
+                 '<span class="arm-tt-meta">' + genEsc(row.grupo || '—') + '</span>' +
+                 (slot ? '<span class="arm-tt-time">' + genEsc(slot) + '</span>' : '');
+        }, cfFilas)
+    : '<p class="gen-hint" style="margin:8px 0">Selecciona un docente para ver su horario.</p>';
+
+  return '<div class="est-inline-hor">' +
+
+    '<div class="est-inline-hor-panel">' +
+    '<div class="est-inline-hor-hdr">' +
+    '<span class="est-inline-hor-title">Horario semanal — Grupo</span>' +
+    '<select id="est-hor-grupo-sel-inline" class="gen-select" style="min-width:130px">' + grupoOpts + '</select>' +
+    '</div>' +
+    '<div id="est-hor-grupo-grid-inline">' + grupoGrid + '</div>' +
+    '</div>' +
+
+    '<div class="est-inline-hor-panel">' +
+    '<div class="est-inline-hor-hdr">' +
+    '<span class="est-inline-hor-title">Horario semanal — Docente</span>' +
+    '<select id="est-hor-doc-sel-inline" class="gen-select" style="min-width:220px">' + docOpts + '</select>' +
+    '</div>' +
+    '<div id="est-hor-doc-grid-inline">' + docGrid + '</div>' +
+    '</div>' +
+
+    '</div>';
+}
+
+// Genera rangos de hora (inicio 07:00–20:00, duración 1, 2 o 3h)
+var _EST_TIME_SLOTS_ = (function() {
+  var list = [];
+  for (var h = 7; h <= 20; h++) {
+    for (var dur = 1; dur <= 3; dur++) {
+      if (h + dur > 22) break;
+      var hs = (h < 10 ? '0' : '') + h + ':00';
+      var he = (h + dur < 10 ? '0' : '') + (h + dur) + ':00';
+      list.push({ label: hs + '-' + he, hours: dur });
+    }
+  }
+  return list;
+})();
+
+/** Convierte un valor de campo de día a horas numéricas.
+ *  Acepta "HH:MM-HH:MM" o número directo. */
+function _estParseHorasDia(val) {
+  if (!val) return 0;
+  var s = String(val).trim();
+  var m = s.match(/^(\d{1,2}):(\d{2})\s*[-–]\s*(\d{1,2}):(\d{2})$/);
+  if (m) {
+    var ini = parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+    var fin = parseInt(m[3], 10) * 60 + parseInt(m[4], 10);
+    return fin > ini ? Math.round((fin - ini) / 60) : 0;
+  }
+  return Number(s) || 0;
+}
+
+function _estHorasIndicador(row) {
+  var tot  = Number(row.tot_horas) || 0;
+  var suma = _EST_DIAS_.reduce(function(s, d) { return s + _estParseHorasDia(row[d]); }, 0);
+  if (tot === 0 && suma === 0) {
+    return '<td class="est-td-ind"></td>';
+  }
+  if (tot === 0) {
+    // hay horas en días pero no hay tot_horas definido
+    return '<td class="est-td-ind"><span class="est-ind-info" title="Define TOT_H para validar">?</span></td>';
+  }
+  if (suma === 0) {
+    // tot_horas definido pero sin horas en días todavía
+    return '<td class="est-td-ind"><span class="est-ind-info" title="Sin horas asignadas por día">–</span></td>';
+  }
+  if (suma === tot) {
+    return '<td class="est-td-ind"><span class="est-ind-ok" title="' + suma + '/' + tot + ' hrs — completo">✓</span></td>';
+  }
+  return '<td class="est-td-ind"><span class="est-ind-err" title="' + suma + '/' + tot + ' hrs — faltan ' + (tot - suma) + '">✗</span></td>';
+}
+
+function _estTipoCls(row) {
+  var t = String(row.tipo_asignacion_docente || '').trim();
+  if (t === 'Vacante')     return ' est-row-vacante';
+  if (t === 'Tiempo fijo') return ' est-row-tf';
+  return '';
 }
 
 function _estGridRow(row, idx, cerrada) {
   var errFila = _estConflictos.errores.filter(function(e) { return e.fila === idx + 1; }).length;
   var wrnFila = _estConflictos.advertencias.filter(function(e) { return e.fila === idx + 1; }).length;
-  var rowCls  = errFila ? ' est-row-error' : (wrnFila ? ' est-row-warn' : '');
+  var rowCls  = (errFila ? ' est-row-error' : (wrnFila ? ' est-row-warn' : '')) + _estTipoCls(row);
+  if (idx === _estSelRow) rowCls += ' est-row-selected';
 
   var cells = _EST_COLS_.map(function(col) {
     var val  = row[col.key] !== undefined ? String(row[col.key]) : '';
     var tipo = col.t;
+    var disabled = cerrada ? ' disabled' : '';
+
+    if (tipo === 'readonly') {
+      return '<td><input type="text" class="est-cell est-cell-readonly" data-row="' + idx +
+        '" data-col="' + genEsc(col.key) + '" value="' + genEsc(val) +
+        '" readonly tabindex="-1" style="width:100%"></td>';
+    }
+    if (tipo === 'time_slot') {
+      var tsOpts = '<option value="">—</option>' +
+        _EST_TIME_SLOTS_.map(function(slot) {
+          return '<option value="' + slot.label + '"' + (val === slot.label ? ' selected' : '') + '>' +
+            slot.label + ' (' + slot.hours + 'h)</option>';
+        }).join('');
+      return '<td><select class="est-cell est-cell-sel est-cell-sel-hora" data-row="' + idx +
+        '" data-col="' + genEsc(col.key) + '"' + disabled + '>' + tsOpts + '</select></td>';
+    }
+    if (tipo === 'tipo_asig') {
+      var opts = ['', 'Base', 'Tiempo fijo', 'Vacante'].map(function(o) {
+        return '<option value="' + genEsc(o) + '"' + (val === o ? ' selected' : '') + '>' + (o || '— tipo —') + '</option>';
+      }).join('');
+      return '<td><select class="est-cell est-cell-sel est-cell-sel-tipo" data-row="' + idx + '" data-col="' + genEsc(col.key) + '"' + disabled + '>' + opts + '</select></td>';
+    }
+    if (tipo === 'estatus_cob') {
+      var opts2 = ['', 'Autorizado', 'Pendiente de autorización', 'Vacante'].map(function(o) {
+        return '<option value="' + genEsc(o) + '"' + (val === o ? ' selected' : '') + '>' + (o || '— estatus —') + '</option>';
+      }).join('');
+      return '<td><select class="est-cell est-cell-sel est-cell-sel-estatus" data-row="' + idx + '" data-col="' + genEsc(col.key) + '"' + disabled + '>' + opts2 + '</select></td>';
+    }
+
     var dlAttr = _estDatalistAttr(tipo);
     var inputType = tipo === 'num' ? 'number' : 'text';
-    var disabled  = cerrada ? ' disabled' : '';
     return '<td><input type="'+inputType+'" class="est-cell" ' +
            'data-row="'+idx+'" data-col="'+genEsc(col.key)+'"' +
            dlAttr + disabled +
@@ -261,13 +638,17 @@ function _estGridRow(row, idx, cerrada) {
   }).join('');
 
   var delBtn = cerrada ? '<td></td>' :
-    '<td><button class="gen-btn-icon gen-btn-delete est-del-row" data-row="'+idx+'" title="Eliminar fila">' +
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>' +
+    '<td class="est-td-actions">' +
+    '<button class="gen-btn-icon est-dup-row" data-row="'+idx+'" title="Duplicar fila">' +
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>' +
+    '</button>' +
+    '<button class="gen-btn-icon gen-btn-delete est-del-row" data-row="'+idx+'" title="Eliminar fila">' +
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>' +
     '</button></td>';
 
   return '<tr class="est-grid-row'+rowCls+'" data-row="'+idx+'">' +
          '<td class="est-td-num">'+(idx+1)+'</td>' +
-         cells + delBtn + '</tr>';
+         cells + _estHorasIndicador(row) + delBtn + '</tr>';
 }
 
 // ── VISTA POR GRUPO ──────────────────────────────────────────────────
@@ -398,9 +779,19 @@ function _estGrupoCardsHTML() {
       var capTag = cap && cs
         ? '<span class="gen-mat-cap-badge" style="background:'+cs.bg+';color:'+cs.text+';border-color:'+cs.border+';font-size:10px">'+genEsc(cap)+'</span>'
         : '<span style="color:var(--gen-muted);font-size:10px">'+genEsc(f.componente||'—')+'</span>';
-      var docenteTag = f.docente
-        ? '<span style="font-size:11px;color:var(--gen-muted);">'+genEsc(f.docente)+'</span>'
-        : '<span style="color:#ef4444;font-size:11px;">Sin asignar</span>';
+      var tipoAsig = String(f.tipo_asignacion_docente || '').trim();
+      var docenteTag;
+      if (tipoAsig === 'Vacante') {
+        docenteTag = _estEstatusBadge('Vacante');
+      } else if (tipoAsig === 'Tiempo fijo') {
+        var tfNom = String(f.docente_tiempo_fijo || '').trim();
+        docenteTag = '<span class="est-cob-badge est-cob-tf" style="font-size:10px">' + (tfNom ? genEsc(tfNom) : '⏱ TF') + '</span>';
+      } else if (f.docente) {
+        var estatusExtra = f.estatus_cobertura ? ' ' + _estEstatusBadge(String(f.estatus_cobertura).trim()) : '';
+        docenteTag = '<span style="font-size:11px;color:var(--gen-muted);">'+genEsc(f.docente)+'</span>' + estatusExtra;
+      } else {
+        docenteTag = '<span style="color:#ef4444;font-size:11px;">Sin asignar</span>';
+      }
       return '<tr>' +
         '<td>' +
           '<div class="est-v2-uac" style="margin-bottom:2px;">'+genEsc(f.uac||'—')+'</div>' +
@@ -450,86 +841,202 @@ function _estSetGrupoFiltroTurno(turno) {
 
 // ── VISTA POR DOCENTE ────────────────────────────────────────────────
 
-function _estPorDocenteHTML() {
-  var porDocente = {};
-  _estData.forEach(function(row) {
-    var d = row.docente ? String(row.docente).trim() : '(sin docente)';
-    if (!porDocente[d]) porDocente[d] = [];
-    porDocente[d].push(row);
-  });
+function _estSetDocFiltro(filtro) {
+  _estDocFiltro = filtro;
+  var content = document.getElementById('est-view-content');
+  if (content) content.innerHTML = _estViewHTML();
+}
 
-  if (!Object.keys(porDocente).length) {
+function _estPorDocenteHTML() {
+  if (!_estData.length) {
     return '<div class="gen-empty-state" style="margin-top:32px"><p>No hay datos en la estructura todavía.</p></div>';
   }
 
-  var sinDocente = porDocente['(sin docente)'];
+  /* ── Separar filas por tipo de asignación ──────────────────────── */
+  var porBase = {};   // docente → filas (tipo Base o vacío)
+  var porTF   = {};   // docente_tiempo_fijo → filas (tipo Tiempo fijo)
+  var vacantes = [];  // filas con tipo Vacante
 
-  return '<div class="est-cards-grid">' +
-    Object.keys(porDocente).sort(function(a, b) {
-      // Sin docente al final
+  _estData.forEach(function(row) {
+    var tipo = String(row.tipo_asignacion_docente || '').trim();
+    if (tipo === 'Vacante') {
+      vacantes.push(row);
+    } else if (tipo === 'Tiempo fijo') {
+      var tf = String(row.docente_tiempo_fijo || '').trim() || '(sin nombre)';
+      if (!porTF[tf]) porTF[tf] = [];
+      porTF[tf].push(row);
+    } else {
+      var d = String(row.docente || '').trim() || '(sin docente)';
+      if (!porBase[d]) porBase[d] = [];
+      porBase[d].push(row);
+    }
+  });
+
+  /* ── Barra de filtro ───────────────────────────────────────────── */
+  var nBase = Object.keys(porBase).length;
+  var nTF   = Object.keys(porTF).length;
+  var nVac  = vacantes.length;
+
+  var filterChips = [
+    { val: '',           label: 'Todos' },
+    { val: 'base',       label: 'Base (' + nBase + ')' },
+    { val: 'tiempo_fijo',label: 'Tiempo fijo (' + nTF + ')' },
+    { val: 'vacante',    label: 'Vacantes (' + nVac + ')' }
+  ].map(function(c) {
+    var active = _estDocFiltro === c.val ? ' active' : '';
+    return '<button class="est-filtro-chip' + active + '" onclick="_estSetDocFiltro(\'' + c.val + '\')">' + genEsc(c.label) + '</button>';
+  }).join('');
+
+  var filterBar = '<div class="est-filtro-wrapper"><div class="est-filtro-bar">' +
+    '<span class="est-filtro-label">Mostrar:</span>' + filterChips + '</div></div>';
+
+  /* ── Aplicar filtro ─────────────────────────────────────────────── */
+  var showBase = _estDocFiltro === '' || _estDocFiltro === 'base';
+  var showTF   = _estDocFiltro === '' || _estDocFiltro === 'tiempo_fijo';
+  var showVac  = _estDocFiltro === '' || _estDocFiltro === 'vacante';
+
+  var sectionsHtml = '';
+
+  /* ── Sección BASE ─────────────────────────────────────────────── */
+  if (showBase && Object.keys(porBase).length) {
+    var baseCards = Object.keys(porBase).sort(function(a, b) {
       if (a === '(sin docente)') return 1;
       if (b === '(sin docente)') return -1;
       return a.localeCompare(b);
     }).map(function(d) {
-      var filas     = porDocente[d];
-      var totalHrs  = filas.reduce(function(s, f) { return s + (Number(f.tot_horas) || 0); }, 0);
-      var formacion = '';
-      for (var i = 0; i < filas.length; i++) {
-        if (filas[i].formacion_docente) { formacion = filas[i].formacion_docente; break; }
-      }
-      var grupos = Array.from(new Set(filas.map(function(f) { return f.grupo || ''; }).filter(Boolean))).sort();
+      return _estDocenteCard(d, porBase[d], 'base');
+    }).join('');
+    sectionsHtml += (_estDocFiltro === '' ? '<div class="est-doc-section-head">Docentes base</div>' : '') +
+      '<div class="est-cards-grid">' + baseCards + '</div>';
+  }
 
-      // Color de horas según carga
-      var hrsColor, hrsBg, hrsBorder;
-      if (totalHrs === 0)       { hrsColor='#64748b'; hrsBg='#f1f5f9'; hrsBorder='#cbd5e1'; }
-      else if (totalHrs <= 25)  { hrsColor='#0369a1'; hrsBg='#e0f2fe'; hrsBorder='#7dd3fc'; }
-      else if (totalHrs <= 35)  { hrsColor='#15803d'; hrsBg='#dcfce7'; hrsBorder='#86efac'; }
-      else if (totalHrs <= 40)  { hrsColor='#92400e'; hrsBg='#fef3c7'; hrsBorder='#fcd34d'; }
-      else                      { hrsColor='#991b1b'; hrsBg='#fee2e2'; hrsBorder='#fca5a5'; }
+  /* ── Sección TIEMPO FIJO ──────────────────────────────────────── */
+  if (showTF && Object.keys(porTF).length) {
+    var tfCards = Object.keys(porTF).sort().map(function(d) {
+      return _estDocenteCard(d, porTF[d], 'tf');
+    }).join('');
+    sectionsHtml += '<div class="est-doc-section-head est-doc-section-head--tf">Docentes tiempo fijo</div>' +
+      '<div class="est-cards-grid">' + tfCards + '</div>';
+  }
 
-      var hrsIcon = totalHrs > 35 ? '⚠ ' : '';
-      var hrsBadge = '<span class="est-v2-hrs-badge" style="background:'+hrsBg+';color:'+hrsColor+';border-color:'+hrsBorder+'">'+hrsIcon+totalHrs+' hrs</span>';
-
-      // Avatar con iniciales
-      var initials = d === '(sin docente)' ? '?' :
-        d.split(/\s+/).filter(Boolean).slice(0, 2).map(function(w) { return w[0] || ''; }).join('').toUpperCase();
-      var avatarBg = d === '(sin docente)' ? '#ef4444' : '#3b82f6';
-
-      var rows = filas.map(function(f) {
-        var sc2 = _EST_SEM_COLORS_[String(f.semestre||'').trim()] || null;
-        var grupoTag = f.grupo
-          ? '<span class="est-v2-badge" style="'+(sc2?'background:'+sc2.light+';color:'+sc2.text+';border-color:'+sc2.border+';':'')+' font-size:10px;">'+genEsc(f.grupo)+'</span>'
-          : '<span style="color:var(--gen-muted);">—</span>';
-        return '<tr>' +
-          '<td>'+grupoTag+'</td>' +
-          '<td class="est-v2-uac">'+genEsc(f.uac||'—')+'</td>' +
-          '<td class="est-v2-hrs">'+genEsc(String(f.tot_horas||'—'))+'</td>' +
-          '</tr>';
-      }).join('');
-
-      var overloadBorder = totalHrs > 35 ? 'border-top:3px solid #f97316;' : 'border-top:3px solid #3b82f6;';
-
-      return '<div class="est-card-v2" style="'+overloadBorder+'">' +
-        '<div class="est-v2-head" style="background:'+(totalHrs>35?'#fff7ed':'#f0f9ff')+';">' +
-          '<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">' +
-            '<div class="est-v2-avatar" style="background:'+avatarBg+';">'+genEsc(initials)+'</div>' +
-            '<div style="min-width:0;">' +
-              '<div class="est-v2-grupo" style="font-size:13px;">'+genEsc(d)+'</div>' +
-              (formacion ? '<div style="font-size:11px;color:var(--gen-muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+genEsc(formacion)+'</div>' : '') +
-            '</div>' +
-          '</div>' +
-          hrsBadge +
-        '</div>' +
-        '<table class="est-card-table est-v2-table">' +
-          '<thead><tr><th>Grupo</th><th>UAC</th><th>H</th></tr></thead>' +
-          '<tbody>'+rows+'</tbody>' +
-        '</table>' +
-        '<div class="est-v2-foot">' +
-          '<span style="color:var(--gen-muted);font-size:12px;">'+filas.length+' materia'+(filas.length!==1?'s':'')+'</span>' +
-          '<span style="font-size:12px;color:var(--gen-muted);">'+grupos.length+' grupo'+(grupos.length!==1?'s':'')+'</span>' +
-        '</div>' +
+  /* ── Sección VACANTES ─────────────────────────────────────────── */
+  if (showVac && vacantes.length) {
+    var vacRows = vacantes.map(function(f) {
+      var sc2 = _EST_SEM_COLORS_[String(f.semestre||'').trim()] || { light:'#fee2e2', text:'#991b1b', border:'#fca5a5' };
+      var estatusBadge = String(f.estatus_cobertura || '').trim()
+        ? _estEstatusBadge(String(f.estatus_cobertura).trim())
+        : '';
+      return '<div class="est-vac-row">' +
+        '<span class="est-vac-sem" style="background:' + sc2.light + ';color:' + sc2.text + ';border-color:' + sc2.border + '">Sem ' + genEsc(String(f.semestre||'?')) + '°</span>' +
+        '<span class="est-vac-uac">' + genEsc(f.uac || '—') + '</span>' +
+        '<span class="est-vac-grp">' + genEsc(f.grupo || '—') + '</span>' +
+        (estatusBadge ? '<span>' + estatusBadge + '</span>' : '') +
       '</div>';
-    }).join('') + '</div>';
+    }).join('');
+    sectionsHtml += '<div class="est-doc-section-head est-doc-section-head--vac">Materias vacantes (' + vacantes.length + ')</div>' +
+      '<div class="est-vac-list">' + vacRows + '</div>';
+  }
+
+  if (!sectionsHtml) {
+    sectionsHtml = '<div class="gen-empty-state" style="padding:32px 0"><p>No hay registros para el filtro seleccionado.</p></div>';
+  }
+
+  return filterBar + sectionsHtml;
+}
+
+/* ── Tarjeta individual de docente (base o TF) ─────────────────────── */
+function _estDocenteCard(nombre, filas, modo) {
+  var esTF  = modo === 'tf';
+  var esSin = nombre === '(sin docente)' || nombre === '(sin nombre)';
+
+  /* Horas totales */
+  var totalHrs = filas.reduce(function(s, f) { return s + (Number(f.tot_horas) || 0); }, 0);
+
+  /* Formación */
+  var formacion = '';
+  for (var i = 0; i < filas.length; i++) {
+    if (filas[i].formacion_docente) { formacion = filas[i].formacion_docente; break; }
+  }
+
+  var grupos = Array.from(new Set(filas.map(function(f) { return f.grupo || ''; }).filter(Boolean))).sort();
+
+  /* Color del badge de horas — TF usa paleta ámbar sin importar carga */
+  var hrsColor, hrsBg, hrsBorder;
+  if (esTF) {
+    hrsColor = '#92400e'; hrsBg = '#fef3c7'; hrsBorder = '#fcd34d';
+  } else if (totalHrs === 0)      { hrsColor='#64748b'; hrsBg='#f1f5f9'; hrsBorder='#cbd5e1'; }
+  else if (totalHrs <= 25)        { hrsColor='#0369a1'; hrsBg='#e0f2fe'; hrsBorder='#7dd3fc'; }
+  else if (totalHrs <= 35)        { hrsColor='#15803d'; hrsBg='#dcfce7'; hrsBorder='#86efac'; }
+  else if (totalHrs <= 40)        { hrsColor='#92400e'; hrsBg='#fef3c7'; hrsBorder='#fcd34d'; }
+  else                            { hrsColor='#991b1b'; hrsBg='#fee2e2'; hrsBorder='#fca5a5'; }
+
+  var hrsIcon  = (!esTF && totalHrs > 35) ? '⚠ ' : (esTF ? '⏱ ' : '');
+  var hrsBadge = '<span class="est-v2-hrs-badge" style="background:'+hrsBg+';color:'+hrsColor+';border-color:'+hrsBorder+'">' + hrsIcon + totalHrs + ' hrs</span>';
+
+  /* Avatar */
+  var initials = esSin ? '?' :
+    nombre.split(/\s+/).filter(Boolean).slice(0, 2).map(function(w) { return w[0] || ''; }).join('').toUpperCase();
+  var avatarBg = esSin ? '#ef4444' : (esTF ? '#d97706' : '#3b82f6');
+
+  /* Tipo badge en la cabecera */
+  var tipoBadge = esTF
+    ? '<span class="est-cob-badge est-cob-tf" style="margin-left:6px">Tiempo fijo</span>'
+    : '';
+
+  /* Filas de la tabla */
+  var rows = filas.map(function(f) {
+    var sc2 = _EST_SEM_COLORS_[String(f.semestre||'').trim()] || null;
+    var grupoTag = f.grupo
+      ? '<span class="est-v2-badge" style="' + (sc2 ? 'background:'+sc2.light+';color:'+sc2.text+';border-color:'+sc2.border+';' : '') + 'font-size:10px;">' + genEsc(f.grupo) + '</span>'
+      : '<span style="color:var(--gen-muted);">—</span>';
+    var estatusTd = f.estatus_cobertura && f.estatus_cobertura.trim()
+      ? '<td>' + _estEstatusBadge(f.estatus_cobertura.trim()) + '</td>'
+      : (esTF ? '<td><span class="est-cob-badge est-cob-pend">Pendiente</span></td>' : '<td></td>');
+    return '<tr>' +
+      '<td>' + grupoTag + '</td>' +
+      '<td class="est-v2-uac">' + genEsc(f.uac||'—') + '</td>' +
+      '<td class="est-v2-hrs">' + genEsc(String(f.tot_horas||'—')) + '</td>' +
+      estatusTd +
+      '</tr>';
+  }).join('');
+
+  var cardBorder = esTF
+    ? 'border-top:3px solid #d97706;'
+    : ((!esSin && totalHrs > 35) ? 'border-top:3px solid #f97316;' : 'border-top:3px solid #3b82f6;');
+  var headBg = esTF ? '#fffbeb' : ((!esSin && totalHrs > 35) ? '#fff7ed' : '#f0f9ff');
+
+  return '<div class="est-card-v2" style="' + cardBorder + '">' +
+    '<div class="est-v2-head" style="background:' + headBg + ';">' +
+      '<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">' +
+        '<div class="est-v2-avatar" style="background:' + avatarBg + ';">' + genEsc(initials) + '</div>' +
+        '<div style="min-width:0;">' +
+          '<div class="est-v2-grupo" style="font-size:13px;display:flex;align-items:center;flex-wrap:wrap;gap:4px;">' +
+            genEsc(nombre) + tipoBadge +
+          '</div>' +
+          (formacion ? '<div style="font-size:11px;color:var(--gen-muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + genEsc(formacion) + '</div>' : '') +
+        '</div>' +
+      '</div>' +
+      hrsBadge +
+    '</div>' +
+    '<table class="est-card-table est-v2-table">' +
+      '<thead><tr><th>Grupo</th><th>UAC</th><th>H</th><th>Estatus</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody>' +
+    '</table>' +
+    '<div class="est-v2-foot">' +
+      '<span style="color:var(--gen-muted);font-size:12px;">' + filas.length + ' materia' + (filas.length!==1?'s':'') + '</span>' +
+      '<span style="font-size:12px;color:var(--gen-muted);">' + grupos.length + ' grupo' + (grupos.length!==1?'s':'') + '</span>' +
+    '</div>' +
+  '</div>';
+}
+
+/* ── Helper: badge de estatus de cobertura ─────────────────────────── */
+function _estEstatusBadge(estatus) {
+  if (!estatus) return '';
+  var cls = estatus === 'Autorizado'               ? 'est-cob-ok'
+           : estatus === 'Pendiente de autorización' ? 'est-cob-pend'
+           : estatus === 'Vacante'                   ? 'est-cob-vacante'
+           : 'est-cob-badge';
+  return '<span class="est-cob-badge ' + cls + '">' + genEsc(estatus) + '</span>';
 }
 
 function _estGrupoSemFromGrupo_(grupo) {
@@ -653,16 +1160,26 @@ function _estMateriaCard(uac, filas) {
   });
   grupos.sort();
 
-  /* Docente → grupos que cubre */
-  var docenteMap = {};
+  /* Docente → grupos que cubre, con tipo y estatus */
+  var docenteMap = {};  // key → { grupos:[], tipo, estatus, tfNombre }
   filas.forEach(function(f) {
-    var d = String(f.docente || '').trim() || '(sin docente)';
-    if (!docenteMap[d]) docenteMap[d] = [];
-    if (f.grupo && docenteMap[d].indexOf(f.grupo) === -1) docenteMap[d].push(f.grupo);
+    var tipo = String(f.tipo_asignacion_docente || '').trim();
+    var key;
+    if (tipo === 'Vacante') {
+      key = '\x00vacante';
+    } else if (tipo === 'Tiempo fijo') {
+      key = '\x01tf:' + (String(f.docente_tiempo_fijo || '').trim() || '(sin nombre)');
+    } else {
+      key = String(f.docente || '').trim() || '(sin docente)';
+    }
+    if (!docenteMap[key]) docenteMap[key] = { grupos: [], tipo: tipo, estatus: String(f.estatus_cobertura || '').trim() };
+    if (f.grupo && docenteMap[key].grupos.indexOf(f.grupo) === -1) docenteMap[key].grupos.push(f.grupo);
   });
   var docenteKeys = Object.keys(docenteMap).sort(function(a, b) {
-    if (a === '(sin docente)') return 1;
-    if (b === '(sin docente)') return -1;
+    if (a.charAt(0) === '\x00') return 1;
+    if (b.charAt(0) === '\x00') return -1;
+    if (a.charAt(0) === '\x01') return 1;
+    if (b.charAt(0) === '\x01') return -1;
     return a.localeCompare(b);
   });
 
@@ -675,16 +1192,27 @@ function _estMateriaCard(uac, filas) {
     : '';
 
   /* Filas de docentes */
-  var docenteRows = docenteKeys.map(function(d) {
-    var sinDoc   = d === '(sin docente)';
-    var initials = sinDoc ? '?' : d.split(/\s+/).filter(Boolean).slice(0, 2).map(function(w) { return w.charAt(0); }).join('').toUpperCase();
-    var avatarBg = sinDoc ? '#ef4444' : '#3b82f6';
-    var chips = docenteMap[d].map(function(g) {
+  var docenteRows = docenteKeys.map(function(key) {
+    var entry    = docenteMap[key];
+    var isVac    = entry.tipo === 'Vacante'      || key.charAt(0) === '\x00';
+    var isTF     = entry.tipo === 'Tiempo fijo'  || key.charAt(0) === '\x01';
+    var displayName = isVac ? 'Vacante' :
+      (isTF ? (key.slice(4) || '(sin nombre)') : key);
+    var sinDoc   = displayName === '(sin docente)';
+    var initials = isVac ? '!' : (isTF ? 'TF' :
+      (sinDoc ? '?' : displayName.split(/\s+/).filter(Boolean).slice(0, 2).map(function(w) { return w.charAt(0); }).join('').toUpperCase()));
+    var avatarBg = isVac ? '#ef4444' : (isTF ? '#d97706' : (sinDoc ? '#ef4444' : '#3b82f6'));
+    var chips = entry.grupos.map(function(g) {
       return '<span class="est-mat-chip-grp est-mat-chip-sm" style="background:' + sc.light + ';color:' + sc.text + ';border-color:' + sc.border + '">' + genEsc(g) + '</span>';
     }).join('');
+    var tipoBadge = isTF    ? '<span class="est-cob-badge est-cob-tf" style="font-size:9px;padding:1px 5px">TF</span>'
+                 : (isVac   ? '<span class="est-cob-badge est-cob-vacante" style="font-size:9px;padding:1px 5px">Vacante</span>' : '');
+    var estatusBadge = entry.estatus ? ' ' + _estEstatusBadge(entry.estatus) : '';
     return '<div class="est-mat-docente-row">' +
       '<span class="est-mat-doc-avatar" style="background:' + avatarBg + '">' + genEsc(initials) + '</span>' +
-      '<span class="est-mat-doc-name' + (sinDoc ? ' est-mat-sin-doc' : '') + '">' + genEsc(d) + '</span>' +
+      '<span class="est-mat-doc-name' + (sinDoc || isVac ? ' est-mat-sin-doc' : '') + '">' +
+        genEsc(displayName) + ' ' + tipoBadge + estatusBadge +
+      '</span>' +
       '<span class="est-mat-doc-chips">' + chips + '</span>' +
     '</div>';
   }).join('');
@@ -714,7 +1242,7 @@ function _estMateriaCard(uac, filas) {
 
     /* Docentes */
     '<div class="est-mat-section">' +
-      '<div class="est-mat-section-label">Docentes (' + docenteKeys.length + ')</div>' +
+      '<div class="est-mat-section-label">Docentes / cobertura (' + docenteKeys.length + ')</div>' +
       docenteRows +
     '</div>' +
 
@@ -725,6 +1253,543 @@ function _estMateriaCard(uac, filas) {
     '</div>' +
 
   '</div>';
+}
+
+// ── HELPERS DE HORARIO VISUAL ────────────────────────────────────────
+
+/** Parsea "HH:MM-HH:MM" → {ini, fin} en minutos. Devuelve null si no aplica. */
+function _estRangoHora(val) {
+  if (!val) return null;
+  var m = String(val).match(/^(\d{1,2}):(\d{2})\s*[-–]\s*(\d{1,2}):(\d{2})$/);
+  if (!m) return null;
+  var ini = parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+  var fin = parseInt(m[3], 10) * 60 + parseInt(m[4], 10);
+  return ini < fin ? { ini: ini, fin: fin } : null;
+}
+
+/** ¿Dos rangos se traslapan? */
+function _estRangosTrasladan(a, b) {
+  return a.ini < b.fin && b.ini < a.fin;
+}
+
+/** Construye la cuadrícula semanal a partir de un arreglo de filas.
+ *  labelFn(row, entry) → HTML del bloque (entry tiene .dia, .iniH, .finH, .isFirst).
+ *  conflictFilas → {fila: true} de filas con error.
+ *  colorFn(uac) → {bg, border} para colorear por materia (opcional). */
+function _estTimetableGridHTML(filas, labelFn, conflictFilas, colorFn) {
+  var _CF_ = conflictFilas || {};
+  var diasLabels = { lunes:'Lunes', martes:'Martes', miercoles:'Miércoles', jueves:'Jueves', viernes:'Viernes' };
+
+  var minH = Infinity, maxH = -Infinity;
+  filas.forEach(function(row) {
+    _EST_DIAS_.forEach(function(dia) {
+      var r = _estRangoHora(row[dia]);
+      if (!r) return;
+      var h1 = Math.floor(r.ini / 60), h2 = Math.ceil(r.fin / 60);
+      if (h1 < minH) minH = h1;
+      if (h2 > maxH) maxH = h2;
+    });
+  });
+
+  if (minH === Infinity) {
+    return '<div class="gen-empty-state" style="margin-top:24px"><p>Sin horario capturado para esta selección.</p></div>';
+  }
+
+  // Mapa: dia → hora_entera → [{row, iniH, finH, isFirst, dia}]
+  var cellMap = {};
+  _EST_DIAS_.forEach(function(dia) { cellMap[dia] = {}; });
+  filas.forEach(function(row) {
+    _EST_DIAS_.forEach(function(dia) {
+      var r = _estRangoHora(row[dia]);
+      if (!r) return;
+      var iniH = Math.floor(r.ini / 60);
+      var finH = Math.ceil(r.fin / 60);
+      for (var h = iniH; h < finH; h++) {
+        if (!cellMap[dia][h]) cellMap[dia][h] = [];
+        cellMap[dia][h].push({ row: row, iniH: iniH, finH: finH, isFirst: h === iniH, dia: dia });
+      }
+    });
+  });
+
+  var thead = '<tr><th class="arm-tt-th-hora">Hora</th>' +
+    _EST_DIAS_.map(function(d) { return '<th class="arm-tt-th-dia">' + diasLabels[d] + '</th>'; }).join('') +
+    '</tr>';
+
+  var tbody = '';
+  for (var h = minH; h < maxH; h++) {
+    var hLabel = (h < 10 ? '0' : '') + h + ':00';
+    var hNext  = (h + 1 < 10 ? '0' : '') + (h + 1) + ':00';
+    var cells = _EST_DIAS_.map(function(dia) {
+      var entries = cellMap[dia][h] || [];
+      if (!entries.length) return '<td class="arm-tt-cell"></td>';
+
+      var hasConflict = entries.length > 1;
+      var content = entries.map(function(e) {
+        var rowConflict = _CF_[e.row._fila_];
+        var isErr = hasConflict || rowConflict;
+        var clr    = (!isErr && colorFn) ? colorFn(e.row.uac) : null;
+        var bg     = isErr ? '#fee2e2' : (clr ? clr.bg     : (e.isFirst ? '#eff6ff' : '#f0f9ff'));
+        var border = isErr ? '#ef4444' : (clr ? clr.border : '#3b82f6');
+        var top    = e.isFirst ? 'border-top:2px solid ' + border + ';' : 'border-top:1px dashed ' + border + '44;';
+        return '<div class="arm-tt-item" style="background:' + bg + ';border-left:3px solid ' + border + ';' + top + '">' +
+          labelFn(e.row, e) + '</div>';
+      }).join('');
+
+      return '<td class="arm-tt-cell arm-tt-filled' + (hasConflict ? ' arm-tt-conflict' : '') + '">' + content + '</td>';
+    }).join('');
+
+    tbody += '<tr><td class="arm-tt-hora">' + hLabel + '<span class="arm-tt-hora-sep">–</span>' + hNext + '</td>' + cells + '</tr>';
+  }
+
+  return '<div class="arm-tt-wrap"><table class="arm-tt-table"><thead>' + thead + '</thead><tbody>' + tbody + '</tbody></table></div>';
+}
+
+// ── VISTA HORARIO GRUPO ───────────────────────────────────────────────
+
+function _estGetGruposVisibles_() {
+  // Paso 1: reunir semestre y turno de TODAS las filas del grupo
+  // (usa el primer valor no vacío que encuentre para cada campo)
+  var grupoInfo = {};
+  _estData.forEach(function(row) {
+    var g = String(row.grupo || '').trim();
+    if (!g) return;
+    if (!grupoInfo[g]) grupoInfo[g] = { semestre: '', turno: '' };
+    if (!grupoInfo[g].semestre && row.semestre) grupoInfo[g].semestre = String(row.semestre).trim();
+    if (!grupoInfo[g].turno    && row.turno)    grupoInfo[g].turno    = String(row.turno).trim();
+  });
+  // Paso 2: filtrar por los chips activos
+  return Object.keys(grupoInfo).filter(function(g) {
+    var info = grupoInfo[g];
+    if (_estHorGrupoSem   && info.semestre !== _estHorGrupoSem)   return false;
+    if (_estHorGrupoTurno && info.turno    !== _estHorGrupoTurno) return false;
+    return true;
+  }).sort();
+}
+
+function _estGrupoTimetableBlock_(g, cfFilas) {
+  var filas = _estData.map(function(r, i) { r._fila_ = i + 1; return r; })
+    .filter(function(r) { return String(r.grupo || '').trim() === g; });
+  var sem   = filas[0] ? String(filas[0].semestre || '').trim() : '';
+  var turno = filas[0] ? String(filas[0].turno    || '').trim() : '';
+  var c     = _EST_SEM_COLORS_[sem] || { bg: '#f8fafc', border: '#94a3b8', text: '#475569', light: '#f1f5f9' };
+  var timetable = _estTimetableGridHTML(filas, function(row, e) {
+    var slot = e && e.isFirst ? (row[e.dia] || '') : '';
+    return '<span class="arm-tt-uac">' + genEsc(row.uac || '?') + '</span>' +
+           '<span class="arm-tt-meta">' + genEsc(row.docente || '—') + '</span>' +
+           (slot ? '<span class="arm-tt-time">' + genEsc(slot) + '</span>' : '');
+  }, cfFilas);
+  return '<div class="est-todos-section">' +
+    '<div class="est-todos-header" style="border-left:4px solid ' + c.border + ';background:' + c.light + ';">' +
+      '<span class="est-todos-name" style="color:' + c.text + ';">' + genEsc(g) + '</span>' +
+      (turno ? '<span class="est-todos-badge">' + genEsc(turno) + '</span>' : '') +
+      (sem   ? '<span class="est-todos-badge est-todos-badge--sem">' + sem + '° sem.</span>' : '') +
+      '<span class="est-todos-badge est-todos-badge--cnt">' + filas.length + ' UAC</span>' +
+    '</div>' +
+    timetable +
+  '</div>';
+}
+
+function _estHorarioGrupoHTML() {
+  var grupos = _estGetGruposVisibles_();
+
+  var semChips = ['', '1', '2', '3', '4', '5', '6'].map(function(s) {
+    return '<button class="est-qf-chip' + (s === _estHorGrupoSem ? ' active' : '') +
+      '" onclick="_estHorGrupoSetSem(\'' + s + '\')">' + (s ? s + '°' : 'Todos') + '</button>';
+  }).join('');
+
+  var turnoChips = ['', 'Matutino', 'Vespertino'].map(function(t) {
+    return '<button class="est-qf-chip' + (t === _estHorGrupoTurno ? ' active' : '') +
+      '" onclick="_estHorGrupoSetTurno(\'' + t + '\')">' + (t || 'Todos') + '</button>';
+  }).join('');
+
+  var selOpts = '<option value="">— Selecciona un grupo —</option>' +
+    '<option value="*"' + (_estHorGrupoSel === '*' ? ' selected' : '') + '>☰ Todos (' + grupos.length + ')</option>' +
+    grupos.map(function(g) {
+      return '<option value="' + genEsc(g) + '"' + (g === _estHorGrupoSel ? ' selected' : '') + '>' + genEsc(g) + '</option>';
+    }).join('');
+
+  var showPrint = _estHorGrupoSel && _estHorGrupoSel !== '*';
+  var printIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" style="vertical-align:-2px;margin-right:4px;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>';
+
+  var cfFilas = {};
+  _estConflictos.errores.forEach(function(e) { if (e.fila) cfFilas[e.fila] = true; });
+
+  var grid;
+  if (_estHorGrupoSel === '*') {
+    grid = !grupos.length
+      ? '<div class="gen-empty-state" style="margin-top:24px"><p>Sin grupos para los filtros seleccionados.</p></div>'
+      : grupos.map(function(g) { return _estGrupoTimetableBlock_(g, cfFilas); }).join('');
+  } else if (_estHorGrupoSel) {
+    var filas = _estData.map(function(r, i) { r._fila_ = i + 1; return r; })
+      .filter(function(r) { return String(r.grupo || '').trim() === _estHorGrupoSel; });
+    grid = _estTimetableGridHTML(filas, function(row, e) {
+      var slot = e && e.isFirst ? (row[e.dia] || '') : '';
+      return '<span class="arm-tt-uac">' + genEsc(row.uac || '?') + '</span>' +
+             '<span class="arm-tt-meta">' + genEsc(row.docente || '—') + '</span>' +
+             (slot ? '<span class="arm-tt-time">' + genEsc(slot) + '</span>' : '');
+    }, cfFilas);
+  } else {
+    grid = '<div class="gen-empty-state" style="margin-top:24px"><p>Selecciona un grupo o "Todos" para ver el horario.</p></div>';
+  }
+
+  return '<div class="arm-tt-page">' +
+    '<div class="est-hor-filter-bar">' +
+      '<div class="est-qf-group"><span class="est-qf-label">Semestre:</span>' + semChips + '</div>' +
+      '<div class="est-qf-group"><span class="est-qf-label">Turno:</span>' + turnoChips + '</div>' +
+    '</div>' +
+    '<div class="arm-tt-sel-bar" style="flex-wrap:wrap;gap:8px;">' +
+      '<label class="gen-label">Grupo:</label>' +
+      '<select id="est-hor-grupo-sel" class="gen-select" style="min-width:220px">' + selOpts + '</select>' +
+      '<button class="gen-btn gen-btn-sm gen-btn-secondary" id="est-btn-print-grupo" onclick="_estPrintGrupo_()"' +
+        (showPrint ? '' : ' style="display:none"') + '>' + printIcon + 'Imprimir grupo</button>' +
+      '<button class="gen-btn gen-btn-sm gen-btn-ghost" onclick="_estPrintTodosGrupos_()">Imprimir todos</button>' +
+    '</div>' +
+    '<div id="est-hor-grupo-grid">' + grid + '</div>' +
+  '</div>';
+}
+
+function _estBindHorarioGrupo() {
+  var sel = document.getElementById('est-hor-grupo-sel');
+  if (!sel) return;
+  sel.addEventListener('change', function() {
+    _estHorGrupoSel = this.value;
+    _estRefreshHorGrupoGrid_();
+  });
+}
+
+function _estRefreshHorGrupoGrid_() {
+  var grid = document.getElementById('est-hor-grupo-grid');
+  var btnP = document.getElementById('est-btn-print-grupo');
+  if (btnP) btnP.style.display = (_estHorGrupoSel && _estHorGrupoSel !== '*') ? '' : 'none';
+  if (!grid) return;
+  var cfFilas = {};
+  _estConflictos.errores.forEach(function(e) { if (e.fila) cfFilas[e.fila] = true; });
+  if (_estHorGrupoSel === '*') {
+    var grupos = _estGetGruposVisibles_();
+    grid.innerHTML = !grupos.length
+      ? '<div class="gen-empty-state" style="margin-top:24px"><p>Sin grupos para los filtros seleccionados.</p></div>'
+      : grupos.map(function(g) { return _estGrupoTimetableBlock_(g, cfFilas); }).join('');
+  } else if (_estHorGrupoSel) {
+    var filas = _estData.map(function(r, i) { r._fila_ = i + 1; return r; })
+      .filter(function(r) { return String(r.grupo || '').trim() === _estHorGrupoSel; });
+    grid.innerHTML = _estTimetableGridHTML(filas, function(row, e) {
+      var slot = e && e.isFirst ? (row[e.dia] || '') : '';
+      return '<span class="arm-tt-uac">' + genEsc(row.uac || '?') + '</span>' +
+             '<span class="arm-tt-meta">' + genEsc(row.docente || '—') + '</span>' +
+             (slot ? '<span class="arm-tt-time">' + genEsc(slot) + '</span>' : '');
+    }, cfFilas);
+  } else {
+    grid.innerHTML = '<div class="gen-empty-state" style="margin-top:24px"><p>Selecciona un grupo o "Todos" para ver el horario.</p></div>';
+  }
+}
+
+function _estHorGrupoSetSem(sem) {
+  _estHorGrupoSem = sem;
+  var grupos = _estGetGruposVisibles_();
+  if (_estHorGrupoSel && _estHorGrupoSel !== '*' && grupos.indexOf(_estHorGrupoSel) === -1) _estHorGrupoSel = '*';
+  var vc = document.getElementById('est-view-content');
+  if (vc) { vc.innerHTML = _estViewHTML(); _estBindHorarioGrupo(); }
+}
+
+function _estHorGrupoSetTurno(turno) {
+  _estHorGrupoTurno = turno;
+  var grupos = _estGetGruposVisibles_();
+  if (_estHorGrupoSel && _estHorGrupoSel !== '*' && grupos.indexOf(_estHorGrupoSel) === -1) _estHorGrupoSel = '*';
+  var vc = document.getElementById('est-view-content');
+  if (vc) { vc.innerHTML = _estViewHTML(); _estBindHorarioGrupo(); }
+}
+
+// ── VISTA HORARIO DOCENTE ─────────────────────────────────────────────
+
+function _estGetDocentesVisibles_() {
+  var result = [], seen = {};
+  _estData.forEach(function(row) {
+    var tipo = String(row.tipo_asignacion_docente || '').trim();
+    if (tipo === 'Vacante') return;
+    var d   = String(row.docente || '').trim();
+    var trn = String(row.turno   || '').trim();
+    if (!d || seen[d]) return;
+    if (_estHorDocTurno && trn !== _estHorDocTurno) return;
+    seen[d] = true;
+    result.push(d);
+  });
+  return result.sort();
+}
+
+function _estDocenteTimetableBlock_(d, cfFilas) {
+  var filas = _estData.map(function(r, i) { r._fila_ = i + 1; return r; })
+    .filter(function(r) {
+      var tipo = String(r.tipo_asignacion_docente || '').trim();
+      if (tipo === 'Vacante' || tipo === 'Tiempo fijo') return false;
+      return String(r.docente || '').trim() === d;
+    });
+  var formacion = filas[0] ? String(filas[0].formacion_docente || '').trim() : '';
+  var initials  = d.split(/\s+/).slice(0, 2).map(function(w) { return w[0] || ''; }).join('').toUpperCase();
+  var timetable = _estTimetableGridHTML(filas, function(row, e) {
+    var slot = e && e.isFirst ? (row[e.dia] || '') : '';
+    return '<span class="arm-tt-uac">' + genEsc(row.uac || '?') + '</span>' +
+           '<span class="arm-tt-meta">' + genEsc(row.grupo || '—') + '</span>' +
+           (slot ? '<span class="arm-tt-time">' + genEsc(slot) + '</span>' : '');
+  }, cfFilas);
+  return '<div class="est-todos-section">' +
+    '<div class="est-todos-header est-todos-header--doc">' +
+      '<div class="est-todos-doc-avatar">' + genEsc(initials) + '</div>' +
+      '<div class="est-todos-doc-info">' +
+        '<span class="est-todos-name">' + genEsc(d) + '</span>' +
+        (formacion ? '<span class="est-todos-doc-form">' + genEsc(formacion) + '</span>' : '') +
+      '</div>' +
+      '<span class="est-todos-badge est-todos-badge--cnt">' + filas.length + ' grupos</span>' +
+    '</div>' +
+    timetable +
+  '</div>';
+}
+
+function _estHorarioDocenteHTML() {
+  var docentes = _estGetDocentesVisibles_();
+
+  var turnoChips = ['', 'Matutino', 'Vespertino'].map(function(t) {
+    return '<button class="est-qf-chip' + (t === _estHorDocTurno ? ' active' : '') +
+      '" onclick="_estHorDocSetTurno(\'' + t + '\')">' + (t || 'Todos') + '</button>';
+  }).join('');
+
+  var selOpts = '<option value="">— Selecciona un docente —</option>' +
+    '<option value="*"' + (_estHorDocSel === '*' ? ' selected' : '') + '>☰ Todos (' + docentes.length + ')</option>' +
+    docentes.map(function(d) {
+      return '<option value="' + genEsc(d) + '"' + (d === _estHorDocSel ? ' selected' : '') + '>' + genEsc(d) + '</option>';
+    }).join('');
+
+  var showPrint = _estHorDocSel && _estHorDocSel !== '*';
+  var printIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" style="vertical-align:-2px;margin-right:4px;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>';
+
+  var cfFilas = {};
+  _estConflictos.errores.forEach(function(e) { if (e.fila) cfFilas[e.fila] = true; });
+
+  var grid;
+  if (_estHorDocSel === '*') {
+    grid = !docentes.length
+      ? '<div class="gen-empty-state" style="margin-top:24px"><p>Sin docentes para los filtros seleccionados.</p></div>'
+      : docentes.map(function(d) { return _estDocenteTimetableBlock_(d, cfFilas); }).join('');
+  } else if (_estHorDocSel) {
+    var filas = _estData.map(function(r, i) { r._fila_ = i + 1; return r; })
+      .filter(function(r) {
+        var tipo = String(r.tipo_asignacion_docente || '').trim();
+        if (tipo === 'Vacante' || tipo === 'Tiempo fijo') return false;
+        return String(r.docente || '').trim() === _estHorDocSel;
+      });
+    grid = _estTimetableGridHTML(filas, function(row, e) {
+      var slot = e && e.isFirst ? (row[e.dia] || '') : '';
+      return '<span class="arm-tt-uac">' + genEsc(row.uac || '?') + '</span>' +
+             '<span class="arm-tt-meta">' + genEsc(row.grupo || '—') + '</span>' +
+             (slot ? '<span class="arm-tt-time">' + genEsc(slot) + '</span>' : '');
+    }, cfFilas);
+  } else {
+    grid = '<div class="gen-empty-state" style="margin-top:24px"><p>Selecciona un docente o "Todos" para ver el horario.</p></div>';
+  }
+
+  return '<div class="arm-tt-page">' +
+    '<div class="est-hor-filter-bar">' +
+      '<div class="est-qf-group"><span class="est-qf-label">Turno:</span>' + turnoChips + '</div>' +
+    '</div>' +
+    '<div class="arm-tt-sel-bar" style="flex-wrap:wrap;gap:8px;">' +
+      '<label class="gen-label">Docente:</label>' +
+      '<select id="est-hor-doc-sel" class="gen-select" style="min-width:280px">' + selOpts + '</select>' +
+      '<button class="gen-btn gen-btn-sm gen-btn-secondary" id="est-btn-print-docente" onclick="_estPrintDocente_()"' +
+        (showPrint ? '' : ' style="display:none"') + '>' + printIcon + 'Imprimir docente</button>' +
+      '<button class="gen-btn gen-btn-sm gen-btn-ghost" onclick="_estPrintTodosDocentes_()">Imprimir todos</button>' +
+    '</div>' +
+    '<div id="est-hor-doc-grid">' + grid + '</div>' +
+  '</div>';
+}
+
+function _estBindHorarioDocente() {
+  var sel = document.getElementById('est-hor-doc-sel');
+  if (!sel) return;
+  sel.addEventListener('change', function() {
+    _estHorDocSel = this.value;
+    _estRefreshHorDocGrid_();
+  });
+}
+
+function _estRefreshHorDocGrid_() {
+  var grid = document.getElementById('est-hor-doc-grid');
+  var btnP = document.getElementById('est-btn-print-docente');
+  if (btnP) btnP.style.display = (_estHorDocSel && _estHorDocSel !== '*') ? '' : 'none';
+  if (!grid) return;
+  var cfFilas = {};
+  _estConflictos.errores.forEach(function(e) { if (e.fila) cfFilas[e.fila] = true; });
+  if (_estHorDocSel === '*') {
+    var docentes = _estGetDocentesVisibles_();
+    grid.innerHTML = !docentes.length
+      ? '<div class="gen-empty-state" style="margin-top:24px"><p>Sin docentes para los filtros seleccionados.</p></div>'
+      : docentes.map(function(d) { return _estDocenteTimetableBlock_(d, cfFilas); }).join('');
+  } else if (_estHorDocSel) {
+    var filas = _estData.map(function(r, i) { r._fila_ = i + 1; return r; })
+      .filter(function(r) {
+        var tipo = String(r.tipo_asignacion_docente || '').trim();
+        if (tipo === 'Vacante' || tipo === 'Tiempo fijo') return false;
+        return String(r.docente || '').trim() === _estHorDocSel;
+      });
+    grid.innerHTML = _estTimetableGridHTML(filas, function(row, e) {
+      var slot = e && e.isFirst ? (row[e.dia] || '') : '';
+      return '<span class="arm-tt-uac">' + genEsc(row.uac || '?') + '</span>' +
+             '<span class="arm-tt-meta">' + genEsc(row.grupo || '—') + '</span>' +
+             (slot ? '<span class="arm-tt-time">' + genEsc(slot) + '</span>' : '');
+    }, cfFilas);
+  } else {
+    grid.innerHTML = '<div class="gen-empty-state" style="margin-top:24px"><p>Selecciona un docente o "Todos" para ver el horario.</p></div>';
+  }
+}
+
+function _estHorDocSetTurno(turno) {
+  _estHorDocTurno = turno;
+  var docs = _estGetDocentesVisibles_();
+  if (_estHorDocSel && _estHorDocSel !== '*' && docs.indexOf(_estHorDocSel) === -1) _estHorDocSel = '*';
+  var vc = document.getElementById('est-view-content');
+  if (vc) { vc.innerHTML = _estViewHTML(); _estBindHorarioDocente(); }
+}
+
+// ── IMPRESIÓN / EXPORTACIÓN DESDE ESTRUCTURA ─────────────────────────
+
+/** Convierte filas de _estData al formato "sessions" que usa _hiPrintGrid_ */
+function _estToSessions(filas) {
+  var diaMap = { lunes:'LUNES', martes:'MARTES', miercoles:'MIERCOLES', jueves:'JUEVES', viernes:'VIERNES' };
+  var sessions = [];
+  filas.forEach(function(row) {
+    var tipo = String(row.tipo_asignacion_docente || '').trim();
+    if (tipo === 'Vacante') return;
+    var docNombre = tipo === 'Tiempo fijo'
+      ? String(row.docente_tiempo_fijo || row.docente || '').trim()
+      : String(row.docente || '').trim();
+    _EST_DIAS_.forEach(function(diaKey) {
+      var val = String(row[diaKey] || '').trim();
+      if (!val) return;
+      var m = val.match(/^(\d{1,2}):(\d{2})\s*[-–]\s*(\d{1,2}):(\d{2})$/);
+      if (!m) return;
+      var iniMin = parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+      var finMin = parseInt(m[3], 10) * 60 + parseInt(m[4], 10);
+      var horas  = finMin > iniMin ? Math.round((finMin - iniMin) / 60 * 10) / 10 : 0;
+      sessions.push({
+        dia:                 diaMap[diaKey],
+        hora_inicio:         ('0' + m[1]).slice(-2) + ':' + m[2],
+        hora_fin:            ('0' + m[3]).slice(-2) + ':' + m[4],
+        horas_bloque:        horas,
+        materia:             String(row.uac    || '').trim(),
+        docente:             docNombre,
+        grupo:               String(row.grupo  || '').trim(),
+        turno:               String(row.turno  || '').trim(),
+        componente:          String(row.componente || '').trim(),
+        formacion_academica: String(row.formacion_docente || '').trim(),
+        clave_docente:       String(row.docente_id || '').trim(),
+        total_horas_materia: String(row.tot_horas   || '').trim()
+      });
+    });
+  });
+  return sessions;
+}
+
+/** Cuerpo de impresión para un grupo */
+function _estGrupoBodyPrint_(sessions, grupo) {
+  var turno   = (sessions[0] || {}).turno || '';
+  var estRow  = _estData.filter(function(r) { return String(r.grupo || '').trim() === grupo; })[0];
+  var semestre = estRow ? (String(estRow.semestre || '') + '° Semestre') : '';
+  var totalHrs = Math.round(sessions.reduce(function(a, r) { return a + (parseFloat(r.horas_bloque) || 0); }, 0) * 10) / 10;
+  var metaHtml =
+    '<table class="meta-table"><tbody>' +
+    '<tr><th class="meta-lbl">Grupo</th><td class="meta-val">' + _hiPe_(grupo) + '</td>' +
+         '<th class="meta-lbl">Turno</th><td class="meta-val">' + _hiPe_(turno) + '</td></tr>' +
+    '<tr><th class="meta-lbl">Semestre</th><td class="meta-val">' + _hiPe_(semestre) + '</td>' +
+         '<th class="meta-lbl">Ciclo escolar</th><td class="meta-val">' + _hiPe_(_genApp.ciclo || '') + '</td></tr>' +
+    '<tr><th class="meta-lbl">Total horas / semana</th><td class="meta-val" colspan="3"><strong>' + totalHrs + ' hrs</strong></td></tr>' +
+    '</tbody></table>';
+  return metaHtml +
+    '<h2 class="section-title">Distribución Semanal de Actividades</h2>' +
+    _hiPrintGrid_(sessions, 'grupo') +
+    '<h2 class="section-title">Materias Asignadas al Grupo</h2>' +
+    _hiMateriasTableHtml_(sessions, 'grupo') +
+    _hiFirmasGrupoHtml_();
+}
+
+/** Cuerpo de impresión para un docente */
+function _estDocenteBodyPrint_(sessions, docente) {
+  var grupos   = Array.from(new Set(sessions.map(function(r) { return r.grupo; }).filter(Boolean))).sort();
+  var estRow   = _estData.filter(function(r) {
+    var tipo = String(r.tipo_asignacion_docente || '').trim();
+    return tipo !== 'Vacante' && String(r.docente || '').trim() === docente;
+  })[0];
+  var formacion = estRow ? String(estRow.formacion_docente || '').trim() : '';
+  var clave     = estRow ? String(estRow.docente_id || '').trim() : '';
+  var totalHrs  = Math.round(sessions.reduce(function(a, r) { return a + (parseFloat(r.horas_bloque) || 0); }, 0) * 10) / 10;
+  var metaHtml =
+    '<table class="meta-table"><tbody>' +
+    '<tr><th class="meta-lbl">Docente</th><td class="meta-val" colspan="3">' + _hiPe_(docente) + '</td></tr>' +
+    '<tr><th class="meta-lbl">Clave / CURP</th><td class="meta-val">' + _hiPe_(clave) + '</td>' +
+         '<th class="meta-lbl">Ciclo escolar</th><td class="meta-val">' + _hiPe_(_genApp.ciclo || '') + '</td></tr>' +
+    '<tr><th class="meta-lbl">Formación académica</th><td class="meta-val">' + _hiPe_(formacion) + '</td>' +
+         '<th class="meta-lbl">Grupos atendidos</th><td class="meta-val">' + _hiPe_(grupos.join(', ')) + '</td></tr>' +
+    '<tr><th class="meta-lbl">Total horas / semana</th><td class="meta-val" colspan="3"><strong>' + totalHrs + ' hrs</strong></td></tr>' +
+    '</tbody></table>';
+  return metaHtml +
+    '<h2 class="section-title">Distribución Semanal</h2>' +
+    _hiPrintGrid_(sessions, 'docente') +
+    '<h2 class="section-title">Detalle de Carga Horaria</h2>' +
+    _hiMateriasTableHtml_(sessions, 'docente') +
+    _hiFirmasDocenteHtml_(docente);
+}
+
+function _estPrintGrupo_() {
+  if (!_estHorGrupoSel || _estHorGrupoSel === '*') { alert('Selecciona un grupo individual antes de imprimir.'); return; }
+  var sessions = _estToSessions(_estData.filter(function(r) { return String(r.grupo || '').trim() === _estHorGrupoSel; }));
+  if (!sessions.length) { alert('Sin horario capturado para este grupo.'); return; }
+  _hiOpenPrint_('<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Horario ' + _hiPe_(_estHorGrupoSel) + '</title>' +
+    _hiPrintCss_('landscape') + '</head><body>' +
+    _hiHeaderHtml_('Horario de Actividades', _genApp.ciclo || '') +
+    _estGrupoBodyPrint_(sessions, _estHorGrupoSel) + '</body></html>');
+}
+
+function _estPrintTodosGrupos_() {
+  var grupos = _estGetGruposVisibles_();
+  if (!grupos.length) { alert('Sin grupos disponibles para los filtros seleccionados.'); return; }
+  var pages = [];
+  grupos.forEach(function(g) {
+    var sessions = _estToSessions(_estData.filter(function(r) { return String(r.grupo || '').trim() === g; }));
+    if (sessions.length) pages.push('<div class="report-page">' +
+      _hiHeaderHtml_('Horario de Actividades', _genApp.ciclo || '') +
+      _estGrupoBodyPrint_(sessions, g) + '</div>');
+  });
+  if (!pages.length) { alert('Sin horarios capturados para los grupos seleccionados.'); return; }
+  _hiOpenPrint_('<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Horarios por Grupo — ' + _hiPe_(_genApp.ciclo || '') + '</title>' +
+    _hiPrintCss_('landscape') + '</head><body>' + pages.join('') + '</body></html>');
+}
+
+function _estPrintDocente_() {
+  if (!_estHorDocSel || _estHorDocSel === '*') { alert('Selecciona un docente individual antes de imprimir.'); return; }
+  var sessions = _estToSessions(_estData.filter(function(r) {
+    var tipo = String(r.tipo_asignacion_docente || '').trim();
+    return tipo !== 'Vacante' && tipo !== 'Tiempo fijo' && String(r.docente || '').trim() === _estHorDocSel;
+  }));
+  if (!sessions.length) { alert('Sin horario capturado para este docente.'); return; }
+  _hiOpenPrint_('<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Carga ' + _hiPe_(_estHorDocSel) + '</title>' +
+    _hiPrintCss_('landscape') + '</head><body>' +
+    _hiHeaderHtml_('Carga Horaria Frente a Grupo', _genApp.ciclo || '') +
+    _estDocenteBodyPrint_(sessions, _estHorDocSel) + '</body></html>');
+}
+
+function _estPrintTodosDocentes_() {
+  var docentes = _estGetDocentesVisibles_();
+  if (!docentes.length) { alert('Sin docentes disponibles para los filtros seleccionados.'); return; }
+  var pages = [];
+  docentes.forEach(function(d) {
+    var sessions = _estToSessions(_estData.filter(function(r) {
+      var tipo = String(r.tipo_asignacion_docente || '').trim();
+      return tipo !== 'Vacante' && tipo !== 'Tiempo fijo' && String(r.docente || '').trim() === d;
+    }));
+    if (sessions.length) pages.push('<div class="report-page">' +
+      _hiHeaderHtml_('Carga Horaria Frente a Grupo', _genApp.ciclo || '') +
+      _estDocenteBodyPrint_(sessions, d) + '</div>');
+  });
+  if (!pages.length) { alert('Sin horarios capturados para los docentes seleccionados.'); return; }
+  _hiOpenPrint_('<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Horarios por Docente — ' + _hiPe_(_genApp.ciclo || '') + '</title>' +
+    _hiPrintCss_('landscape') + '</head><body>' + pages.join('') + '</body></html>');
 }
 
 // ── VISTA CONFLICTOS ─────────────────────────────────────────────────
@@ -771,12 +1836,25 @@ function _estValidarLocal() {
 
   _estData.forEach(function(row, i) {
     if (!row.uac || !String(row.uac).trim()) return;
-    if (!row.docente || !String(row.docente).trim()) {
-      errores.push({ tipo: 'SIN_DOCENTE', fila: i + 1, grupo: row.grupo,
-        mensaje: 'Fila '+(i+1)+': "'+row.uac+'" sin docente asignado.' });
+    var tipoAsig = String(row.tipo_asignacion_docente || '').trim();
+    var sinDocente = !row.docente || !String(row.docente).trim();
+    if (sinDocente) {
+      if (tipoAsig === 'Vacante') {
+        // explícitamente vacante — no error
+      } else if (tipoAsig === 'Tiempo fijo') {
+        // cubierta por TF — advertir solo si falta el nombre del TF
+        var tfNombre = String(row.docente_tiempo_fijo || '').trim();
+        if (!tfNombre) {
+          advert.push({ tipo: 'TF_SIN_NOMBRE', fila: i + 1, grupo: row.grupo,
+            mensaje: 'Fila '+(i+1)+': "'+row.uac+'" marcada como Tiempo fijo pero sin nombre de docente TF.' });
+        }
+      } else {
+        errores.push({ tipo: 'SIN_DOCENTE', fila: i + 1, grupo: row.grupo,
+          mensaje: 'Fila '+(i+1)+': "'+row.uac+'" sin docente asignado.' });
+      }
     }
     var dias = ['lunes','martes','miercoles','jueves','viernes'];
-    var suma = dias.reduce(function(s,d) { return s + (Number(row[d])||0); }, 0);
+    var suma = dias.reduce(function(s,d) { return s + _estParseHorasDia(row[d]); }, 0);
     var tot  = Number(row.tot_horas) || 0;
     if (tot > 0 && suma > 0 && suma !== tot) {
       advert.push({ tipo: 'HORAS_INCONSISTENTES', fila: i + 1, grupo: row.grupo,
@@ -784,11 +1862,14 @@ function _estValidarLocal() {
     }
   });
 
+  // Exceso por día — solo horas base (Tiempo fijo y Vacante se excluyen del conteo contractual)
   var docenteDia = {};
   _estData.forEach(function(row) {
+    var tipoAsig = String(row.tipo_asignacion_docente || '').trim();
+    if (tipoAsig === 'Tiempo fijo' || tipoAsig === 'Vacante') return;
     if (!row.docente) return;
     ['lunes','martes','miercoles','jueves','viernes'].forEach(function(dia) {
-      var h = Number(row[dia]) || 0;
+      var h = _estParseHorasDia(row[dia]);
       if (!h) return;
       var k = String(row.docente).trim() + '|' + dia;
       docenteDia[k] = (docenteDia[k] || 0) + h;
@@ -799,6 +1880,64 @@ function _estValidarLocal() {
       var p = k.split('|');
       errores.push({ tipo: 'DOCENTE_EXCEDE_DIA',
         mensaje: '"'+p[0]+'" tiene '+docenteDia[k]+' hrs el '+p[1]+' (máx 6).', docente: p[0], dia: p[1] });
+    }
+  });
+
+  // ── Traslapes de grupo (mismo grupo, mismo día, rangos superpuestos) ──
+  var _grupoDiaMap = {};
+  _estData.forEach(function(row, i) {
+    var grupo = String(row.grupo || '').trim();
+    if (!grupo || !String(row.uac || '').trim()) return;
+    _EST_DIAS_.forEach(function(dia) {
+      var r = _estRangoHora(row[dia]);
+      if (!r) return;
+      var k = grupo + '|' + dia;
+      if (!_grupoDiaMap[k]) _grupoDiaMap[k] = [];
+      _grupoDiaMap[k].push({ ini: r.ini, fin: r.fin, uac: row.uac, fila: i + 1 });
+    });
+  });
+  Object.keys(_grupoDiaMap).forEach(function(k) {
+    var list = _grupoDiaMap[k];
+    var parts = k.split('|');
+    for (var a = 0; a < list.length; a++) {
+      for (var b = a + 1; b < list.length; b++) {
+        if (_estRangosTrasladan(list[a], list[b])) {
+          var msg = 'Grupo ' + parts[0] + ' — ' + parts[1] + ': traslape entre "' +
+            list[a].uac + '" (f.' + list[a].fila + ') y "' + list[b].uac + '" (f.' + list[b].fila + ').';
+          errores.push({ tipo: 'TRASLAPE_GRUPO', fila: list[a].fila, grupo: parts[0], mensaje: msg });
+          errores.push({ tipo: 'TRASLAPE_GRUPO', fila: list[b].fila, grupo: parts[0], mensaje: msg });
+        }
+      }
+    }
+  });
+
+  // ── Traslapes de docente (mismo docente, mismo día, rangos superpuestos) ──
+  var _docenteTrasMap = {};
+  _estData.forEach(function(row, i) {
+    var tipoAsig = String(row.tipo_asignacion_docente || '').trim();
+    if (tipoAsig === 'Tiempo fijo' || tipoAsig === 'Vacante') return;
+    var docente = String(row.docente || '').trim();
+    if (!docente || !String(row.uac || '').trim()) return;
+    _EST_DIAS_.forEach(function(dia) {
+      var r = _estRangoHora(row[dia]);
+      if (!r) return;
+      var k = docente + '|' + dia;
+      if (!_docenteTrasMap[k]) _docenteTrasMap[k] = [];
+      _docenteTrasMap[k].push({ ini: r.ini, fin: r.fin, uac: row.uac, grupo: row.grupo, fila: i + 1 });
+    });
+  });
+  Object.keys(_docenteTrasMap).forEach(function(k) {
+    var list = _docenteTrasMap[k];
+    var parts = k.split('|');
+    for (var a = 0; a < list.length; a++) {
+      for (var b = a + 1; b < list.length; b++) {
+        if (_estRangosTrasladan(list[a], list[b])) {
+          var msg2 = '"' + parts[0] + '" — ' + parts[1] + ': traslape entre grupo ' +
+            list[a].grupo + ' (f.' + list[a].fila + ') y grupo ' + list[b].grupo + ' (f.' + list[b].fila + ').';
+          errores.push({ tipo: 'TRASLAPE_DOCENTE', fila: list[a].fila, grupo: list[a].grupo, docente: parts[0], mensaje: msg2 });
+          errores.push({ tipo: 'TRASLAPE_DOCENTE', fila: list[b].fila, grupo: list[b].grupo, docente: parts[0], mensaje: msg2 });
+        }
+      }
     }
   });
 
@@ -823,6 +1962,7 @@ function _estValidarLocal() {
 
   _estConflictos = { errores: errores, advertencias: advert };
   _estActualizarBarraConflictos();
+  _estUpdateDashboard();
 }
 
 function _estActualizarBarraConflictos() {
@@ -897,14 +2037,52 @@ function _estBindGrid() {
     if (isNaN(rowIdx) || !colKey) return;
     if (!_estData[rowIdx]) _estData[rowIdx] = {};
     _estData[rowIdx][colKey] = inp.value;
+    _estDirtySet.add(_estData[rowIdx]); // marcar fila como modificada
+
+    // Auto-rellenar formación docente al seleccionar docente base o tiempo fijo
+    if (colKey === 'docente' || colKey === 'docente_tiempo_fijo') {
+      var docNombre = inp.value.trim();
+      var docMatch = (_genApp.docentes || []).find(function(d) {
+        return genNombreDocente(d) === docNombre;
+      });
+      var formacion = docMatch ? String(docMatch.especialidad || '').trim() : '';
+      _estData[rowIdx]['formacion_docente'] = formacion;
+      var formInp = tbody.querySelector('input[data-row="' + rowIdx + '"][data-col="formacion_docente"]');
+      if (formInp) formInp.value = formacion;
+    }
+
+    // Si cambió un día, recalcular HRS automáticamente
+    if (_EST_DIAS_.indexOf(colKey) !== -1) {
+      var totalDias = _EST_DIAS_.reduce(function(s, d) {
+        return s + _estParseHorasDia(_estData[rowIdx][d]);
+      }, 0);
+      _estData[rowIdx]['horas'] = totalDias || '';
+      var horasInp = tbody.querySelector('input[data-row="' + rowIdx + '"][data-col="horas"]');
+      if (horasInp) horasInp.value = totalDias || '';
+    }
+
+    // Actualizar indicador de completitud si cambió un día o tot_horas
+    if (_EST_DIAS_.indexOf(colKey) !== -1 || colKey === 'tot_horas' || colKey === 'horas') {
+      var tr2 = tbody.querySelector('tr[data-row="' + rowIdx + '"]');
+      if (tr2) {
+        var indTd = tr2.querySelector('.est-td-ind');
+        if (indTd) indTd.outerHTML = _estHorasIndicador(_estData[rowIdx]);
+      }
+    }
+
     _estDirty = true;
+    _estUpdateSaveBtn();
     _estValidarLocal();
-    // Actualizar color de la fila
+    _estRefreshInlineHorario(null);
+    // Actualizar color de la fila (preservando tipo y selección)
     var tr = inp.closest('tr');
     if (tr) {
       var errFila = _estConflictos.errores.filter(function(e) { return e.fila === rowIdx + 1; }).length;
       var wrnFila = _estConflictos.advertencias.filter(function(e) { return e.fila === rowIdx + 1; }).length;
-      tr.className = 'est-grid-row' + (errFila ? ' est-row-error' : wrnFila ? ' est-row-warn' : '');
+      var selCls  = rowIdx === _estSelRow ? ' est-row-selected' : '';
+      tr.className = 'est-grid-row' +
+        (errFila ? ' est-row-error' : wrnFila ? ' est-row-warn' : '') +
+        _estTipoCls(_estData[rowIdx]) + selCls;
     }
     // Actualizar botón guardar
     var btnG = document.getElementById('est-btn-guardar');
@@ -913,14 +2091,73 @@ function _estBindGrid() {
 
   // Eliminar fila
   tbody.addEventListener('click', function(e) {
-    var btn = e.target.closest('.est-del-row');
-    if (!btn) return;
-    var rowIdx = parseInt(btn.dataset.row, 10);
-    if (isNaN(rowIdx)) return;
-    _estData.splice(rowIdx, 1);
-    _estDirty = true;
-    _estRebuildGrid();
-    _estValidarLocal();
+    if (e.target.closest('.est-del-row')) {
+      var btn = e.target.closest('.est-del-row');
+      var rowIdx = parseInt(btn.dataset.row, 10);
+      if (isNaN(rowIdx)) return;
+      var delRow = _estData[rowIdx];
+      if (delRow && delRow.id) _estDeleteIds.push(delRow.id); // registrar para borrar del servidor
+      _estDirtySet.delete(delRow); // ya no necesita guardarse
+      _estData.splice(rowIdx, 1);
+      if (_estSelRow >= rowIdx) _estSelRow = -1;
+      _estDirty = true;
+      _estRebuildGrid();
+      _estValidarLocal();
+      _estUpdateSaveBtn();
+      return;
+    }
+
+    // Duplicar fila
+    if (e.target.closest('.est-dup-row')) {
+      var dupBtn = e.target.closest('.est-dup-row');
+      var dupIdx = parseInt(dupBtn.dataset.row, 10);
+      if (isNaN(dupIdx)) return;
+      var copy = Object.assign({}, _estData[dupIdx]);
+      // Limpiar id y horario en la copia (es una fila nueva)
+      delete copy.id;
+      _EST_DIAS_.forEach(function(d) { copy[d] = ''; });
+      copy.horas = '';
+      _estData.splice(dupIdx + 1, 0, copy);
+      _estDirtySet.add(copy);
+      _estDirty = true;
+      _estRebuildGrid();
+      _estValidarLocal();
+      _estUpdateSaveBtn();
+      return;
+    }
+
+    // Clic en fila → resaltar + auto-actualizar horario inline
+    var tr = e.target.closest('tr.est-grid-row');
+    if (!tr || e.target.closest('.est-cell')) return;
+    var clickedIdx = parseInt(tr.dataset.row, 10);
+    if (isNaN(clickedIdx) || !_estData[clickedIdx]) return;
+
+    // Deseleccionar anterior
+    if (_estSelRow !== -1) {
+      var prevTr = tbody.querySelector('tr[data-row="' + _estSelRow + '"]');
+      if (prevTr) prevTr.classList.remove('est-row-selected');
+    }
+    _estSelRow = clickedIdx;
+    tr.classList.add('est-row-selected');
+
+    // Actualizar timetables inline
+    var clickedRow = _estData[clickedIdx];
+    var grupo   = String(clickedRow.grupo   || '').trim();
+    var docente = String(clickedRow.docente || '').trim();
+    var tipo    = String(clickedRow.tipo_asignacion_docente || '').trim();
+
+    if (grupo && grupo !== _estHorGrupoSel) {
+      _estHorGrupoSel = grupo;
+      var selG = document.getElementById('est-hor-grupo-sel-inline');
+      if (selG) selG.value = grupo;
+      _estRefreshInlineHorario('grupo');
+    }
+    if (docente && tipo !== 'Vacante' && tipo !== 'Tiempo fijo' && docente !== _estHorDocSel) {
+      _estHorDocSel = docente;
+      var selD = document.getElementById('est-hor-doc-sel-inline');
+      if (selD) selD.value = docente;
+      _estRefreshInlineHorario('docente');
+    }
   });
 
   // Copy-paste desde Excel (TSV)
@@ -942,18 +2179,88 @@ function _estBindGrid() {
     pasteRows.forEach(function(rowTxt, ri) {
       var cols = rowTxt.split('\t');
       var tgtRowIdx = rowIdx + ri;
-      while (_estData.length <= tgtRowIdx) _estData.push({});
+      while (_estData.length <= tgtRowIdx) {
+        var nr = {};
+        _estData.push(nr);
+      }
       cols.forEach(function(val, ci) {
         var tgtColIdx = colIdx + ci;
         if (tgtColIdx >= _EST_COLS_.length) return;
         _estData[tgtRowIdx][_EST_COLS_[tgtColIdx].key] = val.replace(/\r/g, '').trim();
       });
+      _estDirtySet.add(_estData[tgtRowIdx]); // marcar cada fila pegada como modificada
     });
 
     _estDirty = true;
+    _estUpdateSaveBtn();
     _estRebuildGrid();
     _estValidarLocal();
   });
+
+  _estBindResizers();
+  _estBindFilters();
+  _estApplyFilters();
+  _estBindInlineHorarios();
+}
+
+function _estBindInlineHorarios() {
+  var selG = document.getElementById('est-hor-grupo-sel-inline');
+  if (selG) {
+    selG.addEventListener('change', function() {
+      _estHorGrupoSel = this.value;
+      _estRefreshInlineHorario('grupo');
+    });
+  }
+  var selD = document.getElementById('est-hor-doc-sel-inline');
+  if (selD) {
+    selD.addEventListener('change', function() {
+      _estHorDocSel = this.value;
+      _estRefreshInlineHorario('docente');
+    });
+  }
+}
+
+function _estRefreshInlineHorario(which) {
+  var cfFilas = {};
+  _estConflictos.errores.forEach(function(e) { if (e.fila) cfFilas[e.fila] = true; });
+
+  if (!which || which === 'grupo') {
+    var gridG = document.getElementById('est-hor-grupo-grid-inline');
+    if (gridG) {
+      gridG.innerHTML = _estHorGrupoSel
+        ? _estTimetableGridHTML(
+            _estData.map(function(r, i) { r._fila_ = i + 1; return r; })
+              .filter(function(r) { return String(r.grupo || '').trim() === _estHorGrupoSel; }),
+            function(row, e) {
+              var slot = e && e.isFirst ? (row[e.dia] || '') : '';
+              return '<span class="arm-tt-uac">' + genEsc(row.uac || '?') + '</span>' +
+                     '<span class="arm-tt-meta">' + genEsc(row.docente || '—') + '</span>' +
+                     (slot ? '<span class="arm-tt-time">' + genEsc(slot) + '</span>' : '');
+            }, cfFilas)
+        : '<p class="gen-hint" style="margin:8px 0">Selecciona un grupo para ver su horario.</p>';
+    }
+  }
+
+  if (!which || which === 'docente') {
+    var gridD = document.getElementById('est-hor-doc-grid-inline');
+    if (gridD) {
+      gridD.innerHTML = _estHorDocSel
+        ? _estTimetableGridHTML(
+            _estData.map(function(r, i) { r._fila_ = i + 1; return r; })
+              .filter(function(r) {
+                var tipo = String(r.tipo_asignacion_docente || '').trim();
+                if (tipo === 'Vacante' || tipo === 'Tiempo fijo') return false;
+                return String(r.docente || '').trim() === _estHorDocSel;
+              }),
+            function(row, e) {
+              var slot = e && e.isFirst ? (row[e.dia] || '') : '';
+              return '<span class="arm-tt-uac">' + genEsc(row.uac || '?') + '</span>' +
+                     '<span class="arm-tt-meta">' + genEsc(row.grupo || '—') + '</span>' +
+                     (slot ? '<span class="arm-tt-time">' + genEsc(slot) + '</span>' : '');
+            }, cfFilas)
+        : '<p class="gen-hint" style="margin:8px 0">Selecciona un docente para ver su horario.</p>';
+    }
+  }
 }
 
 // ── REBUILD GRID (sin re-render total) ──────────────────────────────
@@ -963,11 +2270,237 @@ function _estRebuildGrid() {
   if (!tbody) return;
   var cerrada = _estEstado === 'CERRADA';
   if (_estData.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="'+(_EST_COLS_.length + 2)+'" class="gen-td-empty">Sin filas. Usa "+ Agregar fila" o pega desde Excel.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="'+(_EST_COLS_.length + 3)+'" class="gen-td-empty">Sin filas. Usa "+ Agregar fila" o pega desde Excel.</td></tr>';
   } else {
     tbody.innerHTML = _estData.map(function(row, i) { return _estGridRow(row, i, cerrada); }).join('');
   }
-  // Re-bind grid events (delegated, so they re-attach automatically)
+  _estApplyFilters();
+}
+
+// ── RESIZE DE COLUMNAS ───────────────────────────────────────────────
+
+function _estBindResizers() {
+  document.querySelectorAll('.est-col-resizer').forEach(function(handle) {
+    handle.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var colKey  = handle.dataset.col;
+      var col     = document.querySelector('col[data-col="' + colKey + '"]');
+      var th      = handle.closest('th');
+      var startX  = e.clientX;
+      var startW  = th.offsetWidth;
+
+      document.body.style.cursor    = 'col-resize';
+      document.body.style.userSelect = 'none';
+
+      function onMove(ev) {
+        var w = Math.max(40, startW + ev.clientX - startX);
+        if (col) col.style.width = w + 'px';
+        _estColWidths_[colKey] = w;
+      }
+      function onUp() {
+        document.body.style.cursor    = '';
+        document.body.style.userSelect = '';
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup',   onUp);
+      }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup',   onUp);
+    });
+  });
+}
+
+// ── FILTROS DE COLUMNA ───────────────────────────────────────────────
+
+function _estBindFilters() {
+  document.querySelectorAll('.est-col-filter-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var colKey   = btn.dataset.col;
+      var existing = document.getElementById('est-filter-panel');
+      if (existing && existing.dataset.col === colKey) {
+        _estCloseFilterDropdown();
+        return;
+      }
+      _estShowFilterDropdown(colKey, btn);
+    });
+  });
+}
+
+function _estShowFilterDropdown(colKey, btn) {
+  _estCloseFilterDropdown();
+
+  /* Valores únicos de la columna */
+  var valCount = {};
+  _estData.forEach(function(row) {
+    var v = String(row[colKey] !== undefined ? row[colKey] : '');
+    valCount[v] = (valCount[v] || 0) + 1;
+  });
+  var uniqVals = Object.keys(valCount).sort();
+  var active   = _estColFilters_[colKey] || [];
+  var allOn    = active.length === 0;
+
+  var col      = _EST_COLS_.find(function(c) { return c.key === colKey; });
+  var colLabel = col ? col.label : colKey;
+
+  var checksHtml = uniqVals.map(function(v) {
+    var chk = allOn || active.indexOf(v) !== -1 ? ' checked' : '';
+    return '<label class="est-filter-check">' +
+      '<input type="checkbox" class="est-fval" value="' + genEsc(v) + '"' + chk + '>' +
+      '<span>' + genEsc(v || '(vacío)') + '</span>' +
+      '<small class="est-filter-count">(' + valCount[v] + ')</small>' +
+      '</label>';
+  }).join('');
+
+  var panel = document.createElement('div');
+  panel.className = 'est-filter-panel';
+  panel.id        = 'est-filter-panel';
+  panel.dataset.col = colKey;
+  panel.innerHTML =
+    '<div class="est-filter-hdr">' + genEsc(colLabel) + '</div>' +
+    '<div class="est-filter-srch-wrap"><input type="text" class="est-filter-srch" id="est-flt-srch" placeholder="Buscar…"></div>' +
+    '<div class="est-filter-selall">' +
+      '<label class="est-filter-check"><input type="checkbox" id="est-flt-all"' + (allOn ? ' checked' : '') + '><span>Seleccionar todo</span></label>' +
+    '</div>' +
+    '<div class="est-filter-list" id="est-filter-list">' + checksHtml + '</div>' +
+    '<div class="est-filter-foot">' +
+      '<button class="gen-btn gen-btn-sm gen-btn-ghost" id="est-flt-clear">Limpiar</button>' +
+      '<button class="gen-btn gen-btn-sm gen-btn-primary" id="est-flt-apply">Aplicar</button>' +
+    '</div>';
+
+  document.body.appendChild(panel);
+
+  /* Posición fija relativa al botón */
+  var rect  = btn.getBoundingClientRect();
+  var pw    = 250;
+  var left  = Math.min(rect.left, window.innerWidth - pw - 8);
+  panel.style.cssText += ';position:fixed;top:' + (rect.bottom + 4) + 'px;left:' + left + 'px;width:' + pw + 'px;z-index:9999';
+
+  /* Focus en búsqueda */
+  var srch = document.getElementById('est-flt-srch');
+  if (srch) setTimeout(function() { srch.focus(); }, 0);
+
+  /* Buscar */
+  srch && srch.addEventListener('input', function() {
+    var q = this.value.toLowerCase();
+    document.querySelectorAll('#est-filter-list .est-filter-check').forEach(function(lbl) {
+      var cb = lbl.querySelector('.est-fval');
+      lbl.style.display = (!q || (cb && cb.value.toLowerCase().indexOf(q) !== -1)) ? '' : 'none';
+    });
+  });
+
+  /* Seleccionar todo */
+  var allCb = document.getElementById('est-flt-all');
+  allCb && allCb.addEventListener('change', function() {
+    document.querySelectorAll('.est-fval').forEach(function(cb) { cb.checked = allCb.checked; });
+  });
+
+  /* Sincronizar "seleccionar todo" al marcar individuales */
+  document.getElementById('est-filter-list').addEventListener('change', function() {
+    var total = document.querySelectorAll('.est-fval').length;
+    var chkd  = document.querySelectorAll('.est-fval:checked').length;
+    if (allCb) allCb.checked = total === chkd;
+  });
+
+  /* Limpiar */
+  document.getElementById('est-flt-clear').addEventListener('click', function() {
+    delete _estColFilters_[colKey];
+    _estCloseFilterDropdown();
+    _estApplyFilters();
+  });
+
+  /* Aplicar */
+  document.getElementById('est-flt-apply').addEventListener('click', function() {
+    var all  = document.querySelectorAll('.est-fval');
+    var chkd = Array.from(document.querySelectorAll('.est-fval:checked')).map(function(cb) { return cb.value; });
+    if (chkd.length === all.length) {
+      delete _estColFilters_[colKey];
+    } else {
+      _estColFilters_[colKey] = chkd;
+    }
+    _estCloseFilterDropdown();
+    _estApplyFilters();
+  });
+
+  /* Cerrar al hacer clic fuera */
+  setTimeout(function() {
+    document.addEventListener('mousedown', _estFilterOutside);
+  }, 0);
+}
+
+function _estFilterOutside(e) {
+  var panel = document.getElementById('est-filter-panel');
+  if (!panel) { document.removeEventListener('mousedown', _estFilterOutside); return; }
+  if (!panel.contains(e.target) && !e.target.classList.contains('est-col-filter-btn')) {
+    _estCloseFilterDropdown();
+  }
+}
+
+function _estCloseFilterDropdown() {
+  var panel = document.getElementById('est-filter-panel');
+  if (panel) panel.remove();
+  document.removeEventListener('mousedown', _estFilterOutside);
+}
+
+function _estApplyFilters() {
+  /* Actualizar indicadores de botones de filtro de columna */
+  document.querySelectorAll('.est-col-filter-btn').forEach(function(btn) {
+    var key = btn.dataset.col;
+    btn.classList.toggle('active', !!(  _estColFilters_[key] && _estColFilters_[key].length));
+  });
+
+  var tbody = document.getElementById('est-grid-tbody');
+  if (!tbody) return;
+
+  var hasColFilter = Object.keys(_estColFilters_).some(function(k) {
+    return _estColFilters_[k] && _estColFilters_[k].length;
+  });
+
+  tbody.querySelectorAll('.est-grid-row').forEach(function(tr) {
+    var rowIdx = parseInt(tr.dataset.row, 10);
+    if (isNaN(rowIdx) || !_estData[rowIdx]) { tr.style.display = ''; return; }
+    var row = _estData[rowIdx];
+    var visible = true;
+
+    /* ── Filtros de columna ─────────────────────── */
+    if (hasColFilter) {
+      Object.keys(_estColFilters_).forEach(function(key) {
+        var allowed = _estColFilters_[key];
+        if (!allowed || !allowed.length) return;
+        var val = String(row[key] !== undefined ? row[key] : '');
+        if (allowed.indexOf(val) === -1) visible = false;
+      });
+    }
+
+    /* ── Filtro rápido: tipo ────────────────────── */
+    if (visible && _estQuickTipo) {
+      var rawTipo  = String(row.tipo_asignacion_docente || '').trim();
+      var normTipo = rawTipo.toLowerCase() === 'tiempo fijo' ? 'tiempo_fijo' : rawTipo.toLowerCase();
+      if (!normTipo) normTipo = 'base';
+      if (normTipo !== _estQuickTipo) visible = false;
+    }
+
+    /* ── Filtro rápido: estado ──────────────────── */
+    if (visible && _estQuickStatus) {
+      var tot  = Number(row.tot_horas) || 0;
+      var suma = _EST_DIAS_.reduce(function(s, d) { return s + _estParseHorasDia(row[d]); }, 0);
+      if (_estQuickStatus === 'completo') {
+        if (!(tot > 0 && suma === tot)) visible = false;
+      } else if (_estQuickStatus === 'pendiente') {
+        if (!(tot > 0 && suma !== tot)) visible = false;
+      } else if (_estQuickStatus === 'conflicto') {
+        if (!_estConflictos.errores.some(function(e) { return e.fila === rowIdx + 1; })) visible = false;
+      }
+    }
+
+    /* ── Filtro rápido: grupo (texto) ───────────── */
+    if (visible && _estQuickGrupo) {
+      var grupoVal = String(row.grupo || '').toLowerCase();
+      if (grupoVal.indexOf(_estQuickGrupo.toLowerCase()) === -1) visible = false;
+    }
+
+    tr.style.display = visible ? '' : 'none';
+  });
 }
 
 // ── SWITCH VIEW ──────────────────────────────────────────────────────
@@ -980,37 +2513,141 @@ function _estSwitchView(view) {
   var content = document.getElementById('est-view-content');
   if (content) content.innerHTML = _estViewHTML();
   if (view === 'grid') _estBindGrid();
+  if (view === 'horario_grupo')   _estBindHorarioGrupo();
+  if (view === 'horario_docente') _estBindHorarioDocente();
 }
 
 // ── ACCIONES ─────────────────────────────────────────────────────────
 
 function _estAddRow() {
-  _estData.push({});
+  var nr = {};
+  _estData.push(nr);
+  _estDirtySet.add(nr);
   _estDirty = true;
   _estRebuildGrid();
+  _estUpdateSaveBtn();
 }
 
+// ── PROGRESO DE GUARDADO ─────────────────────────────────────────────
+
+function _estShowSaveProgress(done, total, msg) {
+  var el = document.getElementById('est-save-progress');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'est-save-progress';
+    el.className = 'est-save-progress';
+    var ref = document.getElementById('est-conflict-bar');
+    if (ref && ref.parentNode) ref.parentNode.insertBefore(el, ref.nextSibling);
+    else document.querySelector('.gen-content, #gen-content, body').prepend(el);
+  }
+  var pct = total > 0 ? Math.round(done / total * 100) : 20;
+  el.innerHTML =
+    '<span class="est-save-spin"></span>' +
+    '<span class="est-save-msg">' + genEsc(msg || 'Guardando…') + '</span>' +
+    '<div class="est-save-bar-wrap"><div class="est-save-bar-fill" style="width:' + pct + '%"></div></div>' +
+    (total > 1 ? '<span class="est-save-counter">' + done + ' / ' + total + '</span>' : '');
+}
+
+function _estHideSaveProgress() {
+  var el = document.getElementById('est-save-progress');
+  if (el) el.remove();
+}
+
+function _estUpdateSaveBtn() {
+  var btn = document.getElementById('est-btn-guardar');
+  if (!btn) return;
+  var nChanges = _estDirtySet.size + _estDeleteIds.length;
+  if (nChanges > 0) {
+    btn.innerHTML = '<span style="opacity:.7;margin-right:3px">●</span> Guardar ' +
+      nChanges + ' cambio' + (nChanges !== 1 ? 's' : '');
+    btn.style.background  = '#f59e0b';
+    btn.style.borderColor = '#f59e0b';
+  } else if (!_estDirty) {
+    btn.innerHTML = 'Guardar';
+    btn.style.background  = '';
+    btn.style.borderColor = '';
+  }
+}
+
+// ── GUARDADO INTELIGENTE ──────────────────────────────────────────────
+
+var _EST_SAVE_THRESHOLD_ = 15; // filas ≤ este número → guardado por fila; > este número → reemplazo total
+
 async function _estGuardarTodo() {
-  if (!_estData.length) { genToast('No hay datos que guardar.', 'info'); return; }
+  var nDirty  = _estDirtySet.size;
+  var nDelete = _estDeleteIds.length;
+  var total   = nDirty + nDelete;
+
+  if (!total && !_estDirty) { genToast('No hay cambios que guardar.', 'info'); return; }
+
+  // Si no hay seguimiento granular pero _estDirty está activo, marcar todo como dirty
+  if (total === 0 && _estDirty) {
+    _estData.forEach(function(r) { _estDirtySet.add(r); });
+    nDirty = _estDirtySet.size;
+    total  = nDirty;
+  }
+
   genRequireAdmin(async function() {
     var btn = document.getElementById('est-btn-guardar');
-    if (btn) { btn.disabled = true; btn.textContent = 'Guardando…'; }
+    if (btn) { btn.disabled = true; btn.innerHTML = 'Guardando…'; }
+
     try {
-      // Asignar ciclo y periodo a cada fila antes de enviar
-      var filas = _estData.map(function(row) {
-        var f = Object.assign({}, row);
-        f.ciclo   = _genApp.ciclo;
-        f.periodo = _genApp.periodo || '';
-        return f;
-      });
-      await genAPI.replaceEstructura(_genApp.adminKey, _genApp.ciclo, filas);
-      _estDirty = false;
-      genToast(_estData.length + ' filas guardadas correctamente.', 'ok');
-      if (btn) { btn.disabled = false; btn.textContent = 'Guardar todo'; btn.style.background = ''; btn.style.borderColor = ''; }
+      if (total <= _EST_SAVE_THRESHOLD_) {
+        /* ── Guardado por fila ──────────────────────────────────────── */
+        _estShowSaveProgress(0, total, 'Iniciando guardado…');
+        var done = 0;
+
+        // Primero eliminar filas borradas
+        for (var i = 0; i < _estDeleteIds.length; i++) {
+          _estShowSaveProgress(done, total, 'Eliminando fila del servidor…');
+          await genAPI.deleteEstructuraFila(_genApp.adminKey, _estDeleteIds[i]);
+          done++;
+        }
+
+        // Luego guardar filas modificadas
+        var dirtyArr = Array.from(_estDirtySet);
+        for (var j = 0; j < dirtyArr.length; j++) {
+          _estShowSaveProgress(done, total,
+            'Guardando fila ' + (j + 1) + ' de ' + dirtyArr.length + '…');
+          var fila = Object.assign({}, dirtyArr[j]);
+          fila.ciclo   = _genApp.ciclo;
+          fila.periodo = _genApp.periodo || '';
+          var res = await genAPI.saveEstructuraFila(_genApp.adminKey, fila);
+          // Actualizar el id en memoria si fue un insert nuevo
+          if (res && res.id && !dirtyArr[j].id) dirtyArr[j].id = res.id;
+          done++;
+        }
+
+        _estHideSaveProgress();
+        _estDirtySet.clear();
+        _estDeleteIds = [];
+        _estDirty = false;
+        genToast(total + ' cambio' + (total !== 1 ? 's' : '') + ' guardado' + (total !== 1 ? 's' : '') + ' correctamente.', 'ok');
+
+      } else {
+        /* ── Reemplazo total (muchos cambios) ──────────────────────── */
+        _estShowSaveProgress(0, 1, 'Guardando ' + _estData.length + ' filas…');
+        var filas = _estData.map(function(row) {
+          var f = Object.assign({}, row);
+          f.ciclo   = _genApp.ciclo;
+          f.periodo = _genApp.periodo || '';
+          return f;
+        });
+        await genAPI.replaceEstructura(_genApp.adminKey, _genApp.ciclo, filas);
+        _estHideSaveProgress();
+        _estDirtySet.clear();
+        _estDeleteIds = [];
+        _estDirty = false;
+        genToast(_estData.length + ' filas guardadas correctamente.', 'ok');
+      }
+
+      if (btn) { btn.disabled = false; btn.innerHTML = 'Guardar'; btn.style.background = ''; btn.style.borderColor = ''; }
+
     } catch(err) {
+      _estHideSaveProgress();
       genToast('Error al guardar: ' + err.message, 'error');
-      if (err.message.includes('administrador')) _genApp.adminKey = null;
-      if (btn) { btn.disabled = false; btn.textContent = '● Guardar todo'; }
+      if (err.message && err.message.includes('administrador')) _genApp.adminKey = null;
+      if (btn) { btn.disabled = false; _estUpdateSaveBtn(); }
     }
   });
 }

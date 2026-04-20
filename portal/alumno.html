@@ -15,7 +15,7 @@
   <!-- /PWA -->
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="css/portal.css?v=20260418">
+  <link rel="stylesheet" href="css/portal.css?v=20260419">
 </head>
 <body>
 
@@ -27,7 +27,6 @@
 
 <!-- ══ HEADER ═══════════════════════════════════════════════ -->
 <header class="app-header" id="header">
-  <!-- Izquierda: badge + avatar pequeño + nombre -->
   <div class="app-header-left">
     <div class="app-header-badge">ALUMNO</div>
     <div class="app-header-avatar-sm" id="header-avatar-sm">?</div>
@@ -36,7 +35,6 @@
       <div class="app-header-sub">Bienvenido de nuevo 👋</div>
     </div>
   </div>
-  <!-- Derecha: iniciales + botón salir -->
   <div class="app-header-right">
     <div class="app-header-initials" id="header-initials">?</div>
     <button class="app-btn-logout" onclick="logout()">
@@ -52,7 +50,7 @@
 <!-- ══ MAIN ════════════════════════════════════════════════ -->
 <main class="app-main">
 
-  <!-- PERFIL (Profile Card) -->
+  <!-- PERFIL -->
   <div class="profile-card">
     <div class="profile-avatar" id="hero-avatar">?</div>
     <div class="profile-info">
@@ -60,11 +58,10 @@
       <div class="profile-greeting">Bienvenido de nuevo 👋</div>
       <div class="profile-group" id="hero-group">Grupo —</div>
     </div>
-    <!-- Hidden element kept for JS compatibility -->
     <span id="h-grupo" style="display:none;"></span>
   </div>
 
-  <!-- FECHAS CLAVE (bajo el perfil, antes del grid) -->
+  <!-- FECHAS CLAVE -->
   <div class="fechas-row">
     <div class="fecha-item amber">
       <span class="fecha-dot"></span>
@@ -89,25 +86,52 @@
     </div>
   </div>
 
-  <!-- GRID PRINCIPAL -->
-  <div class="app-grid">
+  <!-- ══ BARRA DE PESTAÑAS ════════════════════════════════════ -->
+  <div class="ptabs-wrap">
+    <nav class="ptabs" id="portal-tabs" role="tablist">
 
-    <!-- ── COLUMNA IZQUIERDA ── -->
-    <div class="app-col">
+      <button class="ptab ptab--active" data-tab="principal" role="tab" aria-selected="true">
+        <i data-lucide="home"></i><span>Principal</span>
+      </button>
 
-      <!-- CALIFICACIONES -->
-      <div class="app-card" id="card-calificaciones">
-        <div class="card-header">
-          <div class="card-icon green-icon"><i data-lucide="bar-chart-2"></i></div>
-          <span class="card-title">Calificaciones</span>
-          <span class="card-dots">···</span>
-        </div>
-        <div class="grades-grid" id="grades-grid">
-          <!-- Renderizado dinámico -->
-        </div>
-      </div>
+      <button class="ptab" data-tab="pec" role="tab" aria-selected="false">
+        <i data-lucide="bar-chart-2"></i><span>PEC</span>
+      </button>
 
-      <!-- ESTA SEMANA -->
+      <button class="ptab" data-tab="horario" role="tab" aria-selected="false">
+        <i data-lucide="calendar-days"></i><span>Horario</span>
+      </button>
+
+      <button class="ptab" data-tab="evaluacion" role="tab" aria-selected="false">
+        <i data-lucide="user-check"></i><span>Evaluación</span>
+        <span class="ptab-dot" id="ptab-dot-eval"></span>
+      </button>
+
+      <button class="ptab" data-tab="prefectura" role="tab" aria-selected="false">
+        <i data-lucide="shield"></i><span>Prefectura</span>
+      </button>
+
+      <button class="ptab" data-tab="cultura" role="tab" aria-selected="false">
+        <i data-lucide="monitor"></i><span>Cultura Digital</span>
+      </button>
+
+      <button class="ptab" data-tab="sagyc" role="tab" aria-selected="false">
+        <i data-lucide="external-link"></i><span>SagyC</span>
+      </button>
+
+    </nav>
+  </div>
+
+  <!-- ══ PANELES ══════════════════════════════════════════════ -->
+  <div class="ptab-panels">
+
+    <!-- ─────────────────────────────────────────────
+         PESTAÑA: PRINCIPAL
+         Actividades de la semana · Semana actual · Avisos
+    ───────────────────────────────────────────────── -->
+    <div class="ptab-panel" id="panel-principal">
+
+      <!-- Esta semana -->
       <div class="app-card">
         <div class="card-header">
           <div class="card-icon teal-icon"><i data-lucide="calendar"></i></div>
@@ -124,7 +148,185 @@
         <div id="vista-dias-portal" style="display:none; margin-top:0.75rem;"></div>
       </div>
 
-      <!-- SISTEMA INTEGRAL SAGYC (Nuevo) -->
+      <!-- Encuesta PEC — aparece cuando está activa (aviso relevante) -->
+      <div id="section-pec-encuesta" style="display:none" class="app-card">
+        <div class="card-header">
+          <div class="card-icon purple-icon"><i data-lucide="clipboard-check"></i></div>
+          <span class="card-title">Encuesta PEC</span>
+        </div>
+        <p style="font-size:0.8rem; color:#64748b; margin:0.5rem 0 1rem;">Tu opinión sobre el programa es importante</p>
+        <a href="../pec/encuesta.html" class="eval-cta-btn" style="background:#7c3aed;">Responder ahora</a>
+      </div>
+
+    </div><!-- /panel-principal -->
+
+    <!-- ─────────────────────────────────────────────
+         PESTAÑA: PEC
+         Calificaciones · Parciales 1, 2 y 3 · Barras
+    ───────────────────────────────────────────────── -->
+    <div class="ptab-panel ptab-panel--hidden" id="panel-pec">
+
+      <div class="app-card" id="card-calificaciones">
+        <div class="card-header">
+          <div class="card-icon green-icon"><i data-lucide="bar-chart-2"></i></div>
+          <span class="card-title">Calificaciones</span>
+          <span class="card-dots">···</span>
+        </div>
+        <div class="grades-grid" id="grades-grid">
+          <!-- Renderizado dinámico -->
+        </div>
+      </div>
+
+    </div><!-- /panel-pec -->
+
+    <!-- ─────────────────────────────────────────────
+         PESTAÑA: HORARIO
+         Horario del grupo · Materias · Docentes · Correos
+    ───────────────────────────────────────────────── -->
+    <div class="ptab-panel ptab-panel--hidden" id="panel-horario">
+
+      <!-- Materias del grupo (docentes + correos incluidos) -->
+      <div class="app-card">
+        <div class="card-header">
+          <div class="card-icon green-icon"><i data-lucide="book-open"></i></div>
+          <span class="card-title">Materias del grupo</span>
+          <span class="card-dots">···</span>
+        </div>
+        <div id="materias-container" class="materias-2col">
+          <p style="font-size:0.75rem; color:#94a3b8; padding:0.55rem 0; grid-column:1/-1;">Cargando lista...</p>
+        </div>
+      </div>
+
+      <!-- Horario semanal -->
+      <div class="app-card hp-card">
+        <div class="card-header">
+          <div class="card-icon" style="background:#eff6ff; color:#1d4ed8;"><i data-lucide="calendar-days"></i></div>
+          <span class="card-title">Mi Horario</span>
+          <span class="hp-badge" id="hp-grupo-badge"></span>
+          <button class="hp-toggle" id="hp-toggle" aria-label="Colapsar horario"
+            onclick="(function(){var b=document.getElementById('hp-body');var t=document.getElementById('hp-toggle');if(b.classList.toggle('hp-hidden')){t.classList.add('collapsed');}else{t.classList.remove('collapsed');}})()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </div>
+        <div id="hp-body" class="hp-body">
+          <div class="hp-loading"><div class="hp-spinner"></div><span>Cargando horario…</span></div>
+        </div>
+      </div>
+
+    </div><!-- /panel-horario -->
+
+    <!-- ─────────────────────────────────────────────
+         PESTAÑA: EVALUACIÓN
+         Evaluación docente · Evaluación directivos
+         Indicador: verde = completo · ámbar = pendiente
+    ───────────────────────────────────────────────── -->
+    <div class="ptab-panel ptab-panel--hidden" id="panel-evaluacion">
+
+      <!-- Evaluación docente -->
+      <div id="section-evaluacion-docentes" style="display:none" class="app-card">
+        <div class="card-header">
+          <div class="card-icon amber-icon"><i data-lucide="user-check"></i></div>
+          <span class="card-title">Evaluación docente</span>
+        </div>
+        <div id="eval-loading-status" style="font-size:0.75rem; color:#94a3b8; margin-top:0.5rem;">Consultando...</div>
+        <div id="eval-progress-container" style="display:none; margin-top:0.75rem;">
+          <div class="eval-bar-track">
+            <div id="eval-bar-fill" class="eval-bar-fill"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.4rem; margin-bottom:0.85rem;">
+            <span id="eval-count-text" style="font-size:0.8rem; color:#475569; font-weight:500;"></span>
+            <span id="eval-percent-text" style="font-size:0.8rem; font-weight:800; color:#059669;">0%</span>
+          </div>
+        </div>
+        <div id="eval-action-box" style="display:none;">
+          <a id="btn-eval-go" href="#" class="eval-access-btn amber-btn"
+             onclick="sessionStorage.setItem('portal_came_from_eval','1')">
+            <i data-lucide="clipboard-list"></i>
+            <span>Evaluar docentes</span>
+            <i data-lucide="arrow-right" class="eval-arrow"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Evaluación directivos -->
+      <div id="section-evaluacion-directivos" style="display:none" class="app-card">
+        <div class="card-header">
+          <div class="card-icon blue-icon"><i data-lucide="building-2"></i></div>
+          <span class="card-title">Evaluación directivos</span>
+        </div>
+        <div id="eval-dir-loading-status" style="font-size:0.75rem; color:#94a3b8; margin-top:0.5rem;">Consultando...</div>
+        <div id="eval-dir-progress-container" style="display:none; margin-top:0.75rem;">
+          <div class="eval-bar-track">
+            <div id="eval-dir-bar-fill" class="eval-bar-fill" style="background: linear-gradient(90deg, #60a5fa, #1d4ed8);"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.4rem; margin-bottom:0.85rem;">
+            <span id="eval-dir-count-text" style="font-size:0.8rem; color:#475569; font-weight:500;"></span>
+            <span id="eval-dir-percent-text" style="font-size:0.8rem; font-weight:800; color:#1d4ed8;">0%</span>
+          </div>
+        </div>
+        <div id="eval-dir-action-box" style="display:none;">
+          <a id="btn-eval-dir-go" href="#" class="eval-access-btn blue-btn"
+             onclick="sessionStorage.setItem('portal_came_from_eval','1')">
+            <i data-lucide="shield-check"></i>
+            <span>Evaluar directivos</span>
+            <i data-lucide="arrow-right" class="eval-arrow"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Placeholder: si la evaluación no está activa -->
+      <div id="eval-inactive-notice" style="display:none;" class="app-card">
+        <div style="text-align:center; padding:2rem 1rem;">
+          <div style="font-size:2.5rem; margin-bottom:0.6rem;">📋</div>
+          <p style="font-size:0.9rem; font-weight:700; color:#1a1a2e; margin-bottom:0.3rem;">Evaluación no disponible</p>
+          <p style="font-size:0.78rem; color:#94a3b8;">El período de evaluación no está activo por el momento.</p>
+        </div>
+      </div>
+
+    </div><!-- /panel-evaluacion -->
+
+    <!-- ─────────────────────────────────────────────
+         PESTAÑA: PREFECTURA
+         Reportes · Estado del alumno
+    ───────────────────────────────────────────────── -->
+    <div class="ptab-panel ptab-panel--hidden" id="panel-prefectura">
+
+      <div id="section-prefectura"></div>
+
+    </div><!-- /panel-prefectura -->
+
+    <!-- ─────────────────────────────────────────────
+         PESTAÑA: CULTURA DIGITAL
+         Acceso rápido (2° y 4° sem) · En construcción
+    ───────────────────────────────────────────────── -->
+    <div class="ptab-panel ptab-panel--hidden" id="panel-cultura">
+
+      <!-- Acceso directo (JS lo muestra/oculta según semestre) -->
+      <div id="portal-acceso-directo" style="display:none;"></div>
+
+      <!-- Placeholder "En construcción" (se oculta si hay acceso directo) -->
+      <div class="app-card" id="cultura-placeholder">
+        <div class="card-header">
+          <div class="card-icon" style="background:#e0f2fe; color:#0284c7;"><i data-lucide="monitor"></i></div>
+          <span class="card-title">Cultura Digital</span>
+        </div>
+        <div style="text-align:center; padding:2rem 1rem 1.5rem;">
+          <div style="font-size:3.2rem; margin-bottom:0.75rem; line-height:1;">🚧</div>
+          <p style="font-size:0.95rem; font-weight:700; color:#1a1a2e; margin-bottom:0.35rem;">En construcción</p>
+          <p style="font-size:0.78rem; color:#94a3b8; line-height:1.5; max-width:260px; margin:0 auto;">
+            Este módulo estará disponible próximamente para todos los semestres.
+          </p>
+        </div>
+      </div>
+
+    </div><!-- /panel-cultura -->
+
+    <!-- ─────────────────────────────────────────────
+         PESTAÑA: SAGYC
+         Acceso al sistema externo · Instrucciones
+    ───────────────────────────────────────────────── -->
+    <div class="ptab-panel ptab-panel--hidden" id="panel-sagyc">
+
       <div class="app-card" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: none;">
         <div class="card-header">
           <div class="card-icon" style="background: rgba(255,255,255,0.1);"><i data-lucide="external-link" style="color:#fff;"></i></div>
@@ -147,154 +349,19 @@
                 </div>
              </div>
           </div>
-          <a href="https://ceb54.sistemas-sagyc.com/login/" target="_blank" class="app-btn-primary" style="background:#fff; color:#1e293b; width:100%; justify-content:center; font-weight:700;">
+          <a href="https://ceb54.sistemas-sagyc.com/login/" target="_blank"
+             style="display:inline-flex; align-items:center; justify-content:center; gap:0.4rem;
+                    background:#fff; color:#1e293b; width:100%; padding:0.7rem 1rem;
+                    border-radius:12px; font-size:0.88rem; font-weight:700; text-decoration:none;
+                    transition:background 0.2s;">
              Entrar a Sagyc <i data-lucide="arrow-up-right" style="width:16px; height:16px;"></i>
           </a>
         </div>
       </div>
 
-      <!-- PREFECTURA -->
-      <div id="section-prefectura"></div>
+    </div><!-- /panel-sagyc -->
 
-    </div><!-- /col izquierda -->
-
-    <!-- ── COLUMNA DERECHA ── -->
-    <div class="app-col">
-
-      <!-- ACCESO RÁPIDO CULTURA DIGITAL (botón compacto, renderizado por JS) -->
-      <div id="portal-acceso-directo" style="display:none;"></div>
-
-      <!-- EVALUACIÓN DOCENTE (status + acceso) -->
-      <div id="section-evaluacion-docentes" style="display:none" class="app-card">
-        <div class="card-header">
-          <div class="card-icon amber-icon"><i data-lucide="user-check"></i></div>
-          <span class="card-title">Evaluación docente</span>
-        </div>
-        <div id="eval-loading-status" style="font-size:0.75rem; color:#94a3b8; margin-top:0.5rem;">Consultando...</div>
-        <div id="eval-progress-container" style="display:none; margin-top:0.75rem;">
-          <div class="eval-bar-track">
-            <div id="eval-bar-fill" class="eval-bar-fill"></div>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.4rem; margin-bottom:0.85rem;">
-            <span id="eval-count-text" style="font-size:0.8rem; color:#475569; font-weight:500;"></span>
-            <span id="eval-percent-text" style="font-size:0.8rem; font-weight:800; color:#059669;">0%</span>
-          </div>
-        </div>
-        <!-- Botón de acceso directo -->
-        <div id="eval-action-box" style="display:none;">
-          <a id="btn-eval-go" href="#" class="eval-access-btn amber-btn"
-             onclick="sessionStorage.setItem('portal_came_from_eval','1')">
-            <i data-lucide="clipboard-list"></i>
-            <span>Evaluar docentes</span>
-            <i data-lucide="arrow-right" class="eval-arrow"></i>
-          </a>
-        </div>
-      </div>
-
-      <!-- EVALUACIÓN DIRECTIVOS (status + acceso) -->
-      <div id="section-evaluacion-directivos" style="display:none" class="app-card">
-        <div class="card-header">
-          <div class="card-icon blue-icon"><i data-lucide="building-2"></i></div>
-          <span class="card-title">Evaluación directivos</span>
-        </div>
-        <div id="eval-dir-loading-status" style="font-size:0.75rem; color:#94a3b8; margin-top:0.5rem;">Consultando...</div>
-        <div id="eval-dir-progress-container" style="display:none; margin-top:0.75rem;">
-          <div class="eval-bar-track">
-            <div id="eval-dir-bar-fill" class="eval-bar-fill" style="background: linear-gradient(90deg, #60a5fa, #1d4ed8);"></div>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.4rem; margin-bottom:0.85rem;">
-            <span id="eval-dir-count-text" style="font-size:0.8rem; color:#475569; font-weight:500;"></span>
-            <span id="eval-dir-percent-text" style="font-size:0.8rem; font-weight:800; color:#1d4ed8;">0%</span>
-          </div>
-        </div>
-        <!-- Botón de acceso directo -->
-        <div id="eval-dir-action-box" style="display:none;">
-          <a id="btn-eval-dir-go" href="#" class="eval-access-btn blue-btn"
-             onclick="sessionStorage.setItem('portal_came_from_eval','1')">
-            <i data-lucide="shield-check"></i>
-            <span>Evaluar directivos</span>
-            <i data-lucide="arrow-right" class="eval-arrow"></i>
-          </a>
-        </div>
-      </div>
-
-
-      <!-- FECHAS CLAVE (widget en sidebar — oculto, las fechas ya están arriba) -->
-      <div class="app-card" id="card-fechas-sidebar">
-        <div class="card-header">
-          <div class="card-icon blue-icon"><i data-lucide="calendar-days"></i></div>
-          <span class="card-title">Fechas clave</span>
-          <span class="card-dots" style="margin-left:auto;">···</span>
-        </div>
-        <div class="fechas-sidebar">
-          <div class="fsb-item">
-            <span class="fsb-dot amber-dot"></span>
-            <div>
-              <div class="fsb-date" id="fsb-captura">30 abril</div>
-              <div class="fsb-label">CAPTURA<br>ESTUDIANTES</div>
-            </div>
-          </div>
-          <div class="fsb-item">
-            <span class="fsb-dot blue-dot"></span>
-            <div>
-              <div class="fsb-date" id="fsb-aclaracion">06 mayo</div>
-              <div class="fsb-label">ACLARACIÓN</div>
-            </div>
-          </div>
-          <div class="fsb-item">
-            <span class="fsb-dot green-dot"></span>
-            <div>
-              <div class="fsb-date" id="fsb-cierre">05 mayo</div>
-              <div class="fsb-label">PUBLICACIÓN</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ENCUESTA PEC -->
-      <div id="section-pec-encuesta" style="display:none" class="app-card">
-        <div class="card-header">
-          <div class="card-icon purple-icon"><i data-lucide="clipboard-check"></i></div>
-          <span class="card-title">Encuesta PEC</span>
-        </div>
-        <p style="font-size:0.8rem; color:#64748b; margin:0.5rem 0 1rem;">Tu opinión sobre el programa es importante</p>
-        <a href="../pec/encuesta.html" class="eval-cta-btn" style="background:#7c3aed;">Responder ahora</a>
-      </div>
-
-      <!-- MATERIAS DEL GRUPO (2 columnas — al final de la columna derecha) -->
-      <div class="app-card">
-        <div class="card-header">
-          <div class="card-icon green-icon"><i data-lucide="book-open"></i></div>
-          <span class="card-title">Materias del grupo</span>
-          <span class="card-dots">···</span>
-        </div>
-        <div id="materias-container" class="materias-2col">
-          <p style="font-size:0.75rem; color:#94a3b8; padding:0.55rem 0; grid-column:1/-1;">Cargando lista...</p>
-        </div>
-      </div>
-
-    </div><!-- /col derecha -->
-
-  </div><!-- /app-grid -->
-
-  <!-- ══ MI HORARIO (sección completa bajo el grid) ══════════════════ -->
-  <div class="hp-section">
-    <div class="app-card hp-card">
-      <div class="card-header">
-        <div class="card-icon" style="background:#eff6ff; color:#1d4ed8;"><i data-lucide="calendar-days"></i></div>
-        <span class="card-title">Mi Horario</span>
-        <span class="hp-badge" id="hp-grupo-badge"></span>
-        <button class="hp-toggle" id="hp-toggle" aria-label="Colapsar horario"
-          onclick="(function(){var b=document.getElementById('hp-body');var t=document.getElementById('hp-toggle');if(b.classList.toggle('hp-hidden')){t.classList.add('collapsed');}else{t.classList.remove('collapsed');}})()">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-      </div>
-      <div id="hp-body" class="hp-body">
-        <!-- Renderizado por horario-portal.js -->
-        <div class="hp-loading"><div class="hp-spinner"></div><span>Cargando horario…</span></div>
-      </div>
-    </div>
-  </div>
+  </div><!-- /ptab-panels -->
 
 </main>
 
@@ -319,7 +386,103 @@ document.addEventListener("DOMContentLoaded", function() {
 <script src="../pec/js/app_calendario.js?v=20260418"></script>
 
 <script>
-/* ══ BLOQUE SEMANA ACTUAL ══════════════════════════════════════════ */
+/* ══ TAB NAVIGATION ═════════════════════════════════════════════════ */
+
+// Lectura temprana del flag antes de que alumno.js lo elimine de forma async
+var _portalInitialTab = (function() {
+  try {
+    return sessionStorage.getItem('portal_came_from_eval') === '1'
+      ? 'evaluacion'
+      : 'principal';
+  } catch(e) { return 'principal'; }
+})();
+
+function ptabSwitch(tabId) {
+  // Actualizar botones
+  document.querySelectorAll('.ptab').forEach(function(btn) {
+    var isActive = btn.dataset.tab === tabId;
+    btn.classList.toggle('ptab--active', isActive);
+    btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+  });
+  // Actualizar paneles
+  document.querySelectorAll('.ptab-panel').forEach(function(panel) {
+    if (panel.id === 'panel-' + tabId) {
+      panel.classList.remove('ptab-panel--hidden');
+    } else {
+      panel.classList.add('ptab-panel--hidden');
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Activar tab inicial (desde flag o principal)
+  ptabSwitch(_portalInitialTab);
+
+  // Bind de clicks
+  document.querySelectorAll('.ptab').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      ptabSwitch(this.dataset.tab);
+      // Centrar tab visible en móvil
+      this.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    });
+  });
+
+  // Cultura Digital: ocultar "en construcción" si el acceso directo se muestra
+  var accesoEl     = document.getElementById('portal-acceso-directo');
+  var culturaPh    = document.getElementById('cultura-placeholder');
+  if (accesoEl && culturaPh) {
+    function _syncCulturaPlaceholder() {
+      var visible = accesoEl.style.display !== 'none' && accesoEl.innerHTML.trim() !== '';
+      culturaPh.style.display = visible ? 'none' : 'block';
+    }
+    new MutationObserver(_syncCulturaPlaceholder)
+      .observe(accesoEl, { attributes: true, childList: true, subtree: true });
+  }
+});
+
+/* ══ INDICADOR DE EVALUACIÓN (punto en la pestaña) ═════════════════ */
+function _updateEvalTabDot() {
+  var dot    = document.getElementById('ptab-dot-eval');
+  var secDoc = document.getElementById('section-evaluacion-docentes');
+  var secDir = document.getElementById('section-evaluacion-directivos');
+  if (!dot) return;
+
+  // Si ninguna sección de eval está activa, ocultar dot
+  var evalActiva = secDoc && secDoc.style.display !== 'none';
+  if (!evalActiva) {
+    dot.className = 'ptab-dot';
+    // Mostrar placeholder
+    var notice = document.getElementById('eval-inactive-notice');
+    if (notice) notice.style.display = 'block';
+    return;
+  }
+
+  var fill    = document.getElementById('eval-bar-fill');
+  var fillDir = document.getElementById('eval-dir-bar-fill');
+  var pct     = fill    ? parseFloat(fill.style.width    || '0') : 0;
+  var pctDir  = fillDir ? parseFloat(fillDir.style.width || '0') : 0;
+
+  var bothLoaded   = pct > 0 || pctDir > 0;
+  var bothComplete = pct >= 100 && pctDir >= 100;
+
+  if (!bothLoaded) { dot.className = 'ptab-dot'; return; }
+  dot.className = 'ptab-dot ptab-dot--show ' + (bothComplete ? 'ptab-dot--ok' : 'ptab-dot--warn');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Observar cambios en las barras de progreso
+  ['eval-bar-fill', 'eval-dir-bar-fill'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) new MutationObserver(_updateEvalTabDot).observe(el, { attributes: true, attributeFilter: ['style'] });
+  });
+  // Observar cuando las secciones se muestran/ocultan
+  ['section-evaluacion-docentes', 'section-evaluacion-directivos'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) new MutationObserver(_updateEvalTabDot).observe(el, { attributes: true, attributeFilter: ['style'] });
+  });
+});
+
+/* ══ BLOQUE SEMANA ACTUAL ════════════════════════════════════��═══════ */
 function renderInfoSemanal() {
     const container = document.getElementById('bloque-semana-portal');
     if (!container) return;
@@ -350,21 +513,15 @@ function renderInfoSemanal() {
     const semana   = getSemanaActual();
     const uniforme = getUniforme();
 
-    // Actualizar metric chip si existe
     const metricWeek = document.getElementById("metric-week");
     if (metricWeek) metricWeek.textContent = semana ? `Sem. ${semana.num}` : "Sem. —";
 
-    const rangoTxt = semana
-        ? `${fmtD(semana.start)} – ${fmtD(semana.end)} abr`
-        : 'Fuera del período escolar';
-
-    // ── Configuración visual por tipo de día ──────────────
     const dia = new Date().getDay();
     const esFinde   = (dia === 0 || dia === 6);
     const esGala    = (dia === 2 || dia === 4);
     const esVacacio = semana && semana.esVacaciones;
 
-    let iconoBox, iconoColor, bgBox, numColor, subTexto, badgeBg, badgeColor, badgeText, iconName;
+    let iconoColor, bgBox, numColor, subTexto, badgeBg, badgeColor, badgeText, iconName;
 
     if (esVacacio) {
         iconoColor = '#7c3aed'; bgBox = '#ede9fe'; numColor = '#5b21b6';
@@ -431,7 +588,7 @@ function _toggleVistaDiasPortal() {
     }
 }
 
-// Restaurar logout correcto
+// Logout
 window.logout = function() {
     portalSession.clear();
     window.location.href = "index.html";
@@ -466,12 +623,10 @@ function syncFechasSidebar() {
         }
     });
 }
-// Observar cambios en las fechas y sincronizar al sidebar
 ['fecha-captura','fecha-aclaracion','fecha-cierre'].forEach(id => {
     const el = document.getElementById(id);
     if (el) new MutationObserver(syncFechasSidebar).observe(el, { childList: true, characterData: true, subtree: true });
 });
-
 </script>
 <script src="js/pwa.js?v=20260418"></script>
 </body>

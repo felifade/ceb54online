@@ -71,7 +71,8 @@ const GEN_SHEETS_ = {
     headers: ['id', 'ciclo', 'periodo', 'plantel', 'grupo', 'turno', 'semestre',
               'campo_disciplinar', 'uac', 'num_componente', 'curriculum_ampliado',
               'componente', 'tot_horas', 'propiedad_uac', 'laboral',
-              'docente', 'formacion_docente',
+              'docente', 'tipo_asignacion_docente', 'docente_tiempo_fijo', 'estatus_cobertura',
+              'formacion_docente',
               'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'horas',
               'grupo_id', 'materia_id', 'docente_id']
   }
@@ -147,6 +148,20 @@ function _genGetAll_(sheetKey, filterFn) {
 }
 
 /** Inserta o actualiza un registro por su id. */
+/**
+ * Ajusta las referencias de fila en una fórmula A1.
+ * Solo modifica referencias relativas (sin $). Ejemplo:
+ *   _adjustRowRef_('=VLOOKUP(M2,Hoja!A:C,3,0)', 2, 5) → '=VLOOKUP(M5,Hoja!A:C,3,0)'
+ */
+function _adjustRowRef_(formula, fromRow, toRow) {
+  if (!formula || fromRow === toRow) return formula;
+  // Captura referencias tipo A2 (relativas) — omite $A$2 (absolutas)
+  return formula.replace(/(\$?[A-Z]+)(\$?)(\d+)/g, function(m, col, dollar, row) {
+    if (dollar === '$') return m;               // fila absoluta → no tocar
+    return parseInt(row) === fromRow ? col + toRow : m;
+  });
+}
+
 function _genUpsert_(sheetKey, record) {
   var def   = GEN_SHEETS_[sheetKey];
   var sheet = _genGetSheet_(sheetKey);
@@ -156,6 +171,18 @@ function _genUpsert_(sheetKey, record) {
     record.id = _genNewId_();
     var row = def.headers.map(function(h) { return record[h] !== undefined ? record[h] : ''; });
     sheet.appendRow(row);
+    var newRowNum = sheet.getLastRow();
+    // Copiar fórmulas de la primera fila de datos (si existe) para las celdas sin valor
+    if (newRowNum > 2) {
+      var tmplFormulas = sheet.getRange(2, 1, 1, sheet.getLastColumn()).getFormulas()[0];
+      tmplFormulas.forEach(function(f, fi) {
+        if (!f) return;
+        var colHeader = (def.headers[fi] || '');
+        if (record[colHeader] !== undefined && record[colHeader] !== '') return; // ya tiene valor
+        var adjusted = _adjustRowRef_(f, 2, newRowNum);
+        sheet.getRange(newRowNum, fi + 1).setFormula(adjusted);
+      });
+    }
     return { action: 'inserted', id: record.id };
   }
 
@@ -165,15 +192,21 @@ function _genUpsert_(sheetKey, record) {
   var idIdx = headers.indexOf('id');
   for (var i = 1; i < data.length; i++) {
     if (String(data[i][idIdx]) === String(record.id)) {
+      // Leer fórmulas ANTES de sobrescribir
+      var existingFormulas = sheet.getRange(i + 1, 1, 1, headers.length).getFormulas()[0];
       var newRow = headers.map(function(h) { return record[h] !== undefined ? record[h] : data[i][headers.indexOf(h)]; });
       sheet.getRange(i + 1, 1, 1, headers.length).setValues([newRow]);
+      // Restaurar fórmulas solo cuando el record NO provee un valor para esa columna
+      existingFormulas.forEach(function(f, fi) {
+        if (f && record[headers[fi]] === undefined) sheet.getRange(i + 1, fi + 1).setFormula(f);
+      });
       return { action: 'updated', id: record.id };
     }
   }
 
   // No encontrado → insertar
-  var row = def.headers.map(function(h) { return record[h] !== undefined ? record[h] : ''; });
-  sheet.appendRow(row);
+  var row2 = def.headers.map(function(h) { return record[h] !== undefined ? record[h] : ''; });
+  sheet.appendRow(row2);
   return { action: 'inserted', id: record.id };
 }
 
@@ -731,6 +764,27 @@ function _genReplaceEstructura_(ciclo, filas, periodo) {
   var headers    = data[0].map(String);
   var cicloIdx   = headers.indexOf('ciclo');
   var periodoIdx = headers.indexOf('periodo');
+  var nCols      = headers.length;
+
+  // ── Capturar plantilla de fórmulas ANTES de borrar ────────────────
+  // Buscar la primera fila del ciclo+periodo que tenga alguna fórmula
+  var formulaTemplates = []; // [{colIdx, formula, srcRow}]
+  for (var t = 1; t < data.length; t++) {
+    var tc = String(data[t][cicloIdx]);
+    var tp = periodoIdx >= 0 ? String(data[t][periodoIdx] || '') : '';
+    if (tc !== String(ciclo)) continue;
+    if (periodo && tp && tp !== String(periodo)) continue;
+    var rowFormulas = sheet.getRange(t + 1, 1, 1, nCols).getFormulas()[0];
+    var hasFml = rowFormulas.some(function(f) { return !!f; });
+    if (hasFml) {
+      rowFormulas.forEach(function(f, fi) {
+        if (f) formulaTemplates.push({ colIdx: fi, formula: f, srcRow: t + 1 });
+      });
+      break; // con una fila plantilla es suficiente
+    }
+  }
+
+  // ── Eliminar filas del ciclo+periodo ──────────────────────────────
   for (var i = data.length - 1; i >= 1; i--) {
     var rowCiclo   = String(data[i][cicloIdx]);
     var rowPeriodo = periodoIdx >= 0 ? String(data[i][periodoIdx] || '') : '';
@@ -738,13 +792,28 @@ function _genReplaceEstructura_(ciclo, filas, periodo) {
     if (periodo && rowPeriodo && rowPeriodo !== String(periodo)) continue;
     sheet.deleteRow(i + 1);
   }
+
+  // ── Insertar filas nuevas y registrar número de fila real ─────────
+  var insertedRowNums = [];
   filas.forEach(function(f) {
     f.ciclo = ciclo;
     if (periodo) f.periodo = periodo;
     if (!f.id) f.id = _genNewId_();
     var row = GEN_SHEETS_.ESTRUCTURA.headers.map(function(h) { return f[h] !== undefined ? f[h] : ''; });
     sheet.appendRow(row);
+    insertedRowNums.push(sheet.getLastRow());
   });
+
+  // ── Re-aplicar fórmulas a cada fila insertada ─────────────────────
+  if (formulaTemplates.length > 0) {
+    insertedRowNums.forEach(function(rowNum) {
+      formulaTemplates.forEach(function(tmpl) {
+        var adjusted = _adjustRowRef_(tmpl.formula, tmpl.srcRow, rowNum);
+        sheet.getRange(rowNum, tmpl.colIdx + 1).setFormula(adjusted);
+      });
+    });
+  }
+
   return { status: 'ok', message: 'Estructura guardada (' + filas.length + ' filas).' };
 }
 
@@ -765,6 +834,20 @@ function _genSaveEstadoEstructura_(ciclo, estado, periodo) {
   cfg['est_fecha_'  + base] = new Date().toISOString().slice(0, 10);
   _genSaveConfig_(cfg);
   return { status: 'ok', estado: estado };
+}
+
+
+/** Parsea horas de un campo de día: acepta número o rango "HH:MM-HH:MM". */
+function _genParseHorasDia_(val) {
+  if (!val) return 0;
+  var s = String(val).trim();
+  var m = s.match(/^(\d{1,2}):(\d{2})\s*[-–]\s*(\d{1,2}):(\d{2})$/);
+  if (m) {
+    var ini = parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+    var fin = parseInt(m[3], 10) * 60 + parseInt(m[4], 10);
+    return fin > ini ? Math.round((fin - ini) / 60) : 0;
+  }
+  return Number(s) || 0;
 }
 
 /** Validaciones server-side de la estructura educativa para un ciclo (y periodo si se indica). */
@@ -798,7 +881,7 @@ function _genValidarEstructura_(ciclo, periodo) {
     }
     // Suma de días ≠ TOT_HORAS
     var dias = ['lunes','martes','miercoles','jueves','viernes'];
-    var sumaDias = dias.reduce(function(s,d) { return s + (Number(row[d])||0); }, 0);
+    var sumaDias = dias.reduce(function(s,d) { return s + _genParseHorasDia_(row[d]); }, 0);
     var tot = Number(row.tot_horas) || 0;
     if (tot > 0 && sumaDias > 0 && sumaDias !== tot) {
       advert.push({ tipo: 'HORAS_INCONSISTENTES', fila: i + 1, grupo: row.grupo,
@@ -811,7 +894,7 @@ function _genValidarEstructura_(ciclo, periodo) {
   data.forEach(function(row) {
     if (!row.docente) return;
     ['lunes','martes','miercoles','jueves','viernes'].forEach(function(dia) {
-      var h = Number(row[dia]) || 0;
+      var h = _genParseHorasDia_(row[dia]);
       if (!h) return;
       var k = String(row.docente).trim() + '|' + dia;
       docenteDia[k] = (docenteDia[k] || 0) + h;

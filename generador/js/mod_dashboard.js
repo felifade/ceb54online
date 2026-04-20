@@ -163,8 +163,8 @@ function _dashHTML(s) {
       <span>${s.gruposConHorario} de ${s.totalGruposRes} grupos con horario asignado</span>
     </div>
     <div class="gen-dash-quick-links">
-      <button class="gen-btn gen-btn-sm gen-btn-secondary" onclick="genNavTo('armado')">
-        Ir a armado de horarios →
+      <button class="gen-btn gen-btn-sm gen-btn-secondary" onclick="genNavTo('estructura')">
+        Ir a Estructura Educativa →
       </button>
     </div>
   </div>
@@ -203,9 +203,9 @@ function _dashHTML(s) {
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
         Carga horaria
       </button>
-      <button class="gen-quick-link" onclick="genNavTo('armado')">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
-        Armar horarios
+      <button class="gen-quick-link" onclick="genNavTo('estructura')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Estructura Educativa
       </button>
     </div>
   </div>

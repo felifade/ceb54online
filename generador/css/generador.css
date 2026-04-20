@@ -27,6 +27,8 @@
   --gen-radius:       8px;
   --gen-shadow:       0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
   --gen-shadow-md:    0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -1px rgba(0,0,0,.06);
+  --gen-card:         #ffffff;
+  --gen-font-mono:    'SF Mono', ui-monospace, Consolas, monospace;
 }
 
 /* ── RESET / BASE ────────────────────────────────────────────────── */
@@ -149,6 +151,27 @@ body {
   border-right: 3px solid var(--gen-sidebar-active);
 }
 .gen-nav-item.active svg { opacity: 1; }
+
+/* Módulo principal — Estructura Educativa */
+.gen-nav-item--primary {
+  font-weight: 600;
+  color: #bfdbfe;
+  border-left: 3px solid #3b82f6;
+  padding-left: 13px; /* compensa el borde */
+  background: rgba(59,130,246,.1);
+  letter-spacing: .01em;
+}
+.gen-nav-item--primary svg { opacity: 1; color: #93c5fd; }
+.gen-nav-item--primary:hover {
+  background: rgba(59,130,246,.2);
+  color: #eff6ff;
+}
+.gen-nav-item--primary.active {
+  background: rgba(59,130,246,.35);
+  color: #eff6ff;
+  border-right: 3px solid #60a5fa;
+  border-left: 3px solid #60a5fa;
+}
 
 .gen-sidebar-footer {
   padding: 12px 16px;
@@ -301,7 +324,7 @@ body {
 }
 .gen-btn:disabled { opacity: .55; cursor: not-allowed; }
 .gen-btn-primary { background: var(--gen-primary); color: #fff; }
-.gen-btn-primary:hover:not(:disabled) { background: var(--gen-primary-dark); }
+.gen-btn-primary:hover:not(:disabled) { background: var(--gen-primary-dark); box-shadow: 0 2px 6px rgba(29,78,216,.35); }
 .gen-btn-secondary { background: var(--gen-surface); color: var(--gen-text); border-color: var(--gen-border); }
 .gen-btn-secondary:hover:not(:disabled) { background: var(--gen-bg); }
 .gen-btn-danger { background: var(--gen-danger); color: #fff; }
@@ -410,7 +433,9 @@ body {
 .gen-table tbody tr:hover { background: #f8fafc; }
 .gen-th-actions { text-align: right; width: 80px; }
 .gen-td-actions { text-align: right; white-space: nowrap; }
-.gen-td-empty { text-align: center; color: var(--gen-muted); padding: 32px; font-style: italic; }
+.gen-td-empty { text-align: center; color: var(--gen-muted); padding: 40px 32px; font-size: 13px; }
+.gen-td-empty::before { content: '—'; display: block; font-size: 22px; margin-bottom: 6px; opacity: .3; font-style: normal; }
+
 .gen-mono { font-family: 'SF Mono', Consolas, monospace; font-size: 12px; }
 .gen-muted { color: var(--gen-muted); font-style: italic; }
 
@@ -461,13 +486,13 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  padding: 64px 24px;
+  gap: 12px;
+  padding: 56px 24px;
   text-align: center;
   color: var(--gen-muted);
 }
-.gen-empty-state svg { width: 48px; height: 48px; opacity: .4; }
-.gen-empty-state p { font-size: 15px; max-width: 400px; }
+.gen-empty-state svg { width: 44px; height: 44px; opacity: .35; }
+.gen-empty-state p { font-size: 14px; max-width: 400px; line-height: 1.55; }
 .gen-error-state { color: var(--gen-danger); }
 .gen-error-state svg { opacity: .5; }
 
@@ -546,9 +571,15 @@ body {
 /* ── DASHBOARD ───────────────────────────────────────────────────── */
 .gen-stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin-bottom: 24px;
+}
+@media (max-width: 1100px) {
+  .gen-stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 500px) {
+  .gen-stats-grid { grid-template-columns: 1fr 1fr; }
 }
 .gen-stat-card {
   background: var(--gen-surface);
@@ -574,10 +605,16 @@ body {
 
 .gen-dash-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
 }
-.gen-dash-card { display: flex; flex-direction: column; }
+@media (max-width: 1100px) {
+  .gen-dash-row { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 700px) {
+  .gen-dash-row { grid-template-columns: 1fr; }
+}
+.gen-dash-card { display: flex; flex-direction: column; min-height: 180px; }
 
 .gen-progress-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
 .gen-progress-bar-container {
@@ -1261,7 +1298,17 @@ body {
   font-size: 12px;
   padding: 4px 5px;
   color: var(--gen-text);
+  -webkit-text-fill-color: var(--gen-text); /* evita que el browser sobreescriba el color al coincidir con datalist */
   font-family: inherit;
+}
+/* Anular estilos de autofill del navegador (Chrome/Edge aplican fondo y color propios) */
+.est-cell:-webkit-autofill,
+.est-cell:-webkit-autofill:hover,
+.est-cell:-webkit-autofill:focus,
+.est-cell:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--gen-text) !important;
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  transition: background-color 9999s ease-in-out 0s;
 }
 .est-cell:focus {
   background: #eff6ff;
@@ -1883,7 +1930,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.05rem;
+  font-size: 15px;
   font-weight: 800;
   flex-shrink: 0;
   letter-spacing: .02em;
@@ -1898,17 +1945,17 @@ body {
 }
 .gen-doc-card-name {
   font-weight: 600;
-  font-size: 0.92rem;
+  font-size: 13px;
   color: var(--gen-text);
   line-height: 1.35;
 }
 .gen-doc-card-clave {
-  font-size: 0.73rem;
+  font-size: 11px;
   color: var(--gen-muted);
   letter-spacing: .04em;
 }
 .gen-doc-card-esp {
-  font-size: 0.8rem;
+  font-size: 12px;
   color: var(--gen-text);
   background: var(--gen-bg);
   border-radius: 6px;
@@ -1920,7 +1967,7 @@ body {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 0.78rem;
+  font-size: 11px;
   color: var(--gen-muted);
   margin-top: 4px;
 }
@@ -1945,7 +1992,7 @@ body {
   color: var(--gen-muted);
   border-radius: 6px;
   padding: 5px 10px;
-  font-size: 0.8rem;
+  font-size: 12px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1971,7 +2018,7 @@ body {
   border: 1.5px dashed var(--gen-border);
   border-radius: 10px;
   padding: 10px 16px;
-  font-size: 0.84rem;
+  font-size: 13px;
   color: var(--gen-muted);
   cursor: pointer;
   margin-bottom: 14px;
@@ -1986,7 +2033,7 @@ body {
 .gen-doc-inactive-toggle--row {
   border-radius: 6px;
   padding: 7px 12px;
-  font-size: 0.8rem;
+  font-size: 12px;
   margin-bottom: 0;
 }
 .gen-doc-inactive-sep td {
@@ -2023,14 +2070,14 @@ body {
   margin-bottom: 8px;
 }
 .est-mat-uac-name {
-  font-size: 0.9rem;
+  font-size: 13px;
   font-weight: 700;
   color: var(--gen-text);
   line-height: 1.35;
   word-break: break-word;
 }
 .est-mat-campo {
-  font-size: 0.75rem;
+  font-size: 11px;
   color: var(--gen-muted);
   margin-top: 2px;
 }
@@ -2056,7 +2103,7 @@ body {
   border-top: 1px solid var(--gen-border);
 }
 .est-mat-section-label {
-  font-size: 0.7rem;
+  font-size: 10px;
   font-weight: 700;
   color: var(--gen-muted);
   text-transform: uppercase;
@@ -2081,13 +2128,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.65rem;
+  font-size: 10px;
   font-weight: 800;
   color: #fff;
   flex-shrink: 0;
 }
 .est-mat-doc-name {
-  font-size: 0.8rem;
+  font-size: 12px;
   color: var(--gen-text);
   flex: 1;
   min-width: 100px;
@@ -2116,13 +2163,13 @@ body {
   border-radius: 4px;
   border: 1px solid;
   padding: 1px 6px;
-  font-size: 0.73rem;
+  font-size: 11px;
   font-weight: 600;
   font-family: var(--gen-font-mono, monospace);
   line-height: 1.5;
 }
 .est-mat-chip-sm {
-  font-size: 0.68rem;
+  font-size: 10px;
   padding: 0 5px;
 }
 
@@ -2151,7 +2198,7 @@ body {
   margin-top: 0;
 }
 .est-mat-comp-title {
-  font-size: 0.78rem;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .07em;
@@ -2161,7 +2208,7 @@ body {
   display: inline-block;
   border-radius: 20px;
   padding: 1px 10px;
-  font-size: 0.73rem;
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -2179,7 +2226,7 @@ body {
 ══════════════════════════════════════════════════════════════════ */
 
 .gen-prec-subtitle {
-  font-size: 0.83rem;
+  font-size: 12px;
   color: var(--gen-muted);
   margin: 0 0 10px;
 }
@@ -2270,3 +2317,896 @@ body {
   border-top: 1px solid var(--gen-border);
 }
 .gen-prec-confirm-row > span { flex: 1; }
+
+/* ── Tipo / Estatus cobertura — badges ───────────────────────────────── */
+.est-cob-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+.est-cob-ok {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: #86efac;
+}
+.est-cob-pend {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fcd34d;
+}
+.est-cob-vacante {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+.est-cob-tf {
+  background: #fff7ed;
+  color: #c2410c;
+  border-color: #fdba74;
+}
+
+/* ── Select cells in the grid (tipo_asig, estatus_cob) ──────────────── */
+.est-cell-sel {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  font-size: 11px;
+  color: var(--gen-text);
+  cursor: pointer;
+  padding: 0 2px;
+  outline: none;
+}
+.est-cell-sel:focus {
+  background: #eff6ff;
+  outline: 1px solid #3b82f6;
+}
+/* Color de fondo según valor seleccionado */
+.est-cell-sel-tipo[value="Tiempo fijo"],
+.est-cell-sel-tipo option[value="Tiempo fijo"]:checked ~ select {
+  color: #c2410c;
+}
+
+/* ── Vista Por Docente — secciones ──────────────────────────────────── */
+.est-doc-section-head {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #f1f5f9;
+  background: #1e293b;
+  border-left: 4px solid #3b82f6;
+  padding: 8px 14px;
+  border-radius: 6px 6px 0 0;
+  margin-top: 20px;
+  margin-bottom: 0;
+}
+.est-doc-section-head--tf {
+  background: #78350f;
+  border-left-color: #d97706;
+}
+.est-doc-section-head--vac {
+  background: #7f1d1d;
+  border-left-color: #ef4444;
+}
+
+/* ── Vista Por Docente — lista de vacantes ──────────────────────────── */
+.est-vac-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #fff1f2;
+  border: 1px solid #fecaca;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  padding: 10px;
+  margin-bottom: 16px;
+}
+.est-vac-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  background: #fff;
+  border: 1px solid #fecaca;
+  border-radius: 5px;
+  font-size: 12px;
+}
+.est-vac-sem {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+.est-vac-uac {
+  flex: 1;
+  font-weight: 500;
+  color: var(--gen-text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.est-vac-grp {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--gen-muted);
+  min-width: 50px;
+}
+
+/* ── Grilla con ancho fijo ───────────────────────────────────────────── */
+.est-grid--fixed {
+  table-layout: fixed;
+}
+
+/* ── Encabezado de columna con filtro + resize ──────────────────────── */
+.est-th-col {
+  position: relative;
+  padding: 0 !important;
+  overflow: hidden;
+  user-select: none;
+}
+.est-th-inner {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 5px 20px 5px 6px; /* espacio derecho para el resizer */
+  min-height: 28px;
+}
+.est-th-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+/* Botón embudo de filtro */
+.est-col-filter-btn {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: transparent;
+  color: #cbd5e1;
+  cursor: pointer;
+  font-size: 11px;
+  border-radius: 3px;
+  padding: 0;
+  line-height: 16px;
+  text-align: center;
+  transition: background .12s, color .12s;
+  opacity: 0;          /* oculto hasta hover del th */
+}
+.est-th-col:hover .est-col-filter-btn,
+.est-col-filter-btn.active {
+  opacity: 1;
+}
+.est-col-filter-btn:hover {
+  background: #e2e8f0;
+  color: #334155;
+}
+.est-col-filter-btn.active {
+  background: #3b82f6;
+  color: #fff !important;
+}
+
+/* Manejador de resize */
+.est-col-resizer {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  cursor: col-resize;
+  background: transparent;
+  transition: background .12s;
+  z-index: 2;
+}
+.est-col-resizer:hover,
+.est-col-resizer:active {
+  background: #3b82f6;
+}
+
+/* ── Panel de filtro flotante ───────────────────────────────────────── */
+.est-filter-panel {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.14);
+  overflow: hidden;
+  font-size: 12px;
+}
+.est-filter-hdr {
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  font-weight: 700;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: #64748b;
+}
+.est-filter-srch-wrap {
+  padding: 8px 10px 4px;
+}
+.est-filter-srch {
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  font-size: 12px;
+  outline: none;
+  box-sizing: border-box;
+  color: var(--gen-text);
+  background: #fff;
+}
+.est-filter-srch:focus { border-color: #3b82f6; }
+.est-filter-selall {
+  padding: 4px 10px 4px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.est-filter-list {
+  max-height: 210px;
+  overflow-y: auto;
+  padding: 4px 10px 6px;
+}
+.est-filter-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #334155;
+  font-size: 12px;
+}
+.est-filter-check:hover { background: #f1f5f9; }
+.est-filter-check input[type="checkbox"] { cursor: pointer; flex-shrink: 0; }
+.est-filter-check > span {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.est-filter-count {
+  color: #94a3b8;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+/* ── Indicador de completitud de horas ─────────────────────────────── */
+.est-th-ind {
+  width: 36px;
+  min-width: 36px;
+  text-align: center;
+  font-size: 10px;
+  color: #94a3b8;
+  font-weight: 600;
+  padding: 4px 2px;
+}
+.est-td-ind {
+  text-align: center;
+  padding: 2px;
+  white-space: nowrap;
+}
+.est-ind-ok {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #16a34a;
+  cursor: default;
+}
+/* Campo de solo lectura (HRS calculado automáticamente) */
+.est-cell-readonly {
+  background: #f1f5f9 !important;
+  color: #64748b !important;
+  cursor: default !important;
+  pointer-events: none;
+  text-align: center;
+  font-weight: 600;
+  border-color: #e2e8f0 !important;
+}
+
+.est-ind-err {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 700;
+  color: #dc2626;
+  cursor: default;
+}
+.est-ind-info {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  cursor: default;
+}
+
+.est-filter-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   CUADRÍCULA SEMANAL (Horario grupo / Horario docente / Armado)
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Página contenedora */
+.arm-tt-page {
+  padding: 4px 0;
+}
+
+/* ── Horarios inline debajo del grid ──────────────────────────────── */
+.est-inline-hor {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 2px solid #e2e8f0;
+}
+.est-inline-hor-panel {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.est-inline-hor-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+.est-inline-hor-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+.est-inline-hor-panel .arm-tt-wrap {
+  padding: 0;
+}
+.est-inline-hor-panel .gen-hint {
+  padding: 14px 16px;
+  color: #94a3b8;
+}
+
+/* Barra de selector */
+.arm-tt-sel-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 2px 14px;
+}
+
+/* Tabla principal */
+.arm-tt-wrap {
+  overflow-x: auto;
+}
+.arm-tt-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+  font-size: 12px;
+}
+
+/* Cabecera */
+.arm-tt-th-hora {
+  width: 80px;
+  min-width: 80px;
+  text-align: center;
+  background: #1e293b;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 6px 4px;
+  border: 1px solid #334155;
+}
+.arm-tt-th-dia {
+  text-align: center;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 8px 6px;
+  border: 1px solid #334155;
+  letter-spacing: .04em;
+}
+
+/* Celda de hora */
+.arm-tt-hora {
+  text-align: center;
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 600;
+  background: #f8fafc;
+  padding: 4px 6px;
+  border: 1px solid #e2e8f0;
+  white-space: nowrap;
+  vertical-align: middle;
+  line-height: 1.3;
+}
+.arm-tt-hora-sep {
+  display: block;
+  color: #cbd5e1;
+  font-size: 9px;
+}
+
+/* Celda de contenido */
+.arm-tt-cell {
+  border: 1px solid #e2e8f0;
+  padding: 3px;
+  vertical-align: top;
+  min-width: 110px;
+  background: #fff;
+}
+.arm-tt-cell.arm-tt-filled {
+  background: #fafbff;
+}
+.arm-tt-cell.arm-tt-conflict {
+  background: #fff5f5;
+}
+
+/* Bloque de materia dentro de celda */
+.arm-tt-item {
+  border-radius: 4px;
+  padding: 4px 6px;
+  margin-bottom: 2px;
+  line-height: 1.35;
+}
+.arm-tt-uac {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+.arm-tt-meta {
+  display: block;
+  font-size: 10px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+/* ── Panel de estadísticas ─────────────────────────────────────────── */
+.arm-stats-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 0 0 18px;
+}
+.arm-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 100px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  gap: 2px;
+}
+.arm-stat-card--ok   { background: #f0fdf4; border-color: #86efac; }
+.arm-stat-card--warn { background: #fffbeb; border-color: #fcd34d; }
+.arm-stat-card--err  { background: #fef2f2; border-color: #fca5a5; }
+.arm-stat-val {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1;
+}
+.arm-stat-card--ok .arm-stat-val   { color: #15803d; }
+.arm-stat-card--warn .arm-stat-val { color: #b45309; }
+.arm-stat-card--err .arm-stat-val  { color: #dc2626; }
+.arm-stat-lbl {
+  font-size: 10px;
+  font-weight: 500;
+  color: #64748b;
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* ── Sección por grupo (vista "Todos") ─────────────────────────────── */
+.arm-grupo-section {
+  margin-bottom: 28px;
+}
+.arm-grupo-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+  padding: 8px 4px 6px;
+  border-bottom: 2px solid #e2e8f0;
+  margin-bottom: 6px;
+  letter-spacing: .03em;
+}
+
+/* Rango de hora en celda */
+.arm-tt-time {
+  display: block;
+  font-size: 9px;
+  color: #94a3b8;
+  font-variant-numeric: tabular-nums;
+  margin-top: 1px;
+}
+
+/* ── Tabs del módulo Horarios (Armado) ─────────────────────────────── */
+.arm-vis-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 0 0 16px;
+  border-bottom: 2px solid #e2e8f0;
+  margin-bottom: 4px;
+}
+.arm-vis-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.arm-vis-tab:hover {
+  background: #f1f5f9;
+  color: #334155;
+}
+.arm-vis-tab.active {
+  background: #1e293b;
+  color: #fff;
+  border-color: #1e293b;
+  font-weight: 600;
+}
+
+/* Badge de conflictos en tab */
+.arm-conflict-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 0 5px;
+  line-height: 1;
+}
+.arm-conflict-badge--err  { background: #ef4444; color: #fff; }
+.arm-conflict-badge--warn { background: #f59e0b; color: #fff; }
+
+/* ════════════════════════════════════════════════════════════════
+   ESTRUCTURA — Dashboard + Filtro Rápido + Mejoras de grilla
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Dashboard de indicadores ───────────────────────────────────── */
+#est-dashboard:empty { display: none; }
+
+.est-dashboard-bar {
+  display: flex;
+  gap: 8px;
+  padding: 10px 0 8px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--gen-border);
+  margin-bottom: 2px;
+}
+
+.est-dash-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  min-width: 72px;
+  cursor: pointer;
+  transition: box-shadow .15s, transform .1s;
+  user-select: none;
+}
+.est-dash-stat:hover { box-shadow: 0 2px 6px rgba(0,0,0,.08); transform: translateY(-1px); }
+
+.est-dash-val {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.est-dash-lbl {
+  font-size: 10px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  white-space: nowrap;
+}
+
+/* Variantes de color */
+.est-dash-stat--ok        { background: #f0fdf4; border-color: #86efac; }
+.est-dash-stat--ok        .est-dash-val { color: #15803d; }
+.est-dash-stat--ok        .est-dash-lbl { color: #16a34a; }
+.est-dash-stat--completo  { background: #eff6ff; border-color: #93c5fd; }
+.est-dash-stat--completo  .est-dash-val { color: #1d4ed8; }
+.est-dash-stat--pendiente { background: #fffbeb; border-color: #fcd34d; }
+.est-dash-stat--pendiente .est-dash-val { color: #92400e; }
+.est-dash-stat--vac       { background: #fef9c3; border-color: #fde047; }
+.est-dash-stat--vac       .est-dash-val { color: #713f12; }
+.est-dash-stat--tf        { background: #fff7ed; border-color: #fdba74; }
+.est-dash-stat--tf        .est-dash-val { color: #c2410c; }
+.est-dash-stat--conflicto { background: #fef2f2; border-color: #fca5a5; }
+.est-dash-stat--conflicto .est-dash-val { color: #991b1b; }
+
+/* ── Barra de filtro rápido ─────────────────────────────────────── */
+.est-qf-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 7px 4px 9px;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 4px;
+}
+.est-qf-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.est-qf-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  white-space: nowrap;
+  margin-right: 1px;
+}
+.est-qf-chip {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .12s, color .12s, border-color .12s;
+  line-height: 1.5;
+}
+.est-qf-chip:hover { background: #e2e8f0; color: #1e293b; }
+.est-qf-chip.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #fff;
+  font-weight: 600;
+}
+.est-qf-clear { background: #fef2f2; border-color: #fca5a5; color: #dc2626; }
+.est-qf-clear:hover { background: #fee2e2; }
+
+.est-qf-grupo-wrap { flex: 1; min-width: 160px; max-width: 260px; }
+.est-qf-grupo-inp {
+  display: block;
+  width: 100%;
+  font-size: 12px;
+  padding: 3px 9px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  outline: none;
+  background: #fff;
+  color: #1e293b;
+  transition: border-color .15s;
+}
+.est-qf-grupo-inp:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.15); }
+.est-qf-grupo-inp::placeholder { color: #94a3b8; }
+
+/* ── Coloreado de filas por tipo de asignación ──────────────────── */
+tr.est-row-tf:not(.est-row-error):not(.est-row-warn) > td {
+  background-color: #fffcf0 !important;
+}
+tr.est-row-tf:not(.est-row-error):not(.est-row-warn) > td:first-child {
+  border-left: 3px solid #f59e0b;
+}
+tr.est-row-vacante:not(.est-row-error):not(.est-row-warn) > td {
+  background-color: #fff8f8 !important;
+}
+tr.est-row-vacante:not(.est-row-error):not(.est-row-warn) > td:first-child {
+  border-left: 3px solid #f87171;
+}
+
+/* ── Fila seleccionada por clic ─────────────────────────────────── */
+tr.est-row-selected > td {
+  background-color: #eff6ff !important;
+}
+tr.est-row-selected > td:first-child {
+  border-left: 3px solid #3b82f6;
+}
+
+/* ── Barra de progreso de guardado ─────────────────────────────── */
+.est-save-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 16px;
+  background: #1e3a8a;
+  color: #eff6ff;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(30,58,138,.25);
+}
+.est-save-spin {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255,255,255,.3);
+  border-top-color: #93c5fd;
+  border-radius: 50%;
+  animation: est-spin .7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes est-spin { to { transform: rotate(360deg); } }
+.est-save-msg { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.est-save-bar-wrap {
+  width: 100px;
+  height: 6px;
+  background: rgba(255,255,255,.2);
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.est-save-bar-fill {
+  height: 100%;
+  background: #60a5fa;
+  border-radius: 3px;
+  transition: width .25s ease;
+  min-width: 6px;
+}
+.est-save-counter {
+  font-size: 11px;
+  opacity: .75;
+  min-width: 44px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+/* ── Botón duplicar fila ────────────────────────────────────────── */
+.est-td-actions {
+  white-space: nowrap;
+  padding: 2px 4px !important;
+  vertical-align: middle;
+}
+.est-dup-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  cursor: pointer;
+  margin-right: 2px;
+  vertical-align: middle;
+  transition: background .12s, color .12s;
+}
+.est-dup-row:hover { background: #e0f2fe; color: #0369a1; border-color: #7dd3fc; }
+.est-dup-row svg { pointer-events: none; }
+
+/* ── Barra de filtros en vistas horario-grupo / horario-docente ─── */
+.est-hor-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 20px;
+  padding: 8px 12px;
+  background: var(--gen-bg);
+  border: 1px solid var(--gen-border);
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+.est-hor-filter-bar .est-qf-group { gap: 4px; }
+
+/* ── Secciones "Todos los grupos / docentes" ────────────────────── */
+.est-todos-section {
+  margin-bottom: 28px;
+}
+.est-todos-section:last-child { margin-bottom: 0; }
+
+.est-todos-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 6px 6px 0 0;
+  margin-bottom: 0;
+  flex-wrap: wrap;
+}
+.est-todos-header--doc {
+  background: var(--gen-bg);
+  border: 1px solid var(--gen-border);
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+}
+
+.est-todos-name {
+  font-size: 14px;
+  font-weight: 700;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.est-todos-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: rgba(0,0,0,.07);
+  color: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.est-todos-badge--sem { background: #e0e7ff; color: #3730a3; }
+.est-todos-badge--cnt { background: #f1f5f9; color: #475569; }
+
+/* Cabecera de docente */
+.est-todos-doc-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--gen-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.est-todos-doc-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+.est-todos-doc-form {
+  font-size: 11px;
+  color: var(--gen-muted);
+}
