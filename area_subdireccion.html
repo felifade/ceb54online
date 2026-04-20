@@ -16,8 +16,7 @@
             const auth  = sessionStorage.getItem('tutorias_auth');
             const email = sessionStorage.getItem('user_email');
             if (!auth || !email) {
-                sessionStorage.setItem('pec_redirect_after_login', window.location.href);
-                window.location.href = 'pec/login.html';
+                window.location.href = 'admin/index.html';
             }
         })();
     </script>
@@ -25,8 +24,8 @@
 <body style="background-color: #f1f5f9; font-family: 'Inter', sans-serif;">
 
     <div class="area-layout">
-        <a href="acceso.html" class="btn-back">
-            <i data-lucide="arrow-left"></i> Regresar a Comunidad
+        <a href="admin/index.html" class="btn-back">
+            <i data-lucide="arrow-left"></i> Regresar al Portal
         </a>
 
         <header class="area-header" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
@@ -105,5 +104,6 @@
     </div>
 
     <script src="pec/js/app_areas.js?v=20260418"></script>
+    <script>if(window.self!==window.top)document.body.classList.add('in-iframe');</script>
 </body>
 </html>

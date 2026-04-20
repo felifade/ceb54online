@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <script>
+    (function(){
+      var auth  = sessionStorage.getItem('tutorias_auth');
+      var email = sessionStorage.getItem('user_email');
+      if (auth !== 'true' || !email) window.location.replace('../admin/index.html');
+    })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Generador de Horarios — CEB 5/4</title>
@@ -22,7 +29,7 @@
     <!-- PRINCIPAL -->
     <div class="gen-nav-section">Principal</div>
 
-    <button class="gen-nav-item gen-nav-item--primary" data-mod="estructura">
+    <button class="gen-nav-item gen-nav-item--primary" data-mod="estructura" title="Estructura Educativa">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
         <polyline points="14 2 14 8 20 8"/>
@@ -30,58 +37,58 @@
         <line x1="16" y1="17" x2="8" y2="17"/>
         <polyline points="10 9 9 9 8 9"/>
       </svg>
-      Estructura Educativa
+      <span>Estructura Educativa</span>
     </button>
 
-    <button class="gen-nav-item" data-mod="dashboard">
+    <button class="gen-nav-item" data-mod="dashboard" title="Dashboard">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
         <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
       </svg>
-      Dashboard
+      <span>Dashboard</span>
     </button>
 
     <!-- CATÁLOGOS -->
-    <div class="gen-nav-section">Catálogos</div>
+    <div class="gen-nav-section"><span>Catálogos</span></div>
 
-    <button class="gen-nav-item" data-mod="docentes">
+    <button class="gen-nav-item" data-mod="docentes" title="Docentes">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
         <circle cx="12" cy="7" r="4"/>
       </svg>
-      Docentes
+      <span>Docentes</span>
     </button>
 
-    <button class="gen-nav-item" data-mod="grupos">
+    <button class="gen-nav-item" data-mod="grupos" title="Grupos">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
         <circle cx="9" cy="7" r="4"/>
         <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
         <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
       </svg>
-      Grupos
+      <span>Grupos</span>
     </button>
 
-    <button class="gen-nav-item" data-mod="materias">
+    <button class="gen-nav-item" data-mod="materias" title="Materias / UAC">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
         <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
       </svg>
-      Materias / UAC
+      <span>Materias / UAC</span>
     </button>
 
-    <button class="gen-nav-item" data-mod="aulas">
+    <button class="gen-nav-item" data-mod="aulas" title="Aulas">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <rect x="3" y="3" width="18" height="18" rx="2"/>
         <path d="M3 9h18"/><path d="M9 21V9"/>
       </svg>
-      Aulas
+      <span>Aulas</span>
     </button>
 
     <!-- PLANIFICACIÓN -->
-    <div class="gen-nav-section">Planificación</div>
+    <div class="gen-nav-section"><span>Planificación</span></div>
 
-    <button class="gen-nav-item" data-mod="horarios_iniciales">
+    <button class="gen-nav-item" data-mod="horarios_iniciales" title="Horarios iniciales">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
         <line x1="16" y1="2" x2="16" y2="6"/>
@@ -89,10 +96,10 @@
         <line x1="3" y1="10" x2="21" y2="10"/>
         <line x1="8" y1="14" x2="8" y2="14"/>
       </svg>
-      Horarios iniciales
+      <span>Horarios iniciales</span>
     </button>
 
-    <button class="gen-nav-item" data-mod="carga">
+    <button class="gen-nav-item" data-mod="carga" title="Carga horaria">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="8" y1="6" x2="21" y2="6"/>
         <line x1="8" y1="12" x2="21" y2="12"/>
@@ -101,41 +108,23 @@
         <line x1="3" y1="12" x2="3.01" y2="12"/>
         <line x1="3" y1="18" x2="3.01" y2="18"/>
       </svg>
-      Carga horaria
+      <span>Carga horaria</span>
     </button>
 
-    <button class="gen-nav-item" data-mod="disponibilidad">
+    <button class="gen-nav-item" data-mod="disponibilidad" title="Disponibilidad">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
         <line x1="16" y1="2" x2="16" y2="6"/>
         <line x1="8" y1="2" x2="8" y2="6"/>
         <line x1="3" y1="10" x2="21" y2="10"/>
       </svg>
-      Disponibilidad
+      <span>Disponibilidad</span>
     </button>
 
     <!-- HERRAMIENTAS -->
-    <div class="gen-nav-section">Herramientas</div>
+    <div class="gen-nav-section"><span>Herramientas</span></div>
 
-    <button class="gen-nav-item" data-mod="armado">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="3" width="18" height="18" rx="2"/>
-        <path d="M3 9h18"/><path d="M3 15h18"/>
-        <path d="M9 3v18"/><path d="M15 3v18"/>
-      </svg>
-      Visor de horarios
-    </button>
-
-    <button class="gen-nav-item" data-mod="conflictos">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-        <line x1="12" y1="9" x2="12" y2="13"/>
-        <line x1="12" y1="17" x2="12.01" y2="17"/>
-      </svg>
-      Conflictos
-    </button>
-
-    <button class="gen-nav-item" data-mod="reportes">
+    <button class="gen-nav-item" data-mod="reportes" title="Reportes">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
         <polyline points="14 2 14 8 20 8"/>
@@ -143,18 +132,18 @@
         <line x1="16" y1="17" x2="8" y2="17"/>
         <polyline points="10 9 9 9 8 9"/>
       </svg>
-      Reportes
+      <span>Reportes</span>
     </button>
 
     <!-- SISTEMA -->
-    <div class="gen-nav-section">Sistema</div>
+    <div class="gen-nav-section"><span>Sistema</span></div>
 
-    <button class="gen-nav-item" data-mod="config">
+    <button class="gen-nav-item" data-mod="config" title="Configuración">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="3"/>
         <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
       </svg>
-      Configuración
+      <span>Configuración</span>
     </button>
   </div>
 
@@ -245,8 +234,6 @@
 <script src="js/mod_aulas.js"></script>
 <script src="js/mod_carga.js"></script>
 <script src="js/mod_disponibilidad.js"></script>
-<script src="js/mod_armado.js"></script>
-<script src="js/mod_conflictos.js"></script>
 <script src="js/mod_reportes.js"></script>
 <script src="js/mod_estructura.js"></script>
 <script src="js/mod_horarios_iniciales.js"></script>

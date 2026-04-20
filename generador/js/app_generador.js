@@ -329,7 +329,16 @@ function genSetPeriodo(p) {
 // ── SIDEBAR TOGGLE (MÓVIL) ────────────────────────────────────────
 function genToggleSidebar() {
   var sidebar = document.getElementById('gen-sidebar');
-  if (sidebar) sidebar.classList.toggle('open');
+  if (!sidebar) return;
+  if (window.innerWidth <= 700) {
+    /* Mobile: mostrar/ocultar */
+    sidebar.classList.toggle('open');
+  } else {
+    /* Desktop: colapsar/expandir */
+    var collapsed = sidebar.classList.toggle('collapsed');
+    document.body.classList.toggle('gen-collapsed', collapsed);
+    localStorage.setItem('gen_sidebar_collapsed', collapsed ? '1' : '0');
+  }
 }
 
 // ── INICIALIZACIÓN ────────────────────────────────────────────────
@@ -357,7 +366,11 @@ async function genInit() {
     });
   });
 
-  // Sidebar toggle
+  // Sidebar toggle — restaurar estado guardado
+  if (localStorage.getItem('gen_sidebar_collapsed') === '1' && window.innerWidth > 700) {
+    var s = document.getElementById('gen-sidebar');
+    if (s) { s.classList.add('collapsed'); document.body.classList.add('gen-collapsed'); }
+  }
   var toggleBtn = document.getElementById('gen-sidebar-toggle');
   if (toggleBtn) toggleBtn.addEventListener('click', genToggleSidebar);
 

@@ -11,12 +11,19 @@
     <link rel="stylesheet" href="style.css?v=20260418">
     <link rel="stylesheet" href="pec/css/areas.css?v=20260418">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        (function(){
+            var auth  = sessionStorage.getItem('tutorias_auth');
+            var email = sessionStorage.getItem('user_email');
+            if (!auth || !email) window.location.href = 'admin/index.html';
+        })();
+    </script>
 </head>
 <body style="background-color: #f1f5f9; font-family: 'Inter', sans-serif;">
 
     <div class="area-layout">
-        <a href="acceso.html" class="btn-back">
-            <i data-lucide="arrow-left"></i> Regresar a Comunidad
+        <a href="admin/index.html" class="btn-back">
+            <i data-lucide="arrow-left"></i> Regresar al Portal
         </a>
 
         <header class="area-header" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);">
@@ -48,5 +55,6 @@
     </div>
 
     <script src="pec/js/app_areas.js?v=20260418"></script>
+    <script>if(window.self!==window.top)document.body.classList.add('in-iframe');</script>
 </body>
 </html>

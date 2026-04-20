@@ -363,6 +363,10 @@ function _estPageHTML() {
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
     Grilla
   </button>
+  <button class="est-view-tab${_estView==='capv'?' active':''}" data-view="capv">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/></svg>
+    Captura visual
+  </button>
   <button class="est-view-tab${_estView==='grupo'?' active':''}" data-view="grupo">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
     Por grupo
@@ -404,6 +408,7 @@ function _estViewHTML() {
   if (_estView === 'conflictos')     return _estConflictosHTML();
   if (_estView === 'horario_grupo')  return _estHorarioGrupoHTML();
   if (_estView === 'horario_docente')return _estHorarioDocenteHTML();
+  if (_estView === 'capv')           return _estCapvHTML();
   return '';
 }
 
@@ -2506,6 +2511,7 @@ function _estApplyFilters() {
 // ── SWITCH VIEW ──────────────────────────────────────────────────────
 
 function _estSwitchView(view) {
+  if (view !== 'capv') _estCapvBrush = -1;
   _estView = view;
   document.querySelectorAll('.est-view-tab').forEach(function(b) {
     b.classList.toggle('active', b.dataset.view === view);
@@ -2854,4 +2860,421 @@ function _estExportarCSV() {
   a.click();
   setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
   genToast('Archivo CSV descargado.', 'ok');
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  CAPTURA VISUAL DE HORARIOS
+// ══════════════════════════════════════════════════════════════════════
+
+var _estCapvGrupo    = '';  // grupo activo (modo grupo)
+var _estCapvBrush    = -1;  // rowIdx del pincel (-1 = sin selección)
+var _estCapvPendDia  = '';  // día pendiente para el picker
+var _estCapvMode     = 'grupo';  // 'grupo' | 'docente'
+var _estCapvDocente  = '';       // docente activo (modo docente)
+
+var _CAPV_HOURS_ = (function() {
+  var h = []; for (var i = 7; i <= 21; i++) h.push(i); return h;
+})();
+var _CAPV_DIA_LABELS_ = ['Lunes','Martes','Miércoles','Jueves','Viernes'];
+var _CAPV_PALETTE_ = [
+  '#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4',
+  '#f97316','#84cc16','#ec4899','#14b8a6','#6366f1','#eab308',
+  '#22c55e','#0ea5e9','#a855f7','#f43f5e','#64748b','#7c3aed','#059669','#dc2626'
+];
+
+function _estCapvColor(i) { return _CAPV_PALETTE_[i % _CAPV_PALETTE_.length]; }
+
+function _estCapvGruposList() {
+  var seen = {}, list = [];
+  _estData.forEach(function(r) {
+    var g = String(r.grupo||'').trim(); if (g && !seen[g]) { seen[g]=true; list.push(g); }
+  });
+  return list.sort();
+}
+
+function _estCapvRowsForGrupo(grupo) {
+  return _estData.reduce(function(acc, r, i) {
+    if (String(r.grupo||'').trim() === grupo) acc.push(i); return acc;
+  }, []);
+}
+
+/* Mapa de ocupación: map[dia][hora] = {rowIdx, isFirst, color, uac, docente, span} */
+function _estCapvBuildMap(rowIndices) {
+  var map = {}; _EST_DIAS_.forEach(function(d){ map[d]={}; });
+  rowIndices.forEach(function(rowIdx, ci) {
+    var row = _estData[rowIdx], color = _estCapvColor(ci);
+    _EST_DIAS_.forEach(function(dia) {
+      var val = String(row[dia]||'').trim(); if (!val) return;
+      var m = val.match(/^(\d{1,2}):(\d{2})\s*[-–]\s*(\d{1,2}):(\d{2})$/);
+      if (!m) return;
+      var hs = parseInt(m[1],10), he = parseInt(m[3],10);
+      for (var h = hs; h < he; h++) {
+        map[dia][h] = { rowIdx:rowIdx, isFirst:h===hs, slot:val, color:color,
+          uac:String(row.uac||'').trim(), docente:String(row.docente||'').trim(),
+          grupo:String(row.grupo||'').trim(), span:he-hs };
+      }
+    });
+  });
+  return map;
+}
+
+/* Detecta conflicto de docente para un slot propuesto */
+function _estCapvConflicto(docente, dia, slotLabel, excludeRowIdx) {
+  if (!docente) return null;
+  var m = slotLabel.match(/^(\d{1,2}):(\d{2})\s*[-–]\s*(\d{1,2}):(\d{2})$/);
+  if (!m) return null;
+  var hs = parseInt(m[1],10), he = parseInt(m[3],10);
+  for (var i=0; i<_estData.length; i++) {
+    if (i===excludeRowIdx) continue;
+    var row = _estData[i];
+    if (String(row.docente||'').trim() !== docente) continue;
+    var v = String(row[dia]||'').trim(); if (!v) continue;
+    var m2 = v.match(/^(\d{1,2}):(\d{2})\s*[-–]\s*(\d{1,2}):(\d{2})$/);
+    if (!m2) continue;
+    var s2=parseInt(m2[1],10), e2=parseInt(m2[3],10);
+    if (hs<e2 && he>s2) return { uac:String(row.uac||'').trim(), grupo:String(row.grupo||'').trim() };
+  }
+  return null;
+}
+
+/* Lista de docentes con al menos una materia asignada (excluye vacantes) */
+function _estCapvDocList() {
+  var seen = {}, list = [];
+  _estData.forEach(function(r) {
+    if (String(r.tipo_asignacion_docente||'').trim() === 'Vacante') return;
+    var d = String(r.docente||'').trim(); if (d && !seen[d]) { seen[d]=true; list.push(d); }
+  });
+  return list.sort();
+}
+
+/* Índices de filas donde row.docente === docente (excluye vacantes) */
+function _estCapvRowsForDocente(docente) {
+  return _estData.reduce(function(acc, r, i) {
+    if (String(r.tipo_asignacion_docente||'').trim() === 'Vacante') return acc;
+    if (String(r.docente||'').trim() === docente) acc.push(i);
+    return acc;
+  }, []);
+}
+
+/* Devuelve filas del contexto activo (grupo o docente) */
+function _estCapvCurrentRows() {
+  return _estCapvMode === 'docente'
+    ? _estCapvRowsForDocente(_estCapvDocente)
+    : _estCapvRowsForGrupo(_estCapvGrupo);
+}
+
+/* Verifica si el grupo del row ya tiene algo asignado en ese slot */
+function _estCapvGrupoConflicto(grupo, dia, slotLabel, excludeRowIdx) {
+  if (!grupo) return null;
+  var m = slotLabel.match(/^(\d{1,2}):(\d{2})\s*[-–]\s*(\d{1,2}):(\d{2})$/);
+  if (!m) return null;
+  var hs = parseInt(m[1],10), he = parseInt(m[3],10);
+  for (var i=0; i<_estData.length; i++) {
+    if (i===excludeRowIdx) continue;
+    var row = _estData[i];
+    if (String(row.grupo||'').trim() !== grupo) continue;
+    var v = String(row[dia]||'').trim(); if (!v) continue;
+    var m2 = v.match(/^(\d{1,2}):(\d{2})\s*[-–]\s*(\d{1,2}):(\d{2})$/);
+    if (!m2) continue;
+    var s2=parseInt(m2[1],10), e2=parseInt(m2[3],10);
+    if (hs<e2 && he>s2) return { uac:String(row.uac||'').trim() };
+  }
+  return null;
+}
+
+/* Cambia modo y re-renderiza la vista completa de captura visual */
+function _estCapvCambiarModo(m) {
+  _estCapvMode  = m;
+  _estCapvBrush = -1;
+  var cont = document.getElementById('est-view-content');
+  if (cont) cont.innerHTML = _estCapvHTML();
+}
+
+function _estCapvCambiarDocente(d) {
+  _estCapvDocente = d;
+  _estCapvBrush   = -1;
+  _estCapvRefresh();
+}
+
+// ── Render principal ──────────────────────────────────────────────────
+
+function _estCapvSelectorHTML() {
+  if (_estCapvMode === 'docente') {
+    var docs = _estCapvDocList();
+    if (!docs.length) return '<span class="est-capv-hint" style="color:#f59e0b">Sin docentes asignados aún.</span>';
+    if (!_estCapvDocente || docs.indexOf(_estCapvDocente)===-1) _estCapvDocente = docs[0];
+    return '<label class="est-capv-grupo-label">Docente:</label>'+
+      '<select id="est-capv-doc-sel" class="est-capv-grupo-sel" onchange="_estCapvCambiarDocente(this.value)">'+
+      docs.map(function(d){ return '<option value="'+genEsc(d)+'"'+(d===_estCapvDocente?' selected':'')+'>'+genEsc(d)+'</option>'; }).join('')+
+      '</select>';
+  }
+  var grupos = _estCapvGruposList();
+  if (!_estCapvGrupo || grupos.indexOf(_estCapvGrupo)===-1) _estCapvGrupo = grupos[0]||'';
+  return '<label class="est-capv-grupo-label">Grupo:</label>'+
+    '<select id="est-capv-sel" class="est-capv-grupo-sel" onchange="_estCapvCambiarGrupo(this.value)">'+
+    grupos.map(function(g){ return '<option value="'+genEsc(g)+'"'+(g===_estCapvGrupo?' selected':'')+'>'+genEsc(g)+'</option>'; }).join('')+
+    '</select>';
+}
+
+function _estCapvHTML() {
+  var grupos = _estCapvGruposList();
+  if (!grupos.length)
+    return '<div class="gen-empty-state" style="margin-top:32px"><p>No hay datos en la estructura todavía.</p></div>';
+
+  var modeBar =
+    '<div class="est-capv-mode-bar">'+
+      '<button class="est-capv-mode-btn'+(_estCapvMode==='grupo'?' active':'')+'" data-mode="grupo" onclick="_estCapvCambiarModo(\'grupo\')">'+
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Por grupo</button>'+
+      '<button class="est-capv-mode-btn'+(_estCapvMode==='docente'?' active':'')+'" data-mode="docente" onclick="_estCapvCambiarModo(\'docente\')">'+
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Por docente</button>'+
+    '</div>';
+
+  var topbar = '<div class="est-capv-topbar">'+
+    modeBar+
+    '<span id="est-capv-topbar-sel" style="display:contents">'+_estCapvSelectorHTML()+'</span>'+
+    '<span class="est-capv-hint">Selecciona una materia (panel izq.) · clic en bloque vacío para asignar · clic en bloque ocupado para quitar</span>'+
+    '</div>';
+
+  return topbar + '<div id="est-capv-inner">'+_estCapvInnerHTML()+'</div>';
+}
+
+function _estCapvInnerHTML() {
+  var rows = _estCapvCurrentRows();
+  var map  = _estCapvBuildMap(rows);
+  var panel = _estCapvMode === 'docente' ? _estCapvPanelDocHTML(rows) : _estCapvPanelHTML(rows);
+  return '<div class="est-capv-layout">'+panel+_estCapvGridHTML(rows, map)+'</div>';
+}
+
+function _estCapvPanelHTML(rowIndices) {
+  if (!rowIndices.length)
+    return '<div class="est-capv-panel"><p class="est-capv-empty">Sin materias para este grupo.</p></div>';
+
+  var items = rowIndices.map(function(rowIdx,i) {
+    var row   = _estData[rowIdx];
+    var color = _estCapvColor(i);
+    var uac   = String(row.uac||'').trim() || '(sin nombre)';
+    var doc   = String(row.docente||'').trim() || '—';
+    var tot   = Number(row.tot_horas)||0;
+    var asig  = _EST_DIAS_.reduce(function(s,d){ return s+_estParseHorasDia(row[d]); },0);
+    var pct   = tot>0 ? Math.min(100,Math.round(asig/tot*100)) : 0;
+    var isAct = _estCapvBrush===rowIdx;
+    var isFin = tot>0 && asig>=tot;
+    return '<div class="est-capv-mi'+(isAct?' est-capv-mi--active':'')+(isFin?' est-capv-mi--complete':'')+'" '+
+      'onclick="_estCapvPickBrush('+rowIdx+')" title="'+genEsc(uac)+'">' +
+      '<div class="est-capv-mi-color" style="background:'+color+'"></div>'+
+      '<div class="est-capv-mi-body">'+
+        '<div class="est-capv-mi-uac">'+genEsc(uac)+'</div>'+
+        '<div class="est-capv-mi-doc">'+genEsc(doc)+'</div>'+
+        '<div class="est-capv-mi-prog">'+
+          '<div class="est-capv-mi-bar"><div class="est-capv-mi-fill" style="width:'+pct+'%;background:'+color+'"></div></div>'+
+          '<span class="est-capv-mi-hrs">'+asig+'/'+tot+'h</span>'+
+        '</div>'+
+      '</div>'+
+      (isAct ? '<div class="est-capv-mi-pin">✎</div>' : '')+
+    '</div>';
+  }).join('');
+
+  return '<div class="est-capv-panel"><div class="est-capv-panel-title">Materias del grupo</div>'+items+'</div>';
+}
+
+function _estCapvGridHTML(rowIndices, map) {
+  var thead = '<thead><tr>'+
+    '<th class="est-capv-th-hora"></th>'+
+    _EST_DIAS_.map(function(d,i){ return '<th class="est-capv-th-dia">'+_CAPV_DIA_LABELS_[i]+'</th>'; }).join('')+
+    '</tr></thead>';
+
+  var hasBrush = _estCapvBrush >= 0;
+  var tbody = '<tbody>' + _CAPV_HOURS_.map(function(h) {
+    var hLabel = (h<10?'0':'')+h+':00';
+    var cells = _EST_DIAS_.map(function(dia) {
+      var occ = map[dia][h];
+      if (occ) {
+        if (!occ.isFirst) {
+          return '<td class="est-capv-cell est-capv-cell--cont" '+
+            'style="background:'+occ.color+'18;border-top:1px dashed '+occ.color+'44" '+
+            'data-dia="'+dia+'" data-hour="'+h+'" data-row="'+occ.rowIdx+'" '+
+            'onclick="_estCapvCellClick(this)"></td>';
+        }
+        var uacSh = occ.uac.length>26 ? occ.uac.slice(0,24)+'…' : occ.uac;
+        var subLabel = _estCapvMode === 'docente'
+          ? occ.grupo
+          : (occ.docente ? occ.docente.split(' ').slice(-2).join(' ') : '');
+        var bMatch = _estCapvBrush===occ.rowIdx;
+        return '<td class="est-capv-cell est-capv-cell--occ'+(bMatch?' est-capv-cell--brush-match':'')+'" '+
+          'style="background:'+occ.color+'20;border-left:3px solid '+occ.color+';border-top:1.5px solid '+occ.color+'66" '+
+          'data-dia="'+dia+'" data-hour="'+h+'" data-row="'+occ.rowIdx+'" '+
+          'onclick="_estCapvCellClick(this)">'+
+          '<div class="est-capv-occ-label" style="color:'+occ.color+'">'+
+            '<span class="est-capv-occ-uac">'+genEsc(uacSh)+'</span>'+
+            (subLabel?'<span class="est-capv-occ-doc">'+genEsc(subLabel)+'</span>':'')+
+          '</div></td>';
+      }
+      return '<td class="est-capv-cell est-capv-cell--empty'+(hasBrush?' est-capv-cell--droppable':'')+'" '+
+        'data-dia="'+dia+'" data-hour="'+h+'" data-row="-1" '+
+        'onclick="_estCapvCellClick(this)"></td>';
+    }).join('');
+    return '<tr><th class="est-capv-th-hora">'+hLabel+'</th>'+cells+'</tr>';
+  }).join('') + '</tbody>';
+
+  return '<div class="est-capv-grid-wrap">'+
+    '<table class="est-capv-grid">'+thead+tbody+'</table>'+
+    '<div id="est-capv-picker" class="est-capv-picker" style="display:none"></div>'+
+    '</div>';
+}
+
+/* Panel lateral para modo docente: muestra grupo + uac de cada fila */
+function _estCapvPanelDocHTML(rowIndices) {
+  if (!rowIndices.length)
+    return '<div class="est-capv-panel"><p class="est-capv-empty">Sin materias asignadas a este docente.</p></div>';
+
+  var items = rowIndices.map(function(rowIdx, i) {
+    var row   = _estData[rowIdx];
+    var color = _estCapvColor(i);
+    var uac   = String(row.uac||'').trim() || '(sin nombre)';
+    var grupo = String(row.grupo||'').trim() || '—';
+    var tot   = Number(row.tot_horas)||0;
+    var asig  = _EST_DIAS_.reduce(function(s,d){ return s+_estParseHorasDia(row[d]); },0);
+    var pct   = tot>0 ? Math.min(100,Math.round(asig/tot*100)) : 0;
+    var isAct = _estCapvBrush===rowIdx;
+    var isFin = tot>0 && asig>=tot;
+    return '<div class="est-capv-mi'+(isAct?' est-capv-mi--active':'')+(isFin?' est-capv-mi--complete':'')+'" '+
+      'onclick="_estCapvPickBrush('+rowIdx+')" title="'+genEsc(uac)+' — '+genEsc(grupo)+'">' +
+      '<div class="est-capv-mi-color" style="background:'+color+'"></div>'+
+      '<div class="est-capv-mi-body">'+
+        '<div class="est-capv-mi-uac">'+genEsc(uac)+'</div>'+
+        '<div class="est-capv-mi-doc" style="color:#6366f1;font-weight:600">Grupo: '+genEsc(grupo)+'</div>'+
+        '<div class="est-capv-mi-prog">'+
+          '<div class="est-capv-mi-bar"><div class="est-capv-mi-fill" style="width:'+pct+'%;background:'+color+'"></div></div>'+
+          '<span class="est-capv-mi-hrs">'+asig+'/'+tot+'h</span>'+
+        '</div>'+
+      '</div>'+
+      (isAct ? '<div class="est-capv-mi-pin">✎</div>' : '')+
+    '</div>';
+  }).join('');
+
+  return '<div class="est-capv-panel"><div class="est-capv-panel-title">Materias del docente</div>'+items+'</div>';
+}
+
+// ── Interacción ───────────────────────────────────────────────────────
+
+function _estCapvPickBrush(rowIdx) {
+  _estCapvBrush = (_estCapvBrush===rowIdx) ? -1 : rowIdx;
+  _estCapvRefresh();
+}
+
+function _estCapvCambiarGrupo(g) {
+  _estCapvGrupo = g;
+  _estCapvBrush = -1;
+  _estCapvRefresh();
+}
+
+function _estCapvCellClick(td) {
+  var dia    = td.dataset.dia;
+  var hour   = parseInt(td.dataset.hour, 10);
+  var rowIdx = parseInt(td.dataset.row, 10);
+  _estCapvHidePicker();
+
+  if (rowIdx >= 0) {
+    if (_estCapvBrush === rowIdx) {
+      // Mismo pincel → limpiar
+      _estCapvClear(rowIdx, dia);
+    } else if (_estCapvBrush >= 0) {
+      // Otro pincel → limpiar primero, luego asignar el pincel
+      _estCapvClear(rowIdx, dia);
+      _estCapvShowPicker(td, dia, hour, _estCapvBrush);
+    } else {
+      // Sin pincel → seleccionar esta materia como pincel
+      _estCapvPickBrush(rowIdx);
+    }
+    return;
+  }
+
+  if (_estCapvBrush < 0) return;
+  _estCapvShowPicker(td, dia, hour, _estCapvBrush);
+}
+
+function _estCapvShowPicker(td, dia, hour, rowIdx) {
+  var rows = _estCapvCurrentRows();
+  var map  = _estCapvBuildMap(rows);
+  var slots = [];
+  for (var dur=1; dur<=3; dur++) {
+    if (hour+dur > 22) break;
+    var label = (hour<10?'0':'')+hour+':00-'+(hour+dur<10?'0':'')+(hour+dur)+':00';
+    var free = true;
+    for (var h2=hour; h2<hour+dur; h2++) {
+      var occ = map[dia][h2];
+      if (occ && occ.rowIdx !== rowIdx) { free=false; break; }
+    }
+    if (free) slots.push({ label:label, dur:dur });
+  }
+  if (!slots.length) return;
+  if (slots.length === 1) { _estCapvAssign(rowIdx, dia, slots[0].label); return; }
+
+  _estCapvPendDia = dia;
+  var picker = document.getElementById('est-capv-picker');
+  if (!picker) return;
+
+  var wrap     = document.querySelector('.est-capv-grid-wrap');
+  var wrapRect = wrap.getBoundingClientRect();
+  var tdRect   = td.getBoundingClientRect();
+  var top  = tdRect.top  - wrapRect.top  + wrap.scrollTop;
+  var left = tdRect.right- wrapRect.left + 4;
+
+  picker.innerHTML =
+    '<div class="est-capv-picker-title">¿Cuántas horas?</div>'+
+    slots.map(function(s) {
+      return '<button class="est-capv-picker-btn" '+
+        'onclick="_estCapvPickerSelect(\''+s.label+'\','+rowIdx+')">'+
+        s.dur+'h <small>'+s.label+'</small></button>';
+    }).join('')+
+    '<button class="est-capv-picker-cancel" onclick="_estCapvHidePicker()">✕ cancelar</button>';
+
+  picker.style.display = 'block';
+  picker.style.top  = top+'px';
+  picker.style.left = left+'px';
+}
+
+function _estCapvPickerSelect(slot, rowIdx) {
+  _estCapvHidePicker();
+  _estCapvAssign(rowIdx, _estCapvPendDia, slot);
+}
+
+function _estCapvHidePicker() {
+  var p = document.getElementById('est-capv-picker'); if (p) p.style.display='none';
+}
+
+function _estCapvAssign(rowIdx, dia, slotLabel) {
+  var row   = _estData[rowIdx];
+  var doc   = String(row.docente||'').trim();
+  var grupo = String(row.grupo||'').trim();
+  var cf = _estCapvConflicto(doc, dia, slotLabel, rowIdx);
+  if (cf) genToast('⚠ '+doc+' ya tiene clase ese día ('+cf.uac+', grupo '+cf.grupo+').', 'warning');
+  if (_estCapvMode === 'docente') {
+    var gcf = _estCapvGrupoConflicto(grupo, dia, slotLabel, rowIdx);
+    if (gcf) genToast('⚠ El grupo '+grupo+' ya tiene "'+gcf.uac+'" asignado en ese horario.', 'warning');
+  }
+
+  row[dia] = slotLabel;
+  _estDirtySet.add(row);
+  _estDirty = true;
+  _estUpdateSaveBtn();
+  _estUpdateDashboard();
+  _estValidarLocal();
+  _estCapvRefresh();
+}
+
+function _estCapvClear(rowIdx, dia) {
+  var row  = _estData[rowIdx];
+  row[dia] = '';
+  _estDirtySet.add(row);
+  _estDirty = true;
+  _estUpdateSaveBtn();
+  _estUpdateDashboard();
+  _estValidarLocal();
+  _estCapvRefresh();
+}
+
+function _estCapvRefresh() {
+  var inner = document.getElementById('est-capv-inner'); if (!inner) return;
+  inner.innerHTML = _estCapvInnerHTML();
 }

@@ -84,11 +84,15 @@
     .then(function(r) { return r.json(); })
     .then(function(result) {
       if (result.status === 'success') {
-        /* Usar las MISMAS claves que tutorias/pec/auth.js */
+        var rol = result.rol || '';
+        if (rol === 'Administrativo') {
+          showLoginError('Este acceso es exclusivo para docentes. Ingresa desde el Portal Administrativo.');
+          return;
+        }
         sessionStorage.setItem('tutorias_auth', 'true');
         sessionStorage.setItem('user_name',  result.nombre || email);
         sessionStorage.setItem('user_email', email);
-        sessionStorage.setItem('user_role',  result.rol || 'Docente');
+        sessionStorage.setItem('user_role',  rol || 'Docente');
         showApp();
       } else {
         showLoginError(result.message || 'Credenciales incorrectas. Verifica e intenta de nuevo.');
@@ -120,11 +124,22 @@
   /* ════════════════════════════════════════════════════════
      SESIÓN
   ════════════════════════════════════════════════════════ */
-  /* Verificar sesión activa al cargar — mismo check que auth.js */
-  if (sessionStorage.getItem('tutorias_auth') === 'true' &&
-      sessionStorage.getItem('user_email')) {
-    showApp();
-  }
+  /* Verificar sesión activa al cargar */
+  (function() {
+    var auth  = sessionStorage.getItem('tutorias_auth');
+    var email = sessionStorage.getItem('user_email');
+    var role  = sessionStorage.getItem('user_role');
+    if (auth === 'true' && email) {
+      if (role === 'Administrativo') {
+        sessionStorage.removeItem('tutorias_auth');
+        sessionStorage.removeItem('user_email');
+        sessionStorage.removeItem('user_name');
+        sessionStorage.removeItem('user_role');
+      } else {
+        showApp();
+      }
+    }
+  })();
 
   function showApp() {
     loginOverlay.classList.add('fade-out');
@@ -151,19 +166,7 @@
     sessionStorage.removeItem('user_email');
     sessionStorage.removeItem('user_role');
     sessionStorage.removeItem('d2_mod');
-    app.style.display = 'none';
-    loginOverlay.classList.remove('fade-out', 'hidden');
-    document.getElementById('d2-email').value    = '';
-    document.getElementById('d2-password').value = '';
-    hideLoginError();
-    state.tutLoaded = false;
-    state.pecLoaded = false;
-    /* Limpiar iframes para que no queden con sesión vieja */
-    var ifTut = document.getElementById('d2-iframe-tutorias');
-    var ifPec = document.getElementById('d2-iframe-pec');
-    if (ifTut) ifTut.removeAttribute('src');
-    if (ifPec) ifPec.removeAttribute('src');
-    closeSidebar();
+    window.location.href = '../index.html';
   }
 
   btnLogout.addEventListener('click', doLogout);

@@ -18,8 +18,7 @@
       var auth  = sessionStorage.getItem('tutorias_auth');
       var email = sessionStorage.getItem('user_email');
       if (!auth || !email) {
-        sessionStorage.setItem('pec_redirect_after_login', window.location.href);
-        window.location.href = '../pec/login.html';
+        window.location.href = '../admin/index.html';
       }
     })();
   </script>

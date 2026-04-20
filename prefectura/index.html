@@ -2,6 +2,15 @@
 <html lang="es">
 <head>
   <script>const APP_VERSION = "v20260418";</script>
+  <script>
+    (function(){
+      var auth  = sessionStorage.getItem('tutorias_auth');
+      var email = sessionStorage.getItem('user_email');
+      if (auth !== 'true' || !email) {
+        window.location.replace('../admin/index.html');
+      }
+    })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Prefectura — Seguimiento de Incidencias | CEB 5/4</title>
@@ -13,96 +22,6 @@
   <script src="js/api.js?v=20260418"></script>
 </head>
 <body>
-
-  <!-- ══ LOGIN OVERLAY ══ -->
-  <div id="pref-login-overlay" style="
-    position:fixed; inset:0; z-index:9999;
-    background:linear-gradient(135deg,#0f172a 0%,#1a0505 60%,#2d0a0a 100%);
-    display:flex; align-items:center; justify-content:center;
-    padding:1rem;">
-
-    <div style="
-      background:white; border-radius:24px; padding:2.5rem 2rem;
-      width:100%; max-width:400px; box-shadow:0 32px 80px rgba(0,0,0,0.5);
-      position:relative; overflow:hidden;">
-
-      <!-- Acento rojo superior -->
-      <div style="
-        position:absolute; top:0; left:0; right:0; height:4px;
-        background:linear-gradient(90deg,#dc2626,#ef4444,#dc2626);"></div>
-
-      <!-- Logo -->
-      <div style="text-align:center; margin-bottom:1.75rem;">
-        <div style="
-          width:64px; height:64px; border-radius:18px;
-          background:linear-gradient(135deg,#fef2f2,#fee2e2);
-          border:2px solid #fecaca;
-          display:flex; align-items:center; justify-content:center;
-          font-size:1.75rem; margin:0 auto 1rem;">🔍</div>
-        <div style="font-family:'Outfit',sans-serif; font-size:1.3rem; font-weight:800; color:#0f172a; letter-spacing:-0.5px;">
-          Prefectura
-        </div>
-        <div style="font-size:0.8rem; color:#64748b; margin-top:0.2rem;">
-          CEB 5/4 — Seguimiento de Incidencias
-        </div>
-      </div>
-
-      <!-- Formulario -->
-      <form id="pref-login-form" onsubmit="intentarLogin(event)" autocomplete="off">
-
-        <div style="margin-bottom:1rem;">
-          <label style="display:block; font-size:0.78rem; font-weight:700; color:#374151; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.5px;">
-            Tu nombre completo
-          </label>
-          <input id="pref-login-nombre" type="text" required
-            placeholder="Ej: María González Pérez"
-            autocomplete="name"
-            style="
-              width:100%; padding:0.75rem 1rem; border-radius:10px;
-              border:1.5px solid #e2e8f0; font-size:0.9rem; font-family:inherit;
-              outline:none; transition:border 0.2s; box-sizing:border-box;">
-        </div>
-
-        <div style="margin-bottom:1.5rem;">
-          <label style="display:block; font-size:0.78rem; font-weight:700; color:#374151; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.5px;">
-            Contraseña
-          </label>
-          <input id="pref-login-pass" type="password" required
-            placeholder="Contraseña del área"
-            autocomplete="current-password"
-            style="
-              width:100%; padding:0.75rem 1rem; border-radius:10px;
-              border:1.5px solid #e2e8f0; font-size:0.9rem; font-family:inherit;
-              outline:none; transition:border 0.2s; box-sizing:border-box;">
-        </div>
-
-        <div id="pref-login-error" style="
-          display:none; background:#fef2f2; border:1px solid #fecaca;
-          border-radius:8px; padding:0.65rem 0.9rem;
-          font-size:0.82rem; color:#dc2626; font-weight:600;
-          margin-bottom:1rem; text-align:center;">
-          Contraseña incorrecta. Inténtalo de nuevo.
-        </div>
-
-        <button type="submit" style="
-          width:100%; padding:0.875rem; border-radius:12px; border:none;
-          background:linear-gradient(135deg,#dc2626,#b91c1c);
-          color:white; font-size:0.95rem; font-weight:700;
-          cursor:pointer; font-family:inherit;
-          box-shadow:0 4px 14px rgba(220,38,38,0.35);
-          transition:all 0.2s;">
-          Ingresar al sistema
-        </button>
-
-      </form>
-
-      <div style="text-align:center; margin-top:1.25rem;">
-        <a href="../acceso.html" style="font-size:0.78rem; color:#94a3b8; text-decoration:none;">
-          ← Volver al portal
-        </a>
-      </div>
-    </div>
-  </div>
 
   <!-- ══ SIDEBAR ══ -->
   <aside class="sidebar" id="sidebar">
@@ -135,7 +54,7 @@
       </div>
       <hr class="nav-divider">
       <div class="nav-item">
-        <a href="../acceso.html" class="nav-link" style="color:var(--clr-text-light);">
+        <a href="../admin/index.html" class="nav-link" style="color:var(--clr-text-light);">
           <i data-lucide="arrow-left"></i>
           <span>Volver al Portal</span>
         </a>
@@ -474,46 +393,6 @@
      PREFECTURA — app.js embebido
      Estructura: login → navegación → init → formulario → consulta → dashboard
   ───────────────────────────────────────────────────────────────── */
-
-  // ── Contraseña del área (cambiar aquí si se necesita actualizar) ──
-  const PREF_PASSWORD = "pref2026";
-
-  // ── Login ─────────────────────────────────────────────────────────
-  (function iniciarSesion() {
-    const overlay = document.getElementById('pref-login-overlay');
-    const sesion  = sessionStorage.getItem('pref_user');
-
-    // Ya tiene sesión activa → ocultar overlay inmediatamente
-    if (sesion) {
-      overlay.style.display = 'none';
-      return;
-    }
-    // Sin sesión → overlay visible (ya lo es por defecto)
-  })();
-
-  function intentarLogin(e) {
-    e.preventDefault();
-    const nombre = document.getElementById('pref-login-nombre').value.trim();
-    const pass   = document.getElementById('pref-login-pass').value;
-    const errDiv = document.getElementById('pref-login-error');
-
-    if (pass !== PREF_PASSWORD) {
-      errDiv.style.display = 'block';
-      document.getElementById('pref-login-pass').style.borderColor = '#fca5a5';
-      return;
-    }
-
-    errDiv.style.display = 'none';
-    sessionStorage.setItem('pref_user',  nombre);
-    sessionStorage.setItem('user_name',  nombre); // compatibilidad con otros módulos
-    document.getElementById('pref-login-overlay').style.display = 'none';
-  }
-
-  // Limpiar borde de error al volver a escribir
-  document.getElementById('pref-login-pass')?.addEventListener('input', () => {
-    document.getElementById('pref-login-pass').style.borderColor = '#e2e8f0';
-    document.getElementById('pref-login-error').style.display = 'none';
-  });
 
   // ── Estado local ──────────────────────────────────────────────────
   let _alumnoSeleccionados   = [];  // array de { nombre, grupo }

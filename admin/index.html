@@ -253,6 +253,34 @@
     .adm-welcome-title { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 1.35rem; color: #1e293b; margin-bottom: 0.5rem; }
     .adm-welcome-desc { font-size: 0.9rem; line-height: 1.6; max-width: 360px; }
 
+    /* ── Sidebar collapsed (desktop) ── */
+    .adm-sidebar.collapsed {
+      width: 56px;
+      overflow: hidden;
+    }
+    .adm-sidebar.collapsed .adm-sidebar-label,
+    .adm-sidebar.collapsed .adm-nav-text,
+    .adm-sidebar.collapsed .adm-sidebar-sep { display: none; }
+    .adm-sidebar.collapsed .adm-sidebar-section { padding: 0.75rem 0.625rem 0.5rem; }
+    .adm-sidebar.collapsed .adm-nav-item {
+      padding: 0.65rem; justify-content: center; gap: 0;
+    }
+    .adm-sidebar.collapsed .adm-nav-icon { margin: 0; }
+
+    /* ── Collapse toggle button ── */
+    .adm-collapse-btn {
+      display: flex; align-items: center; justify-content: center;
+      background: none; border: none; cursor: pointer;
+      padding: 0.4rem; border-radius: 8px;
+      color: rgba(255,255,255,0.75);
+      transition: color 0.2s, background 0.2s;
+      margin-right: 0.25rem;
+    }
+    .adm-collapse-btn:hover { background: rgba(255,255,255,0.12); color: white; }
+    .adm-collapse-btn svg { width: 20px; height: 20px; display: block; transition: transform 0.25s; }
+    .adm-sidebar.collapsed ~ * .adm-collapse-btn svg,
+    body.sidebar-collapsed .adm-collapse-btn svg { transform: rotate(180deg); }
+
     /* ── Mobile ── */
     .adm-menu-btn {
       display: none; background: none; border: none; cursor: pointer;
@@ -266,6 +294,7 @@
     .adm-overlay.active { display: block; }
 
     @media (max-width: 768px) {
+      .adm-collapse-btn { display: none; }
       .adm-menu-btn { display: flex; align-items: center; justify-content: center; }
       .adm-sidebar {
         position: fixed; top: var(--header-h); left: 0;
@@ -334,6 +363,9 @@
     <div class="adm-header-left">
       <button class="adm-menu-btn" onclick="_admToggleSidebar()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <button class="adm-collapse-btn" id="adm-collapse-btn" onclick="_admCollapseSidebar()" title="Ocultar barra lateral">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
       <div class="adm-header-logo">🏛️</div>
       <div>
@@ -409,6 +441,14 @@
       <div class="adm-sidebar-section">
         <div class="adm-sidebar-label">Acceso rápido</div>
 
+        <button class="adm-nav-item" data-area="horarios" data-url="../generador/index.html" onclick="_admLoadArea(this)">
+          <div class="adm-nav-icon">🗓️</div>
+          <div class="adm-nav-text">
+            <span class="adm-nav-name">Generador de Horarios</span>
+            <span class="adm-nav-sub">Captura y publicación</span>
+          </div>
+        </button>
+
         <button class="adm-nav-item" onclick="window.open('../academico/dashboard.html','_blank')">
           <div class="adm-nav-icon">📈</div>
           <div class="adm-nav-text">
@@ -460,12 +500,6 @@
   var pwdInp    = document.getElementById('adm-pwd');
   var appEl     = document.getElementById('adm-app');
 
-  /* ── Verificar sesión activa ── */
-  if (sessionStorage.getItem(SESSION_KEY) === 'true' &&
-      sessionStorage.getItem('user_email')) {
-    _showApp();
-  }
-
   /* ── Toggle contraseña ── */
   document.getElementById('adm-eye-btn').addEventListener('click', function() {
     pwdInp.type = pwdInp.type === 'password' ? 'text' : 'password';
@@ -490,10 +524,15 @@
     .then(function(r) { return r.json(); })
     .then(function(res) {
       if (res.status === 'success') {
+        var rol = res.rol || '';
+        if (rol !== 'Administrativo' && rol !== 'Admin') {
+          _showErr('Este acceso es exclusivo para personal administrativo.');
+          return;
+        }
         sessionStorage.setItem(SESSION_KEY,  'true');
         sessionStorage.setItem('user_email', email);
         sessionStorage.setItem('user_name',  res.nombre || email);
-        sessionStorage.setItem('user_role',  res.rol    || 'Administrativo');
+        sessionStorage.setItem('user_role',  rol);
         _showApp();
       } else {
         _showErr(res.message || 'Credenciales incorrectas. Verifica e intenta de nuevo.');
@@ -550,13 +589,25 @@
     overlay.classList.toggle('active');
   };
 
+  /* ── Sidebar collapse (desktop) ── */
+  var collapseBtn = document.getElementById('adm-collapse-btn');
+  var _sidebarCollapsed = localStorage.getItem('adm_sidebar_collapsed') === '1';
+  if (_sidebarCollapsed) sidebar.classList.add('collapsed');
+  window._admCollapseSidebar = function() {
+    _sidebarCollapsed = !_sidebarCollapsed;
+    sidebar.classList.toggle('collapsed', _sidebarCollapsed);
+    localStorage.setItem('adm_sidebar_collapsed', _sidebarCollapsed ? '1' : '0');
+    collapseBtn.title = _sidebarCollapsed ? 'Mostrar barra lateral' : 'Ocultar barra lateral';
+  };
+
   /* ── Area metadata ── */
   var AREAS = {
-    direccion:    { icon: '🏛️', name: 'Dirección',    sub: 'Gestión y liderazgo institucional' },
-    subdireccion: { icon: '📋', name: 'Subdirección',  sub: 'Coordinación académica y operativa' },
-    orientacion:  { icon: '🎓', name: 'Orientación',   sub: 'Orientación educativa y vocacional' },
-    prefectura:   { icon: '🔍', name: 'Prefectura',    sub: 'Registro de incidencias y disciplina' },
-    tutorias:     { icon: '📝', name: 'Tutorías',      sub: 'Seguimiento y reportes de tutorías' },
+    direccion:    { icon: '🏛️', name: 'Dirección',              sub: 'Gestión y liderazgo institucional' },
+    subdireccion: { icon: '📋', name: 'Subdirección',            sub: 'Coordinación académica y operativa' },
+    orientacion:  { icon: '🎓', name: 'Orientación',             sub: 'Orientación educativa y vocacional' },
+    prefectura:   { icon: '🔍', name: 'Prefectura',              sub: 'Registro de incidencias y disciplina' },
+    tutorias:     { icon: '📝', name: 'Tutorías',                sub: 'Seguimiento y reportes de tutorías' },
+    horarios:     { icon: '🗓️', name: 'Generador de Horarios',  sub: 'Captura y publicación de horarios' },
   };
 
   var welcome    = document.getElementById('adm-welcome');
@@ -565,6 +616,23 @@
   var areaName   = document.getElementById('adm-area-name');
   var areaPath   = document.getElementById('adm-area-path');
   var iframe     = document.getElementById('adm-iframe');
+
+  /* ── Verificar sesión activa (aquí, después de que _showApp y _admLoadArea ya existen) ── */
+  (function() {
+    var auth  = sessionStorage.getItem(SESSION_KEY);
+    var email = sessionStorage.getItem('user_email');
+    var role  = sessionStorage.getItem('user_role');
+    if (auth === 'true' && email) {
+      if (role === 'Administrativo' || role === 'Admin') {
+        _showApp();
+      } else {
+        sessionStorage.removeItem(SESSION_KEY);
+        sessionStorage.removeItem('user_email');
+        sessionStorage.removeItem('user_name');
+        sessionStorage.removeItem('user_role');
+      }
+    }
+  })();
 
   window._admLoadArea = function(btn) {
     var id   = btn.dataset.area;
