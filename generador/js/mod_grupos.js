@@ -1,5 +1,7 @@
 /* ── mod_grupos.js — Catálogo de Grupos ──────────────────────────── */
 
+var _grpViewMode = 'flat';   // 'flat' | 'grouped'
+
 genRegisterModule('grupos', {
   async render(container) {
     container.innerHTML = '<div class="gen-loading"><div class="gen-spinner"></div><span>Cargando grupos…</span></div>';
@@ -7,25 +9,50 @@ genRegisterModule('grupos', {
       var grupos = await genAPI.getGrupos(true);
       _genApp.grupos = grupos;
       container.innerHTML = _grpHTML(grupos);
-      _grpBind();
+      _grpRefreshTbody(grupos);
+      _grpBind(grupos);
     } catch(err) {
       genShowError('No se pudo cargar el catálogo: ' + err.message);
     }
   }
 });
 
+/* ── Filtro por ciclo ──────────────────────────────────────────────── */
+function _grpFilterByCiclo(grupos) {
+  if (!_genApp.ciclo) return grupos;
+  return grupos.filter(function(g) {
+    return String(g.ciclo || '').trim() === String(_genApp.ciclo).trim();
+  });
+}
+
+/* ── Shell HTML (estructura + cabecera) ────────────────────────────── */
 function _grpHTML(grupos) {
+  var filtrados  = _grpFilterByCiclo(grupos);
+  var totalTxt   = _genApp.ciclo
+    ? filtrados.length + ' de ' + grupos.length + ' grupos &nbsp;·&nbsp; Ciclo <strong>' + genEsc(_genApp.ciclo) + '</strong>'
+    : grupos.length + ' grupos registrados';
   var periodoInfo = _genApp.periodo
     ? '<span class="gen-periodo-badge gen-periodo-badge-'+_genApp.periodo+'">Periodo '+_genApp.periodo+
       ' · Sems '+GEN_PERIODO_SEMESTRES_[_genApp.periodo].join(', ')+'°</span>'
     : '';
+
   return `
 <div class="gen-page-header">
   <div>
     <h1 class="gen-page-title">Catálogo de Grupos</h1>
-    <p class="gen-page-sub">${grupos.length} grupos registrados${periodoInfo ? ' &nbsp;' + periodoInfo : ''}</p>
+    <p class="gen-page-sub">${totalTxt}${periodoInfo ? ' &nbsp;' + periodoInfo : ''}</p>
   </div>
   <div class="gen-header-actions">
+    <div class="gen-mat-view-toggle">
+      <button class="gen-mat-vtab ${_grpViewMode==='flat'?'active':''}" id="gen-grp-vtab-flat">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Lista
+      </button>
+      <button class="gen-mat-vtab ${_grpViewMode==='grouped'?'active':''}" id="gen-grp-vtab-grouped">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Por grado
+      </button>
+    </div>
     <input type="text" id="gen-grp-search" class="gen-search-input" placeholder="Buscar grupo…">
     <button class="gen-btn gen-btn-primary" id="gen-grp-nuevo">+ Nuevo grupo</button>
   </div>
@@ -47,15 +74,98 @@ function _grpHTML(grupos) {
         <th class="gen-th-actions">Acciones</th>
       </tr>
     </thead>
-    <tbody id="gen-grp-tbody">
-      ${grupos.length === 0
-        ? '<tr><td colspan="10" class="gen-td-empty">No hay grupos registrados. Agrega el primero.</td></tr>'
-        : grupos.map(_grpRow).join('')}
-    </tbody>
+    <tbody id="gen-grp-tbody"></tbody>
   </table>
 </div>`;
 }
 
+/* ── Relleno del tbody ─────────────────────────────────────────────── */
+function _grpRefreshTbody(grupos) {
+  var tbody = document.getElementById('gen-grp-tbody');
+  if (!tbody) return;
+  var list = _grpFilterByCiclo(grupos || _genApp.grupos || []);
+  if (list.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="10" class="gen-td-empty">' +
+      (_genApp.ciclo
+        ? 'No hay grupos registrados para el ciclo <strong>' + genEsc(_genApp.ciclo) + '</strong>. ' +
+          'Puedes agregar grupos o revisar el ciclo asignado en cada registro.'
+        : 'No hay grupos registrados. Agrega el primero.') +
+      '</td></tr>';
+    return;
+  }
+  tbody.innerHTML = _grpViewMode === 'grouped'
+    ? _grpBuildGrouped(list)
+    : list.map(_grpRow).join('');
+}
+
+/* ── Vista agrupada por grado ──────────────────────────────────────── */
+function _grpBuildGrouped(grupos) {
+  /* Agrupar por grado */
+  var byGrado = {};
+  grupos.forEach(function(g) {
+    var gr = String(g.grado || '?');
+    if (!byGrado[gr]) byGrado[gr] = [];
+    byGrado[gr].push(g);
+  });
+
+  var grados = Object.keys(byGrado).sort(function(a, b) {
+    return (parseInt(a) || 99) - (parseInt(b) || 99);
+  });
+
+  var rows = [];
+  grados.forEach(function(grado, idx) {
+    var list = byGrado[grado];
+
+    /* Ordenar dentro del grado: turno → grupo */
+    list.sort(function(a, b) {
+      var ta = String(a.turno || '').toLowerCase();
+      var tb = String(b.turno || '').toLowerCase();
+      if (ta !== tb) return ta < tb ? -1 : 1;
+      return String(a.grupo || '').localeCompare(String(b.grupo || ''));
+    });
+
+    /* Badges para la cabecera del grado */
+    var sem = _genApp.periodo ? genSemestreDeGrado(grado, _genApp.periodo) : null;
+    var semBadge = sem
+      ? '<span class="gen-mat-grp-count gen-mat-grp-count--cap" style="margin-left:6px">Sem ' + sem + '°</span>'
+      : '';
+    var countBadge = '<span class="gen-mat-grp-count" style="margin-left:8px">' +
+      list.length + ' grupo' + (list.length !== 1 ? 's' : '') + '</span>';
+
+    rows.push(
+      '<tr class="gen-mat-grp-head gen-grp-grado-head" data-grado="' + genEsc(grado) + '">' +
+      '<td colspan="10"><span class="gen-mat-grp-label">Grado ' + genEsc(grado) + '°</span>' +
+      countBadge + semBadge + '</td></tr>'
+    );
+
+    /* Sub-cabeceras de turno si hay más de uno en este grado */
+    var turnos = [];
+    var turnoSeen = {};
+    list.forEach(function(g) {
+      var t = String(g.turno || 'Sin turno');
+      if (!turnoSeen[t]) { turnoSeen[t] = true; turnos.push(t); }
+    });
+    var multiTurno = turnos.length > 1;
+    var curTurno = null;
+
+    list.forEach(function(g) {
+      var t = String(g.turno || 'Sin turno');
+      if (multiTurno && t !== curTurno) {
+        curTurno = t;
+        rows.push(
+          '<tr class="gen-mat-grp-head--cap gen-grp-turno-head">' +
+          '<td colspan="10"><span style="font-size:0.71rem;font-weight:600;color:#94a3b8;letter-spacing:.06em;text-transform:uppercase">' +
+          genEsc(t) + '</span></td></tr>'
+        );
+      }
+      rows.push(_grpRow(g));
+    });
+  });
+
+  return rows.join('');
+}
+
+/* ── Badge de capacitación ─────────────────────────────────────────── */
 function _grpCapBadge(cap) {
   if (!cap) return '<span class="gen-badge gen-badge-gray" style="font-size:10px">General</span>';
   var s = _GEN_CAP_STYLE_[cap];
@@ -63,6 +173,7 @@ function _grpCapBadge(cap) {
   return '<span class="gen-badge gen-badge-gray" style="font-size:10px">'+genEsc(cap)+'</span>';
 }
 
+/* ── Fila de grupo ─────────────────────────────────────────────────── */
 function _grpRow(g) {
   var activo = String(g.activo) !== 'false';
   var badge  = activo
@@ -71,13 +182,12 @@ function _grpRow(g) {
   var label  = (g.grado || '') + '°' + (g.grupo || '');
   var cap    = g.capacitacion ? String(g.capacitacion).trim() : '';
 
-  // Semestre activo en el periodo seleccionado
   var semActual = _genApp.periodo ? genSemestreDeGrado(g.grado, _genApp.periodo) : null;
   var semCell   = semActual
     ? '<span class="gen-badge gen-badge-blue" style="font-size:10px">Sem '+semActual+'°</span>'
     : '<span class="gen-badge gen-badge-gray" style="font-size:10px">—</span>';
 
-  return `<tr data-id="${genEsc(g.id)}" data-label="${label.toLowerCase()}" data-cap="${genEsc(cap)}">
+  return `<tr data-id="${genEsc(g.id)}" data-label="${label.toLowerCase()} ${String(g.clave||'').toLowerCase()} ${String(g.turno||'').toLowerCase()}">
     <td><span class="gen-mono">${genEsc(g.clave || '—')}</span></td>
     <td>${genEsc(g.grado || '—')}</td>
     <td><strong>${genEsc(g.grupo || '—')}</strong></td>
@@ -89,7 +199,7 @@ function _grpRow(g) {
     <td>${badge}</td>
     <td class="gen-td-actions">
       <button class="gen-btn-icon gen-btn-edit" title="Editar" onclick="genGrpEditar('${genEsc(g.id)}')">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       </button>
       <button class="gen-btn-icon gen-btn-delete" title="Eliminar" onclick="genGrpEliminar('${genEsc(g.id)}')">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
@@ -98,20 +208,64 @@ function _grpRow(g) {
   </tr>`;
 }
 
-function _grpBind() {
+/* ── Event bindings ────────────────────────────────────────────────── */
+function _grpBind(grupos) {
+  /* Toggle de vista */
+  document.getElementById('gen-grp-vtab-flat').addEventListener('click', function() {
+    if (_grpViewMode === 'flat') return;
+    _grpViewMode = 'flat';
+    document.getElementById('gen-grp-vtab-flat').classList.add('active');
+    document.getElementById('gen-grp-vtab-grouped').classList.remove('active');
+    _grpRefreshTbody(grupos);
+    var q = document.getElementById('gen-grp-search').value;
+    if (q) _grpApplySearch(q);
+  });
+  document.getElementById('gen-grp-vtab-grouped').addEventListener('click', function() {
+    if (_grpViewMode === 'grouped') return;
+    _grpViewMode = 'grouped';
+    document.getElementById('gen-grp-vtab-grouped').classList.add('active');
+    document.getElementById('gen-grp-vtab-flat').classList.remove('active');
+    _grpRefreshTbody(grupos);
+    var q = document.getElementById('gen-grp-search').value;
+    if (q) _grpApplySearch(q);
+  });
+
+  /* Búsqueda */
+  document.getElementById('gen-grp-search').addEventListener('input', function() {
+    _grpApplySearch(this.value);
+  });
+
+  /* Nuevo grupo */
   document.getElementById('gen-grp-nuevo').addEventListener('click', function() {
     genRequireAdmin(function() { genGrpForm(null); });
   });
-  document.getElementById('gen-grp-search').addEventListener('input', function() {
-    var q = this.value.toLowerCase();
-    document.querySelectorAll('#gen-grp-tbody tr[data-id]').forEach(function(tr) {
-      var match = !q || tr.dataset.label.includes(q) ||
-                  tr.querySelector('.gen-mono').textContent.toLowerCase().includes(q);
-      tr.style.display = match ? '' : 'none';
-    });
+}
+
+function _grpApplySearch(q) {
+  var qn = q.trim().toLowerCase();
+  document.querySelectorAll('#gen-grp-tbody tr[data-id]').forEach(function(tr) {
+    var match = !qn || tr.dataset.label.includes(qn) ||
+                tr.querySelector('.gen-mono').textContent.toLowerCase().includes(qn);
+    tr.style.display = match ? '' : 'none';
+  });
+  /* Ocultar cabeceras de grado/turno si no tienen filas de datos visibles debajo */
+  document.querySelectorAll('#gen-grp-tbody .gen-grp-grado-head, #gen-grp-tbody .gen-grp-turno-head').forEach(function(hdr) {
+    var isTurno = hdr.classList.contains('gen-grp-turno-head');
+    var next = hdr.nextElementSibling;
+    var anyVisible = false;
+    while (next) {
+      var isGradoNext  = next.classList.contains('gen-grp-grado-head');
+      var isTurnoNext  = next.classList.contains('gen-grp-turno-head');
+      /* Cabecera de grado siempre corta; cabecera de turno solo corta si estamos en un turno */
+      if (isGradoNext || (isTurno && isTurnoNext)) break;
+      if (next.dataset.id && next.style.display !== 'none') anyVisible = true;
+      next = next.nextElementSibling;
+    }
+    hdr.style.display = anyVisible ? '' : 'none';
   });
 }
 
+/* ── Formulario ────────────────────────────────────────────────────── */
 function genGrpForm(id) {
   var g = id ? genById(_genApp.grupos, id) : {};
   if (!g) { genToast('Grupo no encontrado.', 'error'); return; }

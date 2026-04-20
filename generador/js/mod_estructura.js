@@ -29,7 +29,8 @@ genRegisterModule('estructura', {
       _estDirty          = false;
       _estView           = 'grid';
       _estConflictos     = { errores: [], advertencias: [] };
-      _estGrupoFiltroSem = '';
+      _estGrupoFiltroSem   = '';
+      _estGrupoFiltroTurno = '';
 
       container.innerHTML = _estPageHTML();
       _estBind();
@@ -80,7 +81,8 @@ var _estPeriodo        = '';   // snapshot del periodo al renderizar
 var _estDirty          = false;
 var _estView           = 'grid';
 var _estConflictos     = { errores: [], advertencias: [] };
-var _estGrupoFiltroSem = '';   // '' = todos | '2'|'4'|'6' = solo ese | '246' = conjunto
+var _estGrupoFiltroSem   = '';  // '' = todos | '1'–'6' = solo ese | '135'|'246' = conjunto
+var _estGrupoFiltroTurno = '';  // '' = todos | 'Matutino' | 'Vespertino'
 
 // ── PALETAS VISUALES ─────────────────────────────────────────────────
 
@@ -191,6 +193,10 @@ function _estPageHTML() {
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     Por docente
   </button>
+  <button class="est-view-tab${_estView==='materia'?' active':''}" data-view="materia">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+    Por materia
+  </button>
   <button class="est-view-tab${_estView==='conflictos'?' active':''}" data-view="conflictos">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
     Conflictos
@@ -205,9 +211,10 @@ ${_estDatalistsHTML()}`;
 }
 
 function _estViewHTML() {
-  if (_estView === 'grid')      return _estGridHTML();
-  if (_estView === 'grupo')     return _estPorGrupoHTML();
-  if (_estView === 'docente')   return _estPorDocenteHTML();
+  if (_estView === 'grid')       return _estGridHTML();
+  if (_estView === 'grupo')      return _estPorGrupoHTML();
+  if (_estView === 'docente')    return _estPorDocenteHTML();
+  if (_estView === 'materia')    return _estPorMateriaHTML();
   if (_estView === 'conflictos') return _estConflictosHTML();
   return '';
 }
@@ -265,41 +272,101 @@ function _estGridRow(row, idx, cerrada) {
 
 // ── VISTA POR GRUPO ──────────────────────────────────────────────────
 
+// Chips de semestre según el periodo activo
+function _estGetSemChips() {
+  var per = _genApp.periodo || '';
+  if (per === 'A') {
+    return [
+      { val: '',    label: 'Todos' },
+      { val: '1',   label: '1°' },
+      { val: '3',   label: '3°' },
+      { val: '5',   label: '5°' },
+      { val: '135', label: '1°, 3° y 5°' }
+    ];
+  }
+  if (per === 'B') {
+    return [
+      { val: '',    label: 'Todos' },
+      { val: '2',   label: '2°' },
+      { val: '4',   label: '4°' },
+      { val: '6',   label: '6°' },
+      { val: '246', label: '2°, 4° y 6°' }
+    ];
+  }
+  // Ambos periodos
+  return [
+    { val: '',  label: 'Todos' },
+    { val: '1', label: '1°' },
+    { val: '2', label: '2°' },
+    { val: '3', label: '3°' },
+    { val: '4', label: '4°' },
+    { val: '5', label: '5°' },
+    { val: '6', label: '6°' }
+  ];
+}
+
 function _estPorGrupoHTML() {
   if (!_estData.length) {
     return '<div class="gen-empty-state" style="margin-top:32px"><p>No hay datos en la estructura todavía.</p></div>';
   }
 
-  // Chips de filtro
-  var chips = [
-    { val: '',    label: 'Todos' },
-    { val: '2',   label: '2°' },
-    { val: '4',   label: '4°' },
-    { val: '6',   label: '6°' },
-    { val: '246', label: '2°, 4° y 6°' }
-  ];
-  var filtroBar = '<div class="est-filtro-bar">' +
+  // ── Fila 1: Semestre (dinámico según periodo)
+  var semChips = _estGetSemChips();
+  var semBar = '<div class="est-filtro-bar">' +
     '<span class="est-filtro-label">Semestre:</span>' +
-    chips.map(function(c) {
+    semChips.map(function(c) {
       var active = _estGrupoFiltroSem === c.val ? ' active' : '';
-      return '<button class="est-filtro-chip' + active + '" onclick="_estSetGrupoFiltro(\'' + c.val + '\')">' + c.label + '</button>';
+      return '<button class="est-filtro-chip' + active + '" data-filtrosem="' + genEsc(c.val) + '" onclick="_estSetGrupoFiltro(\'' + c.val + '\')">' + genEsc(c.label) + '</button>';
     }).join('') +
-    '</div>';
+  '</div>';
 
-  return filtroBar + '<div id="est-grupo-cards" class="est-cards-grid">' + _estGrupoCardsHTML() + '</div>';
+  // ── Fila 2: Turno
+  var turnoChips = [
+    { val: '',           label: 'Todos' },
+    { val: 'Matutino',   label: 'Matutino' },
+    { val: 'Vespertino', label: 'Vespertino' }
+  ];
+  var turnoBar = '<div class="est-filtro-bar">' +
+    '<span class="est-filtro-label">Turno:</span>' +
+    turnoChips.map(function(c) {
+      var active = _estGrupoFiltroTurno === c.val ? ' active' : '';
+      return '<button class="est-filtro-chip est-filtro-chip-turno' + active + '" data-filtroturno="' + genEsc(c.val) + '" onclick="_estSetGrupoFiltroTurno(\'' + c.val + '\')">' + genEsc(c.label) + '</button>';
+    }).join('') +
+  '</div>';
+
+  return (
+    '<div class="est-filtro-wrapper">' + semBar + turnoBar + '</div>' +
+    '<div id="est-grupo-cards" class="est-cards-grid">' + _estGrupoCardsHTML() + '</div>'
+  );
 }
 
+var _EST_CONJUNTOS_SEM_ = { '135': ['1','3','5'], '246': ['2','4','6'] };
+
 function _estGrupoCardsHTML() {
-  var filtro = _estGrupoFiltroSem;
+  var filtroSem   = _estGrupoFiltroSem;
+  var filtroTurno = _estGrupoFiltroTurno;
+  var conjSem     = _EST_CONJUNTOS_SEM_[filtroSem] || null;
+
   var porGrupo = {};
   _estData.forEach(function(row) {
-    var sem = String(row.semestre || '').trim();
-    // Aplicar filtro
-    if (filtro === '246') {
-      if (['2','4','6'].indexOf(sem) === -1) return;
-    } else if (filtro && sem !== filtro) {
-      return;
+    var sem   = String(row.semestre || '').trim();
+    var turno = String(row.turno    || '').trim();
+
+    // Filtro semestre
+    if (filtroSem) {
+      if (conjSem) {
+        if (conjSem.indexOf(sem) === -1) return;
+      } else if (sem !== filtroSem) {
+        return;
+      }
     }
+    // Filtro turno (normalizado: ignora mayúsculas y acentos)
+    if (filtroTurno) {
+      var turnoNorm   = turno.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+      var filtroNorm  = filtroTurno.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+      if (turnoNorm !== filtroNorm) return;
+    }
+
     var g = row.grupo || '(sin grupo)';
     if (!porGrupo[g]) porGrupo[g] = [];
     porGrupo[g].push(row);
@@ -354,7 +421,7 @@ function _estGrupoCardsHTML() {
         '<tbody>'+rows+'</tbody>' +
       '</table>' +
       '<div class="est-v2-foot">' +
-        '<span style="color:var(--gen-muted);font-size:12px;">'+filas.length+' materia'+(filas.length!==1?'s':'')+'</span>' +
+        '<span style="color:var(--gen-muted);font-size:11px;">'+filas.length+' materia'+(filas.length!==1?'s':'')+'</span>' +
         '<span class="est-v2-total-badge" style="background:'+sc.light+';color:'+sc.text+';border-color:'+sc.border+'">'+totalHrs+' hrs / sem</span>' +
       '</div>' +
     '</div>';
@@ -363,14 +430,20 @@ function _estGrupoCardsHTML() {
 
 function _estSetGrupoFiltro(sem) {
   _estGrupoFiltroSem = sem;
-  // Actualizar chips activos
-  document.querySelectorAll('.est-filtro-chip').forEach(function(btn) {
-    var matches = btn.textContent.trim() === (['','2','4','6','246'].indexOf(sem) !== -1
-      ? [{ val:'',label:'Todos'},{val:'2',label:'2°'},{val:'4',label:'4°'},{val:'6',label:'6°'},{val:'246',label:'2°, 4° y 6°'}].find(function(c){return c.val===sem;}).label
-      : '');
-    btn.classList.toggle('active', btn.getAttribute('onclick').indexOf("'"+sem+"'") !== -1);
+  document.querySelectorAll('.est-filtro-chip[data-filtrosem]').forEach(function(btn) {
+    btn.classList.toggle('active', btn.getAttribute('data-filtrosem') === sem);
   });
-  // Refrescar solo las tarjetas
+  var cards = document.getElementById('est-grupo-cards');
+  if (cards) cards.innerHTML = _estGrupoCardsHTML();
+  var matCards = document.getElementById('est-materia-cards');
+  if (matCards) matCards.innerHTML = _estMateriaCardsHTML();
+}
+
+function _estSetGrupoFiltroTurno(turno) {
+  _estGrupoFiltroTurno = turno;
+  document.querySelectorAll('.est-filtro-chip[data-filtroturno]').forEach(function(btn) {
+    btn.classList.toggle('active', btn.getAttribute('data-filtroturno') === turno);
+  });
   var cards = document.getElementById('est-grupo-cards');
   if (cards) cards.innerHTML = _estGrupoCardsHTML();
 }
@@ -463,6 +536,195 @@ function _estGrupoSemFromGrupo_(grupo) {
   // Intenta inferir semestre desde el nombre del grupo (ej. "201" → sem 2)
   var m = String(grupo).match(/^[A-Z]?(\d)/i);
   return m ? m[1] : '';
+}
+
+// ── VISTA POR MATERIA ────────────────────────────────────────────────
+
+function _estPorMateriaHTML() {
+  if (!_estData.length) {
+    return '<div class="gen-empty-state" style="margin-top:32px"><p>No hay datos en la estructura todavía.</p></div>';
+  }
+
+  var semChips = _estGetSemChips();
+  var semBar = '<div class="est-filtro-bar">' +
+    '<span class="est-filtro-label">Semestre:</span>' +
+    semChips.map(function(c) {
+      var active = _estGrupoFiltroSem === c.val ? ' active' : '';
+      return '<button class="est-filtro-chip' + active + '" data-filtrosem="' + genEsc(c.val) + '" onclick="_estSetGrupoFiltro(\'' + c.val + '\')">' + genEsc(c.label) + '</button>';
+    }).join('') + '</div>';
+
+  return '<div class="est-filtro-wrapper">' + semBar + '</div>' +
+    '<div id="est-materia-cards">' + _estMateriaCardsHTML() + '</div>';
+}
+
+function _estMateriaCardsHTML() {
+  var filtroSem = _estGrupoFiltroSem;
+  var conjSem   = _EST_CONJUNTOS_SEM_[filtroSem] || null;
+
+  /* ── 1. Agrupar filas por UAC, aplicando filtro de semestre ──── */
+  var porUAC = {};
+  _estData.forEach(function(row) {
+    var sem = String(row.semestre || '').trim();
+    if (filtroSem) {
+      if (conjSem) { if (conjSem.indexOf(sem) === -1) return; }
+      else if (sem !== filtroSem) return;
+    }
+    var uac = String(row.uac || '').trim() || '(sin UAC)';
+    if (!porUAC[uac]) porUAC[uac] = [];
+    porUAC[uac].push(row);
+  });
+
+  var uacKeys = Object.keys(porUAC).sort();
+  if (!uacKeys.length) {
+    return '<div class="gen-empty-state" style="padding:40px 0"><p>No hay materias para el filtro seleccionado.</p></div>';
+  }
+
+  /* ── 2. Agrupar UACs por componente ─────────────────────────── */
+  var porComp = {};
+  uacKeys.forEach(function(uac) {
+    var comp = String(porUAC[uac][0].componente || '').trim() || '(sin componente)';
+    if (!porComp[comp]) porComp[comp] = [];
+    porComp[comp].push(uac);
+  });
+
+  /* Ordenar componentes: sin componente al final, el resto alfabético */
+  var compKeys = Object.keys(porComp).sort(function(a, b) {
+    if (a === '(sin componente)') return 1;
+    if (b === '(sin componente)') return -1;
+    return a.localeCompare(b);
+  });
+
+  /* ── 3. Construir una sección por componente ─────────────────── */
+  return compKeys.map(function(comp, compIdx) {
+    var uacsDeComp = porComp[comp];
+    var totalMats  = uacsDeComp.length;
+
+    /* Color del encabezado: si el componente tiene estilo de capacitación úsalo,
+       si no, usa un tono neutro basado en posición */
+    var capInfo  = genGetCap(comp);
+    var capStyle = capInfo ? _GEN_CAP_STYLE_[capInfo] : null;
+    var hdrBg    = capStyle ? capStyle.bg    : '#1e293b';
+    var hdrText  = capStyle ? capStyle.text  : '#f1f5f9';
+    var hdrBorder= capStyle ? capStyle.border: '#334155';
+
+    /* Encabezado de sección estilo gen-mat-grp-head */
+    var secHeader =
+      '<div class="est-mat-comp-header' + (compIdx === 0 ? ' est-mat-comp-header--first' : '') +
+      '" style="background:' + hdrBg + ';border-left:4px solid ' + hdrBorder + '">' +
+        '<span class="est-mat-comp-title" style="color:' + hdrText + '">' + genEsc(comp) + '</span>' +
+        '<span class="est-mat-comp-count" style="background:rgba(255,255,255,.15);color:' + hdrText + '">' +
+          totalMats + ' materia' + (totalMats !== 1 ? 's' : '') +
+        '</span>' +
+      '</div>';
+
+    /* Tarjetas del componente */
+    var cards = uacsDeComp.map(function(uac) {
+      return _estMateriaCard(uac, porUAC[uac]);
+    }).join('');
+
+    return '<div class="est-mat-comp-section">' +
+      secHeader +
+      '<div class="est-cards-grid est-mat-grid">' + cards + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+/* ── Tarjeta individual de una materia ─────────────────────────────── */
+function _estMateriaCard(uac, filas) {
+  var f0    = filas[0];
+  var sem   = String(f0.semestre          || '').trim();
+  var campo = String(f0.campo_disciplinar || '').trim();
+  var horas = Number(f0.tot_horas)        || 0;
+  var sc    = _EST_SEM_COLORS_[sem] || { bg: '#f8fafc', border: '#cbd5e1', text: '#475569', light: '#f1f5f9' };
+
+  /* Enriquecer desde catálogo */
+  var uacNorm = genNormStr(uac);
+  var catMat  = null;
+  (_genApp.materias || []).some(function(m) {
+    if (genNormStr(m.nombre || '') === uacNorm) { catMat = m; return true; }
+  });
+  var capInfo  = catMat ? genGetCap(catMat.componente) : null;
+  var capStyle = capInfo ? _GEN_CAP_STYLE_[capInfo] : null;
+
+  /* Grupos únicos */
+  var grupos = [], grupoSeen = {};
+  filas.forEach(function(f) {
+    if (f.grupo && !grupoSeen[f.grupo]) { grupoSeen[f.grupo] = true; grupos.push(f.grupo); }
+  });
+  grupos.sort();
+
+  /* Docente → grupos que cubre */
+  var docenteMap = {};
+  filas.forEach(function(f) {
+    var d = String(f.docente || '').trim() || '(sin docente)';
+    if (!docenteMap[d]) docenteMap[d] = [];
+    if (f.grupo && docenteMap[d].indexOf(f.grupo) === -1) docenteMap[d].push(f.grupo);
+  });
+  var docenteKeys = Object.keys(docenteMap).sort(function(a, b) {
+    if (a === '(sin docente)') return 1;
+    if (b === '(sin docente)') return -1;
+    return a.localeCompare(b);
+  });
+
+  /* Badges */
+  var semBadge = sem
+    ? '<span class="est-v2-badge" style="background:' + sc.light + ';color:' + sc.text + ';border-color:' + sc.border + '">Sem ' + genEsc(sem) + '°</span>'
+    : '';
+  var capBadge = capStyle
+    ? '<span class="est-v2-badge" style="background:' + capStyle.bg + ';color:' + capStyle.text + ';border-color:' + capStyle.border + ';font-size:10px">' + genEsc(capInfo) + '</span>'
+    : '';
+
+  /* Filas de docentes */
+  var docenteRows = docenteKeys.map(function(d) {
+    var sinDoc   = d === '(sin docente)';
+    var initials = sinDoc ? '?' : d.split(/\s+/).filter(Boolean).slice(0, 2).map(function(w) { return w.charAt(0); }).join('').toUpperCase();
+    var avatarBg = sinDoc ? '#ef4444' : '#3b82f6';
+    var chips = docenteMap[d].map(function(g) {
+      return '<span class="est-mat-chip-grp est-mat-chip-sm" style="background:' + sc.light + ';color:' + sc.text + ';border-color:' + sc.border + '">' + genEsc(g) + '</span>';
+    }).join('');
+    return '<div class="est-mat-docente-row">' +
+      '<span class="est-mat-doc-avatar" style="background:' + avatarBg + '">' + genEsc(initials) + '</span>' +
+      '<span class="est-mat-doc-name' + (sinDoc ? ' est-mat-sin-doc' : '') + '">' + genEsc(d) + '</span>' +
+      '<span class="est-mat-doc-chips">' + chips + '</span>' +
+    '</div>';
+  }).join('');
+
+  /* Chips de grupos */
+  var grupoChips = grupos.map(function(g) {
+    return '<span class="est-mat-chip-grp" style="background:' + sc.light + ';color:' + sc.text + ';border-color:' + sc.border + '">' + genEsc(g) + '</span>';
+  }).join('');
+
+  return '<div class="est-card-v2 est-mat-card" style="border-top:3px solid ' + sc.border + '">' +
+
+    /* Ficha */
+    '<div class="est-mat-ficha" style="background:' + sc.bg + '">' +
+      '<div class="est-mat-ficha-top">' +
+        '<div style="flex:1;min-width:0">' +
+          '<div class="est-mat-uac-name">' + genEsc(uac) + '</div>' +
+          (campo ? '<div class="est-mat-campo">' + genEsc(campo) + '</div>' : '') +
+        '</div>' +
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">' +
+          semBadge + capBadge +
+        '</div>' +
+      '</div>' +
+      (horas ? '<div class="est-mat-ficha-meta">' +
+        '<span class="est-v2-total-badge" style="background:' + sc.light + ';color:' + sc.text + ';border-color:' + sc.border + '">' + horas + ' hrs/sem</span>' +
+      '</div>' : '') +
+    '</div>' +
+
+    /* Docentes */
+    '<div class="est-mat-section">' +
+      '<div class="est-mat-section-label">Docentes (' + docenteKeys.length + ')</div>' +
+      docenteRows +
+    '</div>' +
+
+    /* Grupos */
+    '<div class="est-mat-section est-mat-grupos">' +
+      '<div class="est-mat-section-label">Grupos (' + grupos.length + ')</div>' +
+      '<div class="est-mat-chips">' + grupoChips + '</div>' +
+    '</div>' +
+
+  '</div>';
 }
 
 // ── VISTA CONFLICTOS ─────────────────────────────────────────────────
@@ -805,21 +1067,129 @@ async function _estGenerarCarga() {
     genToast('Existen errores críticos. Corrígelos antes de generar la carga.', 'error');
     return;
   }
-  var periodoMsg = _genApp.periodo ? ' (Periodo '+_genApp.periodo+')' : '';
+
   genRequireAdmin(function() {
+    // Resolver matches con los catálogos en memoria
+    var materias = _genApp.materias || [];
+    var docentes = _genApp.docentes || [];
+    var grupos   = _genApp.grupos   || [];
+
+    var matPorNombre = {};
+    var matPorClave  = {};
+    materias.forEach(function(m) {
+      var n = genNormStr(m.nombre || '');
+      var c = genNormStr(m.clave  || '');
+      if (n) matPorNombre[n] = m.id;
+      if (c) matPorClave[c]  = m.id;
+    });
+    var docPorNombre = {};
+    docentes.forEach(function(d) {
+      docPorNombre[genNormStr(genNombreDocente(d))] = d.id;
+      if (d.apellido_paterno) {
+        var ape = genNormStr(d.apellido_paterno);
+        if (ape && !docPorNombre[ape]) docPorNombre[ape] = d.id;
+      }
+    });
+    // índice de grupos con todas las formas posibles (incluye g.clave)
+    var grpIdx = {};
+    grupos.forEach(function(g) {
+      function addG(k) { var nk = genNormStr(String(k||'')); if (nk && !grpIdx[nk]) grpIdx[nk] = g.id; }
+      addG(genLabelGrupo(g));
+      if (g.clave) addG(g.clave);
+      if (g.grupo) {
+        addG(g.grupo);
+        addG(String(g.grado||'') + g.grupo);
+        addG(String(g.grado||'') + '0' + g.grupo);
+        var tp = g.turno ? genNormStr(g.turno).charAt(0) : '';
+        if (tp) { addG(tp + String(g.grado||'') + g.grupo); addG(tp + String(g.grado||'') + '0' + g.grupo); }
+      }
+    });
+
+    var matchHints = {}, docenteHints = {}, grupoHints = {};
+    var sinMaterias = [], sinDocentes = [], sinGrupos = [];
+    var uacSet = {}, docSet = {}, grpSet = {};
+    _estData.forEach(function(row) {
+      var uac = String(row.uac     || '').trim();
+      var doc = String(row.docente || '').trim();
+      var grp = String(row.grupo   || '').trim();
+      if (uac) uacSet[uac] = true;
+      if (doc) docSet[doc] = true;
+      if (grp) grpSet[grp] = true;
+    });
+    Object.keys(uacSet).forEach(function(uac) {
+      var n  = genNormStr(uac);
+      var id = matPorNombre[n] || matPorClave[n];
+      if (!id) {
+        for (var k in matPorNombre) {
+          if (k.length >= 5 && (n === k || n.indexOf(k) !== -1 || k.indexOf(n) !== -1)) { id = matPorNombre[k]; break; }
+        }
+      }
+      if (id) matchHints[uac] = id; else sinMaterias.push(uac);
+    });
+    Object.keys(docSet).forEach(function(doc) {
+      var n  = genNormStr(doc);
+      var id = docPorNombre[n];
+      if (!id) { var tok = n.split(/\s+/)[0]; if (tok && tok.length >= 3) id = docPorNombre[tok]; }
+      if (id) docenteHints[doc] = id; else sinDocentes.push(doc);
+    });
+    Object.keys(grpSet).forEach(function(g) {
+      var n  = genNormStr(g);
+      var id = grpIdx[n];
+      if (!id) { var sp = n.replace(/^[mvts]/, '').trim(); id = grpIdx[sp]; }
+      if (id) grupoHints[g] = id; else sinGrupos.push(g);
+    });
+
+    var hints = { matchHints: matchHints, docenteHints: docenteHints, grupoHints: grupoHints };
+    var nMat  = Object.keys(matchHints).length;
+    var nDoc  = Object.keys(docenteHints).length;
+    var nGrp  = Object.keys(grupoHints).length;
+    var periodoMsg = _genApp.periodo ? ' · Periodo ' + _genApp.periodo : '';
+
+    var resumen =
+      '<ul style="margin:10px 0 0;padding-left:18px;font-size:0.85rem;line-height:1.8;">' +
+      '<li><strong>' + nMat + '</strong> materia(s) resueltas' +
+        (sinMaterias.length ? ' <span style="color:#f97316;">(' + sinMaterias.length + ' sin coincidencia)</span>' : ' ✓') + '</li>' +
+      '<li><strong>' + nDoc + '</strong> docente(s) resueltos' +
+        (sinDocentes.length ? ' <span style="color:#f97316;">(' + sinDocentes.length + ' sin coincidencia)</span>' : ' ✓') + '</li>' +
+      '<li><strong>' + nGrp + '</strong> grupo(s) resueltos' +
+        (sinGrupos.length ? ' <span style="color:#f97316;">(' + sinGrupos.length + ' sin coincidencia)</span>' : ' ✓') + '</li>' +
+      '</ul>';
+    var advertencia = (sinMaterias.length || sinDocentes.length || sinGrupos.length)
+      ? '<p style="margin-top:10px;font-size:0.8rem;color:#92400e;background:#fef3c7;padding:8px 10px;border-radius:8px;">' +
+        '⚠ Los registros sin coincidencia serán omitidos.</p>'
+      : '';
+
     genConfirm(
-      'Esto generará asignaciones de Carga Horaria desde la estructura educativa'+periodoMsg+'. Las asignaciones existentes para este ciclo no se eliminarán; se agregarán las nuevas. ¿Continuar?',
+      'Se generarán asignaciones para el ciclo <strong>' + genEsc(_genApp.ciclo) + '</strong>' + periodoMsg + '.' +
+      ' Las asignaciones existentes <em>no</em> se eliminan.' +
+      resumen + advertencia,
       async function() {
         try {
-          var res = await genAPI.estructuraACarga(_genApp.adminKey, _genApp.ciclo);
-          genToast(res.message, 'ok');
+          var res = await genAPI.estructuraACarga(_genApp.adminKey, _genApp.ciclo, hints);
+          genToast(res.message || 'Proceso completado.', 'ok');
           if (res.sin_match && res.sin_match.length) {
-            genToast('Sin coincidencia en catálogo: ' + res.sin_match.slice(0,3).join(', ') + (res.sin_match.length > 3 ? '…' : ''), 'warning');
+            var detalle = res.sin_match.slice(0, 10).map(function(item) {
+              var txt = String(item)
+                .replace(/^Grupo:\s*/i, '')
+                .replace(/,\s*UAC:\s*/i, ' → Materia: ');
+              return '<li>' + genEsc(txt) + '</li>';
+            }).join('');
+            var mas = res.sin_match.length > 10
+              ? '<li style="color:#94a3b8;">… y ' + (res.sin_match.length - 10) + ' más</li>'
+              : '';
+            _genModal.open(
+              'Registros omitidos (' + res.sin_match.length + ')',
+              '<p style="font-size:0.85rem;color:#64748b;margin-bottom:10px;">Los siguientes registros no generaron asignación:</p>' +
+              '<ul style="padding-left:18px;font-size:0.82rem;line-height:1.8;max-height:280px;overflow-y:auto;">' +
+                detalle + mas + '</ul>',
+              '<button class="gen-btn gen-btn-secondary" onclick="_genModal.close()">Cerrar</button>'
+            );
           }
         } catch(err) {
           genToast('Error: ' + err.message, 'error');
         }
-      }
+      },
+      { label: 'Generar asignaciones', cls: 'gen-btn-primary', title: 'Generar carga horaria' }
     );
   });
 }

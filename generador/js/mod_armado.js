@@ -285,55 +285,368 @@ function _armadoAbrirAsignacion(dia, bloque, grupoId, materiaId, docenteId) {
 }
 
 /**
- * Genera la carga horaria desde la Estructura Educativa validada del ciclo actual.
- * Equivale a ejecutar "Generar carga horaria" desde el módulo de Estructura,
- * pero desde el contexto del Armado para que el usuario no tenga que cambiar de módulo.
+ * Resuelve coincidencias UAC→materia, docente→id y grupo→id usando los
+ * catálogos locales con normalización. Devuelve hints + listas sin-match.
+ *
+ * Estrategias de matching por tipo:
+ *  UAC     → nombre normalizado, luego clave, luego subconjunto de palabras
+ *  Docente → nombre completo normalizado, luego solo apellido paterno
+ *  Grupo   → clave del catálogo (g.clave), genLabelGrupo ("1°A"),
+ *             g.grupo solo ("A"), compuesto grado+grupo ("1A", "101"),
+ *             prefijo de turno + compuesto ("M1A", "M101"), etc.
  */
-async function _armadoPrecargarDesdeEstructura() {
-  genRequireAdmin(function() {
-    genConfirm(
-      'Esto generará asignaciones de Carga Horaria a partir de la Estructura Educativa del ciclo "' +
-      _genApp.ciclo + '". Las asignaciones existentes no se eliminan; se agregan las nuevas. ¿Continuar?',
-      async function() {
-        try {
-          var res = await genAPI.estructuraACarga(_genApp.adminKey, _genApp.ciclo);
-          genToast(res.message, 'ok');
-          if (res.sin_match && res.sin_match.length) {
-            genToast('Sin coincidencia: ' + res.sin_match.slice(0,3).join(', ') + (res.sin_match.length>3?'…':''), 'warning');
-          }
-          // Refrescar carga en memoria
-          _genApp.carga = await genAPI.getCarga(_genApp.ciclo, true);
-          // Si hay un grupo seleccionado, reconstruir su pool
-          if (_armadoCurrentGrupo_) {
-            var poolWrap = document.getElementById('gen-arm-pool-wrapper');
-            if (poolWrap) {
-              var cargaGrupo = _genApp.carga.filter(function(c){ return String(c.grupo_id) === String(_armadoCurrentGrupo_); });
-              document.getElementById('gen-arm-pool').innerHTML = cargaGrupo.length === 0
-                ? '<p class="gen-muted" style="font-size:12px">Sin carga horaria asignada para este grupo.</p>'
-                : cargaGrupo.map(function(c) {
-                    var m     = genById(_genApp.materias, c.materia_id);
-                    var d     = genById(_genApp.docentes, c.docente_id);
-                    var color = m ? genGetMateriaColor(m.id) : '#94a3b8';
-                    return '<div class="gen-arm-pool-item" data-carga-id="'+genEsc(c.id)+'" data-materia-id="'+genEsc(c.materia_id)+'" data-docente-id="'+genEsc(c.docente_id||'')+'" style="border-left:4px solid '+color+'">'+
-                      '<strong style="color:'+color+'">'+(m ? genEsc(m.nombre) : '?')+'</strong>'+
-                      '<span>'+(d ? genEsc(genNombreDocente(d)) : 'Sin docente')+'</span>'+
-                      '</div>';
-                  }).join('');
-              document.querySelectorAll('.gen-arm-pool-item').forEach(function(el) {
-                el.addEventListener('click', function() {
-                  document.querySelectorAll('.gen-arm-pool-item').forEach(function(x){ x.classList.remove('selected'); });
-                  this.classList.add('selected');
-                });
-              });
-              poolWrap.style.display = '';
-            }
-          }
-        } catch(err) {
-          genToast('Error: ' + err.message, 'error');
+function _armadoResolverMatchHints_() {
+  var materias = _genApp.materias || [];
+  var docentes = _genApp.docentes || [];
+  var grupos   = _genApp.grupos   || [];
+  // _estData sólo existe en mod_estructura.js; aquí usamos el caché del API.
+  // Nota: Array vacío [] también es válido — no usar !estData como guard.
+  var estData  = (Array.isArray(_GEN_CACHE_.estructura) ? _GEN_CACHE_.estructura : []);
+
+  /* ── índice de materias ─────────────────────────────────────────── */
+  var matPorNombre = {};
+  var matPorClave  = {};
+  materias.forEach(function(m) {
+    var n = genNormStr(m.nombre || '');
+    var c = genNormStr(m.clave  || '');
+    if (n) matPorNombre[n] = m.id;
+    if (c) matPorClave[c]  = m.id;
+  });
+
+  /* ── índice de docentes ─────────────────────────────────────────── */
+  var docPorNombre = {};
+  docentes.forEach(function(d) {
+    docPorNombre[genNormStr(genNombreDocente(d))] = d.id;
+    // también por apellido paterno solo (nombres cortos en estructura)
+    if (d.apellido_paterno) {
+      var ape = genNormStr(d.apellido_paterno);
+      if (ape && !docPorNombre[ape]) docPorNombre[ape] = d.id;
+    }
+  });
+
+  /* ── índice de grupos (múltiples estrategias) ───────────────────── */
+  // Un solo mapa "clave normalizada → grupo_id" con todas las formas posibles.
+  var grpIdx = {};
+  grupos.forEach(function(g) {
+    function addGrp(k) {
+      var nk = genNormStr(String(k || ''));
+      if (nk && !grpIdx[nk]) grpIdx[nk] = g.id;
+    }
+    addGrp(genLabelGrupo(g));                             // "1°a"
+    if (g.clave)  addGrp(g.clave);                       // "m101", "1a", etc.
+    if (g.grupo) {
+      addGrp(g.grupo);                                    // "a"
+      addGrp(String(g.grado || '') + g.grupo);            // "1a"
+      addGrp(String(g.grado || '') + '0' + g.grupo);     // "101"
+      // con iniciales de turno: "m"=matutino, "v"=vespertino
+      var tp = g.turno ? genNormStr(g.turno).charAt(0) : '';
+      if (tp) {
+        addGrp(tp + String(g.grado || '') + g.grupo);          // "m1a"
+        addGrp(tp + String(g.grado || '') + '0' + g.grupo);   // "m101"
+      }
+    }
+  });
+
+  /* ── sets únicos desde estructura ──────────────────────────────── */
+  var uacSet   = {};
+  var docSet   = {};
+  var grupoSet = {};
+  estData.forEach(function(row) {
+    var uac = String(row.uac     || '').trim();
+    var doc = String(row.docente || '').trim();
+    var grp = String(row.grupo   || '').trim();
+    if (uac) uacSet[uac]   = true;
+    if (doc) docSet[doc]   = true;
+    if (grp) grupoSet[grp] = true;
+  });
+
+  var matchHints   = {};
+  var docenteHints = {};
+  var grupoHints   = {};
+  var sinMaterias  = [];
+  var sinDocentes  = [];
+  var sinGrupos    = [];
+
+  /* resolver UAC → materia_id */
+  Object.keys(uacSet).forEach(function(uac) {
+    var n  = genNormStr(uac);
+    var id = matPorNombre[n] || matPorClave[n];
+    // fuzzy: la materia está contenida en el UAC o viceversa (mín 5 chars)
+    if (!id) {
+      for (var k in matPorNombre) {
+        if (k.length >= 5 && (n === k || n.indexOf(k) !== -1 || k.indexOf(n) !== -1)) {
+          id = matPorNombre[k]; break;
         }
       }
-    );
+    }
+    if (id) matchHints[uac] = id;
+    else    sinMaterias.push(uac);
   });
+
+  /* resolver docente → docente_id */
+  Object.keys(docSet).forEach(function(doc) {
+    var n  = genNormStr(doc);
+    var id = docPorNombre[n];
+    // intenta primer token (apellido paterno)
+    if (!id) {
+      var tok = n.split(/\s+/)[0];
+      if (tok && tok.length >= 3) id = docPorNombre[tok];
+    }
+    if (id) docenteHints[doc] = id;
+    else    sinDocentes.push(doc);
+  });
+
+  /* resolver grupo → grupo_id */
+  Object.keys(grupoSet).forEach(function(gStr) {
+    var n  = genNormStr(gStr);
+    var id = grpIdx[n];
+    // quitar prefijo de turno si no hubo match directo
+    if (!id) {
+      var sinPref = n.replace(/^[mvts]/, '').trim();
+      id = grpIdx[sinPref];
+    }
+    if (id) grupoHints[gStr] = id;
+    else    sinGrupos.push(gStr);
+  });
+
+  /* ── diagnóstico en consola ─────────────────────────────────────── */
+  console.group('[Precargar desde Estructura] diagnóstico');
+  console.log('Filas en estData:', estData.length);
+  console.log('UACs únicas:', Object.keys(uacSet).length,
+    '| resueltas:', Object.keys(matchHints).length, '| sin match:', sinMaterias);
+  console.log('Docentes únicos:', Object.keys(docSet).length,
+    '| resueltos:', Object.keys(docenteHints).length, '| sin match:', sinDocentes);
+  console.log('Grupos únicos:', Object.keys(grupoSet).length,
+    '| resueltos:', Object.keys(grupoHints).length, '| sin match:', sinGrupos);
+  console.log('Claves de grupo en catálogo:', Object.keys(grpIdx));
+  console.log('grupoHints enviados:', grupoHints);
+  console.log('matchHints (UAC→id):', matchHints);
+  if (estData.length > 0) console.log('Muestra fila estructura[0]:', estData[0]);
+  console.groupEnd();
+
+  return {
+    matchHints:   matchHints,
+    docenteHints: docenteHints,
+    grupoHints:   grupoHints,
+    sinMaterias:  sinMaterias,
+    sinDocentes:  sinDocentes,
+    sinGrupos:    sinGrupos,
+    _totalRows:   estData.length,
+    _estSample:   estData.slice(0, 3),
+    _nUac:        Object.keys(uacSet).length,
+    _nDoc:        Object.keys(docSet).length,
+    _nGrp:        Object.keys(grupoSet).length
+  };
+}
+
+/**
+ * Genera la carga horaria desde la Estructura Educativa validada del ciclo actual.
+ * Muestra un panel de progreso en tiempo real dentro de un modal dedicado.
+ */
+async function _armadoPrecargarDesdeEstructura() {
+  genRequireAdmin(async function() {
+
+    /* ── Abrir modal de progreso inmediatamente ─────────────────────── */
+    _genModal.open(
+      '⚡ Precargar desde Estructura',
+      '<div style="min-width:480px;max-width:620px">' +
+        '<p class="gen-prec-subtitle">Ciclo: <strong>' + genEsc(_genApp.ciclo) + '</strong>' +
+        (_genApp.periodo ? ' &nbsp;·&nbsp; Periodo <strong>' + genEsc(_genApp.periodo) + '</strong>' : '') +
+        '</p>' +
+        '<div class="gen-prec-log" id="gen-prec-log"></div>' +
+        '<div id="gen-prec-actions"></div>' +
+      '</div>',
+      '<button class="gen-btn gen-btn-secondary" onclick="_genModal.close()">Cerrar</button>'
+    );
+
+    /* ── PASO 1: Cargar estructura ──────────────────────────────────── */
+    var s1 = _precLog('Cargando Estructura Educativa…', 'pending');
+    var periodoOriginal = _genApp.periodo;
+    _genApp.periodo = '';
+    var cargaOk = false;
+    try {
+      await genAPI.getEstructura(_genApp.ciclo, true);
+      var nFilas = Array.isArray(_GEN_CACHE_.estructura) ? _GEN_CACHE_.estructura.length : 0;
+      _precUpdate(s1, nFilas + ' filas cargadas desde Estructura Educativa', 'ok');
+      cargaOk = true;
+    } catch(e) {
+      _precUpdate(s1, 'Error al cargar la estructura: ' + e.message, 'error');
+    } finally {
+      _genApp.periodo = periodoOriginal;
+    }
+    if (!cargaOk) return;
+
+    /* ── PASO 2: Verificar datos ────────────────────────────────────── */
+    var nFilas = Array.isArray(_GEN_CACHE_.estructura) ? _GEN_CACHE_.estructura.length : 0;
+    if (nFilas === 0) {
+      _precLog('No hay filas en la Estructura para el ciclo ' + genEsc(_genApp.ciclo) + '.', 'error');
+      _precLog('Ve a Estructura Educativa y verifica que haya datos para este ciclo.', 'info');
+      return;
+    }
+
+    /* ── PASO 3: Resolver coincidencias (sync, yield antes para pintar) */
+    var s2 = _precLog('Resolviendo coincidencias con catálogos…', 'pending');
+    await new Promise(function(r) { setTimeout(r, 40); });
+    var hints = _armadoResolverMatchHints_();
+    _precUpdate(s2, 'Coincidencias procesadas', 'ok');
+
+    /* ── PASO 4: Mostrar resumen por categoría ──────────────────────── */
+    var nMatR = Object.keys(hints.matchHints).length;
+    var nDocR = Object.keys(hints.docenteHints).length;
+    var nGrpR = Object.keys(hints.grupoHints).length;
+
+    _precLog(
+      'UACs: <strong>' + nMatR + ' resueltas</strong> de ' + hints._nUac + ' únicas' +
+      (hints.sinMaterias.length ? ' — <span class="gen-prec-warn">' + hints.sinMaterias.length + ' sin coincidencia</span>' : ''),
+      hints.sinMaterias.length ? 'warn' : 'ok'
+    );
+    if (hints.sinMaterias.length) _precLogItems(hints.sinMaterias, '#d97706');
+
+    _precLog(
+      'Docentes: <strong>' + nDocR + ' resueltos</strong> de ' + hints._nDoc + ' únicos' +
+      (hints.sinDocentes.length ? ' — <span class="gen-prec-warn">' + hints.sinDocentes.length + ' sin coincidencia</span>' : ''),
+      hints.sinDocentes.length ? 'warn' : 'ok'
+    );
+    if (hints.sinDocentes.length) _precLogItems(hints.sinDocentes, '#7c3aed');
+
+    _precLog(
+      'Grupos: <strong>' + nGrpR + ' resueltos</strong> de ' + hints._nGrp + ' únicos' +
+      (hints.sinGrupos.length ? ' — <span class="gen-prec-warn">' + hints.sinGrupos.length + ' sin coincidencia</span>' : ''),
+      hints.sinGrupos.length ? 'warn' : 'ok'
+    );
+    if (hints.sinGrupos.length) {
+      _precLogItems(hints.sinGrupos, '#dc2626');
+      /* Mostrar referencia del catálogo para ayudar a corregir */
+      var catRef = _genApp.grupos.slice(0, 15).map(function(g) {
+        return genLabelGrupo(g) + (g.clave ? '[' + g.clave + ']' : '');
+      }).join('  ');
+      _precLog('Grupos en catálogo: ' + genEsc(catRef), 'info');
+    }
+
+    /* ── PASO 5: Botones de confirmación ────────────────────────────── */
+    var actDiv = document.getElementById('gen-prec-actions');
+    if (!actDiv) return;
+    actDiv.className = 'gen-prec-confirm-row';
+    actDiv.innerHTML =
+      '<span style="font-size:0.8rem;color:#64748b">Las asignaciones existentes <em>no</em> se eliminan.</span>' +
+      '<button class="gen-btn gen-btn-secondary" onclick="_genModal.close()">Cancelar</button>' +
+      '<button class="gen-btn gen-btn-primary" id="gen-prec-btn-gen">Generar asignaciones</button>';
+
+    document.getElementById('gen-prec-btn-gen').addEventListener('click', async function() {
+      actDiv.innerHTML = '';   // quitar botones durante la operación
+
+      /* ── PASO 6: Llamar al backend ──────────────────────────────── */
+      var s3 = _precLog('Enviando datos al servidor…', 'pending');
+      try {
+        var res = await genAPI.estructuraACarga(_genApp.adminKey, _genApp.ciclo, hints);
+        _precUpdate(s3, (res.message || 'Proceso completado') + '.', 'ok');
+
+        /* Omitidos del backend */
+        if (res.sin_match && res.sin_match.length) {
+          _precLog(res.sin_match.length + ' registro(s) omitidos por el servidor:', 'warn');
+          _precLogItems(res.sin_match.slice(0, 40).map(String), '#64748b');
+        }
+
+        /* ── PASO 7: Refrescar carga ──────────────────────────────── */
+        var s4 = _precLog('Actualizando carga horaria…', 'pending');
+        _genApp.carga = await genAPI.getCarga(_genApp.ciclo, true);
+        _precUpdate(s4, _genApp.carga.length + ' asignaciones en total para el ciclo.', 'ok');
+
+        /* Refrescar pool si hay grupo activo */
+        if (_armadoCurrentGrupo_) _armadoRefreshPool();
+
+        _precLog('Proceso finalizado correctamente.', 'ok');
+
+      } catch(err) {
+        _precLog('Error: ' + err.message, 'error');
+      }
+    });
+  });
+}
+
+/* ── Helpers del panel de progreso ─────────────────────────────────── */
+
+/** Añade una línea al log y devuelve el elemento para actualizarlo después. */
+function _precLog(msg, state) {
+  var log = document.getElementById('gen-prec-log');
+  if (!log) return null;
+  var el = document.createElement('div');
+  el.className = 'gen-prec-step gen-prec-s-' + state;
+  el.innerHTML = _precStepHTML(msg, state);
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+  return el;
+}
+
+/** Actualiza un elemento de log ya existente. */
+function _precUpdate(el, msg, state) {
+  if (!el) return;
+  el.className = 'gen-prec-step gen-prec-s-' + state;
+  el.innerHTML = _precStepHTML(msg, state);
+  var log = document.getElementById('gen-prec-log');
+  if (log) log.scrollTop = log.scrollHeight;
+}
+
+/** HTML interno de un paso del log. */
+function _precStepHTML(msg, state) {
+  var icons = {
+    pending: '<span class="gen-prec-spinner"></span>',
+    ok:      '✓',
+    error:   '✗',
+    warn:    '⚠',
+    info:    '·'
+  };
+  return '<span class="gen-prec-icon">' + (icons[state] || '·') + '</span>' +
+         '<span class="gen-prec-msg">' + msg + '</span>';
+}
+
+/** Añade una fila compacta con lista de ítems (para sin-match). */
+function _precLogItems(items, color) {
+  var log = document.getElementById('gen-prec-log');
+  if (!log || !items.length) return;
+  var uniq = items.filter(function(v, i, a) { return a.indexOf(v) === i; });
+  var shown = uniq.slice(0, 20).map(function(x) {
+    return '<span class="gen-prec-tag">' + genEsc(String(x)) + '</span>';
+  }).join('');
+  var more  = uniq.length > 20
+    ? '<span style="color:#94a3b8;font-size:0.74rem"> y ' + (uniq.length - 20) + ' más…</span>'
+    : '';
+  var el = document.createElement('div');
+  el.className = 'gen-prec-step gen-prec-s-detail';
+  el.innerHTML = '<span class="gen-prec-icon" style="color:' + color + '">↳</span>' +
+    '<span class="gen-prec-msg" style="flex-wrap:wrap;display:flex;gap:3px;align-items:center">' +
+    shown + more + '</span>';
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+}
+
+/** Refresca el pool de materias del grupo activo en el armado. */
+function _armadoRefreshPool() {
+  var poolWrap = document.getElementById('gen-arm-pool-wrapper');
+  if (!poolWrap || !_armadoCurrentGrupo_) return;
+  var cargaGrupo = _genApp.carga.filter(function(c) {
+    return String(c.grupo_id) === String(_armadoCurrentGrupo_);
+  });
+  document.getElementById('gen-arm-pool').innerHTML = cargaGrupo.length === 0
+    ? '<p class="gen-muted" style="font-size:12px">Sin carga horaria asignada para este grupo.</p>'
+    : cargaGrupo.map(function(c) {
+        var m     = genById(_genApp.materias, c.materia_id);
+        var d     = genById(_genApp.docentes, c.docente_id);
+        var color = m ? genGetMateriaColor(m.id) : '#94a3b8';
+        return '<div class="gen-arm-pool-item" data-carga-id="'+genEsc(c.id)+'" ' +
+          'data-materia-id="'+genEsc(c.materia_id)+'" data-docente-id="'+genEsc(c.docente_id||'')+'" ' +
+          'style="border-left:4px solid '+color+'">' +
+          '<strong style="color:'+color+'">'+(m ? genEsc(m.nombre) : '?')+'</strong>' +
+          '<span>'+(d ? genEsc(genNombreDocente(d)) : 'Sin docente')+'</span>' +
+          '</div>';
+      }).join('');
+  document.querySelectorAll('.gen-arm-pool-item').forEach(function(el) {
+    el.addEventListener('click', function() {
+      document.querySelectorAll('.gen-arm-pool-item').forEach(function(x) { x.classList.remove('selected'); });
+      this.classList.add('selected');
+    });
+  });
+  poolWrap.style.display = '';
 }
 
 async function genArmadoLimpiarBloque(dia, bloque, grupoId) {

@@ -6,9 +6,9 @@ genRegisterModule('materias', {
     try {
       var materias = await genAPI.getMaterias(true);
       _genApp.materias = materias;
-      // Pre-asignar colores
       materias.forEach(function(m) { if (m.id) genGetMateriaColor(m.id); });
       _matCurrentSem = '';
+      // No resetear _matViewMode al re-renderizar — conserva preferencia del usuario
       container.innerHTML = _matHTML(materias);
       _matBind();
     } catch(err) {
@@ -29,37 +29,124 @@ var _MAT_COMPONENTES_ = [
 
 var _MAT_SEMESTRES_ = ['1', '2', '3', '4', '5', '6'];
 
-// Tab activo (semestre vacío = Todas)
-var _matCurrentSem = '';
+// ── ESTADO DEL MÓDULO ────────────────────────────────────────────────
 
-// ── SEMESTRE BADGE ──────────────────────────────────────────────────
+var _matCurrentSem = '';
+var _matViewMode   = 'flat';   // 'flat' | 'grouped'
+
+// ── DETECCIÓN DE CAPACITACIÓN ────────────────────────────────────────
+
+/**
+ * Detección SOLO por campo `componente` (para vista plana y badge visual).
+ * No aplica inferencia por nombre — lo que dice el campo, eso vale.
+ */
+function _matDetectCapFlat(m) {
+  return genGetCap(m.componente);
+}
+
+/**
+ * Detección INTELIGENTE para la vista "Por componente".
+ * Reglas:
+ *  - Semestres 1 y 2 → nunca capacitación (son comunes a todos los grupos)
+ *  - El campo `componente` explícito siempre gana sobre las reglas de nombre
+ *  - Semestre 3 → reglas controladas por nombre de materia
+ *  - Semestre 5 → reglas controladas por nombre de materia
+ *  - Resto → null (sin inferencia, para no inventar capacitación)
+ */
+function _matDetectCapGrouped(m) {
+  var sem = String(m.semestre || '').trim();
+
+  // 1° y 2° nunca llevan capacitación
+  if (sem === '1' || sem === '2') return null;
+
+  // Campo componente explícito tiene prioridad
+  var c = genGetCap(m.componente);
+  if (c) return c;
+
+  // Solo aplicar reglas de nombre en semestres 3 y 5
+  if (sem !== '3' && sem !== '5') return null;
+
+  var nom = genNormStr(m.nombre || '');
+
+  if (sem === '3') {
+    // Higiene y Salud Comunitaria — 3°
+    if (nom.indexOf('bases anatomic') !== -1 ||
+        nom.indexOf('fisiolog') !== -1 ||
+        nom.indexOf('salud enfermedad') !== -1 ||
+        nom.indexOf('epidemiolog') !== -1) {
+      return 'Higiene y Salud Comunitaria';
+    }
+    // Auxiliar Educativo — 3°
+    if (nom.indexOf('sistema educativo') !== -1 ||
+        nom.indexOf('intervencion educativa') !== -1) {
+      return 'Auxiliar Educativo';
+    }
+    // Tecnologías de la Información — 3°
+    if (nom.indexOf('gestion de archivo') !== -1 ||
+        nom.indexOf('archivo de texto') !== -1 ||
+        nom.indexOf('hoja de calculo') !== -1 ||
+        nom.indexOf('hoja calculo') !== -1) {
+      return 'Tecnologías de la Información';
+    }
+  }
+
+  if (sem === '5') {
+    // Tecnologías de la Información — 5°
+    if (nom.indexOf('sistemas de informacion') !== -1 ||
+        nom.indexOf('sistema de informacion') !== -1 ||
+        nom.indexOf('programacion') !== -1) {
+      return 'Tecnologías de la Información';
+    }
+    // Auxiliar Educativo — 5°
+    if (nom.indexOf('intervencion educativa') !== -1) {
+      return 'Auxiliar Educativo';
+    }
+    // Higiene y Salud Comunitaria — 5°
+    if (nom.indexOf('salud sexual') !== -1 ||
+        nom.indexOf('tecnicas clinicas') !== -1) {
+      return 'Higiene y Salud Comunitaria';
+    }
+  }
+
+  return null;  // sin coincidencia → materia general
+}
+
+/**
+ * Dispatcher: usa la función correcta según el modo de vista actual.
+ * Llamado desde _matRow para el badge visual de la fila.
+ */
+function _matCapForRow(m) {
+  return _matViewMode === 'grouped' ? _matDetectCapGrouped(m) : _matDetectCapFlat(m);
+}
+
+// ── BADGE DE SEMESTRE ────────────────────────────────────────────────
 
 function _matSemestreBadge(sem) {
   if (!sem || sem === '') return '<span class="gen-badge gen-badge-gray" style="font-size:10px">General</span>';
   return '<span class="gen-badge gen-badge-blue" style="font-size:10px">'+genEsc(sem)+'°</span>';
 }
 
-// ── HTML PRINCIPAL ──────────────────────────────────────────────────
+// ── HTML PRINCIPAL ───────────────────────────────────────────────────
 
 function _matHTML(materias) {
-  // Determinar qué semestres mostrar según el periodo activo
-  var semsPeriodo = genGetSemestresPeriodo();
+  var semsPeriodo  = genGetSemestresPeriodo();
   var semsVisibles = semsPeriodo ? semsPeriodo : _MAT_SEMESTRES_;
 
-  // Si el tab actual no es válido para el periodo, resetear a ''
   if (_matCurrentSem && semsPeriodo && semsPeriodo.indexOf(_matCurrentSem) === -1) {
     _matCurrentSem = '';
   }
 
   var tabs = [''].concat(semsVisibles).map(function(s) {
-    var label = s ? s+'°' : 'Todas';
     var active = s === _matCurrentSem ? ' active' : '';
-    return '<button class="gen-mat-tab'+active+'" data-sem="'+s+'">'+label+'</button>';
+    return '<button class="gen-mat-tab'+active+'" data-sem="'+s+'">'+(s ? s+'°' : 'Todas')+'</button>';
   }).join('');
 
   var periodoInfo = _genApp.periodo
     ? '<span class="gen-periodo-badge gen-periodo-badge-'+_genApp.periodo+'">Periodo '+_genApp.periodo+' · Sems '+semsVisibles.join(', ')+'°</span>'
     : '';
+
+  var vFlat    = _matViewMode === 'flat'    ? ' active' : '';
+  var vGrouped = _matViewMode === 'grouped' ? ' active' : '';
 
   return `
 <div class="gen-page-header">
@@ -69,6 +156,16 @@ function _matHTML(materias) {
   </div>
   <div class="gen-header-actions">
     <input type="text" id="gen-mat-search" class="gen-search-input" placeholder="Buscar materia…">
+    <div class="gen-mat-view-toggle">
+      <button class="gen-mat-vtab${vFlat}" id="gen-mat-vflat" title="Lista plana">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Plana
+      </button>
+      <button class="gen-mat-vtab${vGrouped}" id="gen-mat-vgrouped" title="Agrupar por componente">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Por componente
+      </button>
+    </div>
     <button class="gen-btn gen-btn-primary" id="gen-mat-nuevo">+ Nueva materia</button>
   </div>
 </div>
@@ -96,23 +193,16 @@ function _matHTML(materias) {
 </div>`;
 }
 
-// ── CONSTRUCCIÓN AGRUPADA DEL TBODY ─────────────────────────────────
+// ── CONSTRUCCIÓN DEL TBODY ───────────────────────────────────────────
 
-/**
- * Genera el HTML del tbody agrupando las materias:
- *   1. Materias generales (componente no es capacitación)
- *   2. Por cada capacitación reconocida, su propio bloque
- * Si `sem` está definido, filtra solo ese semestre primero.
- */
+/** Filtra la lista por semestre/periodo y delega al constructor de vista. */
 function _matBuildTbody(materias, sem) {
-  var list = (materias || []);
-  // Filtrar por periodo activo cuando se muestra "Todas"
+  var list = materias || [];
   var semsPeriodo = genGetSemestresPeriodo();
+
   if (sem) {
-    // Tab específico: solo ese semestre
-    list = list.filter(function(m) { return String(m.semestre||'') === sem; });
+    list = list.filter(function(m) { return String(m.semestre || '') === sem; });
   } else if (semsPeriodo) {
-    // Tab "Todas" con periodo activo: mostrar sems del periodo + materias sin semestre (generales)
     list = list.filter(function(m) {
       var ms = String(m.semestre || '').trim();
       return !ms || semsPeriodo.indexOf(ms) !== -1;
@@ -124,36 +214,124 @@ function _matBuildTbody(materias, sem) {
     return '<tr><td colspan="8" class="gen-td-empty">'+msg+'</td></tr>';
   }
 
-  // Separar en grupos
-  var generales = list.filter(function(m) { return !genGetCap(m.componente); });
+  return _matViewMode === 'grouped' ? _matBuildGrouped(list) : _matBuildFlat(list);
+}
+
+// ── VISTA PLANA (flat) ───────────────────────────────────────────────
+
+/**
+ * Vista plana: "Materias generales" + sección por cada capacitación.
+ * Usa SOLO el campo `componente` — sin inferencia por nombre de materia.
+ */
+function _matBuildFlat(list) {
+  var generales = list.filter(function(m) { return !_matDetectCapFlat(m); });
   var porCap = {};
   GEN_CAPACITACIONES_.forEach(function(cap) { porCap[cap] = []; });
   list.forEach(function(m) {
-    var cap = genGetCap(m.componente);
+    var cap = _matDetectCapFlat(m);
     if (cap) porCap[cap].push(m);
   });
 
   var html = '';
-
-  // 1. Generales
   if (generales.length) {
-    html += '<tr class="gen-mat-sep" data-sep="general">' +
-            '<td colspan="8"><span class="gen-mat-sep-label">Materias generales</span></td></tr>';
+    html += _matSepGeneral('Materias generales', generales.length);
     html += generales.map(_matRow).join('');
   }
-
-  // 2. Por capacitación
   GEN_CAPACITACIONES_.forEach(function(cap) {
     var mats = porCap[cap];
     if (!mats || !mats.length) return;
-    var s = _GEN_CAP_STYLE_[cap] || {};
-    html += '<tr class="gen-mat-sep gen-mat-sep-cap" data-sep="'+genEsc(cap)+'">' +
-            '<td colspan="8"><span class="gen-mat-sep-label" style="border-color:'+s.border+';color:'+s.text+'">'+
-            'Capacitación: '+genEsc(cap)+'</span></td></tr>';
+    html += _matSepCap(cap, mats.length);
+    html += mats.map(_matRow).join('');
+  });
+  return html;
+}
+
+// ── VISTA AGRUPADA (grouped) ─────────────────────────────────────────
+
+/**
+ * Vista agrupada por componente curricular con reglas inteligentes por semestre.
+ * Usa _matDetectCapGrouped: respeta restricciones de 1°/2°, aplica reglas
+ * controladas para 3° y 5°, y no infiere en el resto.
+ */
+function _matBuildGrouped(list) {
+  var compGrupos = {};  // componente → [materias]
+  var compOrder  = [];
+  var capGrupos  = {};
+  GEN_CAPACITACIONES_.forEach(function(cap) { capGrupos[cap] = []; });
+
+  list.forEach(function(m) {
+    var cap = _matDetectCapGrouped(m);
+    if (cap) {
+      capGrupos[cap].push(m);
+    } else {
+      var comp = (m.componente || '').trim() || 'Sin componente';
+      if (!compGrupos[comp]) { compGrupos[comp] = []; compOrder.push(comp); }
+      compGrupos[comp].push(m);
+    }
+  });
+
+  // Ordenar componentes: "Sin componente" y "Otro" al final, resto alfabético
+  compOrder.sort(function(a, b) {
+    var aLast = (a === 'Sin componente' || a === 'Otro') ? 1 : 0;
+    var bLast = (b === 'Sin componente' || b === 'Otro') ? 1 : 0;
+    if (aLast !== bLast) return aLast - bLast;
+    return a.localeCompare(b, 'es');
+  });
+
+  var html = '';
+
+  compOrder.forEach(function(comp) {
+    var mats = compGrupos[comp];
+    if (!mats.length) return;
+    html += _matGrpHeader(comp, mats.length);
     html += mats.map(_matRow).join('');
   });
 
+  // Capacitaciones al final, como sub-encabezados dentro de un bloque visual propio
+  var totalCap = GEN_CAPACITACIONES_.reduce(function(t, c) { return t + (capGrupos[c] || []).length; }, 0);
+  if (totalCap) {
+    html += _matGrpHeaderCap(totalCap);
+    GEN_CAPACITACIONES_.forEach(function(cap) {
+      var mats = capGrupos[cap];
+      if (!mats.length) return;
+      html += _matSepCap(cap, mats.length);
+      html += mats.map(_matRow).join('');
+    });
+  }
+
   return html;
+}
+
+// ── FILAS SEPARADORAS ────────────────────────────────────────────────
+
+function _matSepGeneral(label, count) {
+  return '<tr class="gen-mat-sep" data-sep="general">' +
+    '<td colspan="8"><span class="gen-mat-sep-label">'+genEsc(label)+
+    ' <em style="font-weight:400;opacity:.65">('+count+')</em></span></td></tr>';
+}
+
+function _matSepCap(cap, count) {
+  var s = _GEN_CAP_STYLE_[cap] || {};
+  return '<tr class="gen-mat-sep gen-mat-sep-cap" data-sep="'+genEsc(cap)+'">' +
+    '<td colspan="8"><span class="gen-mat-sep-label" style="border-color:'+genEsc(s.border||'#94a3b8')+
+    ';color:'+genEsc(s.text||'#64748b')+'">Capacitación: '+genEsc(cap)+
+    ' <em style="font-weight:400;opacity:.65">('+count+')</em></span></td></tr>';
+}
+
+function _matGrpHeader(comp, count) {
+  return '<tr class="gen-mat-sep gen-mat-grp-head" data-sep="'+genEsc(comp)+'">' +
+    '<td colspan="8">' +
+    '<span class="gen-mat-grp-label">'+genEsc(comp)+'</span>' +
+    '<span class="gen-mat-grp-count">'+count+'</span>' +
+    '</td></tr>';
+}
+
+function _matGrpHeaderCap(totalCap) {
+  return '<tr class="gen-mat-sep gen-mat-grp-head gen-mat-grp-head--cap" data-sep="capacitaciones">' +
+    '<td colspan="8">' +
+    '<span class="gen-mat-grp-label">Capacitaciones</span>' +
+    '<span class="gen-mat-grp-count gen-mat-grp-count--cap">'+totalCap+'</span>' +
+    '</td></tr>';
 }
 
 // ── FILA DE MATERIA ──────────────────────────────────────────────────
@@ -163,25 +341,20 @@ function _matRow(m) {
   var badge  = activo
     ? '<span class="gen-badge gen-badge-ok">Activa</span>'
     : '<span class="gen-badge gen-badge-gray">Inactiva</span>';
-  var color  = genGetMateriaColor(m.id);
-  var sem    = m.semestre ? String(m.semestre).trim() : '';
-  var cap    = genGetCap(m.componente);
-  var s      = cap ? _GEN_CAP_STYLE_[cap] : null;
+  var color = genGetMateriaColor(m.id);
+  var sem   = m.semestre ? String(m.semestre).trim() : '';
+  var cap   = _matCapForRow(m);   // usa la función correcta según modo de vista
+  var s     = cap ? _GEN_CAP_STYLE_[cap] : null;
 
-  // Columna componente/capacitación
-  var compHtml;
-  if (cap && s) {
-    compHtml = '<span class="gen-mat-cap-badge" style="background:'+s.bg+';color:'+s.text+';border-color:'+s.border+'">'+
-               genEsc(cap)+'</span>';
-  } else {
-    compHtml = genEsc(m.componente || '—');
-  }
+  var compHtml = cap && s
+    ? '<span class="gen-mat-cap-badge" style="background:'+s.bg+';color:'+s.text+';border-color:'+s.border+'">'+genEsc(cap)+'</span>'
+    : genEsc(m.componente || '—');
 
   var rowClass = cap ? ' class="gen-mat-cap-row"' : '';
   var rowStyle = cap && s ? ' style="border-left:3px solid '+s.border+'"' : '';
 
-  return '<tr data-id="'+genEsc(m.id)+'" data-nombre="'+genEsc(m.nombre||'').toLowerCase()+
-         '" data-semestre="'+genEsc(sem)+'" data-cap="'+genEsc(cap||'')+'"'+rowClass+rowStyle+'>' +
+  return '<tr data-id="'+genEsc(m.id)+'" data-nombre="'+genEsc((m.nombre||'').toLowerCase())+
+    '" data-semestre="'+genEsc(sem)+'" data-cap="'+genEsc(cap||'')+'"'+rowClass+rowStyle+'>' +
     '<td><span class="gen-color-dot" style="background:'+color+'"></span></td>' +
     '<td><span class="gen-mono">'+genEsc(m.clave||'—')+'</span></td>' +
     '<td><strong>'+genEsc(m.nombre||'—')+'</strong></td>' +
@@ -199,7 +372,7 @@ function _matRow(m) {
     '</td></tr>';
 }
 
-// ── EVENTOS ─────────────────────────────────────────────────────────
+// ── EVENTOS ──────────────────────────────────────────────────────────
 
 function _matBind() {
   document.getElementById('gen-mat-nuevo').addEventListener('click', function() {
@@ -208,29 +381,53 @@ function _matBind() {
 
   document.getElementById('gen-mat-search').addEventListener('input', _matFiltrar);
 
+  // Tabs de semestre
   document.querySelectorAll('.gen-mat-tab').forEach(function(btn) {
     btn.addEventListener('click', function() {
       document.querySelectorAll('.gen-mat-tab').forEach(function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
       _matCurrentSem = btn.dataset.sem;
-      var tbody = document.getElementById('gen-mat-tbody');
-      if (tbody) {
-        tbody.innerHTML = _matBuildTbody(_genApp.materias, _matCurrentSem);
-        _matFiltrar(); // re-aplicar búsqueda activa
-      }
+      _matRefreshTbody();
     });
+  });
+
+  // Toggle de vista
+  var btnFlat    = document.getElementById('gen-mat-vflat');
+  var btnGrouped = document.getElementById('gen-mat-vgrouped');
+  if (btnFlat) btnFlat.addEventListener('click', function() {
+    if (_matViewMode === 'flat') return;
+    _matViewMode = 'flat';
+    btnFlat.classList.add('active');
+    btnGrouped.classList.remove('active');
+    _matRefreshTbody();
+  });
+  if (btnGrouped) btnGrouped.addEventListener('click', function() {
+    if (_matViewMode === 'grouped') return;
+    _matViewMode = 'grouped';
+    btnGrouped.classList.add('active');
+    btnFlat.classList.remove('active');
+    _matRefreshTbody();
   });
 }
 
+function _matRefreshTbody() {
+  var tbody = document.getElementById('gen-mat-tbody');
+  if (tbody) {
+    tbody.innerHTML = _matBuildTbody(_genApp.materias, _matCurrentSem);
+    _matFiltrar();
+  }
+}
+
 function _matFiltrar() {
-  var q = (document.getElementById('gen-mat-search').value || '').toLowerCase();
+  var q = (document.getElementById('gen-mat-search').value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
 
   // Mostrar/ocultar filas de materia
   document.querySelectorAll('#gen-mat-tbody tr[data-id]').forEach(function(tr) {
-    tr.style.display = (!q || tr.dataset.nombre.includes(q)) ? '' : 'none';
+    var nom = tr.dataset.nombre.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    tr.style.display = (!q || nom.includes(q)) ? '' : 'none';
   });
 
-  // Mostrar/ocultar separadores: ocultar si todos sus items están ocultos
+  // Ocultar separadores si todos sus items están ocultos
   document.querySelectorAll('#gen-mat-tbody tr.gen-mat-sep').forEach(function(sep) {
     var hayVisible = false;
     var next = sep.nextElementSibling;

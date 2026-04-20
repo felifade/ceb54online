@@ -37,13 +37,19 @@ function genGetSemestresPeriodo(periodo) {
 }
 
 /**
- * Dado un grado (1-3) y un periodo ('A' o 'B'), calcula el semestre activo.
- * Grado 1 → A:1, B:2 | Grado 2 → A:3, B:4 | Grado 3 → A:5, B:6
+ * Dado un grado (1-6) y un periodo ('A' o 'B'), calcula el semestre activo.
+ * La escuela usa 6 grados donde los pares (1,2), (3,4), (5,6) comparten año:
+ *   Grado 1-2 → Año 1 → A:1, B:2
+ *   Grado 3-4 → Año 2 → A:3, B:4
+ *   Grado 5-6 → Año 3 → A:5, B:6
  */
 function genSemestreDeGrado(grado, periodo) {
   var g = parseInt(grado, 10);
   if (!g || !periodo) return null;
-  return periodo === 'A' ? String(g * 2 - 1) : String(g * 2);
+  var anio = Math.ceil(g / 2);          // 1→1, 2→1, 3→2, 4→2, 5→3, 6→3
+  return periodo === 'A'
+    ? String(anio * 2 - 1)              // A: 1, 3, 5
+    : String(anio * 2);                 // B: 2, 4, 6
 }
 
 // Paleta de colores para materias (hasta 20)
@@ -195,17 +201,27 @@ var _genModal = {
 };
 
 // ── MODAL DE CONFIRMACIÓN ─────────────────────────────────────────
-function genConfirm(msg, onOk) {
+// opts: { label: 'Texto del botón', cls: 'gen-btn-danger' | 'gen-btn-primary', title: '...' }
+function genConfirm(msg, onOk, opts) {
+  opts = opts || {};
+  var okLabel = opts.label || 'Eliminar';
+  var okCls   = opts.cls   || 'gen-btn-danger';
+  var title   = opts.title || 'Confirmar';
   _genModal.open(
-    'Confirmar',
-    '<p class="gen-confirm-msg">' + genEsc(msg) + '</p>',
+    title,
+    '<p class="gen-confirm-msg">' + msg + '</p>',
     '<button class="gen-btn gen-btn-secondary" onclick="_genModal.close()">Cancelar</button>' +
-    '<button class="gen-btn gen-btn-danger" id="gen-confirm-ok">Eliminar</button>'
+    '<button class="gen-btn ' + okCls + '" id="gen-confirm-ok">' + genEsc(okLabel) + '</button>'
   );
   document.getElementById('gen-confirm-ok').addEventListener('click', function() {
     _genModal.close();
     onOk();
   });
+}
+
+// ── NORMALIZACIÓN DE CADENAS (para matching) ──────────────────────
+function genNormStr(s) {
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
 }
 
 // ── AUTENTICACIÓN ─────────────────────────────────────────────────

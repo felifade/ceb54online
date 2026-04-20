@@ -55,6 +55,12 @@
                     <span>Opinión Estudiantil</span>
                 </a>
             </div>
+            <div class="nav-item">
+                <a href="#" class="nav-link" data-view="horario-definitivo">
+                    <i data-lucide="calendar-days"></i>
+                    <span>Horario definitivo</span>
+                </a>
+            </div>
             <div class="nav-item" style="margin-top: 2rem; border-top: 1px solid #f1f5f9; padding-top: 1rem;">
                 <a href="#" class="nav-link" onclick="logout()" style="color: var(--clr-danger);">
                     <i data-lucide="log-out"></i>
@@ -462,6 +468,11 @@
             </div>
         </section>
 
+        <!-- VISTA 6: HORARIO DEFINITIVO -->
+        <section id="view-horario-definitivo" class="view hidden">
+            <div id="hd-container"></div>
+        </section>
+
         <!-- VISTA 5: ENCUESTA (RESULTADOS DOCENTE) -->
         <section id="view-encuesta" class="view hidden">
             <div id="encuesta-local-banner" style="display:none; background:#fff7ed; border:1px solid #fed7aa; padding:12px; border-radius:12px; margin-bottom:1.5rem; color:#9a3412; font-size:0.85rem;">
@@ -602,6 +613,7 @@
 
     <!-- Scripts -->
     <script src="js/api.js?v=20260418"></script>
+    <script src="js/horario-doc.js?v=20260418"></script>
     <script src="js/app.js?v=20260418"></script>
     <script>
         lucide.createIcons();

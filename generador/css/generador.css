@@ -825,7 +825,33 @@ body {
 .gen-mat-tab:hover { background: var(--gen-bg); color: var(--gen-text); }
 .gen-mat-tab.active { background: var(--gen-primary); color: #fff; }
 
-/* ── MATERIAS — FILAS SEPARADORAS ────────────────────────────────── */
+/* ── MATERIAS — TOGGLE DE VISTA ──────────────────────────────────── */
+.gen-mat-view-toggle {
+  display: flex;
+  border: 1px solid var(--gen-border);
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.gen-mat-vtab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  color: var(--gen-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .13s, color .13s;
+}
+.gen-mat-vtab:not(:last-child) { border-right: 1px solid var(--gen-border); }
+.gen-mat-vtab:hover  { background: var(--gen-bg); color: var(--gen-text); }
+.gen-mat-vtab.active { background: var(--gen-primary); color: #fff; }
+
+/* ── MATERIAS — FILAS SEPARADORAS (plana + agrupada) ─────────────── */
 .gen-mat-sep td {
   padding: 6px 12px !important;
   background: #f8fafc !important;
@@ -845,13 +871,40 @@ body {
   border-left-width: 3px; /* color overridden inline */
 }
 
+/* ── MATERIAS — ENCABEZADOS DE COMPONENTE (vista agrupada) ───────── */
+.gen-mat-grp-head td {
+  padding: 7px 14px !important;
+  background: #1e293b !important;
+  border-top: 4px solid var(--gen-bg) !important;
+}
+.gen-mat-grp-head:first-child td { border-top-color: transparent !important; }
+.gen-mat-grp-head--cap td { background: #2d3a4f !important; }
+.gen-mat-grp-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  color: #e2e8f0;
+  border-left: none;
+}
+.gen-mat-grp-count {
+  display: inline-block;
+  background: rgba(255,255,255,.15);
+  color: #cbd5e1;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 9px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.gen-mat-grp-count--cap { background: rgba(96,165,250,.25); color: #93c5fd; }
+
 /* ── MATERIAS — FILAS DE CAPACITACIÓN ───────────────────────────── */
-.gen-mat-cap-row {
-  /* border-left set inline per cap color */
-}
-.gen-mat-cap-row td:first-child {
-  padding-left: 6px !important;
-}
+.gen-mat-cap-row td:first-child { padding-left: 6px !important; }
 
 /* ── MATERIAS — BADGE DE CAPACITACIÓN ───────────────────────────── */
 .gen-mat-cap-badge {
@@ -1130,7 +1183,7 @@ body {
 .est-grid {
   border-collapse: collapse;
   width: max-content;
-  min-width: 100%;
+  min-width: 1700px;
   font-size: 12px;
 }
 .est-grid thead th {
@@ -1147,9 +1200,30 @@ body {
   border-right: 1px solid #334155;
   z-index: 10;
 }
-.est-th-num { width: 34px; }
+
+/* Columnas fijas — cabecera (#, PLANTEL, GRUPO) */
+.est-th-num,
+.est-grid thead th:nth-child(2),
+.est-grid thead th:nth-child(3) {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #1e293b;
+}
+.est-th-num              { left: 0;     width: 34px; }
+.est-grid thead th:nth-child(2) { left: 34px; }
+.est-grid thead th:nth-child(3) {
+  left: 119px;
+  box-shadow: 3px 0 6px rgba(0,0,0,.22);
+}
+
 .est-th-del { width: 34px; }
+
+/* Columnas fijas — cuerpo (#, PLANTEL, GRUPO) */
 .est-td-num {
+  position: sticky;
+  left: 0;
+  z-index: 2;
   text-align: center;
   color: var(--gen-muted);
   font-size: 10px;
@@ -1157,6 +1231,20 @@ body {
   vertical-align: middle;
   background: #f8fafc;
 }
+.est-grid-row td:nth-child(2) {
+  position: sticky;
+  left: 34px;
+  z-index: 2;
+  background: var(--gen-surface);
+}
+.est-grid-row td:nth-child(3) {
+  position: sticky;
+  left: 119px;
+  z-index: 2;
+  background: var(--gen-surface);
+  box-shadow: 3px 0 6px rgba(0,0,0,.09);
+}
+
 
 /* Grid cells */
 .est-grid td {
@@ -1303,6 +1391,17 @@ body {
 }
 
 /* ── FILTRO DE SEMESTRE (vista Por Grupo) ───────────────────────── */
+/* Wrapper que agrupa las dos filas de filtros */
+.est-filtro-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+.est-filtro-wrapper .est-filtro-bar {
+  margin-bottom: 0;
+}
+
 .est-filtro-bar {
   display: flex;
   align-items: center;
@@ -1345,6 +1444,17 @@ body {
   color: #fff;
   font-weight: 700;
 }
+/* Chip de turno activo — color distinto para no confundir con semestre */
+.est-filtro-chip-turno.active {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #fff;
+  font-weight: 700;
+}
+.est-filtro-chip-turno:hover {
+  border-color: #0f172a;
+  color: #0f172a;
+}
 
 /* ── TARJETAS V2 (Por Grupo y Por Docente) ──────────────────────── */
 .est-card-v2 {
@@ -1363,29 +1473,29 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 12px 14px;
+  gap: 6px;
+  padding: 7px 10px;
   border-bottom: 1px solid var(--gen-border);
 }
 .est-v2-grupo {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 800;
   color: var(--gen-text);
   letter-spacing: 0.3px;
 }
 .est-v2-badges {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
 .est-v2-badge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
+  padding: 1px 6px;
   border-radius: 9999px;
   border: 1px solid;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -1404,17 +1514,17 @@ body {
 }
 .est-v2-table th {
   background: var(--gen-bg);
-  font-size: 11px;
+  font-size: 10px;
   color: var(--gen-muted);
   font-weight: 600;
-  padding: 5px 10px;
+  padding: 3px 8px;
   border-bottom: 1px solid var(--gen-border);
   text-transform: uppercase;
   letter-spacing: .3px;
 }
 .est-v2-table td {
-  padding: 5px 10px;
-  font-size: 12px;
+  padding: 3px 8px;
+  font-size: 11px;
   border-bottom: 1px solid var(--gen-border);
   color: var(--gen-text);
 }
@@ -1440,7 +1550,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 14px;
+  padding: 5px 10px;
   background: var(--gen-bg);
   border-top: 1px solid var(--gen-border);
   margin-top: auto;
@@ -1448,19 +1558,19 @@ body {
 .est-v2-total-badge {
   display: inline-flex;
   align-items: center;
-  padding: 3px 10px;
+  padding: 2px 8px;
   border-radius: 9999px;
   border: 1px solid;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
 }
 .est-v2-hrs-badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
+  padding: 2px 8px;
   border-radius: 9999px;
   border: 1px solid;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
   flex-shrink: 0;
@@ -1717,3 +1827,446 @@ body {
   font-weight: 700;
   box-shadow: 0 1px 3px rgba(0,0,0,0.07);
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   DOCENTES — VISTA DE TARJETAS
+══════════════════════════════════════════════════════════════════ */
+
+/* Grid de tarjetas */
+.gen-doc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 16px;
+  padding: 2px 0 20px;
+}
+
+/* Tarjeta individual */
+.gen-doc-card {
+  background: var(--gen-card, #fff);
+  border: 1px solid var(--gen-border);
+  border-radius: 14px;
+  padding: 18px 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: box-shadow .18s, transform .18s;
+  position: relative;
+}
+.gen-doc-card:hover {
+  box-shadow: 0 6px 22px rgba(0,0,0,.09);
+  transform: translateY(-2px);
+}
+
+/* Inactivo: desaturado y transparente */
+.gen-doc-card--inactive {
+  opacity: 0.52;
+  filter: grayscale(25%);
+}
+.gen-doc-card--inactive:hover {
+  opacity: 0.75;
+  filter: none;
+}
+
+/* Cabecera de tarjeta: avatar + badge */
+.gen-doc-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Avatar circular con iniciales */
+.gen-doc-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  letter-spacing: .02em;
+}
+
+/* Cuerpo de la tarjeta */
+.gen-doc-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+.gen-doc-card-name {
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--gen-text);
+  line-height: 1.35;
+}
+.gen-doc-card-clave {
+  font-size: 0.73rem;
+  color: var(--gen-muted);
+  letter-spacing: .04em;
+}
+.gen-doc-card-esp {
+  font-size: 0.8rem;
+  color: var(--gen-text);
+  background: var(--gen-bg);
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin-top: 4px;
+  line-height: 1.3;
+}
+.gen-doc-card-hrs {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: var(--gen-muted);
+  margin-top: 4px;
+}
+
+/* Pie de tarjeta: botones */
+.gen-doc-card-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--gen-border);
+  margin-top: auto;
+}
+.gen-doc-card-actions .gen-btn {
+  flex: 1;
+  justify-content: center;
+}
+
+/* Botón peligro ghost */
+.gen-btn-ghost-danger {
+  background: transparent;
+  border: 1px solid var(--gen-border);
+  color: var(--gen-muted);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: background .13s, color .13s, border-color .13s;
+}
+.gen-btn-ghost-danger:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+/* ── Sección de inactivos (cards + lista) ──────────────────────── */
+.gen-doc-inactive-section {
+  margin-top: 20px;
+}
+.gen-doc-inactive-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: 1.5px dashed var(--gen-border);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 0.84rem;
+  color: var(--gen-muted);
+  cursor: pointer;
+  margin-bottom: 14px;
+  transition: background .13s, color .13s;
+  text-align: left;
+}
+.gen-doc-inactive-toggle:hover {
+  background: var(--gen-bg);
+  color: var(--gen-text);
+}
+/* Variante inline para la vista de lista */
+.gen-doc-inactive-toggle--row {
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 0.8rem;
+  margin-bottom: 0;
+}
+.gen-doc-inactive-sep td {
+  padding: 10px 14px !important;
+  background: var(--gen-bg) !important;
+  border-top: 2px solid var(--gen-border) !important;
+}
+/* Filas inactivas en vista de lista */
+.gen-doc-inactive-row td {
+  opacity: 0.55;
+}
+.gen-doc-inactive-grid {
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   ESTRUCTURA — VISTA POR MATERIA
+══════════════════════════════════════════════════════════════════ */
+
+/* Grid: tarjetas un poco más anchas para acomodar docentes */
+.est-mat-grid {
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+/* ── Ficha (encabezado de la tarjeta) ─────────────────────────── */
+.est-mat-ficha {
+  padding: 14px 14px 10px;
+  border-radius: 0;         /* hereda bordes del card padre */
+}
+.est-mat-ficha-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.est-mat-uac-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--gen-text);
+  line-height: 1.35;
+  word-break: break-word;
+}
+.est-mat-campo {
+  font-size: 0.75rem;
+  color: var(--gen-muted);
+  margin-top: 2px;
+}
+.est-mat-ficha-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.est-mat-comp-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  background: rgba(0,0,0,.06);
+  color: var(--gen-text);
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-weight: 500;
+}
+
+/* ── Secciones internas (docentes / grupos) ───────────────────── */
+.est-mat-section {
+  padding: 10px 14px;
+  border-top: 1px solid var(--gen-border);
+}
+.est-mat-section-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--gen-muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 6px;
+}
+
+/* ── Fila de docente ──────────────────────────────────────────── */
+.est-mat-docente-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 0;
+  border-bottom: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+}
+.est-mat-docente-row:last-child { border-bottom: none; }
+.est-mat-doc-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+}
+.est-mat-doc-name {
+  font-size: 0.8rem;
+  color: var(--gen-text);
+  flex: 1;
+  min-width: 100px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.est-mat-sin-doc {
+  color: #ef4444;
+  font-style: italic;
+}
+.est-mat-doc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+/* ── Chips de grupo ───────────────────────────────────────────── */
+.est-mat-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.est-mat-chip-grp {
+  display: inline-block;
+  border-radius: 4px;
+  border: 1px solid;
+  padding: 1px 6px;
+  font-size: 0.73rem;
+  font-weight: 600;
+  font-family: var(--gen-font-mono, monospace);
+  line-height: 1.5;
+}
+.est-mat-chip-sm {
+  font-size: 0.68rem;
+  padding: 0 5px;
+}
+
+/* ── Sección de grupos (fondo muy leve) ───────────────────────── */
+.est-mat-grupos {
+  background: #fafafa;
+  border-radius: 0 0 10px 10px;
+}
+
+/* ── Secciones por componente ─────────────────────────────────── */
+.est-mat-comp-section {
+  margin-bottom: 28px;
+}
+
+/* Encabezado de componente */
+.est-mat-comp-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  border-radius: 8px 8px 0 0;
+  margin-bottom: 0;
+  border-bottom: none;
+}
+.est-mat-comp-header--first {
+  margin-top: 0;
+}
+.est-mat-comp-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  flex: 1;
+}
+.est-mat-comp-count {
+  display: inline-block;
+  border-radius: 20px;
+  padding: 1px 10px;
+  font-size: 0.73rem;
+  font-weight: 600;
+}
+
+/* El grid de tarjetas dentro de cada sección */
+.est-mat-comp-section .est-cards-grid {
+  border: 1px solid var(--gen-border);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  padding: 14px;
+  background: var(--gen-bg);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   ARMADO — PANEL DE PROGRESO (Precargar desde Estructura)
+══════════════════════════════════════════════════════════════════ */
+
+.gen-prec-subtitle {
+  font-size: 0.83rem;
+  color: var(--gen-muted);
+  margin: 0 0 10px;
+}
+
+/* Contenedor del log */
+.gen-prec-log {
+  display: flex;
+  flex-direction: column;
+  max-height: 340px;
+  overflow-y: auto;
+  border: 1px solid var(--gen-border);
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 6px 0;
+  font-size: 0.82rem;
+  scroll-behavior: smooth;
+}
+
+/* Línea individual del log */
+.gen-prec-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 5px 12px;
+  line-height: 1.45;
+  border-bottom: 1px solid #f1f5f9;
+}
+.gen-prec-step:last-child { border-bottom: none; }
+
+/* Ícono de estado */
+.gen-prec-icon {
+  min-width: 16px;
+  text-align: center;
+  font-weight: 700;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+.gen-prec-s-pending .gen-prec-icon { color: #94a3b8; }
+.gen-prec-s-ok      .gen-prec-icon { color: #16a34a; }
+.gen-prec-s-error   .gen-prec-icon { color: #dc2626; }
+.gen-prec-s-warn    .gen-prec-icon { color: #d97706; }
+.gen-prec-s-info    .gen-prec-icon { color: #94a3b8; }
+.gen-prec-s-detail  .gen-prec-icon { color: #94a3b8; }
+
+/* Texto del mensaje */
+.gen-prec-msg {
+  flex: 1;
+  color: #1e293b;
+  word-break: break-word;
+}
+.gen-prec-s-info   .gen-prec-msg { color: #64748b; font-size: 0.78rem; }
+.gen-prec-s-detail .gen-prec-msg { color: #475569; }
+.gen-prec-s-error  .gen-prec-msg { color: #dc2626; }
+.gen-prec-warn { color: #d97706; }
+
+/* Tags de ítems sin-match */
+.gen-prec-tag {
+  display: inline-block;
+  background: #e2e8f0;
+  color: #334155;
+  border-radius: 3px;
+  padding: 0 5px;
+  font-size: 0.76rem;
+  font-family: var(--gen-font-mono, monospace);
+  line-height: 1.6;
+}
+
+/* Spinner para estado pending */
+@keyframes gen-prec-spin { to { transform: rotate(360deg); } }
+.gen-prec-spinner {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border: 2px solid #e2e8f0;
+  border-top-color: #64748b;
+  border-radius: 50%;
+  animation: gen-prec-spin .65s linear infinite;
+  vertical-align: middle;
+}
+
+/* Fila de botones de confirmación */
+.gen-prec-confirm-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--gen-border);
+}
+.gen-prec-confirm-row > span { flex: 1; }

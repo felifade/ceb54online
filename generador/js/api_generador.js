@@ -311,9 +311,18 @@ const genAPI = {
     return _genGet_('validarEstructura', { ciclo: ciclo || '', periodo: periodo });
   },
 
-  async estructuraACarga(adminKey, ciclo) {
+  async estructuraACarga(adminKey, ciclo, hints) {
     var periodo = (typeof _genApp !== 'undefined' ? _genApp.periodo : '') || '';
     _GEN_CACHE_.carga = null;
-    return _genPost_({ action: 'estructuraACarga', adminKey, ciclo, periodo });
+    var payload = { action: 'estructuraACarga', adminKey, ciclo, periodo };
+    if (hints) {
+      // matchHints: { "UAC nombre": "materia_id" }
+      // docenteHints: { "Nombre docente": "docente_id" }
+      // grupoHints: { "Etiqueta grupo": "grupo_id" }
+      if (hints.matchHints)   payload.matchHints   = hints.matchHints;
+      if (hints.docenteHints) payload.docenteHints = hints.docenteHints;
+      if (hints.grupoHints)   payload.grupoHints   = hints.grupoHints;
+    }
+    return _genPost_(payload);
   }
 };

@@ -313,14 +313,27 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
 
-            // Centralized Teacher Name (Session Priority)
-            const displayName = sessionStorage.getItem('user_name') || (allData.config && allData.config.docente);
+            // Nombre completo: primero buscar en el directorio por correo
+            const userEmailForName = sessionStorage.getItem('user_email');
+            let displayName = sessionStorage.getItem('user_name') || (allData.config && allData.config.docente);
+
+            if (userEmailForName && allData.directorio && allData.directorio.length) {
+                const dirEntry = allData.directorio.find(d =>
+                    normalizeName(String(d.correo || '')) === normalizeName(userEmailForName)
+                );
+                if (dirEntry && dirEntry.docente) {
+                    displayName = dirEntry.docente;
+                    sessionStorage.setItem('user_name', dirEntry.docente);
+                }
+            }
+
             if (displayName) {
                 document.getElementById('user-name').textContent = displayName;
                 document.getElementById('report-teacher-name').textContent = displayName.toUpperCase();
-                
-                // Initials avatar
-                const initials = displayName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+                // Initials avatar (primera letra de cada palabra, máx 2)
+                const initials = displayName.split(/\s+/).filter(Boolean)
+                    .slice(0, 2).map(n => n[0]).join('').toUpperCase();
                 const initialsEl = document.getElementById('user-initials');
                 if (initialsEl) initialsEl.textContent = initials;
             }
