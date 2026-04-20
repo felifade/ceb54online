@@ -1,0 +1,200 @@
+/* ═══════════════════════════════════════════════════════════
+   Docente 2.0 — horario.css
+   Estilos hd-* autónomos para el módulo Horario
+   (extraídos de tutorias/css/style.css, variables resueltas)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Wrapper del módulo ───────────────────────────────────── */
+#d2-mod-horario .d2-horario-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.25rem 0;
+}
+
+/* ── Loading ─────────────────────────────────────────────── */
+.hd-loading {
+  display: flex; align-items: center; justify-content: center;
+  gap: 0.75rem; padding: 3rem; color: #64748b; font-size: 0.9rem;
+}
+.hd-spinner {
+  width: 22px; height: 22px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #059669;
+  border-radius: 50%;
+  animation: hd-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes hd-spin { to { transform: rotate(360deg); } }
+
+/* ── Empty / Error ───────────────────────────────────────── */
+.hd-empty {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 3.5rem 2rem;
+  color: #64748b; font-size: 0.88rem;
+  background: white; border-radius: 16px;
+  border: 1px solid #f1f5f9;
+}
+.hd-empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; line-height: 1; }
+.hd-empty p { margin: 0 0 0.3rem; }
+.hd-empty-sub { font-size: 0.78rem; color: #94a3b8; margin-top: 0.25rem; }
+.hd-retry-btn {
+  margin-top: 1.25rem;
+  padding: 0.6rem 1.4rem;
+  background: #059669; color: white;
+  border: none; border-radius: 10px;
+  font-size: 0.85rem; font-weight: 700;
+  cursor: pointer; transition: background 0.2s;
+}
+.hd-retry-btn:hover { background: #047857; }
+
+/* ── Header del docente ──────────────────────────────────── */
+.hd-header {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.hd-header-inner {
+  display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;
+}
+.hd-avatar {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; font-weight: 800;
+  flex-shrink: 0;
+}
+.hd-header-info { flex: 1; min-width: 0; }
+.hd-docente-name {
+  font-size: 0.92rem; font-weight: 800; color: #1e293b;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hd-docente-tag { font-size: 0.68rem; color: #94a3b8; margin-top: 1px; }
+.hd-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+.hd-chip {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 7px;
+  background: #f1f5f9; color: #475569;
+  border-radius: 999px; font-size: 0.68rem; font-weight: 600;
+}
+.hd-hrs-badge {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 2px solid;
+  font-size: 0.75rem; font-weight: 800;
+  white-space: nowrap;
+}
+
+/* ── Section title ───────────────────────────────────────── */
+.hd-section-title {
+  font-size: 0.68rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: #94a3b8; margin-bottom: 0.5rem;
+}
+
+/* ── Scroll wrap / tabla ─────────────────────────────────── */
+.hd-scroll-wrap { overflow-x: auto; }
+.hd-table {
+  width: 100%; border-collapse: collapse;
+  min-width: 420px;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.hd-table thead tr { background: #f8fafc; }
+.hd-th-time, .hd-th-day {
+  padding: 0.4rem 0.5rem;
+  font-size: 0.62rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: #64748b;
+  border-bottom: 2px solid #e2e8f0;
+  white-space: nowrap;
+}
+.hd-th-time { width: 46px; text-align: center; }
+.hd-th-day  { text-align: center; }
+.hd-day-short { display: none; }
+@media (max-width: 600px) {
+  .hd-day-full  { display: none; }
+  .hd-day-short { display: inline; }
+}
+
+.hd-time {
+  padding: 0.3rem 0.4rem;
+  font-size: 0.67rem; font-weight: 700; color: #94a3b8;
+  text-align: center; white-space: nowrap;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: top;
+}
+
+/* ── Celdas ──────────────────────────────────────────────── */
+.hd-cell {
+  padding: 3px;
+  border-bottom: 1px solid #f1f5f9;
+  border-left: 1px solid #f1f5f9;
+  vertical-align: top;
+  min-width: 72px;
+}
+.hd-cell-empty { background: #fafafa; }
+.hd-cell-extra { opacity: 0.75; }
+.hd-cell:not(.hd-cell-empty) {
+  background: var(--hd-bg, #eff6ff);
+  border-left: 3px solid var(--hd-border, #3b82f6);
+  color: var(--hd-text, #1e40af);
+}
+.hd-cell-inner {
+  display: flex; flex-direction: column; gap: 1px;
+  padding: 3px 4px;
+}
+.hd-cell-grupo {
+  font-size: 0.72rem; font-weight: 800; line-height: 1.2;
+}
+.hd-cell-mat {
+  font-size: 0.63rem; font-weight: 500; opacity: 0.85;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hd-cell-footer {
+  display: flex; align-items: center; gap: 3px;
+  margin-top: 3px; flex-wrap: wrap;
+}
+.hd-cell-hrs {
+  font-size: 0.6rem; font-weight: 800;
+  padding: 1px 4px;
+  background: rgba(0,0,0,0.08);
+  border-radius: 999px; white-space: nowrap;
+}
+.hd-cell-range {
+  font-size: 0.58rem; opacity: 0.7; white-space: nowrap;
+}
+
+/* ── Leyenda ─────────────────────────────────────────────── */
+.hd-legend {
+  display: flex; flex-wrap: wrap; gap: 5px;
+  margin-top: 0.35rem;
+}
+.hd-legend-item {
+  display: flex; align-items: center; gap: 5px;
+  background: white; border: 1px solid #e2e8f0;
+  border-radius: 8px; padding: 4px 8px;
+}
+.hd-legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%; flex-shrink: 0;
+}
+.hd-legend-label {
+  display: flex; flex-direction: column; gap: 1px;
+}
+.hd-legend-grupo {
+  font-size: 0.72rem; font-weight: 700; color: #1e293b;
+}
+.hd-legend-mat {
+  font-size: 0.62rem; color: #64748b;
+}

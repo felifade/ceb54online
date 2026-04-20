@@ -158,3 +158,11 @@ h1, h2, h3 { font-family: 'Outfit', sans-serif; font-weight: 700; color: var(--c
     .contact-grid { grid-template-columns: 1fr; }
     .panel-header-flex { flex-direction: column; align-items: flex-start; gap: 1rem; }
 }
+
+/* ── Docente 2.0 — embed mode (?d2embed=1) ───────────────── */
+.d2-embedded .sidebar { display: none !important; }
+.d2-embedded .topbar  { display: none !important; }
+.d2-embedded .main-content {
+  height: 100vh !important;
+  overflow-y: auto !important;
+}

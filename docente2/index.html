@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <script>const APP_VERSION = "v20260420";</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Docente 2.0 | CEB 5/4</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=20260421">
+  <link rel="stylesheet" href="css/horario.css?v=20260421">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     LOGIN OVERLAY
+     Mismo flujo que tutorias/login.html — establece tutorias_auth
+══════════════════════════════════════════════════════════ -->
+<div id="d2-login-overlay" class="d2-login-overlay">
+  <div class="d2-login-card">
+
+    <div class="d2-login-brand">
+      <div class="d2-brand-logo">D2</div>
+      <div>
+        <div class="d2-login-brand-name">Docente 2.0</div>
+        <div class="d2-login-brand-sub">CEB 5/4 "Profr. Rafael Ramírez"</div>
+      </div>
+    </div>
+
+    <h2 class="d2-login-title">Acceso Docente</h2>
+    <p class="d2-login-sub">Ingresa tu correo y contraseña institucional</p>
+
+    <div class="d2-login-error" id="d2-login-error"></div>
+
+    <form id="d2-login-form" class="d2-login-form" autocomplete="off" novalidate>
+      <div class="d2-field">
+        <label for="d2-email">Correo institucional</label>
+        <div class="d2-field-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <input type="email" id="d2-email" placeholder="nombre@ceb54.online" required autocomplete="username">
+        </div>
+      </div>
+      <div class="d2-field">
+        <label for="d2-password">Contraseña</label>
+        <div class="d2-field-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input type="password" id="d2-password" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+      </div>
+      <button type="submit" id="d2-login-btn" class="d2-login-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Entrar al sistema
+      </button>
+    </form>
+
+    <a href="../acceso.html" class="d2-login-back">← Volver a la comunidad</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     APP  (sidebar + main) — oculto hasta login
+══════════════════════════════════════════════════════════ -->
+<div id="d2-app" style="display:none;">
+
+  <!-- Mobile overlay -->
+  <div class="d2-sidebar-overlay" id="d2-sidebar-overlay"></div>
+
+  <!-- ── SIDEBAR ─────────────────────────────────────────── -->
+  <aside class="d2-sidebar" id="d2-sidebar">
+
+    <div class="d2-sidebar-brand">
+      <div class="d2-brand-logo">D2</div>
+      <div class="d2-brand-info">
+        <div class="d2-brand-name">Docente 2.0</div>
+        <div class="d2-brand-sub">CEB 5/4</div>
+      </div>
+      <button class="d2-btn-collapse" id="d2-btn-collapse" title="Colapsar barra lateral" aria-label="Colapsar barra lateral">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+    </div>
+
+    <div class="d2-sidebar-user">
+      <div class="d2-sidebar-user-row">
+        <div class="d2-sidebar-avatar" id="d2-sidebar-avatar">?</div>
+        <div style="min-width:0;">
+          <div class="d2-sidebar-uname" id="d2-sidebar-uname">—</div>
+          <div class="d2-sidebar-urole" id="d2-sidebar-urole">Docente</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="d2-nav" id="d2-nav">
+      <div class="d2-nav-label">Módulos</div>
+
+      <button class="d2-nav-item active" data-mod="info">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Información general</span>
+      </button>
+
+      <button class="d2-nav-item" data-mod="tutorias">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Tutorías</span>
+      </button>
+
+      <button class="d2-nav-item" data-mod="pec">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        <span>PEC</span>
+      </button>
+
+      <button class="d2-nav-item" data-mod="horario">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span>Horario</span>
+      </button>
+
+      <!-- Materias dinámicas inyectadas por main.js según docente autenticado -->
+      <div id="d2-nav-materias" style="display:none;">
+        <div class="d2-nav-sep"></div>
+        <div class="d2-nav-label">Mis materias</div>
+        <div id="d2-materias-items"></div>
+      </div>
+
+    </nav>
+
+    <div class="d2-sidebar-bottom">
+      <button class="d2-btn-logout" id="d2-btn-logout">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Cerrar sesión
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- ── MAIN ────────────────────────────────────────────── -->
+  <div class="d2-main">
+
+    <header class="d2-topbar">
+      <button class="d2-btn-hamburger" id="d2-hamburger" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="d2-topbar-title">
+        <h1 id="d2-topbar-title">Información General</h1>
+        <p id="d2-topbar-sub">CEB 5/4 "Profr. Rafael Ramírez"</p>
+      </div>
+      <div class="d2-topbar-right">
+        <span class="d2-topbar-badge">Docente 2.0</span>
+      </div>
+    </header>
+
+    <div class="d2-content">
+
+      <!-- ══ MÓDULO: INFORMACIÓN GENERAL ════════════════════ -->
+      <div class="d2-module active" id="d2-mod-info">
+        <!-- renderizado por mod-info.js una vez que hay sesión activa -->
+      </div>
+
+      <!-- ══ MÓDULO: TUTORÍAS ════════════════════════════════
+           Un solo iframe — las pestañas controlan qué vista
+           está activa dentro del iframe vía contentDocument
+      ════════════════════════════════════════════════════ -->
+      <div class="d2-module" id="d2-mod-tutorias">
+
+        <div class="d2-tabs-wrap">
+          <nav class="d2-tabs" id="d2-tabs-tutorias" role="tablist">
+            <button class="d2-tab active" data-view="dashboard" role="tab">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              Dashboard
+            </button>
+            <button class="d2-tab" data-view="captura" role="tab">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+              Registrar sesión
+            </button>
+            <button class="d2-tab" data-view="historial" role="tab">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Historial
+            </button>
+            <button class="d2-tab" data-view="reporte" role="tab">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              Generar reporte
+            </button>
+            <button class="d2-tab" data-view="encuesta" role="tab">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              Opinión estudiantil
+            </button>
+          </nav>
+        </div>
+
+        <div class="d2-iframe-wrap" id="d2-tutorias-wrap">
+          <!-- Loading placeholder -->
+          <div class="d2-iframe-loading" id="d2-tutorias-loading">
+            <div class="d2-spinner"></div>
+            Cargando Tutorías…
+          </div>
+          <!-- iframe — src se asigna por JS (lazy) cuando el módulo se activa por primera vez -->
+          <iframe id="d2-iframe-tutorias" title="Tutorías — CEB 5/4"></iframe>
+        </div>
+
+      </div><!-- /d2-mod-tutorias -->
+
+      <!-- ══ MÓDULO: PEC ═════════════════════════════════════
+           Un solo iframe — pestañas controlan la vista interna
+      ════════════════════════════════════════════════════ -->
+      <div class="d2-module" id="d2-mod-pec">
+
+        <!-- 3 pestañas principales PEC -->
+        <div class="d2-tabs-wrap">
+          <nav class="d2-tabs" id="d2-tabs-pec" role="tablist">
+            <button class="d2-tab active" data-group="dash" role="tab">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              Dashboard
+            </button>
+            <button class="d2-tab" data-group="cap" role="tab">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Captura
+            </button>
+            <button class="d2-tab" data-group="calif" role="tab">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              Calificaciones
+            </button>
+          </nav>
+        </div>
+
+        <!-- Sub-nav Dashboard: Portal, Dashboard, Vista rápida, Directorio, Auditoría -->
+        <div class="d2-subnav" id="d2-pec-subnav-dash">
+          <button class="d2-subnav-btn" data-subview="pecportal">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Portal PEC
+          </button>
+          <button class="d2-subnav-btn active" data-subview="dashboard">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Dashboard
+          </button>
+          <button class="d2-subnav-btn" data-subview="rapida">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Vista rápida
+          </button>
+          <button class="d2-subnav-btn" data-subview="directorio">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Directorio
+          </button>
+          <button class="d2-subnav-btn" data-subview="auditoria">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Auditoría
+          </button>
+        </div>
+
+        <!-- Sub-nav Captura: Evaluar equipos, Editar capturas -->
+        <div class="d2-subnav" id="d2-pec-subnav-cap" style="display:none;">
+          <button class="d2-subnav-btn active" data-subview="grupos">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            Evaluar equipos
+          </button>
+          <button class="d2-subnav-btn" data-subview="edicion">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Editar capturas
+          </button>
+        </div>
+
+        <div class="d2-iframe-wrap" id="d2-pec-wrap">
+          <div class="d2-iframe-loading" id="d2-pec-loading">
+            <div class="d2-spinner"></div>
+            Cargando PEC…
+          </div>
+          <iframe id="d2-iframe-pec" title="PEC — CEB 5/4"></iframe>
+        </div>
+
+      </div><!-- /d2-mod-pec -->
+
+      <!-- ══ MÓDULO: HORARIO ════════════════════════════════════
+           Renderizado nativo (no iframe) — usa horario-doc.js
+           de tutorias cargado dinámicamente
+      ════════════════════════════════════════════════════ -->
+      <div class="d2-module" id="d2-mod-horario">
+        <!-- d2RenderHorario() inyecta .d2-horario-inner > #hd-container -->
+      </div><!-- /d2-mod-horario -->
+
+    </div><!-- /d2-content -->
+  </div><!-- /d2-main -->
+</div><!-- /d2-app -->
+
+<script src="js/mod-info.js?v=20260421"></script>
+<script src="js/mod-horario.js?v=20260421"></script>
+<script src="js/main.js?v=20260421"></script>
+</body>
+</html>

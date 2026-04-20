@@ -54,6 +54,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
+    // Docente 2.0 — escuchar mensajes del padre para cambiar vista
+    window.addEventListener('message', function(e) {
+        if (e.data && e.data.type === 'd2SwitchView') {
+            const link = document.querySelector('.nav-link[data-view="' + e.data.view + '"]');
+            if (link) link.click();
+        }
+    });
+
     // --- ENCUESTA (SURVEY) RENDER LOGIC ---
     function normalizeName(str) {
         if (!str) return "";
@@ -245,6 +253,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- DATA LOADING & RENDERING ---
     async function loadInitialData() {
+        // Mostrar loader global y skeleton en stats
+        const loader = document.getElementById('tut-global-loader');
+        if (loader) loader.classList.remove('hidden');
+        ['stat-total','stat-individual','stat-grupal','stat-hombres','stat-mujeres'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.textContent = ''; el.classList.add('loading'); }
+        });
+
         try {
             allData = await api.getDashboardData();
             
@@ -343,7 +359,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             setupGroupSelection();
         } catch (error) {
             console.error("Error cargando datos:", error);
-            alert("Error al conectar con la base de datos.");
+            if (loader) {
+                loader.innerHTML = '<div style="font-size:1.5rem">⚠️</div>' +
+                    '<div class="tut-loader-text" style="color:#ef4444">Error al conectar con el servidor</div>' +
+                    '<div class="tut-loader-sub">Verifica tu conexión e intenta recargar la página</div>';
+                return;
+            }
+        } finally {
+            // Ocultar loader y quitar skeleton de stats
+            if (loader) loader.classList.add('hidden');
+            ['stat-total','stat-individual','stat-grupal','stat-hombres','stat-mujeres'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.remove('loading');
+            });
         }
     }
 
@@ -411,6 +439,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             filtered = filtered.filter(t => t.docente === teacherFilter);
         }
 
+        if (!filtered.length) {
+            tbody.innerHTML = '<tr><td colspan="10" style="padding:2.5rem; text-align:center; color:#94a3b8; font-size:0.85rem;">Sin registros para mostrar.</td></tr>';
+            return;
+        }
         tbody.innerHTML = filtered.map(t => `
             <tr style="border-bottom: 1px solid #f8fafc;">
                 <td style="padding:0.4rem 0.65rem; font-size:0.78rem; white-space:nowrap;">${formatDateLocale(t.fecha_tutoria || t.fecha)}</td>

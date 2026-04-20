@@ -130,8 +130,8 @@ let viewMode = 'dias';
 const SHOW_ICLOUD = false;
 let cronogramaMap = null;
 
-// Convertir a async para poder cargar datos desde Google Sheets
-document.addEventListener("DOMContentLoaded", async () => {
+// Inicialización del calendario — funciona tanto en carga normal como dinámica
+async function _calendarioInit() {
     if (window.feather) feather.replace();
     const userName = sessionStorage.getItem('user_name');
     if (userName && document.getElementById('topbar-user-name')) {
@@ -201,7 +201,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Disparar evento para que widgets en otras páginas sepan que ya pueden renderizar
     document.dispatchEvent(new Event('calendarioDataLista'));
-});
+}
+
+// Ejecutar al cargar DOM o inmediatamente si ya cargó (carga dinámica desde otro módulo)
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _calendarioInit);
+} else {
+    _calendarioInit();
+}
 
 /**
  * Genera el mapa cronológico completo de semanas del semestre

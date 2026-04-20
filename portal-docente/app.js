@@ -71,8 +71,9 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Backspace') onPinKey('del');
 });
 
-// Verificar sesión activa
-if (sessionStorage.getItem(SESSION_KEY) === '1') {
+// Verificar sesión activa (PIN propio o ya autenticado en Docente 2.0)
+const d2Auth = sessionStorage.getItem('user_email') || sessionStorage.getItem('tutorias_auth');
+if (sessionStorage.getItem(SESSION_KEY) === '1' || d2Auth) {
   overlay.style.display = 'none';
   portalMain.style.display = 'block';
 }
@@ -80,6 +81,11 @@ if (sessionStorage.getItem(SESSION_KEY) === '1') {
 // ── CERRAR SESIÓN ────────────────────────────────────────────
 document.getElementById('btn-lock').addEventListener('click', () => {
   sessionStorage.removeItem(SESSION_KEY);
+  // Si la sesión era de D2, volver a D2 en lugar de mostrar el PIN
+  if (sessionStorage.getItem('user_email') || sessionStorage.getItem('tutorias_auth')) {
+    window.location.href = '../docente2/index.html';
+    return;
+  }
   pinBuffer = '';
   updateDots();
   pinError.textContent = '';

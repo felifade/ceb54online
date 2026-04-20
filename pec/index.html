@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <script>const APP_VERSION = "v20260418";</script>
+  <script>if(new URLSearchParams(location.search).get('d2embed')==='1')document.documentElement.classList.add('d2-embedded');</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión PEC | CEB 5/4</title>
@@ -37,17 +38,16 @@
                     <span>Vista Rápida</span>
                 </a>
 
-                <!-- Grupos y Equipos: destacado como acción principal -->
+                <!-- Captura: acción principal -->
                 <a href="#" class="nav-item" data-view="grupos" style="background: rgba(234, 179, 8, 0.12); border-left: 3px solid #eab308; position: relative;">
                     <i data-feather="users"></i>
-                    <span>Grupos y Equipos</span>
-                    <span style="margin-left: auto; background: #eab308; color: #1c1917; font-size: 0.6rem; font-weight: 800; padding: 2px 7px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;">CAPTURA</span>
+                    <span>Captura</span>
                 </a>
 
-                <!-- Editar Capturas: sub-acción de Grupos y Equipos -->
+                <!-- Editar Capturas: sub-acción de Captura -->
                 <a href="#" class="nav-item" data-view="edicion" style="padding-left: 2.25rem; font-size: 0.88rem; opacity: 0.85; border-left: 2px solid rgba(234,179,8,0.3); margin-left: 0.5rem;">
                     <i data-feather="edit"></i>
-                    <span>Editar Capturas</span>
+                    <span>Editar capturas</span>
                 </a>
 
                 <a href="calificaciones.html" class="nav-item">

@@ -80,6 +80,14 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+    // Docente 2.0 — escuchar mensajes del padre para cambiar vista
+    window.addEventListener('message', function(e) {
+        if (e.data && e.data.type === 'd2SwitchView') {
+            const item = document.querySelector('.nav-item[data-view="' + e.data.view + '"]');
+            if (item) item.click();
+        }
+    });
+
     // Menú móvil
     menuToggle.addEventListener('click', () => {
         sidebar.classList.toggle('open');
@@ -665,8 +673,8 @@ document.addEventListener("DOMContentLoaded", () => {
             // ===================================
             // PROGRESO PERSONAL DEL DOCENTE (NUEVO)
             // ===================================
-            if (!isAdmin && userEmail && puedeEvaluar) {
-                const misEvalsAqui = todasEvals.filter(ev => 
+            if (userEmail && puedeEvaluar) {
+                const misEvalsAqui = todasEvals.filter(ev =>
                     (String(ev.docenteEmail || ev.docente_email || "").trim().toLowerCase() === String(userEmail).trim().toLowerCase()) &&
                     String(ev.parcial) === String(pActivo) &&
                     cleanGroupStr(ev.grupoId) === targetClean

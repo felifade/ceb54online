@@ -14,6 +14,73 @@
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=20260418">
+    <style>
+      /* ── Dropdown Acceso ── */
+      .nav-acceso-wrap { position: relative; }
+      .nav-acceso-btn {
+        display: inline-flex; align-items: center; gap: 0.4rem;
+        padding: 0.45rem 1.1rem;
+        background: linear-gradient(135deg, #3884C0, #7c3aed);
+        color: white !important;
+        border-radius: 9999px;
+        font-weight: 700; font-size: 0.9rem;
+        border: none; cursor: pointer;
+        font-family: 'Outfit', sans-serif;
+        transition: opacity 0.2s, transform 0.15s;
+        white-space: nowrap;
+        line-height: 1.4;
+      }
+      .nav-acceso-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+      .nav-acceso-btn .chevron {
+        width: 14px; height: 14px;
+        transition: transform 0.2s;
+        flex-shrink: 0;
+      }
+      .nav-acceso-wrap.open .chevron { transform: rotate(180deg); }
+
+      .nav-acceso-panel {
+        display: none;
+        position: absolute; top: calc(100% + 10px); right: 0;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 16px 40px rgba(0,0,0,0.14), 0 4px 12px rgba(0,0,0,0.08);
+        border: 1px solid #e2e8f0;
+        width: 230px;
+        overflow: hidden;
+        z-index: 200;
+        animation: dropDown 0.18s ease;
+      }
+      @keyframes dropDown {
+        from { opacity:0; transform: translateY(-6px); }
+        to   { opacity:1; transform: translateY(0); }
+      }
+      .nav-acceso-wrap.open .nav-acceso-panel { display: block; }
+
+      .nav-acceso-item {
+        display: flex; align-items: center; gap: 0.875rem;
+        padding: 0.875rem 1.1rem;
+        text-decoration: none; color: #1e293b;
+        transition: background 0.15s;
+        border-bottom: 1px solid #f8fafc;
+      }
+      .nav-acceso-item:last-child { border-bottom: none; }
+      .nav-acceso-item:hover { background: #f8fafc; }
+      .nav-acceso-item-icon {
+        width: 36px; height: 36px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem; flex-shrink: 0;
+      }
+      .nav-acceso-item-icon.green  { background: #d1fae5; }
+      .nav-acceso-item-icon.blue   { background: #dbeafe; }
+      .nav-acceso-item-icon.purple { background: #ede9fe; }
+      .nav-acceso-item-name  { font-weight: 700; font-size: 0.9rem; display: block; }
+      .nav-acceso-item-sub   { font-size: 0.74rem; color: #94a3b8; margin-top: 1px; }
+
+      @media (max-width: 768px) {
+        .nav-acceso-wrap { order: -1; }
+        .nav-acceso-panel { right: auto; left: 0; width: 220px; }
+      }
+    </style>
 </head>
 
 <body>
@@ -31,7 +98,36 @@
                 <a href="nosotros.html" class="nav-link">Nosotros</a>
                 <a href="historia.html" class="nav-link">Historia</a>
                 <a href="oferta-educativa.html" class="nav-link">Oferta</a>
-                <a href="acceso.html" class="nav-link" style="background: linear-gradient(135deg,#3884C0,#7c3aed); color:white; padding: 0.4rem 1rem; border-radius:9999px; font-weight:700;">Comunidad</a>
+                <!-- Dropdown Acceso -->
+                <div class="nav-acceso-wrap" id="nav-acceso-wrap">
+                  <button class="nav-acceso-btn" id="nav-acceso-btn" onclick="_toggleAcceso(event)">
+                    Acceso
+                    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  <div class="nav-acceso-panel" id="nav-acceso-panel">
+                    <a href="portal/index.html" class="nav-acceso-item">
+                      <div class="nav-acceso-item-icon green">🎒</div>
+                      <div>
+                        <span class="nav-acceso-item-name">Alumnos</span>
+                        <span class="nav-acceso-item-sub">Portal de calificaciones</span>
+                      </div>
+                    </a>
+                    <a href="docente2/index.html" class="nav-acceso-item">
+                      <div class="nav-acceso-item-icon blue">👨‍🏫</div>
+                      <div>
+                        <span class="nav-acceso-item-name">Docentes</span>
+                        <span class="nav-acceso-item-sub">Portal docente 2.0</span>
+                      </div>
+                    </a>
+                    <a href="admin/index.html" class="nav-acceso-item">
+                      <div class="nav-acceso-item-icon purple">🏛️</div>
+                      <div>
+                        <span class="nav-acceso-item-name">Administrativos</span>
+                        <span class="nav-acceso-item-sub">Portal administrativo</span>
+                      </div>
+                    </a>
+                  </div>
+                </div>
                 <a href="admisiones.html" class="nav-link btn-ingreso">Nuevo Ingreso</a>
                 <a href="contacto.html" class="nav-link btn-contacto">Contacto</a>
             </nav>
@@ -63,6 +159,76 @@
             <div class="mouse"></div>
         </div>
     </section>
+
+    <!-- ══ PORTALES DE ACCESO ══════════════════════════════════════ -->
+    <section id="portales-acceso" style="background:#0f172a; padding:3.5rem 0;">
+      <style>
+        #portales-acceso .pa-grid {
+          display: grid;
+          grid-template-columns: repeat(3,1fr);
+          gap: 1.25rem;
+          max-width: 900px;
+          margin: 0 auto;
+        }
+        @media (max-width: 720px) {
+          #portales-acceso .pa-grid { grid-template-columns: 1fr; max-width: 420px; }
+        }
+        @media (min-width: 480px) and (max-width: 720px) {
+          #portales-acceso .pa-grid { grid-template-columns: repeat(2,1fr); max-width: 600px; }
+        }
+      </style>
+      <div class="container">
+        <div style="text-align:center; margin-bottom:2.25rem;">
+          <span style="display:inline-block; padding:0.35rem 1.1rem; background:rgba(56,132,192,0.18); border:1px solid rgba(56,132,192,0.38); color:#67A8DB; border-radius:9999px; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:0.9rem;">Portal Institucional</span>
+          <h2 style="font-family:'Outfit',sans-serif; color:white; font-size:clamp(1.4rem,2.8vw,2rem); font-weight:800; margin-bottom:0.5rem; line-height:1.2;">¿A qué portal deseas acceder?</h2>
+          <p style="color:rgba(255,255,255,0.45); font-size:0.9rem; max-width:450px; margin:0 auto;">Selecciona tu perfil para ingresar a las herramientas digitales del CEB 5/4</p>
+        </div>
+
+        <div class="pa-grid">
+
+          <!-- Alumnos -->
+          <a href="portal/index.html"
+             style="display:flex;flex-direction:column;align-items:flex-start;gap:1rem;background:linear-gradient(145deg,#064e3b,#065f46);border:1px solid rgba(16,185,129,0.22);border-radius:20px;padding:1.6rem 1.4rem;text-decoration:none;transition:transform 0.22s,box-shadow 0.22s;"
+             onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 18px 36px rgba(5,150,105,0.28)';"
+             onmouseout="this.style.transform='';this.style.boxShadow='';">
+            <div style="width:50px;height:50px;background:rgba(16,185,129,0.18);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🎒</div>
+            <div style="flex:1;">
+              <div style="font-family:'Outfit',sans-serif;font-size:1.15rem;font-weight:800;color:white;margin-bottom:0.3rem;">Alumnos</div>
+              <div style="color:rgba(255,255,255,0.55);font-size:0.82rem;line-height:1.5;">Consulta calificaciones, asistencias y servicios estudiantiles</div>
+            </div>
+            <div style="color:#34d399;font-size:0.82rem;font-weight:700;">Ingresar al portal →</div>
+          </a>
+
+          <!-- Docentes -->
+          <a href="docente2/index.html"
+             style="display:flex;flex-direction:column;align-items:flex-start;gap:1rem;background:linear-gradient(145deg,#1e3a5e,#1e40af);border:1px solid rgba(56,132,192,0.28);border-radius:20px;padding:1.6rem 1.4rem;text-decoration:none;transition:transform 0.22s,box-shadow 0.22s;"
+             onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 18px 36px rgba(56,132,192,0.28)';"
+             onmouseout="this.style.transform='';this.style.boxShadow='';">
+            <div style="width:50px;height:50px;background:rgba(56,132,192,0.18);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">👨‍🏫</div>
+            <div style="flex:1;">
+              <div style="font-family:'Outfit',sans-serif;font-size:1.15rem;font-weight:800;color:white;margin-bottom:0.3rem;">Docentes</div>
+              <div style="color:rgba(255,255,255,0.55);font-size:0.82rem;line-height:1.5;">Tutorías, PEC, horarios y herramientas del portal docente</div>
+            </div>
+            <div style="color:#67A8DB;font-size:0.82rem;font-weight:700;">Ingresar al portal →</div>
+          </a>
+
+          <!-- Administrativos -->
+          <a href="admin/index.html"
+             style="display:flex;flex-direction:column;align-items:flex-start;gap:1rem;background:linear-gradient(145deg,#2e1065,#4c1d95);border:1px solid rgba(124,58,237,0.28);border-radius:20px;padding:1.6rem 1.4rem;text-decoration:none;transition:transform 0.22s,box-shadow 0.22s;"
+             onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 18px 36px rgba(124,58,237,0.28)';"
+             onmouseout="this.style.transform='';this.style.boxShadow='';">
+            <div style="width:50px;height:50px;background:rgba(124,58,237,0.18);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🏛️</div>
+            <div style="flex:1;">
+              <div style="font-family:'Outfit',sans-serif;font-size:1.15rem;font-weight:800;color:white;margin-bottom:0.3rem;">Administrativos</div>
+              <div style="color:rgba(255,255,255,0.55);font-size:0.82rem;line-height:1.5;">Dirección, Subdirección, Orientación, Prefectura y Tutorías</div>
+            </div>
+            <div style="color:#c4b5fd;font-size:0.82rem;font-weight:700;">Ingresar al portal →</div>
+          </a>
+
+        </div>
+      </div>
+    </section>
+    <!-- ══ FIN PORTALES DE ACCESO ══════════════════════════════════ -->
 
     <!-- Quick Links Teaser Section -->
     <section class="section acad">
@@ -281,6 +447,15 @@
         </div>
     </footer>
     <script src="script.js?v=20260418"></script>
+    <script>
+      function _toggleAcceso(e) {
+        e.stopPropagation();
+        document.getElementById('nav-acceso-wrap').classList.toggle('open');
+      }
+      document.addEventListener('click', function() {
+        document.getElementById('nav-acceso-wrap').classList.remove('open');
+      });
+    </script>
 </body>
 
 </html>

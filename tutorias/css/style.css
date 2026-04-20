@@ -857,3 +857,161 @@ input:focus, select:focus {
 .hd-legend-mat {
   font-size: 0.62rem; color: #64748b;
 }
+
+/* ── Docente 2.0 — embed mode (?d2embed=1) ───────────────── */
+.d2-embedded .sidebar,
+.d2-embedded #sidebar-overlay,
+.d2-embedded .sidebar-overlay,
+.d2-embedded .top-header { display: none !important; }
+.d2-embedded .main-content {
+  margin-left: 0 !important;
+  padding: 1.25rem !important;
+}
+.d2-embedded body { background: #f1f5f9 !important; }
+
+/* ── Loader global de datos ──────────────────────────────── */
+.tut-global-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 3.5rem 2rem;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  margin-bottom: 1.5rem;
+  animation: tut-fadein 0.25s ease;
+}
+.tut-global-loader.hidden { display: none !important; }
+
+.tut-loader-spinner {
+  width: 30px; height: 30px;
+  border: 3px solid #e2e8f0;
+  border-top-color: var(--clr-primary);
+  border-radius: 50%;
+  animation: tut-spin 0.75s linear infinite;
+}
+@keyframes tut-spin { to { transform: rotate(360deg); } }
+@keyframes tut-fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.tut-loader-text {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-top: 0.25rem;
+}
+.tut-loader-sub {
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+
+/* Skeleton shimmer en stat cards mientras carga */
+.stat-value.loading {
+  display: inline-block;
+  width: 40px; height: 1em;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: tut-shimmer 1.4s infinite;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+@keyframes tut-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   D2 EMBED — Layout 2 columnas, todo visible sin scroll
+══════════════════════════════════════════════════════════ */
+
+.d2-embedded .capture-form {
+    display: flex;
+    flex-direction: row;
+    gap: 0.55rem;
+    align-items: stretch;
+}
+.d2-embedded .cap-col-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    min-width: 0;
+}
+.d2-embedded .cap-col-left .form-actions { padding-top: 0; margin: 0; }
+.d2-embedded .cap-col-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.d2-embedded .cap-col-right .cap-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.d2-embedded .cap-col-right .students-list {
+    flex: 1; max-height: none; min-height: 180px;
+}
+/* Uniform border on grupo input to match adjacent select */
+.d2-embedded #input-grupo { border-color: #e2e8f0; }
+.d2-embedded #input-grupo:focus { border-color: var(--clr-primary); }
+
+/* ── Compactar tarjetas ─────────────────────────── */
+.d2-embedded .cap-card {
+    padding: 0.75rem 0.9rem;
+    border-radius: 12px;
+    margin-bottom: 0;
+}
+.d2-embedded .cap-card-head {
+    margin-bottom: 0.6rem;
+    padding-bottom: 0.5rem;
+    gap: 0.6rem;
+}
+.d2-embedded .cap-icon { width: 30px; height: 30px; border-radius: 8px; }
+.d2-embedded .cap-icon i { width: 13px !important; height: 13px !important; }
+.d2-embedded .cap-title { font-size: 0.83rem; }
+.d2-embedded .cap-sub   { font-size: 0.68rem; }
+
+/* ── Parcial: horizontal compacto ──────────────── */
+.d2-embedded .parcial-grid {
+    display: flex; gap: 0.5rem;
+}
+.d2-embedded .parcial-card {
+    flex: 1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0.45rem 0.75rem;
+    border-radius: 9px;
+    gap: 0.5rem;
+}
+.d2-embedded .parcial-num { font-size: 1.15rem; }
+.d2-embedded .parcial-lbl { font-size: 0.68rem; text-align: left; }
+.d2-embedded .cap-field[style*="margin-top"] { margin-top: 0.6rem !important; }
+.d2-embedded .cap-field label { font-size: 0.7rem; margin-bottom: 0.3rem; }
+.d2-embedded .cap-row-2 { gap: 0.5rem; }
+
+/* ── Detalles: todo en una sola fila ───────────── */
+.d2-embedded .details-grid {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: flex-start;
+}
+.d2-embedded .details-grid .cap-field { flex: 1; min-width: 120px; }
+.d2-embedded .details-grid .asistencia-field { flex: 0 0 auto; }
+.d2-embedded .option-cards { gap: 0.35rem; }
+.d2-embedded .opt-card {
+    padding: 0.4rem 0.55rem; border-radius: 7px; gap: 0.3rem;
+    flex-direction: row; align-items: center;
+}
+.d2-embedded .opt-card i    { width: 14px !important; height: 14px !important; }
+.d2-embedded .opt-card span { font-size: 0.72rem; }
+.d2-embedded textarea[name="tema"] { min-height: 54px; }
+
+/* ── Alumnos: búsqueda compacta ────────────────── */
+.d2-embedded .search-bar-wrap { margin-bottom: 0.4rem; }
+.d2-embedded .manual-row      { padding: 0.3rem 0; gap: 0.35rem; }
+.d2-embedded .manual-row input { font-size: 0.82rem; }
+
+/* ── Botón guardar ─────────────────────────────── */
+.d2-embedded .btn-submit { width: 100%; justify-content: center; padding: 0.65rem 1rem; font-size: 0.88rem; }

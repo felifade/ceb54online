@@ -3,6 +3,7 @@
 
 <head>
   <script>const APP_VERSION = "v20260418";</script>
+  <script>if(new URLSearchParams(location.search).get('d2embed')==='1')document.documentElement.classList.add('d2-embedded');</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Tutorías | CEB 5/4</title>
@@ -11,7 +12,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=20260418">
+    <link rel="stylesheet" href="css/style.css?v=20260421">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="js/auth.js?v=20260418"></script>
@@ -97,27 +98,34 @@
             </div>
         </header>
 
+        <!-- ── Loader global de datos ─────────────────────── -->
+        <div id="tut-global-loader" class="tut-global-loader">
+            <div class="tut-loader-spinner"></div>
+            <div class="tut-loader-text">Leyendo información…</div>
+            <div class="tut-loader-sub">Consultando el servidor de datos</div>
+        </div>
+
         <!-- VISTA 1: DASHBOARD -->
         <section id="view-dashboard" class="view">
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon" style="background: #ecfdf5; color: #059669;"><i data-lucide="users"></i></div>
                     <div class="stat-info">
-                        <span id="stat-total" class="stat-value">0</span>
+                        <span id="stat-total" class="stat-value">—</span>
                         <span class="stat-label">Total Tutorías</span>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon" style="background: #eff6ff; color: #2563eb;"><i data-lucide="user"></i></div>
                     <div class="stat-info">
-                        <span id="stat-individual" class="stat-value">0</span>
+                        <span id="stat-individual" class="stat-value">—</span>
                         <span class="stat-label">Individuales</span>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon" style="background: #fdf2f8; color: #db2777;"><i data-lucide="users-2"></i></div>
                     <div class="stat-info">
-                        <span id="stat-grupal" class="stat-value">0</span>
+                        <span id="stat-grupal" class="stat-value">—</span>
                         <span class="stat-label">Grupales</span>
                     </div>
                 </div>
@@ -136,8 +144,7 @@
             <div style="background: white; padding: 2rem; border-radius: var(--radius-lg); border: 1px solid #f1f5f9;">
                 <h3 style="margin-bottom: 1.5rem;">Últimas Actividades</h3>
                 <div id="recent-activity-list" style="display: flex; flex-direction: column; gap: 1rem;">
-                    <!-- Actividades dinámicas -->
-                    <p style="color: var(--clr-text-light); text-align: center; padding: 2rem;">No hay registros recientes.</p>
+                    <p style="color: var(--clr-text-light); text-align: center; padding: 2rem;">Cargando actividad reciente…</p>
                 </div>
             </div>
         </section>
@@ -145,6 +152,9 @@
         <!-- VISTA 2: CAPTURA -->
         <section id="view-captura" class="view hidden">
             <form id="form-tutoria" class="capture-form">
+
+              <!-- columna izquierda (parcial + contexto + detalles + acción) -->
+              <div class="cap-col-left">
 
                 <!-- TARJETA 1: PARCIAL -->
                 <div class="cap-card">
@@ -201,47 +211,6 @@
                         <div class="cap-field">
                             <label>Grupo</label>
                             <input type="text" name="grupo" id="input-grupo" placeholder="Ej: 210, 401..." autocomplete="off">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TARJETA 3: ALUMNOS -->
-                <div class="cap-card">
-                    <div class="cap-card-head">
-                        <div class="cap-icon" style="background:#eff6ff; color:#3b82f6;">
-                            <i data-lucide="users" style="width:18px;height:18px;"></i>
-                        </div>
-                        <div style="flex:1;">
-                            <div class="cap-title">
-                                Alumnos
-                                <span id="selected-count-badge" class="count-badge" style="display:none;">0</span>
-                            </div>
-                            <div class="cap-sub">Busca por grupo o nombre — el género se detecta automáticamente</div>
-                        </div>
-                        <button type="button" id="btn-select-all" class="btn-sel-all" style="display:none;">Sel. todos</button>
-                    </div>
-
-                    <div class="search-bar-wrap">
-                        <div class="search-field">
-                            <i data-lucide="search" class="search-ico"></i>
-                            <input type="text" id="input-search-name" placeholder="Buscar alumno por nombre (mín. 3 letras)..." autocomplete="off">
-                        </div>
-                    </div>
-
-                    <div class="manual-row">
-                        <i data-lucide="user-plus" class="manual-ico"></i>
-                        <input type="text" id="manual-name" placeholder="Añadir manualmente: nombre completo..." autocomplete="off">
-                        <button type="button" id="btn-manual-sex" class="sexo-toggle-btn sexo-H" data-sexo="H" title="Clic para cambiar género">H</button>
-                        <button type="button" id="btn-add-manual-direct" class="btn-add-manual">
-                            <i data-lucide="plus" style="width:14px;height:14px;"></i> Añadir
-                        </button>
-                    </div>
-                    <select id="manual-sex" style="display:none;"><option value="H">H</option><option value="F">F</option></select>
-
-                    <div id="students-checkbox-list" class="students-list">
-                        <div class="students-empty">
-                            <i data-lucide="user-search" style="width:36px;height:36px;color:#cbd5e1;"></i>
-                            <p>Ingresa el número de grupo o busca por nombre</p>
                         </div>
                     </div>
                 </div>
@@ -313,6 +282,54 @@
                     </button>
                 </div>
 
+              </div><!-- /cap-col-left -->
+
+              <!-- columna derecha (alumnos) -->
+              <div class="cap-col-right">
+
+                <!-- TARJETA 3: ALUMNOS -->
+                <div class="cap-card">
+                    <div class="cap-card-head">
+                        <div class="cap-icon" style="background:#eff6ff; color:#3b82f6;">
+                            <i data-lucide="users" style="width:18px;height:18px;"></i>
+                        </div>
+                        <div style="flex:1;">
+                            <div class="cap-title">
+                                Alumnos
+                                <span id="selected-count-badge" class="count-badge" style="display:none;">0</span>
+                            </div>
+                            <div class="cap-sub">Busca por grupo o nombre — el género se detecta automáticamente</div>
+                        </div>
+                        <button type="button" id="btn-select-all" class="btn-sel-all" style="display:none;">Sel. todos</button>
+                    </div>
+
+                    <div class="search-bar-wrap">
+                        <div class="search-field">
+                            <i data-lucide="search" class="search-ico"></i>
+                            <input type="text" id="input-search-name" placeholder="Buscar alumno por nombre (mín. 3 letras)..." autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="manual-row">
+                        <i data-lucide="user-plus" class="manual-ico"></i>
+                        <input type="text" id="manual-name" placeholder="Añadir manualmente: nombre completo..." autocomplete="off">
+                        <button type="button" id="btn-manual-sex" class="sexo-toggle-btn sexo-H" data-sexo="H" title="Clic para cambiar género">H</button>
+                        <button type="button" id="btn-add-manual-direct" class="btn-add-manual">
+                            <i data-lucide="plus" style="width:14px;height:14px;"></i> Añadir
+                        </button>
+                    </div>
+                    <select id="manual-sex" style="display:none;"><option value="H">H</option><option value="F">F</option></select>
+
+                    <div id="students-checkbox-list" class="students-list">
+                        <div class="students-empty">
+                            <i data-lucide="user-search" style="width:36px;height:36px;color:#cbd5e1;"></i>
+                            <p>Ingresa el número de grupo o busca por nombre</p>
+                        </div>
+                    </div>
+                </div>
+
+              </div><!-- /cap-col-right -->
+
             </form>
         </section>
 
@@ -347,7 +364,7 @@
                         </tr>
                     </thead>
                     <tbody id="historial-tbody">
-                        <!-- Registros dinámicos -->
+                        <tr><td colspan="10" style="padding:2.5rem; text-align:center; color:#94a3b8; font-size:0.85rem;">Cargando registros…</td></tr>
                     </tbody>
                 </table>
             </div>
