@@ -541,11 +541,11 @@ function _estInlineHorariosHTML() {
     '</div>';
 }
 
-// Genera rangos de hora (inicio 07:00–20:00, duración 1, 2 o 3h)
+// Genera rangos de hora (inicio 07:00–20:00, duración 1 o 2h — máximo operativo del plantel)
 var _EST_TIME_SLOTS_ = (function() {
   var list = [];
   for (var h = 7; h <= 20; h++) {
-    for (var dur = 1; dur <= 3; dur++) {
+    for (var dur = 1; dur <= 2; dur++) {
       if (h + dur > 22) break;
       var hs = (h < 10 ? '0' : '') + h + ':00';
       var he = (h + dur < 10 ? '0' : '') + (h + dur) + ':00';
@@ -3377,8 +3377,8 @@ function _estAutoProponerGrupo(grupo) {
     diasUsed.sort(function(a,b){ return diaLoad(a) - diaLoad(b); });
     var diasOrd   = diasFresh.concat(diasUsed);
 
-    // Tamaño de bloque preferido: materias de >4h se distribuyen en bloques de 2
-    var preferBlk = mat.pend > 4 ? 2 : 3;
+    // Máximo 2 horas por bloque (regla operativa del plantel)
+    var preferBlk = 2;
 
     for (var di = 0; di < diasOrd.length && horasLeft > 0; di++) {
       var dia    = diasOrd[di];

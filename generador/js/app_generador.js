@@ -390,18 +390,22 @@ async function genInit() {
   });
 
   // Botón cambiar ciclo
+  var _CICLOS_DISPONIBLES = ['2025-2026', '2026-2027'];
   var cicloBtn = document.getElementById('gen-ciclo-btn');
   if (cicloBtn) cicloBtn.addEventListener('click', function() {
+    var cur = _genApp.ciclo || '2025-2026';
+    var opts = _CICLOS_DISPONIBLES.map(function(c) {
+      return '<option value="' + c + '"' + (c === cur ? ' selected' : '') + '>' + c + '</option>';
+    }).join('');
     _genModal.open(
-      'Cambiar ciclo escolar',
-      '<label class="gen-label">Ciclo escolar (ej. 2025-2026)</label>' +
-      '<input type="text" id="gen-ciclo-inp" class="gen-input" value="' + genEsc(_genApp.ciclo) + '" placeholder="2025-2026">',
+      'Seleccionar ciclo escolar',
+      '<label class="gen-label">Ciclo escolar</label>' +
+      '<select id="gen-ciclo-inp" class="gen-input" style="cursor:pointer;">' + opts + '</select>',
       '<button class="gen-btn gen-btn-secondary" onclick="_genModal.close()">Cancelar</button>' +
       '<button class="gen-btn gen-btn-primary" id="gen-ciclo-ok">Aplicar</button>'
     );
     document.getElementById('gen-ciclo-ok').addEventListener('click', function() {
-      var val = document.getElementById('gen-ciclo-inp').value.trim();
-      if (!val) { genToast('Ingresa un ciclo válido.', 'warning'); return; }
+      var val = document.getElementById('gen-ciclo-inp').value;
       _genModal.close();
       genSetCiclo(val);
       genToast('Ciclo cambiado a ' + val, 'ok');
