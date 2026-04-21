@@ -52,13 +52,6 @@
           <span>Consultar Incidencias</span>
         </a>
       </div>
-      <hr class="nav-divider">
-      <div class="nav-item">
-        <a href="../admin/index.html" class="nav-link" style="color:var(--clr-text-light);">
-          <i data-lucide="arrow-left"></i>
-          <span>Volver al Portal</span>
-        </a>
-      </div>
     </nav>
 
     <div style="margin-top:auto; padding-top:1rem; border-top:1px solid #f1f5f9; font-size:0.78rem; color:#94a3b8; padding-left:0.5rem;">
@@ -149,152 +142,162 @@
     <section id="view-registrar" class="view">
       <form id="form-incidencia" class="capture-form" autocomplete="off">
 
-        <!-- Tarjeta A: Contexto -->
-        <div class="cap-card">
-          <div class="cap-card-head">
-            <div class="cap-icon" style="background:#fff7ed; color:#f59e0b;">
-              <i data-lucide="calendar" style="width:18px;height:18px;"></i>
+        <!-- ─ COLUMNA IZQUIERDA ─ -->
+        <div class="cap-col-left">
+
+          <!-- Tarjeta A: Contexto -->
+          <div class="cap-card">
+            <div class="cap-card-head">
+              <div class="cap-icon" style="background:#fff7ed; color:#f59e0b;">
+                <i data-lucide="calendar" style="width:18px;height:18px;"></i>
+              </div>
+              <div>
+                <div class="cap-title">Contexto</div>
+                <div class="cap-sub">Grupo, semana y fecha de la incidencia</div>
+              </div>
             </div>
-            <div>
-              <div class="cap-title">Contexto</div>
-              <div class="cap-sub">Grupo, semana y fecha de la incidencia</div>
+            <div class="cap-row-3" style="margin-bottom:0.75rem;">
+              <div class="cap-field">
+                <label>Grupo <span class="req">*</span></label>
+                <input type="text" id="ctx-grupo" placeholder="Ej: 101, M203..." required>
+              </div>
+              <div class="cap-field">
+                <label>Semana escolar</label>
+                <input type="number" id="ctx-semana" min="1" max="25" placeholder="Ej: 11" readonly style="background:#f8fafc;">
+              </div>
+              <div class="cap-field">
+                <label>Fecha <span class="req">*</span></label>
+                <input type="date" id="ctx-fecha" required>
+              </div>
             </div>
-          </div>
-          <div class="cap-row-3" style="margin-bottom:0.75rem;">
             <div class="cap-field">
-              <label>Grupo <span class="req">*</span></label>
-              <input type="text" id="ctx-grupo" placeholder="Ej: 101, M203..." required>
-            </div>
-            <div class="cap-field">
-              <label>Semana escolar</label>
-              <input type="number" id="ctx-semana" min="1" max="25" placeholder="Ej: 11" readonly style="background:#f8fafc;">
-            </div>
-            <div class="cap-field">
-              <label>Fecha <span class="req">*</span></label>
-              <input type="date" id="ctx-fecha" required>
-            </div>
-          </div>
-          <div class="cap-field">
-            <label>Registrado por</label>
-            <input type="text" id="ctx-responsable" readonly style="background:#f8fafc; color:#64748b;">
-          </div>
-        </div>
-
-        <!-- Tarjeta B: Alumno -->
-        <div class="cap-card">
-          <div class="cap-card-head">
-            <div class="cap-icon" style="background:#eff6ff; color:#2563eb;">
-              <i data-lucide="users" style="width:18px;height:18px;"></i>
-            </div>
-            <div>
-              <div class="cap-title">Alumno</div>
-              <div class="cap-sub">Al escribir el grupo aparecen los alumnos — también puedes buscar por nombre</div>
+              <label>Registrado por</label>
+              <input type="text" id="ctx-responsable" readonly style="background:#f8fafc; color:#64748b;">
             </div>
           </div>
 
-          <!-- Buscador por nombre (mín. 3 letras) -->
-          <div class="search-field" style="margin-bottom:0.5rem;">
-            <i data-lucide="search" class="search-ico"></i>
-            <input type="text" id="buscar-alumno" placeholder="Buscar alumno por nombre (mín. 3 letras)...">
-          </div>
-
-          <!-- Entrada manual -->
-          <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.6rem;
-               padding:0.55rem 0.75rem; background:#f8fafc; border-radius:10px; border:1px dashed #cbd5e1;">
-            <i data-lucide="user-plus" style="width:15px;height:15px;color:#94a3b8;flex-shrink:0;"></i>
-            <input type="text" id="alumno-manual" placeholder="Añadir manualmente: nombre completo..."
-              style="flex:1; background:transparent; border:none; font-size:0.85rem; padding:0; outline:none;">
-          </div>
-
-          <!-- Lista de resultados (grupo o búsqueda) -->
-          <div id="alumnos-lista" class="alumnos-lista" style="display:none;"></div>
-
-          <!-- Alumnos seleccionados (multi) -->
-          <div id="alumno-seleccionado" style="display:none; margin-top:0.6rem;">
-            <div style="font-size:0.75rem; font-weight:700; color:#64748b; margin-bottom:0.35rem; text-transform:uppercase; letter-spacing:0.4px;">
-              Alumnos seleccionados:
+          <!-- Tarjeta C: Incidencia -->
+          <div class="cap-card">
+            <div class="cap-card-head">
+              <div class="cap-icon" style="background:#fef2f2; color:#dc2626;">
+                <i data-lucide="alert-circle" style="width:18px;height:18px;"></i>
+              </div>
+              <div>
+                <div class="cap-title">Tipo de Incidencia</div>
+                <div class="cap-sub">Selecciona la categoría que corresponde</div>
+              </div>
             </div>
-            <div id="alumnos-chips" style="display:flex; flex-wrap:wrap; gap:0.4rem;"></div>
-            <button type="button" onclick="limpiarAlumno()"
-              style="margin-top:0.5rem; background:none; border:none; color:#94a3b8; cursor:pointer; font-size:0.78rem; font-weight:600; font-family:inherit;">
-              ✕ Quitar todos
+
+            <div class="tipo-grid" style="margin-bottom:1rem;">
+              <label class="tipo-chip">
+                <input type="radio" name="tipo" value="Uniforme incompleto" required>
+                <span class="tipo-chip-ico">👕</span>
+                <span>Uniforme incompleto</span>
+              </label>
+              <label class="tipo-chip">
+                <input type="radio" name="tipo" value="No porta uniforme">
+                <span class="tipo-chip-ico">🚫</span>
+                <span>No porta uniforme</span>
+              </label>
+              <label class="tipo-chip">
+                <input type="radio" name="tipo" value="Falta de credencial">
+                <span class="tipo-chip-ico">🪪</span>
+                <span>Falta de credencial</span>
+              </label>
+              <label class="tipo-chip">
+                <input type="radio" name="tipo" value="Incidencia disciplinaria">
+                <span class="tipo-chip-ico">⚡</span>
+                <span>Incidencia disciplinaria</span>
+              </label>
+              <label class="tipo-chip">
+                <input type="radio" name="tipo" value="Impuntualidad">
+                <span class="tipo-chip-ico">⏰</span>
+                <span>Impuntualidad</span>
+              </label>
+              <label class="tipo-chip">
+                <input type="radio" name="tipo" value="Otro">
+                <span class="tipo-chip-ico">📝</span>
+                <span>Otro</span>
+              </label>
+            </div>
+
+            <div class="cap-row-2" style="margin-bottom:0.75rem;">
+              <div class="cap-field">
+                <label>Descripción breve <span class="req">*</span></label>
+                <input type="text" id="inc-descripcion" placeholder="Ej: Sin chaleco, sin calcetas blancas..." required>
+              </div>
+              <div class="cap-field">
+                <label>Observaciones</label>
+                <input type="text" id="inc-observaciones" placeholder="Notas adicionales...">
+              </div>
+            </div>
+          </div>
+
+          <!-- Botón enviar -->
+          <div class="form-actions">
+            <button type="submit" class="btn-submit" id="btn-guardar">
+              <i data-lucide="save" style="width:18px; height:18px;"></i>
+              Guardar Incidencia
+            </button>
+            <button type="button" onclick="limpiarFormulario()" style="background:none; border:none; color:var(--clr-text-light); cursor:pointer; font-size:0.875rem; font-weight:600; font-family:inherit;">
+              Limpiar formulario
             </button>
           </div>
 
-          <!-- Alerta labor social -->
-          <div id="labor-alert-form" class="labor-alert">
-            <span style="font-size:1.2rem;">⚠️</span>
-            <span id="labor-alert-msg">Este alumno ya tiene 2 incidencias previas. Con esta llegará a 3 y se activará la labor social automáticamente.</span>
-          </div>
-        </div>
+        </div><!-- /cap-col-left -->
 
-        <!-- Tarjeta C: Incidencia -->
-        <div class="cap-card">
-          <div class="cap-card-head">
-            <div class="cap-icon" style="background:#fef2f2; color:#dc2626;">
-              <i data-lucide="alert-circle" style="width:18px;height:18px;"></i>
+        <!-- ─ COLUMNA DERECHA: ALUMNOS ─ -->
+        <div class="cap-col-right">
+          <div class="cap-card">
+            <div class="cap-card-head">
+              <div class="cap-icon" style="background:#eff6ff; color:#2563eb;">
+                <i data-lucide="users" style="width:18px;height:18px;"></i>
+              </div>
+              <div style="flex:1;">
+                <div class="cap-title">
+                  Alumnos
+                  <span id="selected-count-badge" style="background:var(--clr-primary); color:white; font-size:0.7rem; font-weight:800; min-width:20px; height:20px; padding:0 6px; border-radius:999px; display:none; align-items:center; justify-content:center;">0</span>
+                </div>
+                <div class="cap-sub">Escribe el grupo para ver la lista — o busca por nombre</div>
+              </div>
             </div>
-            <div>
-              <div class="cap-title">Tipo de Incidencia</div>
-              <div class="cap-sub">Selecciona la categoría que corresponde</div>
-            </div>
-          </div>
 
-          <div class="tipo-grid" style="margin-bottom:1rem;">
-            <label class="tipo-chip">
-              <input type="radio" name="tipo" value="Uniforme incompleto" required>
-              <span class="tipo-chip-ico">👕</span>
-              <span>Uniforme incompleto</span>
-            </label>
-            <label class="tipo-chip">
-              <input type="radio" name="tipo" value="No porta uniforme">
-              <span class="tipo-chip-ico">🚫</span>
-              <span>No porta uniforme</span>
-            </label>
-            <label class="tipo-chip">
-              <input type="radio" name="tipo" value="Falta de credencial">
-              <span class="tipo-chip-ico">🪪</span>
-              <span>Falta de credencial</span>
-            </label>
-            <label class="tipo-chip">
-              <input type="radio" name="tipo" value="Incidencia disciplinaria">
-              <span class="tipo-chip-ico">⚡</span>
-              <span>Incidencia disciplinaria</span>
-            </label>
-            <label class="tipo-chip">
-              <input type="radio" name="tipo" value="Impuntualidad">
-              <span class="tipo-chip-ico">⏰</span>
-              <span>Impuntualidad</span>
-            </label>
-            <label class="tipo-chip">
-              <input type="radio" name="tipo" value="Otro">
-              <span class="tipo-chip-ico">📝</span>
-              <span>Otro</span>
-            </label>
-          </div>
-
-          <div class="cap-row-2" style="margin-bottom:0.75rem;">
-            <div class="cap-field">
-              <label>Descripción breve <span class="req">*</span></label>
-              <input type="text" id="inc-descripcion" placeholder="Ej: Sin chaleco, sin calcetas blancas..." required>
+            <!-- Buscador por nombre -->
+            <div class="search-field" style="margin-bottom:0.5rem;">
+              <i data-lucide="search" class="search-ico"></i>
+              <input type="text" id="buscar-alumno" placeholder="Buscar por nombre (mín. 3 letras)...">
             </div>
-            <div class="cap-field">
-              <label>Observaciones</label>
-              <input type="text" id="inc-observaciones" placeholder="Notas adicionales...">
+
+            <!-- Entrada manual -->
+            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.75rem;
+                 padding:0.55rem 0.75rem; background:#f8fafc; border-radius:10px; border:1px dashed #cbd5e1;">
+              <i data-lucide="user-plus" style="width:15px;height:15px;color:#94a3b8;flex-shrink:0;"></i>
+              <input type="text" id="alumno-manual" placeholder="Añadir manualmente: nombre completo..."
+                style="flex:1; background:transparent; border:none; font-size:0.85rem; padding:0; outline:none;">
+            </div>
+
+            <!-- Lista de alumnos con checkboxes -->
+            <div id="alumnos-lista" class="alumnos-lista"></div>
+
+            <!-- Alumnos seleccionados (chips) -->
+            <div id="alumno-seleccionado" style="display:none; margin-top:0.75rem; padding-top:0.75rem; border-top:1px solid #f1f5f9;">
+              <div style="font-size:0.75rem; font-weight:700; color:#64748b; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.4px;">
+                Seleccionados:
+              </div>
+              <div id="alumnos-chips" style="display:flex; flex-wrap:wrap; gap:0.4rem;"></div>
+              <button type="button" onclick="limpiarAlumno()"
+                style="margin-top:0.5rem; background:none; border:none; color:#94a3b8; cursor:pointer; font-size:0.78rem; font-weight:600; font-family:inherit;">
+                ✕ Quitar todos
+              </button>
+            </div>
+
+            <!-- Alerta labor social -->
+            <div id="labor-alert-form" class="labor-alert">
+              <span style="font-size:1.2rem;">⚠️</span>
+              <span id="labor-alert-msg">Este alumno ya tiene 2 incidencias previas. Con esta llegará a 3 y se activará la labor social automáticamente.</span>
             </div>
           </div>
-        </div>
-
-        <!-- Botón enviar -->
-        <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
-          <button type="submit" class="btn-submit" id="btn-guardar">
-            <i data-lucide="save" style="width:18px; height:18px;"></i>
-            Guardar Incidencia
-          </button>
-          <button type="button" onclick="limpiarFormulario()" style="background:none; border:none; color:var(--clr-text-light); cursor:pointer; font-size:0.875rem; font-weight:600; font-family:inherit;">
-            Limpiar formulario
-          </button>
-        </div>
+        </div><!-- /cap-col-right -->
 
       </form>
     </section>
@@ -429,8 +432,12 @@
 
   // ── Hamburger ─────────────────────────────────────────────────────
   document.getElementById('btn-hamburger').addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('sidebar-overlay').classList.toggle('show');
+    if (window.innerWidth > 900) {
+      document.body.classList.toggle('sidebar-off');
+    } else {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebar-overlay').classList.toggle('show');
+    }
   });
   document.getElementById('sidebar-overlay').addEventListener('click', cerrarSidebar);
   function cerrarSidebar() {
@@ -484,7 +491,9 @@
           .filter(a => (a.grupo || '').toUpperCase().startsWith(val));
         _renderListaAlumnos(resultados, 'grupo');
       } else {
-        document.getElementById('alumnos-lista').style.display = 'none';
+        const _l = document.getElementById('alumnos-lista');
+        _l.innerHTML = '';
+        _l.classList.remove('visible');
       }
       verificarPreviasAlumno();
     });
@@ -503,7 +512,9 @@
   // ── Búsqueda por nombre (mín. 3 letras, igual que Tutorías) ─────
   function buscarAlumno(query) {
     if (!query || query.length < 3) {
-      document.getElementById('alumnos-lista').style.display = 'none';
+      const _l = document.getElementById('alumnos-lista');
+      _l.innerHTML = '';
+      _l.classList.remove('visible');
       return;
     }
     const directorio = _baseData?.directorio || [];
@@ -513,38 +524,38 @@
     _renderListaAlumnos(alumnos, 'nombre');
   }
 
-  // ── Render de lista de alumnos con avatares (igual que Tutorías) ─
+  // ── Render de lista de alumnos con checkboxes ───────────────────
   function _renderListaAlumnos(alumnos, origen) {
     const lista = document.getElementById('alumnos-lista');
 
     if (!_baseData || (_baseData.directorio || []).length === 0) {
-      lista.innerHTML = `<div class="alumnos-empty">Directorio no disponible aún.<br>Usa el campo de añadir manualmente.</div>`;
-      lista.style.display = 'block';
+      lista.innerHTML = `<div class="alumnos-empty" style="padding:1.5rem;text-align:center;color:#94a3b8;font-size:0.82rem;font-style:italic;">Directorio no disponible.<br>Usa el campo de añadir manualmente.</div>`;
+      lista.classList.add('visible');
       return;
     }
 
     if (alumnos.length === 0) {
-      lista.innerHTML = `<div class="alumnos-empty">Sin coincidencias. Usa el campo de añadir manualmente.</div>`;
-      lista.style.display = 'block';
+      lista.innerHTML = `<div class="alumnos-empty" style="padding:1.5rem;text-align:center;color:#94a3b8;font-size:0.82rem;font-style:italic;">Sin coincidencias. Usa el campo de añadir manualmente.</div>`;
+      lista.classList.add('visible');
       return;
     }
 
     _listaActual = alumnos;
     lista.innerHTML = alumnos.map(a => {
       const iniciales = a.nombre.split(' ').slice(0, 2).map(w => w[0] || '').join('').toUpperCase();
-      const avatarStyle = 'background:#fecaca; color:#dc2626;';
       const sel = _alumnoSeleccionados.some(s => s.nombre === a.nombre && s.grupo === (a.grupo || ''));
+      const uid = `chk-${_esc(a.nombre)}-${_esc(a.grupo||'')}`.replace(/[^a-zA-Z0-9-]/g,'_');
       return `
         <div class="alumno-row${sel ? ' selected' : ''}" onclick="seleccionarAlumno('${_esc(a.nombre)}','${_esc(a.grupo||'')}')">
-          <div class="alumno-avatar" style="${avatarStyle}">${iniciales}</div>
-          <div class="alumno-info">
+          <input type="checkbox" id="${uid}" ${sel ? 'checked' : ''} onclick="event.stopPropagation();seleccionarAlumno('${_esc(a.nombre)}','${_esc(a.grupo||'')}')">
+          <div class="alumno-avatar" style="background:#fecaca;color:#dc2626;">${iniciales}</div>
+          <div class="alumno-info" style="flex:1;min-width:0;">
             <span class="alumno-nombre">${a.nombre}</span>
             ${a.grupo ? `<span class="alumno-grupo-badge">${a.grupo}</span>` : ''}
           </div>
-          ${sel ? '<span style="color:#dc2626;font-size:1.1rem;font-weight:800;margin-left:auto;">✓</span>' : ''}
         </div>`;
     }).join('');
-    lista.style.display = 'block';
+    lista.classList.add('visible');
   }
 
   function seleccionarAlumno(nombre, grupo) {
@@ -565,6 +576,11 @@
   function _renderChips() {
     const box = document.getElementById('alumno-seleccionado');
     const chips = document.getElementById('alumnos-chips');
+    const badge = document.getElementById('selected-count-badge');
+    if (badge) {
+      badge.textContent = _alumnoSeleccionados.length;
+      badge.style.display = _alumnoSeleccionados.length > 0 ? 'inline-flex' : 'none';
+    }
     if (_alumnoSeleccionados.length === 0) { box.style.display = 'none'; return; }
     chips.innerHTML = _alumnoSeleccionados.map((a, i) => `
       <div style="display:inline-flex;align-items:center;gap:0.35rem;
@@ -588,6 +604,10 @@
     _alumnoSeleccionados = [];
     _renderChips();
     document.getElementById('labor-alert-form').classList.remove('show');
+    const lista = document.getElementById('alumnos-lista');
+    lista.innerHTML = '';
+    lista.classList.remove('visible');
+    _listaActual = [];
   }
 
   async function verificarPreviasAlumno() {
@@ -688,7 +708,9 @@
     _alumnoSeleccionados = [];
     _listaActual = [];
     _renderChips();
-    document.getElementById('alumnos-lista').style.display = 'none';
+    const _listaEl = document.getElementById('alumnos-lista');
+    _listaEl.innerHTML = '';
+    _listaEl.classList.remove('visible');
     document.getElementById('buscar-alumno').value = '';
     document.getElementById('labor-alert-form').classList.remove('show');
   }
