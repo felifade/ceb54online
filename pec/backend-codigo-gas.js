@@ -46,7 +46,7 @@ function doGet(e) {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
         const _act = e.parameter.action || "";
-    if (['loginAlumno','getCalAlumno','getCalPadre','getConfig','getEncuestaStatus','adminPortal','getPrefecturaBase','getIncidencias','getCalifSabanas','getMensajes','getCumpleanosAdmin'].includes(_act)) {
+    if (['loginAlumno','getCalAlumno','getCalPadre','getConfig','getEncuestaStatus','adminPortal','getPrefecturaBase','getIncidencias','getCalifSabanas','getCalifSabanasGrupos','getCalifSabanasGrupo','getCalifSabanasAll','getCalifSabanasDocente','getMensajes','getCumpleanosAdmin'].includes(_act)) {
       return doGetPortal(e);
     }
     if (['getDashboard','getAlumnos','getGrupos','getMaterias','getIndicadores','getAlumnosGrupo','getCumpleanos'].includes(_act)) {

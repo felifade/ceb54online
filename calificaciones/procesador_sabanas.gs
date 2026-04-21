@@ -35,14 +35,20 @@ const COLS_MAESTRA = [
 ];
 
 // ── LEER CONFIGURACIÓN ────────────────────────────────────────────────
+function extractDriveId(val) {
+  const s = String(val).trim();
+  const m = s.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+  return m ? m[1] : s;
+}
+
 function getConfig() {
   const ss   = SpreadsheetApp.getActiveSpreadsheet();
   const ctrl = ss.getSheetByName(SH_CONTROL);
   if (!ctrl) throw new Error('Hoja CONTROL no encontrada. Ejecuta Sábanas → Inicializar sistema primero.');
   return {
-    carpetaPendientesId: String(ctrl.getRange('B2').getValue()).trim(),
-    carpetaProcesadosId: String(ctrl.getRange('B3').getValue()).trim(),
-    carpetaErroresId:    String(ctrl.getRange('B4').getValue()).trim(),
+    carpetaPendientesId: extractDriveId(ctrl.getRange('B2').getValue()),
+    carpetaProcesadosId: extractDriveId(ctrl.getRange('B3').getValue()),
+    carpetaErroresId:    extractDriveId(ctrl.getRange('B4').getValue()),
     ciclo:               String(ctrl.getRange('B5').getValue()).trim(),
     periodo:             String(ctrl.getRange('B6').getValue()).trim(),
   };
@@ -209,7 +215,17 @@ function encontrarEstructura(sheet) {
   if (headerSubRow === -1)
     throw new Error('No se encontró la fila de encabezados (se esperaban columnas CURP y NOMBRE).');
 
-  const headerMergedRow = headerSubRow - 1; // fila anterior: "PRIMER PARCIAL", etc.
+  // Buscar la fila con "PARCIAL" en las 4 filas anteriores a la fila CURP
+  // (puede estar 1 o 2 filas arriba dependiendo del formato)
+  let headerMergedRow = headerSubRow - 1;
+  for (let r = headerSubRow - 1; r >= Math.max(1, headerSubRow - 4); r--) {
+    const vals = sheet.getRange(r, 1, 1, lastCol).getValues()[0]
+      .map(v => String(v).toUpperCase().trim());
+    if (vals.some(v => v.includes('PARCIAL'))) {
+      headerMergedRow = r;
+      break;
+    }
+  }
 
   const mergedVals = headerMergedRow >= 1
     ? sheet.getRange(headerMergedRow, 1, 1, lastCol).getValues()[0].map(v => String(v).trim())

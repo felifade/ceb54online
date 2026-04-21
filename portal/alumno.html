@@ -115,6 +115,10 @@
         <i data-lucide="monitor"></i><span>Cultura Digital</span>
       </button>
 
+      <button class="ptab" data-tab="calificaciones" role="tab" aria-selected="false">
+        <i data-lucide="clipboard-list"></i><span>Calificaciones</span>
+      </button>
+
       <button class="ptab" data-tab="sagyc" role="tab" aria-selected="false">
         <i data-lucide="external-link"></i><span>SagyC</span>
       </button>
@@ -313,6 +317,22 @@
          PESTAÑA: SAGYC
          Acceso al sistema externo · Instrucciones
     ───────────────────────────────────────────────── -->
+    <!-- ── CALIFICACIONES ── -->
+    <div class="ptab-panel ptab-panel--hidden" id="panel-calificaciones">
+      <div class="app-card">
+        <div class="card-header">
+          <div class="card-icon" style="background:#ede9fe;"><i data-lucide="clipboard-list" style="color:#7c3aed;"></i></div>
+          <span class="card-title">Mis Calificaciones</span>
+        </div>
+        <div id="calif-body" style="padding:0.25rem 0.5rem;">
+          <div style="text-align:center;padding:2rem 0;color:#94a3b8;font-size:0.85rem;">
+            <i data-lucide="loader" style="width:28px;height:28px;color:#cbd5e1;display:block;margin:0 auto 0.5rem;"></i>
+            Cargando calificaciones…
+          </div>
+        </div>
+      </div>
+    </div><!-- /panel-calificaciones -->
+
     <div class="ptab-panel ptab-panel--hidden" id="panel-sagyc">
 
       <div class="app-card" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: none;">
@@ -427,6 +447,85 @@ document.addEventListener('DOMContentLoaded', function() {
     new MutationObserver(_syncCulturaPlaceholder)
       .observe(accesoEl, { attributes: true, childList: true, subtree: true });
   }
+});
+
+/* ══ CALIFICACIONES SÁBANAS ═════════════════════════════════════════ */
+var _califLoaded = false;
+
+var _SAB_API = 'https://script.google.com/macros/s/AKfycbz4q9VlhAvvVJ1XYOwqNTJ9eMkVRm3HgoyFJNpEQaPJsDdK1JcfhbTX1CRfDg38x79fsA/exec';
+
+function _loadCalificaciones() {
+  if (_califLoaded) return;
+  _califLoaded = true;
+  var u = portalSession.load();
+  if (!u || !u.curp) {
+    document.getElementById('calif-body').innerHTML = '<p style="color:#94a3b8;font-size:0.85rem;padding:1rem 0;">No se encontró tu CURP en la sesión.</p>';
+    return;
+  }
+  var qs = new URLSearchParams({ action: 'getCalifSabanas', curp: u.curp, _t: Date.now() });
+  fetch(_SAB_API + '?' + qs, { redirect: 'follow' }).then(function(r){ return r.json(); })
+    .then(function(r) {
+      if (!r.materias || !r.materias.length) {
+        document.getElementById('calif-body').innerHTML =
+          '<div style="text-align:center;padding:2rem 0;color:#94a3b8;font-size:0.85rem;">' +
+          '<div style="font-size:2rem;margin-bottom:0.5rem;">📋</div>' +
+          'Aún no hay calificaciones registradas para ti.</div>';
+        return;
+      }
+      _renderCalificaciones(r.materias);
+    })
+    .catch(function() {
+      document.getElementById('calif-body').innerHTML = '<p style="color:#dc2626;font-size:0.85rem;padding:1rem 0;">Error al cargar calificaciones.</p>';
+    });
+}
+
+function _renderCalificaciones(materias) {
+  function grade(v) {
+    if (v === '' || v === null || v === undefined) return '—';
+    var n = Number(v);
+    if (isNaN(n)) return '—';
+    var color = n < 6 ? '#dc2626' : '#16a34a';
+    return '<span style="font-weight:700;color:' + color + ';">' + n.toFixed(1) + '</span>';
+  }
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  var rows = materias.map(function(m) {
+    var global = Number(m.global);
+    var globalTxt = (!isNaN(global) && m.global !== '') ? global.toFixed(1) : '—';
+    var globalColor = (!isNaN(global) && m.global !== '' && global < 6) ? '#dc2626' : '#1e293b';
+    return '<div style="border:1.5px solid #e2e8f0;border-radius:12px;padding:0.875rem 1rem;margin-bottom:0.75rem;">'
+      + '<div style="font-weight:700;font-size:0.88rem;margin-bottom:0.5rem;color:#1e293b;">' + esc(m.asignatura) + '</div>'
+      + (m.docente ? '<div style="font-size:0.72rem;color:#94a3b8;margin-bottom:0.75rem;">Docente: ' + esc(m.docente) + '</div>' : '')
+      + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;text-align:center;">'
+      + '<div style="background:#f8fafc;border-radius:8px;padding:0.5rem 0.25rem;">'
+      +   '<div style="font-size:0.65rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:0.25rem;">Parcial 1</div>'
+      +   '<div style="font-size:1rem;">' + grade(m.p1_total) + '</div>'
+      + '</div>'
+      + '<div style="background:#f8fafc;border-radius:8px;padding:0.5rem 0.25rem;">'
+      +   '<div style="font-size:0.65rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:0.25rem;">Parcial 2</div>'
+      +   '<div style="font-size:1rem;">' + grade(m.p2_total) + '</div>'
+      + '</div>'
+      + '<div style="background:#f8fafc;border-radius:8px;padding:0.5rem 0.25rem;">'
+      +   '<div style="font-size:0.65rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:0.25rem;">Parcial 3</div>'
+      +   '<div style="font-size:1rem;">' + grade(m.p3_total) + '</div>'
+      + '</div>'
+      + '<div style="background:#0f172a;border-radius:8px;padding:0.5rem 0.25rem;">'
+      +   '<div style="font-size:0.65rem;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:0.25rem;">Global</div>'
+      +   '<div style="font-size:1rem;font-weight:800;color:' + globalColor + ';">' + globalTxt + '</div>'
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+
+  document.getElementById('calif-body').innerHTML = rows;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.ptab').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (this.dataset.tab === 'calificaciones') _loadCalificaciones();
+    });
+  });
 });
 
 /* ══ INDICADOR DE EVALUACIÓN (punto en la pestaña) ═════════════════ */

@@ -312,6 +312,80 @@
     @media (max-width: 480px) {
       .adm-badge-admin { display: none; }
     }
+
+    /* ══ HOME PAGE ══ */
+    .adm-home { flex:1; overflow-y:auto; padding:1.5rem; background:#f1f5f9; }
+    .adm-home-grid { display:grid; grid-template-columns:1fr; gap:1.25rem; max-width:860px; margin:0 auto; }
+
+    .adm-card { background:#fff; border-radius:14px; box-shadow:0 1px 4px rgba(0,0,0,0.07); overflow:hidden; }
+    .adm-card-hdr { padding:0.875rem 1.25rem; display:flex; align-items:center; gap:0.65rem; border-bottom:1px solid #f1f5f9; flex-wrap:wrap; }
+    .adm-card-ico { width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .adm-card-ico svg { width:16px; height:16px; }
+    .adm-card-ico.indigo { background:#eef2ff; color:#4338ca; }
+    .adm-card-ico.amber  { background:#fef3c7; color:#d97706; }
+    .adm-card-ico.purple { background:var(--purple-l); color:var(--purple-d); }
+    .adm-card-title { font-weight:700; font-size:0.9rem; color:#1e293b; flex:1; }
+    .adm-card-body  { padding:1rem 1.25rem; }
+
+    /* Hero */
+    .adm-profile-hero { display:flex; align-items:center; gap:1.25rem; padding:1.5rem 1.25rem; background:linear-gradient(135deg,#1e1065 0%,#4c1d95 100%); }
+    .adm-profile-avatar { width:64px; height:64px; border-radius:16px; background:rgba(255,255,255,0.15); color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Outfit',sans-serif; font-weight:800; font-size:1.5rem; flex-shrink:0; border:2px solid rgba(255,255,255,0.25); }
+    .adm-profile-name { font-family:'Outfit',sans-serif; font-weight:800; font-size:1.15rem; color:#fff; }
+    .adm-profile-role { font-size:0.8rem; color:rgba(255,255,255,0.65); margin-top:3px; }
+    .adm-profile-chips { display:flex; gap:0.4rem; flex-wrap:wrap; margin-top:0.5rem; }
+    .adm-chip { font-size:0.7rem; font-weight:700; padding:2px 9px; border-radius:20px; }
+    .adm-chip.indigo { background:rgba(99,102,241,0.3); color:#c7d2fe; }
+    .adm-chip.green  { background:rgba(22,163,74,0.3);  color:#86efac; }
+    .adm-chip.slate  { background:rgba(148,163,184,0.2); color:rgba(255,255,255,0.6); }
+
+    /* Info rows */
+    .adm-info-grid { display:grid; gap:0; }
+    .adm-info-row { display:flex; align-items:flex-start; gap:0.75rem; padding:0.55rem 0; border-bottom:1px solid #f8fafc; }
+    .adm-info-row:last-child { border-bottom:none; }
+    .adm-info-ico { width:28px; height:28px; border-radius:8px; background:#f1f5f9; display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#64748b; }
+    .adm-info-ico svg { width:14px; height:14px; }
+    .adm-info-lbl { font-size:0.68rem; color:#94a3b8; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; }
+    .adm-info-val { font-size:0.88rem; font-weight:600; color:#1e293b; margin-top:1px; }
+
+    /* Quick links */
+    .adm-quicklinks { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:0.75rem; }
+    .adm-quicklink { display:flex; flex-direction:column; align-items:center; gap:0.45rem; padding:0.875rem 0.5rem; border-radius:12px; background:#f8fafc; border:1.5px solid #e2e8f0; cursor:pointer; font-size:0.76rem; font-weight:600; color:#475569; transition:all 0.15s; text-align:center; }
+    .adm-quicklink:hover { background:var(--purple-l); border-color:var(--purple); color:var(--purple-d); }
+    .adm-quicklink-icon { width:36px; height:36px; border-radius:10px; background:#fff; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
+    .adm-quicklink-icon svg { width:18px; height:18px; }
+
+    /* Cal toggle */
+    .adm-cal-toggle { display:flex; gap:0.25rem; margin-left:auto; }
+    .adm-cal-tbtn { display:flex; align-items:center; gap:0.3rem; padding:0.28rem 0.65rem; border-radius:8px; border:1.5px solid #e2e8f0; background:#fff; font-size:0.7rem; font-weight:600; color:#64748b; cursor:pointer; white-space:nowrap; }
+    .adm-cal-tbtn svg { width:12px; height:12px; }
+    .adm-cal-tbtn.active { border-color:var(--purple); background:var(--purple-l); color:var(--purple-d); }
+    @keyframes admSpin { to { transform:rotate(360deg); } }
+
+    /* ── Semana escolar widget (igual que docente2) ── */
+    .semana-actual { background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%); border-radius:1.25rem; padding:1.5rem 1.75rem; position:relative; overflow:hidden; }
+    .semana-actual::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 90% 50%,rgba(56,132,192,.15) 0%,transparent 60%); pointer-events:none; }
+    .semana-actual-head { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:0.75rem; margin-bottom:1.1rem; position:relative; }
+    .semana-actual-badge { display:inline-flex; align-items:center; gap:0.45rem; background:rgba(56,132,192,.2); border:1px solid rgba(56,132,192,.4); color:rgba(255,255,255,.75); font-size:0.7rem; font-weight:700; padding:0.3rem 0.875rem; border-radius:9999px; white-space:nowrap; align-self:flex-start; }
+    .dot-live { width:6px; height:6px; background:#4ade80; border-radius:50%; animation:adm-dot-pulse 2s infinite; flex-shrink:0; }
+    @keyframes adm-dot-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
+    .semana-actual-num { font-family:'Outfit','Inter',sans-serif; font-size:1.3rem; font-weight:800; color:#fff; }
+    .semana-actual-rango { font-size:0.78rem; color:rgba(255,255,255,.45); margin-top:0.15rem; }
+    .semana-actual-parcial { display:inline-block; margin-top:0.3rem; font-size:0.7rem; font-weight:700; color:#fbbf24; background:rgba(251,191,36,.12); border:1px solid rgba(251,191,36,.3); padding:0.15rem 0.6rem; border-radius:9999px; }
+    .semana-actual-items { display:flex; flex-direction:column; gap:0.45rem; position:relative; }
+    .semana-item { display:flex; align-items:center; gap:0.65rem; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08); border-radius:0.75rem; padding:0.55rem 0.8rem; font-size:0.84rem; }
+    .semana-item-icon { font-size:0.95rem; flex-shrink:0; line-height:1; }
+    .semana-item-text { color:rgba(255,255,255,.85); flex:1; min-width:0; }
+    .semana-item-cat { font-size:0.64rem; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; padding:0.15rem 0.5rem; border-radius:9999px; flex-shrink:0; }
+    .cat-evaluacion { background:rgba(245,158,11,.25); color:#fcd34d; }
+    .cat-reunion    { background:rgba(139,92,246,.25);  color:#c4b5fd; }
+    .cat-control    { background:rgba(14,165,233,.25);  color:#7dd3fc; }
+    .cat-academico  { background:rgba(34,197,94,.25);   color:#86efac; }
+    .cat-restriccion{ background:rgba(239,68,68,.25);   color:#fca5a5; }
+    .cat-festivo    { background:rgba(249,115,22,.25);  color:#fdba74; }
+    .semana-vacia-msg { color:rgba(255,255,255,.4); font-size:0.84rem; font-style:italic; padding:0.2rem 0; }
+    .semana-cumples-box { margin-top:0.6rem; padding:0.55rem 0.9rem; background:rgba(236,72,153,.08); border:1px solid rgba(236,72,153,.15); border-radius:0.75rem; color:rgba(255,255,255,.7); font-size:0.8rem; }
+    .semana-cumples-box b { color:#f9a8d4; font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; }
+    .cumple-nombres { color:rgba(255,255,255,.9); font-weight:500; }
   </style>
 </head>
 <body>
@@ -395,6 +469,21 @@
 
     <nav class="adm-sidebar" id="adm-sidebar">
       <div class="adm-sidebar-section">
+        <div class="adm-sidebar-label">Inicio</div>
+
+        <button class="adm-nav-item active" id="adm-btn-home" onclick="_admGoHome()">
+          <div class="adm-nav-icon">🏠</div>
+          <div class="adm-nav-text">
+            <span class="adm-nav-name">Información general</span>
+            <span class="adm-nav-sub">Datos y calendario escolar</span>
+          </div>
+        </button>
+
+      </div>
+
+      <div class="adm-sidebar-sep"></div>
+
+      <div class="adm-sidebar-section">
         <div class="adm-sidebar-label">Áreas Institucionales</div>
 
         <button class="adm-nav-item" data-area="direccion" data-url="../area_direccion.html" onclick="_admLoadArea(this)">
@@ -452,11 +541,11 @@
           </div>
         </button>
 
-        <button class="adm-nav-item" onclick="window.open('../academico/dashboard.html','_blank')">
-          <div class="adm-nav-icon">📈</div>
+        <button class="adm-nav-item" data-area="sabanas" data-url="../admin/sabanas.html" onclick="_admLoadArea(this)">
+          <div class="adm-nav-icon">📊</div>
           <div class="adm-nav-text">
-            <span class="adm-nav-name">Dashboard Académico</span>
-            <span class="adm-nav-sub">Análisis de calificaciones</span>
+            <span class="adm-nav-name">Análisis Sábanas</span>
+            <span class="adm-nav-sub">Alumnos en riesgo · Reprobación</span>
           </div>
         </button>
 
@@ -480,10 +569,9 @@
 
     <main class="adm-main" id="adm-main">
 
-      <div class="adm-welcome" id="adm-welcome">
-        <div class="adm-welcome-icon">🏛️</div>
-        <div class="adm-welcome-title">Portal Administrativo CEB 5/4</div>
-        <div class="adm-welcome-desc">Selecciona una sección en la barra lateral para comenzar.</div>
+      <!-- ══ HOME ══ -->
+      <div class="adm-home" id="adm-home" style="display:none;">
+        <div class="adm-home-grid" id="adm-home-grid"></div>
       </div>
 
       <div style="display:none; flex:1; flex-direction:column; overflow:hidden;" id="adm-area-panel">
@@ -586,9 +674,8 @@
     var display = document.getElementById('adm-user-display');
     if (display) display.textContent = name;
     _admApplyRoleLocks();
-    /* Cargar primera sección automáticamente */
-    var first = document.querySelector('.adm-nav-item[data-area]');
-    if (first) _admLoadArea(first);
+    /* Mostrar home en lugar de cargar área automáticamente */
+    _admGoHome();
   }
 
   /* ── Logout ── */
@@ -627,10 +714,11 @@
     prefectura:   { icon: '🔍', name: 'Prefectura',                  sub: 'Registro de incidencias y disciplina' },
     tutorias:     { icon: '📝', name: 'Tutorías',                    sub: 'Seguimiento y reportes de tutorías' },
     horarios:     { icon: '🗓️', name: 'Generador de Horarios',      sub: 'Captura y publicación de horarios' },
+    sabanas:      { icon: '📊', name: 'Análisis Sábanas',             sub: 'Alumnos en riesgo · Reprobación por materia' },
     mensajes:     { icon: '💬', name: 'Mensajes institucionales',    sub: 'Comunicados y cumpleaños' },
   };
 
-  var welcome    = document.getElementById('adm-welcome');
+  var welcome    = null; /* replaced by adm-home */
   var areaPanel  = document.getElementById('adm-area-panel');
   var areaIcon   = document.getElementById('adm-area-icon');
   var areaName   = document.getElementById('adm-area-name');
@@ -675,6 +763,19 @@
     }
   }
 
+  var homeEl = document.getElementById('adm-home');
+
+  window._admGoHome = function() {
+    document.querySelectorAll('.adm-nav-item').forEach(function(el) { el.classList.remove('active'); });
+    var homeBtn = document.getElementById('adm-btn-home');
+    if (homeBtn) homeBtn.classList.add('active');
+    homeEl.style.display   = 'block';
+    areaPanel.style.display = 'none';
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+    _admRenderHomeOnce();
+  };
+
   window._admLoadArea = function(btn) {
     var id   = btn.dataset.area;
     var url  = btn.dataset.url;
@@ -688,12 +789,324 @@
     areaPath.textContent = meta.sub  || 'Portal Administrativo · CEB 5/4';
 
     iframe.src = url;
-    welcome.style.display    = 'none';
+    homeEl.style.display    = 'none';
     areaPanel.style.display  = 'flex';
 
     sidebar.classList.remove('open');
     overlay.classList.remove('active');
   };
+
+  /* ══════════════════════════════════════════════════════
+     HOME PAGE — Información general + Calendario
+  ══════════════════════════════════════════════════════ */
+  var _admHomeRendered = false;
+
+  function _admRenderHomeOnce() {
+    if (_admHomeRendered) return;
+    _admHomeRendered = true;
+    var nombre = sessionStorage.getItem('user_name')  || '—';
+    var email  = sessionStorage.getItem('user_email') || '—';
+    var rol    = sessionStorage.getItem('user_role')  || 'Administrativo';
+
+    var grid = document.getElementById('adm-home-grid');
+    if (!grid) return;
+    grid.innerHTML = [
+      _admHeroHTML(nombre, rol),
+      _admDatosHTML(nombre, email, rol),
+      _admCalHTML(),
+      _admQuickLinksHTML(),
+    ].join('');
+
+    _admInitCal();
+  }
+
+  /* ── SVG helper ────────────────────────────────────── */
+  function _admSvg(p) {
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'+p+'</svg>';
+  }
+  var _ADMI = {
+    user:   _admSvg('<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'),
+    role:   _admSvg('<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>'),
+    school: _admSvg('<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>'),
+    cal:    _admSvg('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'),
+    mail:   _admSvg('<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>'),
+    link:   _admSvg('<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'),
+  };
+
+  function _admEsc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  /* ── Hero ──────────────────────────────────────────── */
+  function _admHeroHTML(nombre, rol) {
+    var parts = nombre.trim().split(/\s+/);
+    var ini   = parts.length>=2 ? (parts[0][0]+parts[parts.length-1][0]).toUpperCase() : nombre.slice(0,2).toUpperCase();
+    return '<div class="adm-card"><div class="adm-profile-hero">'
+      +'<div class="adm-profile-avatar">'+ini+'</div>'
+      +'<div style="flex:1;min-width:0;">'
+        +'<div class="adm-profile-name">'+_admEsc(nombre)+'</div>'
+        +'<div class="adm-profile-role">CEB 5/4 "Profr. Rafael Ramírez"</div>'
+        +'<div class="adm-profile-chips">'
+          +'<span class="adm-chip indigo">'+_admEsc(rol)+'</span>'
+          +'<span class="adm-chip green">Sesión activa</span>'
+          +'<span class="adm-chip slate">Ciclo 2025-2026</span>'
+        +'</div>'
+      +'</div>'
+    +'</div></div>';
+  }
+
+  /* ── Datos generales ───────────────────────────────── */
+  function _admInfoRow(ico, lbl, val) {
+    return '<div class="adm-info-row"><div class="adm-info-ico">'+ico+'</div>'
+      +'<div><div class="adm-info-lbl">'+lbl+'</div><div class="adm-info-val">'+val+'</div></div></div>';
+  }
+  function _admDatosHTML(nombre, email, rol) {
+    return '<div class="adm-card">'
+      +'<div class="adm-card-hdr"><div class="adm-card-ico indigo">'+_ADMI.user+'</div><span class="adm-card-title">Datos generales</span></div>'
+      +'<div class="adm-card-body"><div class="adm-info-grid">'
+        +_admInfoRow(_ADMI.user,   'Nombre',               _admEsc(nombre))
+        +_admInfoRow(_ADMI.role,   'Rol',                  _admEsc(rol))
+        +_admInfoRow(_ADMI.school, 'Institución',          'CEB 5/4 "Profr. Rafael Ramírez"')
+        +_admInfoRow(_ADMI.cal,    'Ciclo escolar',        '2025 – 2026')
+        +_admInfoRow(_ADMI.mail,   'Correo institucional', _admEsc(email))
+      +'</div></div></div>';
+  }
+
+  /* ── Calendario ────────────────────────────────────── */
+  var _admCalView = 'semana';
+
+  function _admCalHTML() {
+    return '<div class="adm-card" style="overflow:hidden;">'
+      +'<div class="adm-card-hdr">'
+        +'<div class="adm-card-ico indigo">'+_ADMI.cal+'</div>'
+        +'<span class="adm-card-title">Calendario escolar</span>'
+        +'<div class="adm-cal-toggle">'
+          +'<button class="adm-cal-tbtn active" id="adm-cal-btn-semana" onclick="_admCalSwitch(\'semana\')">'
+            +_admSvg('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/>')
+            +'Esta semana</button>'
+          +'<button class="adm-cal-tbtn" id="adm-cal-btn-completo" onclick="_admCalSwitch(\'completo\')">'
+            +_admSvg('<polyline points="8 6 2 12 8 18"/><polyline points="16 6 22 12 16 18"/>')
+            +'Por días</button>'
+          +'<button class="adm-cal-tbtn" id="adm-cal-btn-cwgt" onclick="_admCalSwitch(\'cwgt\')">'
+            +_admSvg('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="7" y1="4" x2="7" y2="10"/><line x1="12" y1="4" x2="12" y2="10"/><line x1="17" y1="4" x2="17" y2="10"/>')
+            +'Semana</button>'
+        +'</div>'
+      +'</div>'
+      +'<div style="padding:0 1rem 1rem;">'
+        +'<div id="adm-cal-loading" style="display:flex;align-items:center;gap:0.6rem;padding:1.5rem 0;color:#94a3b8;font-size:0.82rem;">'
+          +'<div style="width:16px;height:16px;border:2px solid #e2e8f0;border-top-color:#6366f1;border-radius:50%;animation:admSpin 0.7s linear infinite;flex-shrink:0;"></div>'
+          +'Cargando calendario…'
+        +'</div>'
+        +'<div id="adm-cal-semana" class="semana-actual" style="display:none;"></div>'
+        +'<div id="adm-cal-full"   style="display:none;"></div>'
+        +'<div id="adm-cal-cwgt"   style="display:none;padding:4px 0;"></div>'
+      +'</div>'
+    +'</div>';
+  }
+
+  window._admCalSwitch = function(view) {
+    _admCalView = view;
+    ['semana','completo','cwgt'].forEach(function(k) {
+      var btn = document.getElementById('adm-cal-btn-'+k);
+      if (btn) btn.classList.toggle('active', k===view);
+    });
+    var ws = document.getElementById('adm-cal-semana');
+    var wf = document.getElementById('adm-cal-full');
+    var ww = document.getElementById('adm-cal-cwgt');
+    if (!ws) return;
+    ws.style.display = view==='semana'   ? 'block' : 'none';
+    wf.style.display = view==='completo' ? 'block' : 'none';
+    if (ww) ww.style.display = view==='cwgt' ? 'block' : 'none';
+    if (view==='completo' && !wf.dataset.rendered) {
+      wf.dataset.rendered = '1';
+      _admRenderCalDias();
+    }
+    if (view==='cwgt' && ww && !ww.dataset.rendered) {
+      ww.dataset.rendered = '1';
+      _admInitCwgt(ww);
+    }
+  };
+
+  var _admCwgtInst = null;
+  function _admInitCwgt(container) {
+    function _launch() {
+      if (typeof CalendarWidget === 'undefined') return;
+      container.id = 'adm-cal-cwgt';
+      _admCwgtInst = new CalendarWidget('adm-cal-cwgt', { filtro: 'todos', views: ['semana'], view: 'semana' });
+      _admCwgtInst.mount();
+    }
+    if (typeof CalendarWidget !== 'undefined') { _launch(); return; }
+    var s = document.createElement('script');
+    s.src = '../portal/js/calendar-widget.js?v=20260421';
+    s.onload = _launch;
+    document.head.appendChild(s);
+  }
+
+  var _admCalListening  = false;
+  var _admCalLoaded     = false;
+
+  function _admInitCal() {
+    if (typeof cronogramaMap !== 'undefined' && cronogramaMap !== null) {
+      _admRenderSemana(); return;
+    }
+    if (!_admCalListening) {
+      _admCalListening = true;
+      document.addEventListener('calendarioDataLista', _admRenderSemana);
+    }
+    if (_admCalLoaded) return;
+    _admCalLoaded = true;
+    var s1 = document.createElement('script');
+    s1.src = '../pec/js/api_calendario.js?v=20260421';
+    s1.onload = function() {
+      var s2 = document.createElement('script');
+      s2.src = '../pec/js/app_calendario.js?v=20260421';
+      document.head.appendChild(s2);
+    };
+    document.head.appendChild(s1);
+  }
+
+  function _admRenderSemana() {
+    var widget  = document.getElementById('adm-cal-semana');
+    var loading = document.getElementById('adm-cal-loading');
+    if (!widget) return;
+    if (typeof cronogramaMap === 'undefined' || !cronogramaMap) return;
+    if (loading) loading.style.display = 'none';
+    widget.style.display = 'block';
+
+    var hoy = new Date(); hoy.setHours(0,0,0,0);
+    var sem = cronogramaMap.find(function(s){ return hoy>=s.start && hoy<=s.end; });
+    if (!sem) {
+      widget.innerHTML = '<p style="padding:0.5rem 0;color:#94a3b8;font-size:0.85rem;">Sin semana activa en el calendario.</p>';
+      return;
+    }
+    var parcialMap = { 1:'1er Parcial',2:'1er Parcial',3:'1er Parcial',4:'1er Parcial',5:'1er Parcial', 6:'2do Parcial',7:'2do Parcial',8:'2do Parcial',9:'2do Parcial',10:'2do Parcial', 11:'3er Parcial',12:'3er Parcial',13:'3er Parcial',14:'3er Parcial',15:'3er Parcial', 16:'Evaluación Global' };
+    var parcialLabel = parcialMap[sem.num] || '';
+    var catIcon = { evaluacion:'📝',reunion:'👥',restriccion:'🚫',control:'📁',academico:'🎓',festivo:'🎉',vacaciones:'🏖️' };
+    var rango   = typeof formatearRango==='function' ? formatearRango(sem.start,sem.end) : '';
+
+    var cumplesSemana = (typeof CUMPLEANOS!=='undefined'?CUMPLEANOS:[]).filter(function(c){
+      var s = typeof getInfoSemana==='function' ? getInfoSemana(c.fecha) : null;
+      return s && s.start.getTime()===sem.start.getTime();
+    });
+    var cumplesHTML = !cumplesSemana.length ? '' :
+      '<div class="semana-cumples-box"><b>🎂 Cumpleaños</b>'
+      +'<span class="cumple-nombres">'
+        +cumplesSemana.map(function(c){
+          var p=String(c.nombre||'').trim().split(/\s+/);
+          return (p[0]?p[0].charAt(0).toUpperCase()+p[0].slice(1).toLowerCase():'')+p.slice(1).filter(Boolean).map(function(w){return ' '+w.charAt(0).toUpperCase()+'.';}).join('')+(c.cargo?' · '+c.cargo:'');
+        }).join(', ')
+      +'</span></div>';
+
+    if (sem.esVacaciones) {
+      widget.innerHTML = '<div class="semana-actual-head"><div>'
+        +'<div class="semana-actual-num">🏖️ '+sem.label+'</div>'
+        +'<div class="semana-actual-rango">'+rango+'</div>'
+        +'<span class="semana-actual-parcial">PERÍODO VACACIONAL</span>'
+        +'</div><span class="semana-actual-badge"><span class="dot-live"></span>Esta semana</span></div>'
+        +'<div class="semana-actual-items"><p class="semana-vacia-msg">Período de descanso — sin actividades escolares.</p>'+cumplesHTML+'</div>';
+      return;
+    }
+
+    var fClave   = typeof FECHAS_CLAVE!=='undefined' ? FECHAS_CLAVE : [];
+    var periodos = typeof PERIODOS_ESPECIALES!=='undefined' ? PERIODOS_ESPECIALES : [];
+    var evSem    = fClave.filter(function(ev){ var d=new Date(ev.fecha+'T00:00:00'); return d>=sem.start&&d<=sem.end; });
+    var pSem     = periodos.filter(function(p){
+      if(p.tipo==='periodo'){ var ps=new Date(p.inicio+'T00:00:00'),pe=new Date((p.fin||p.inicio)+'T00:00:00'); return ps<=sem.end&&pe>=sem.start; }
+      var d=new Date(p.fecha+'T00:00:00'); return d>=sem.start&&d<=sem.end;
+    });
+    var hayEv = evSem.length||pSem.length;
+    var itemsHTML = !hayEv ? '<p class="semana-vacia-msg">Sin eventos académicos para esta semana.</p>'
+      : evSem.map(function(ev){return '<div class="semana-item"><span class="semana-item-icon">'+(catIcon[ev.categoria]||'📌')+'</span><span class="semana-item-text">'+ev.titulo+'</span><span class="semana-item-cat cat-'+(ev.categoria||'academico')+'">'+(ev.categoria||'evento')+'</span></div>';}).join('')
+      + pSem.map(function(p){return '<div class="semana-item"><span class="semana-item-icon">'+(catIcon[p.categoria]||'📌')+'</span><span class="semana-item-text">'+p.titulo+'</span><span class="semana-item-cat cat-'+(p.categoria||'academico')+'">'+(p.categoria||'periodo')+'</span></div>';}).join('');
+
+    widget.innerHTML = '<div class="semana-actual-head"><div>'
+      +'<div class="semana-actual-num">'+sem.label+'</div>'
+      +'<div class="semana-actual-rango">'+rango+'</div>'
+      +(parcialLabel?'<span class="semana-actual-parcial">'+parcialLabel+'</span>':'')
+      +'</div><span class="semana-actual-badge"><span class="dot-live"></span>Esta semana</span></div>'
+      +'<div class="semana-actual-items">'+itemsHTML+cumplesHTML+'</div>';
+  }
+
+  function _admRenderCalDias() {
+    var container = document.getElementById('adm-cal-full');
+    if (!container || typeof cronogramaMap==='undefined' || !cronogramaMap) return;
+    var hoy = new Date(); hoy.setHours(0,0,0,0);
+    var fClave   = typeof FECHAS_CLAVE!=='undefined' ? FECHAS_CLAVE : [];
+    var periodos = typeof PERIODOS_ESPECIALES!=='undefined' ? PERIODOS_ESPECIALES : [];
+    var cumples  = typeof CUMPLEANOS!=='undefined' ? CUMPLEANOS : [];
+    var DIAS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    var LAB  = [1,2,3,4,5];
+    var CAT_COLOR = {
+      evaluacion:{ bg:'#fef3c7',bd:'#d97706',tx:'#92400e' },
+      reunion:   { bg:'#ede9fe',bd:'#7c3aed',tx:'#4c1d95' },
+      control:   { bg:'#e0f2fe',bd:'#0284c7',tx:'#0c4a6e' },
+      academico: { bg:'#dcfce7',bd:'#16a34a',tx:'#14532d' },
+      restriccion:{ bg:'#fee2e2',bd:'#dc2626',tx:'#991b1b' },
+      festivo:   { bg:'#f1f5f9',bd:'#94a3b8',tx:'#475569' }
+    };
+    var mapaEv = {};
+    var addEv = function(fecha,item){ if(!fecha)return; var k=String(fecha).substring(0,10); if(!mapaEv[k])mapaEv[k]=[]; mapaEv[k].push(item); };
+    fClave.forEach(function(ev){ addEv(ev.fecha,{t:'ev',obj:ev}); });
+    periodos.forEach(function(p){
+      if(!p.inicio)return; var cur=new Date(p.inicio+'T00:00:00'),fin=new Date((p.fin||p.inicio)+'T00:00:00');
+      while(cur<=fin){ addEv(cur.toISOString().substring(0,10),{t:'ev',obj:p}); cur.setDate(cur.getDate()+1); }
+    });
+    cumples.forEach(function(c){ addEv(c.fecha,{t:'cumple',obj:c}); });
+
+    var html = '';
+    cronogramaMap.forEach(function(sem){
+      var esVac=sem.esVacaciones, esHoySem=!esVac&&hoy>=sem.start&&hoy<=sem.end;
+      var rango=typeof formatearRango==='function'?formatearRango(sem.start,sem.end):'';
+      html+='<div style="margin-bottom:1rem;border-radius:10px;border:1px solid '+(esHoySem?'rgba(99,102,241,0.3)':'#e2e8f0')+';overflow:hidden;box-shadow:'+(esHoySem?'0 0 0 2px rgba(99,102,241,0.15)':'none')+';">';
+      html+='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.4rem;padding:0.5rem 0.75rem;background:'+(esVac?'#f1f5f9':'#0f172a')+';border-bottom:2px solid '+(esVac?'#e2e8f0':'#1e293b')+';">';
+      html+='<div style="display:flex;align-items:center;gap:0.5rem;">';
+      html+='<span style="font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:'+(esVac?'#64748b':'#94a3b8')+';">'+sem.label+'</span>';
+      if(esHoySem) html+='<span style="font-size:0.6rem;background:#059669;color:#fff;padding:1px 7px;border-radius:20px;font-weight:700;">HOY</span>';
+      if(esVac)    html+='<span style="font-size:0.6rem;background:#e2e8f0;color:#64748b;padding:1px 7px;border-radius:20px;font-weight:700;">VACACIONAL</span>';
+      html+='</div><span style="font-size:0.68rem;color:'+(esVac?'#94a3b8':'#64748b')+';">'+rango+'</span></div>';
+      if(esVac){
+        html+='<div style="padding:0.6rem 0.75rem;background:#f8fafc;font-size:0.78rem;color:#94a3b8;font-style:italic;">Período vacacional — sin actividades académicas</div>';
+      } else {
+        html+='<div style="display:flex;flex-wrap:wrap;background:#fff;">';
+        LAB.forEach(function(numDia){
+          var d=new Date(sem.start); while(d.getDay()!==numDia&&d<=sem.end)d.setDate(d.getDate()+1);
+          if(d>sem.end)return;
+          var key=d.toISOString().substring(0,10),esHoyDia=d.getTime()===hoy.getTime(),items=mapaEv[key]||[];
+          var evs=items.filter(function(i){return i.t==='ev';}),cps=items.filter(function(i){return i.t==='cumple';});
+          html+='<div style="flex:1;min-width:0;border-left:1px solid '+(esHoyDia?'#059669':'#f1f5f9')+';padding:0.35rem 0.4rem;background:'+(esHoyDia?'#f0fdf4':'#fff')+';min-height:52px;">';
+          html+='<div style="font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:'+(esHoyDia?'#059669':'#94a3b8')+';margin-bottom:3px;">'+DIAS[numDia]+'</div>';
+          evs.forEach(function(i){var cat=i.obj.categoria||'academico',c=CAT_COLOR[cat]||CAT_COLOR.academico;html+='<div style="font-size:0.65rem;padding:2px 5px;border-radius:4px;margin-bottom:2px;background:'+c.bg+';border-left:2px solid '+c.bd+';color:'+c.tx+';line-height:1.25;font-weight:500;">'+(i.obj.titulo||i.obj.nombre||'')+'</div>';});
+          cps.forEach(function(i){var nm=i.obj.nombre.split(' ').slice(0,2).join(' ');html+='<div style="font-size:0.62rem;color:#d97706;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+i.obj.nombre+'">🎂 '+nm+'</div>';});
+          if(!evs.length&&!cps.length)html+='<span style="font-size:0.62rem;color:#e2e8f0;">—</span>';
+          html+='</div>';
+        });
+        html+='</div>';
+      }
+      html+='</div>';
+    });
+    container.innerHTML = '<div style="max-height:520px;overflow-y:auto;padding-right:2px;">'+html+'</div>';
+  }
+
+  /* ── Accesos rápidos ───────────────────────────────── */
+  function _admNavLink(ico, label, action) {
+    return '<button class="adm-quicklink" onclick="'+action+'">'
+      +'<div class="adm-quicklink-icon">'+ico+'</div>'+label+'</button>';
+  }
+  function _admQuickLinksHTML() {
+    var s = _admSvg;
+    var links = [
+      { ico: s('<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>'), label:'Dirección',    action:"document.querySelector('[data-area=direccion]').click()" },
+      { ico: s('<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>'), label:'Subdirección', action:"document.querySelector('[data-area=subdireccion]').click()" },
+      { ico: s('<path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>'), label:'Orientación',  action:"document.querySelector('[data-area=orientacion]').click()" },
+      { ico: s('<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>'), label:'Prefectura',   action:"document.querySelector('[data-area=prefectura]').click()" },
+      { ico: s('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'), label:'Tutorías',    action:"document.querySelector('[data-area=tutorias]').click()" },
+      { ico: s('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'), label:'Horarios',    action:"document.querySelector('[data-area=horarios]').click()" },
+      { ico: s('<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>'), label:'Análisis',    action:"document.querySelector('[data-area=sabanas]').click()" },
+    ];
+    return '<div class="adm-card">'
+      +'<div class="adm-card-hdr"><div class="adm-card-ico amber">'+_ADMI.link+'</div><span class="adm-card-title">Accesos rápidos</span></div>'
+      +'<div class="adm-card-body"><div class="adm-quicklinks">'
+        +links.map(function(l){ return _admNavLink(l.ico,l.label,l.action); }).join('')
+      +'</div></div></div>';
+  }
 
 })();
 </script>

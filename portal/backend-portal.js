@@ -174,7 +174,11 @@ function doGetPortal(e) {
     if (act === "loginPadre")        return loginPadre(e, ss);
     if (act === "getCalAlumno")      return getCalAlumno(e, ss);
     if (act === "getCalPadre")       return getCalPadre(e, ss);
-    if (act === "getCalifSabanas")   return getCalifSabanasHandler(e, ss);
+    if (act === "getCalifSabanas")        return getCalifSabanasHandler(e, ss);
+    if (act === "getCalifSabanasGrupos")   return getCalifSabanasGruposHandler(e, ss);
+    if (act === "getCalifSabanasGrupo")    return getCalifSabanasGrupoHandler(e, ss);
+    if (act === "getCalifSabanasAll")      return getCalifSabanasAllHandler(e, ss);
+    if (act === "getCalifSabanasDocente")  return getCalifSabanasDocenteHandler(e, ss);
     if (act === "getMensajes")        return getMensajesHandler(e, ss);
     if (act === "getCumpleanosAdmin") return getCumpleanosAdminHandler(e, ss);
     if (act === "getConfig")         return ok({ status:"success", config: readConfig(ss) });
@@ -486,6 +490,125 @@ function getCalifSabanasHandler(e, ss) {
     });
 
   return ok({ status: "success", materias });
+}
+
+// ════════════════════════════════════════════════════════════════════════
+//  action=getCalifSabanasGrupos&adminKey=...
+//  Retorna la lista de grupos únicos disponibles en Calificaciones_Sabanas
+// ════════════════════════════════════════════════════════════════════════
+function getCalifSabanasGruposHandler(e, ss) {
+  if (e.parameter.adminKey !== ADMIN_KEY) return err("No autorizado.");
+  const hoja = ss.getSheetByName(SH_CAL_SAB);
+  if (!hoja || hoja.getLastRow() < 2) return ok({ status: "success", grupos: [] });
+  // Leer índices desde la fila de encabezados reales (no depende de COLS_SAB)
+  const allData = hoja.getDataRange().getValues();
+  const hdr     = allData[0].map(h => String(h).trim().toLowerCase());
+  const iGrupo  = hdr.indexOf("grupo");
+  const iCiclo  = hdr.indexOf("ciclo");
+  const iPer    = hdr.indexOf("periodo");
+  if (iGrupo < 0) return ok({ status: "success", grupos: [] });
+  const seen   = new Set();
+  const grupos = [];
+  allData.slice(1).forEach(r => {
+    const g = String(r[iGrupo] || "").trim();
+    if (!g) return;
+    const ciclo   = iCiclo  >= 0 ? String(r[iCiclo]  || "").trim() : "";
+    const periodo = iPer    >= 0 ? String(r[iPer]    || "").trim() : "";
+    const k = [ciclo, periodo, g].join("|");
+    if (!seen.has(k)) {
+      seen.add(k);
+      grupos.push({ grupo: g, ciclo, periodo });
+    }
+  });
+  grupos.sort((a, b) => a.grupo.localeCompare(b.grupo));
+  return ok({ status: "success", grupos });
+}
+
+// ════════════════════════════════════════════════════════════════════════
+//  action=getCalifSabanasGrupo&adminKey=...&grupo=M201&ciclo=...&periodo=...
+//  Retorna todos los registros de un grupo para el dashboard analítico
+// ════════════════════════════════════════════════════════════════════════
+function getCalifSabanasGrupoHandler(e, ss) {
+  if (e.parameter.adminKey !== ADMIN_KEY) return err("No autorizado.");
+  const grupo   = String(e.parameter.grupo   || "").trim().toUpperCase();
+  const ciclo   = String(e.parameter.ciclo   || "").trim();
+  const periodo = String(e.parameter.periodo || "").trim();
+  if (!grupo) return err("Se requiere el parámetro grupo.");
+  const hoja = ss.getSheetByName(SH_CAL_SAB);
+  if (!hoja || hoja.getLastRow() < 2) return ok({ status: "success", registros: [] });
+  // Leer índices desde la fila de encabezados reales
+  const allData = hoja.getDataRange().getValues();
+  const hdr     = allData[0].map(h => String(h).trim().toLowerCase());
+  const iGrupo  = hdr.indexOf("grupo");
+  const iCiclo  = hdr.indexOf("ciclo");
+  const iPer    = hdr.indexOf("periodo");
+  if (iGrupo < 0) return ok({ status: "success", registros: [] });
+  const registros = allData.slice(1)
+    .filter(r => {
+      if (String(r[iGrupo] || "").toUpperCase() !== grupo)                        return false;
+      if (ciclo   && iCiclo  >= 0 && String(r[iCiclo]  || "") !== ciclo)          return false;
+      if (periodo && iPer    >= 0 && String(r[iPer]    || "") !== periodo)         return false;
+      return true;
+    })
+    .map(r => {
+      const obj = {};
+      hdr.forEach((col, i) => { obj[col] = r[i]; });
+      return obj;
+    });
+  return ok({ status: "success", registros });
+}
+
+// ════════════════════════════════════════════════════════════════════════
+//  action=getCalifSabanasAll&adminKey=...
+//  Retorna TODOS los registros (columnas resumidas) para analytics admin
+// ════════════════════════════════════════════════════════════════════════
+function getCalifSabanasAllHandler(e, ss) {
+  if (e.parameter.adminKey !== ADMIN_KEY) return err("No autorizado.");
+  const hoja = ss.getSheetByName(SH_CAL_SAB);
+  if (!hoja || hoja.getLastRow() < 2) return ok({ status: "success", registros: [] });
+  const allData = hoja.getDataRange().getValues();
+  const hdr = allData[0].map(h => String(h).trim().toLowerCase());
+  const needed = ['ciclo','periodo','grupo','asignatura','docente','curp','nombre',
+                  'p1_total','p2_total','p3_total','global'];
+  const idx = needed.map(n => hdr.indexOf(n));
+  const iCurp = hdr.indexOf('curp');
+  const registros = allData.slice(1)
+    .filter(r => String(r[iCurp] || '').trim())
+    .map(r => {
+      const obj = {};
+      needed.forEach((n, i) => { obj[n] = r[idx[i]]; });
+      return obj;
+    });
+  return ok({ status: "success", registros });
+}
+
+// ════════════════════════════════════════════════════════════════════════
+//  action=getCalifSabanasDocente&docente=NOMBRE
+//  Retorna registros filtrados por nombre de docente (para portal docente)
+// ════════════════════════════════════════════════════════════════════════
+function getCalifSabanasDocenteHandler(e, ss) {
+  const docente = String(e.parameter.docente || "").trim().toUpperCase();
+  if (!docente) return err("Se requiere el parámetro docente.");
+  const hoja = ss.getSheetByName(SH_CAL_SAB);
+  if (!hoja || hoja.getLastRow() < 2) return ok({ status: "success", registros: [] });
+  const allData = hoja.getDataRange().getValues();
+  const hdr = allData[0].map(h => String(h).trim().toLowerCase());
+  const iDoc = hdr.indexOf("docente");
+  if (iDoc < 0) return ok({ status: "success", registros: [] });
+  const needed = ['ciclo','periodo','grupo','asignatura','docente','curp','nombre',
+                  'p1_total','p2_total','p3_total','global'];
+  const idx = needed.map(n => hdr.indexOf(n));
+  const registros = allData.slice(1)
+    .filter(r => {
+      const d = String(r[iDoc] || "").trim().toUpperCase();
+      return d === docente || d.includes(docente) || docente.includes(d);
+    })
+    .map(r => {
+      const obj = {};
+      needed.forEach((n, i) => { obj[n] = r[idx[i]]; });
+      return obj;
+    });
+  return ok({ status: "success", registros });
 }
 
 // ════════════════════════════════════════════════════════════════════════
