@@ -132,20 +132,8 @@
     <div class="ptab-panel" id="panel-principal">
 
       <!-- Esta semana -->
-      <div class="app-card">
-        <div class="card-header">
-          <div class="card-icon teal-icon"><i data-lucide="calendar"></i></div>
-          <span class="card-title">Esta semana</span>
-          <span class="card-dots">···</span>
-        </div>
-        <div id="bloque-semana-portal"></div>
-        <div id="btn-vista-dias-portal" style="display:none; margin-top:0.75rem;">
-          <button onclick="_toggleVistaDiasPortal()" id="btn-vdp-inner"
-            style="font-size:0.75rem; color:#059669; font-weight:700; background:transparent; border:none; cursor:pointer; display:flex; align-items:center; gap:0.3rem;">
-            Ver cronograma <i data-lucide="chevron-right" style="width:13px;"></i>
-          </button>
-        </div>
-        <div id="vista-dias-portal" style="display:none; margin-top:0.75rem;"></div>
+      <div class="app-card" style="padding:0.5rem;">
+        <div id="cal-widget-portal"></div>
       </div>
 
       <!-- Encuesta PEC — aparece cuando está activa (aviso relevante) -->
@@ -185,18 +173,6 @@
     ───────────────────────────────────────────────── -->
     <div class="ptab-panel ptab-panel--hidden" id="panel-horario">
 
-      <!-- Materias del grupo (docentes + correos incluidos) -->
-      <div class="app-card">
-        <div class="card-header">
-          <div class="card-icon green-icon"><i data-lucide="book-open"></i></div>
-          <span class="card-title">Materias del grupo</span>
-          <span class="card-dots">···</span>
-        </div>
-        <div id="materias-container" class="materias-2col">
-          <p style="font-size:0.75rem; color:#94a3b8; padding:0.55rem 0; grid-column:1/-1;">Cargando lista...</p>
-        </div>
-      </div>
-
       <!-- Horario semanal -->
       <div class="app-card hp-card">
         <div class="card-header">
@@ -210,6 +186,18 @@
         </div>
         <div id="hp-body" class="hp-body">
           <div class="hp-loading"><div class="hp-spinner"></div><span>Cargando horario…</span></div>
+        </div>
+      </div>
+
+      <!-- Materias del grupo (docentes + correos incluidos) -->
+      <div class="app-card">
+        <div class="card-header">
+          <div class="card-icon green-icon"><i data-lucide="book-open"></i></div>
+          <span class="card-title">Docentes del grupo</span>
+          <span class="card-dots">···</span>
+        </div>
+        <div id="materias-container" class="materias-2col">
+          <p style="font-size:0.75rem; color:#94a3b8; padding:0.55rem 0; grid-column:1/-1;">Cargando lista...</p>
         </div>
       </div>
 
@@ -384,6 +372,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <!-- Fuente única de datos del calendario -->
 <script src="../pec/js/api_calendario.js?v=20260418"></script>
 <script src="../pec/js/app_calendario.js?v=20260418"></script>
+<script src="js/calendar-widget.js?v=20260418"></script>
 
 <script>
 /* ══ TAB NAVIGATION ═════════════════════════════════════════════════ */
@@ -482,111 +471,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-/* ══ BLOQUE SEMANA ACTUAL ════════════════════════════════════��═══════ */
-function renderInfoSemanal() {
-    const container = document.getElementById('bloque-semana-portal');
-    if (!container) return;
-
-    const fuente = (typeof FECHAS_CLAVE !== 'undefined' && FECHAS_CLAVE.length > 0)
-        ? FECHAS_CLAVE
-        : (typeof FECHAS_CLAVE_FALLBACK !== 'undefined' ? FECHAS_CLAVE_FALLBACK : []);
-
-    function getSemanaActual() {
-        if (typeof cronogramaMap === 'undefined' || !cronogramaMap.length) return null;
-        const hoy = new Date(); hoy.setHours(0,0,0,0);
-        return cronogramaMap.find(s => hoy >= s.start && hoy <= s.end) || null;
-    }
-
-    function getUniforme() {
-        const dia = new Date().getDay();
-        if (dia === 0 || dia === 6) return { texto: "Sin clases hoy",   emoji: "🏡", color: "#94a3b8" };
-        if (dia === 2 || dia === 4) return { texto: "Uniforme de gala", emoji: "👔", color: "#1d4ed8" };
-        return                             { texto: "Pants",            emoji: "👟", color: "#059669" };
-    }
-
-    function fmtD(d) {
-        const DIAS  = ['dom','lun','mar','mié','jue','vie','sáb'];
-        const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-        return `${d.getDate()} ${MESES[d.getMonth()]}`;
-    }
-
-    const semana   = getSemanaActual();
-    const uniforme = getUniforme();
-
-    const metricWeek = document.getElementById("metric-week");
-    if (metricWeek) metricWeek.textContent = semana ? `Sem. ${semana.num}` : "Sem. —";
-
-    const dia = new Date().getDay();
-    const esFinde   = (dia === 0 || dia === 6);
-    const esGala    = (dia === 2 || dia === 4);
-    const esVacacio = semana && semana.esVacaciones;
-
-    let iconoColor, bgBox, numColor, subTexto, badgeBg, badgeColor, badgeText, iconName;
-
-    if (esVacacio) {
-        iconoColor = '#7c3aed'; bgBox = '#ede9fe'; numColor = '#5b21b6';
-        subTexto   = 'Periodo vacacional'; badgeBg = '#ede9fe'; badgeColor = '#7c3aed';
-        badgeText  = '🌴 Vacaciones'; iconName = 'palmtree';
-    } else if (esFinde) {
-        iconoColor = '#94a3b8'; bgBox = '#f1f5f9'; numColor = '#475569';
-        subTexto   = 'Día de descanso · Sin clases'; badgeBg = '#f1f5f9'; badgeColor = '#64748b';
-        badgeText  = '🏡 Fin de semana'; iconName = 'house';
-    } else if (esGala) {
-        iconoColor = '#1d4ed8'; bgBox = '#dbeafe'; numColor = '#1e3a8a';
-        subTexto   = 'Mar y Jue: Uniforme de gala'; badgeBg = '#dbeafe'; badgeColor = '#1d4ed8';
-        badgeText  = '👔 Uniforme de gala'; iconName = 'shirt';
-    } else {
-        iconoColor = '#059669'; bgBox = '#d1fae5'; numColor = '#065f46';
-        subTexto   = 'Lun, Mié y Vie: Pants + tenis'; badgeBg = '#d1fae5'; badgeColor = '#059669';
-        badgeText  = '👟 Pants'; iconName = 'footprints';
-    }
-
-    const rangoFmt = semana
-        ? `${fmtD(semana.start)} – ${fmtD(semana.end)}`
-        : 'Fuera del período';
-
-    container.innerHTML = `
-      <div class="semana-row">
-        <div class="semana-icon-box" style="background:${bgBox};">
-          <i data-lucide="${iconName}" style="width:22px; height:22px; color:${iconoColor};"></i>
-        </div>
-        <div class="semana-body">
-          <div class="semana-num" style="color:${numColor};">Semana ${semana ? semana.num : '—'}</div>
-          <div class="semana-sub">${subTexto}</div>
-        </div>
-        <div class="semana-right">
-          <div class="semana-rango" style="color:${iconoColor};">◂ ${rangoFmt}</div>
-        </div>
-      </div>
-      <div style="margin-top:0.85rem; padding:0.55rem 0.85rem; border-radius:10px; background:${badgeBg}; display:inline-flex; align-items:center; gap:0.5rem;">
-        <span style="font-size:0.82rem; font-weight:700; color:${badgeColor};">${badgeText}</span>
-      </div>
-    `;
-    lucide.createIcons();
-}
-
-document.addEventListener('calendarioDataLista', function() {
-    renderInfoSemanal();
-    document.getElementById('btn-vista-dias-portal').style.display = 'block';
-});
-
-let _modoDiasPortal = false;
-function _toggleVistaDiasPortal() {
-    _modoDiasPortal = !_modoDiasPortal;
-    const bloque  = document.getElementById('bloque-semana-portal');
-    const diasDiv = document.getElementById('vista-dias-portal');
-    const btn     = document.getElementById('btn-vdp-inner');
-    if (_modoDiasPortal) {
-        bloque.style.display  = 'none';
-        diasDiv.style.display = 'block';
-        window.renderVistaDiasPortal(diasDiv, new Date());
-        btn.textContent = '⬅ Vista resumida';
-    } else {
-        bloque.style.display  = 'block';
-        diasDiv.style.display = 'none';
-        btn.textContent = '📅 Ver semana detallada';
-    }
-}
+new CalendarWidget('cal-widget-portal', { filtro: 'alumno', views: ['semana'], view: 'semana' }).mount();
 
 // Logout
 window.logout = function() {

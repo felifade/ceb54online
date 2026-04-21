@@ -119,6 +119,10 @@ function _calendarHTML() {
             _d2Svg('<polyline points="8 6 2 12 8 18"/><polyline points="16 6 22 12 16 18"/>'),
             'Por días',
           '</button>',
+          '<button class="d2-cal-tbtn" id="d2-cal-btn-cwgt" onclick="_d2CalSwitch(\'cwgt\')">',
+            _d2Svg('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="7" y1="4" x2="7" y2="10"/><line x1="12" y1="4" x2="12" y2="10"/><line x1="17" y1="4" x2="17" y2="10"/>'),
+            'Semana',
+          '</button>',
         '</div>',
       '</div>',
       '<div style="padding:0 1rem 1rem;">',
@@ -131,6 +135,7 @@ function _calendarHTML() {
         '</div>',
         '<div id="semana-actual-widget" class="semana-actual" style="display:none;margin:0;"></div>',
         '<div id="d2-cal-full" style="display:none;"></div>',
+        '<div id="d2-cal-cwgt" style="display:none;padding:4px 0;"></div>',
       '</div>',
     '</div>',
   ].join('');
@@ -140,24 +145,43 @@ function _d2CalSwitch(view) {
   _d2CalView = view;
   var btnS = document.getElementById('d2-cal-btn-semana');
   var btnC = document.getElementById('d2-cal-btn-completo');
+  var btnW = document.getElementById('d2-cal-btn-cwgt');
   if (btnS) btnS.classList.toggle('active', view === 'semana');
   if (btnC) btnC.classList.toggle('active', view === 'completo');
+  if (btnW) btnW.classList.toggle('active', view === 'cwgt');
 
   var ws = document.getElementById('semana-actual-widget');
   var wf = document.getElementById('d2-cal-full');
+  var ww = document.getElementById('d2-cal-cwgt');
   if (!ws || !wf) return;
 
-  if (view === 'semana') {
-    ws.style.display = 'block';
-    wf.style.display = 'none';
-  } else {
-    ws.style.display = 'none';
-    wf.style.display = 'block';
-    if (!wf.dataset.rendered) {
-      wf.dataset.rendered = '1';
-      _d2RenderCalendarioDias();
-    }
+  ws.style.display = view === 'semana'   ? 'block' : 'none';
+  wf.style.display = view === 'completo' ? 'block' : 'none';
+  if (ww) ww.style.display = view === 'cwgt' ? 'block' : 'none';
+
+  if (view === 'completo' && !wf.dataset.rendered) {
+    wf.dataset.rendered = '1';
+    _d2RenderCalendarioDias();
   }
+  if (view === 'cwgt' && ww && !ww.dataset.rendered) {
+    ww.dataset.rendered = '1';
+    _d2InitCwgt(ww);
+  }
+}
+
+var _d2CwgtInst = null;
+function _d2InitCwgt(container) {
+  function _launchCwgt() {
+    if (typeof CalendarWidget === 'undefined') return;
+    container.id = 'd2-cal-cwgt';
+    _d2CwgtInst = new CalendarWidget('d2-cal-cwgt', { filtro: 'todos', views: ['semana'], view: 'semana' });
+    _d2CwgtInst.mount();
+  }
+  if (typeof CalendarWidget !== 'undefined') { _launchCwgt(); return; }
+  var s = document.createElement('script');
+  s.src = '../portal/js/calendar-widget.js?v=20260421';
+  s.onload = _launchCwgt;
+  document.head.appendChild(s);
 }
 
 /* ── Carga scripts del calendario y renderiza el widget ──── */
@@ -228,7 +252,11 @@ function _d2RenderSemanaActual() {
       '<b>🎂 Cumpleaños</b>' +
       '<span class="cumple-nombres">' +
         cumplesSemana.map(function(c) {
-          return c.nombre + ' (' + (typeof formatearFechaSimple === 'function' ? formatearFechaSimple(c.fecha) : c.fecha) + ')';
+          var partes = String(c.nombre || '').trim().split(/\s+/);
+          var pila   = partes[0] ? partes[0].charAt(0).toUpperCase() + partes[0].slice(1).toLowerCase() : '';
+          var inic   = partes.slice(1).filter(Boolean).map(function(p){ return p.charAt(0).toUpperCase() + '.'; }).join('');
+          var cargo  = c.cargo ? ' · ' + c.cargo : '';
+          return pila + (inic ? ' ' + inic : '') + cargo;
         }).join(', ') +
       '</span>' +
     '</div>';

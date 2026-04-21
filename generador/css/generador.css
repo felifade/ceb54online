@@ -1819,6 +1819,21 @@ thead .est-capv-th-hora { border-bottom: 2px solid var(--gen-border); padding: 1
 /* ── Conflicto highlight ── */
 .est-capv-cell--conflict { outline: 2px solid #ef4444 !important; outline-offset: -2px; }
 
+/* ── Barra de autoacomodo ── */
+.est-auto-bar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 12px; margin-bottom: 8px;
+  background: #f8fafc; border: 1px solid var(--gen-border);
+  border-radius: 10px;
+}
+.est-auto-label {
+  font-size: 12px; font-weight: 600; color: var(--gen-text-2);
+  margin-right: 4px; white-space: nowrap;
+}
+.est-auto-btn { display: flex; align-items: center; gap: 5px; }
+.est-auto-undo { color: #7c3aed; border-color: #c4b5fd; }
+.est-auto-undo:hover { background: #f5f3ff; }
+
 @media (max-width: 900px) {
   .est-capv-layout { grid-template-columns: 1fr; }
   .est-capv-panel { position: static; max-height: 260px; }

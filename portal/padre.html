@@ -131,19 +131,8 @@
     ───────────────────────────────────────────────── -->
     <div class="ptab-panel" id="panel-principal">
 
-      <div class="app-card">
-        <div class="card-header">
-          <div class="card-icon green-icon"><i data-lucide="calendar"></i></div>
-          <span class="card-title">Esta semana</span>
-          <div id="btn-vista-dias-portal" style="display:none; margin-left:auto;">
-            <button onclick="_toggleVistaDiasPortal()" id="btn-vdp-inner"
-              style="font-size:0.72rem;padding:0.22rem 0.75rem;border-radius:20px;border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;cursor:pointer;font-weight:700;">
-              📅 Detalle
-            </button>
-          </div>
-        </div>
-        <div id="bloque-semana-portal"></div>
-        <div id="vista-dias-portal" style="display:none;"></div>
+      <div class="app-card" style="padding:0.5rem;">
+        <div id="cal-widget-padre"></div>
       </div>
 
     </div><!-- /panel-principal -->
@@ -694,6 +683,7 @@ async function renderEvalDirectivosStatusParent(nombre, grupo) {
 <!-- Fuente única de datos del calendario -->
 <script src="../pec/js/api_calendario.js?v=20260418"></script>
 <script src="../pec/js/app_calendario.js?v=20260418"></script>
+<script src="js/calendar-widget.js?v=20260418"></script>
 
 <script>
 /* ══ TAB NAVIGATION ═════════════════════════════════════════════════ */
@@ -766,129 +756,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (sec) new MutationObserver(_updateEvalTabDotPadre).observe(sec, { attributes: true, attributeFilter: ['style'] });
 });
 
-/* ══ SEMANA ACTUAL — misma lógica visual que alumno ══════════════════════ */
-function renderInfoSemanal() {
-    const container = document.getElementById('bloque-semana-portal');
-    if (!container) return;
-
-    const fuente = (typeof FECHAS_CLAVE !== 'undefined' && FECHAS_CLAVE.length > 0)
-        ? FECHAS_CLAVE
-        : (typeof FECHAS_CLAVE_FALLBACK !== 'undefined' ? FECHAS_CLAVE_FALLBACK : []);
-
-    function getSemanaActual() {
-        if (typeof cronogramaMap === 'undefined' || !cronogramaMap.length) return null;
-        const hoy = new Date(); hoy.setHours(0,0,0,0);
-        return cronogramaMap.find(s => hoy >= s.start && hoy <= s.end) || null;
-    }
-
-    function getEventosSemana(semana) {
-        if (!semana) return [];
-        return fuente.filter(ev => {
-            if (!ev.visiblePortalAlumno) return false;
-            const d = new Date(ev.fecha + 'T00:00:00');
-            return d >= semana.start && d <= semana.end;
-        });
-    }
-
-    function fmtD(d) {
-        const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-        return `${d.getDate()} ${MESES[d.getMonth()]}`;
-    }
-
-    const CAT = {
-        evaluacion: { dot: '#d97706' },
-        reunion:    { dot: '#7c3aed' },
-        control:    { dot: '#0284c7' },
-        academico:  { dot: '#16a34a' },
-    };
-
-    const semana  = getSemanaActual();
-    const eventos = getEventosSemana(semana);
-
-    const dia       = new Date().getDay();
-    const esFinde   = (dia === 0 || dia === 6);
-    const esGala    = (dia === 2 || dia === 4);
-    const esVacacio = semana && semana.esVacaciones;
-
-    let iconoColor, bgBox, numColor, subTexto, badgeBg, badgeColor, badgeText, iconName;
-    if (esVacacio) {
-        iconoColor = '#7c3aed'; bgBox = '#ede9fe'; numColor = '#5b21b6';
-        subTexto = 'Periodo vacacional'; badgeBg = '#ede9fe'; badgeColor = '#7c3aed';
-        badgeText = '🌴 Vacaciones'; iconName = 'palmtree';
-    } else if (esFinde) {
-        iconoColor = '#94a3b8'; bgBox = '#f1f5f9'; numColor = '#475569';
-        subTexto = 'Día de descanso · Sin clases'; badgeBg = '#f1f5f9'; badgeColor = '#64748b';
-        badgeText = '🏡 Fin de semana'; iconName = 'house';
-    } else if (esGala) {
-        iconoColor = '#1d4ed8'; bgBox = '#dbeafe'; numColor = '#1e3a8a';
-        subTexto = 'Mar y Jue: Uniforme de gala'; badgeBg = '#dbeafe'; badgeColor = '#1d4ed8';
-        badgeText = '👔 Uniforme de gala'; iconName = 'shirt';
-    } else {
-        iconoColor = '#059669'; bgBox = '#d1fae5'; numColor = '#065f46';
-        subTexto = 'Lun, Mié y Vie: Pants + tenis'; badgeBg = '#d1fae5'; badgeColor = '#059669';
-        badgeText = '👟 Pants'; iconName = 'footprints';
-    }
-
-    const rangoFmt = semana
-        ? `${fmtD(semana.start)} – ${fmtD(semana.end)}`
-        : 'Fuera del período';
-
-    const eventosHTML = eventos.length === 0
-        ? `<p style="font-size:0.8rem;color:#94a3b8;margin:0.75rem 0 0;">Sin eventos destacados esta semana.</p>`
-        : eventos.map(ev => {
-            const c = CAT[ev.categoria] || CAT.academico;
-            const d = new Date(ev.fecha + 'T00:00:00');
-            return `
-              <div style="display:flex;align-items:center;gap:0.6rem;padding:0.4rem 0;border-bottom:1px solid #f8fafc;">
-                <div style="width:7px;height:7px;border-radius:50%;background:${c.dot};flex-shrink:0;"></div>
-                <div style="flex:1;font-size:0.82rem;color:#1e293b;font-weight:500;">${ev.titulo}</div>
-                <div style="font-size:0.72rem;color:#94a3b8;flex-shrink:0;">${fmtD(d)}</div>
-              </div>`;
-        }).join('');
-
-    container.innerHTML = `
-      <div class="semana-row">
-        <div class="semana-icon-box" style="background:${bgBox};">
-          <i data-lucide="${iconName}" style="width:22px; height:22px; color:${iconoColor};"></i>
-        </div>
-        <div class="semana-body">
-          <div class="semana-num" style="color:${numColor};">Semana ${semana ? semana.num : '—'}</div>
-          <div class="semana-sub">${subTexto}</div>
-        </div>
-        <div class="semana-right">
-          <div class="semana-rango" style="color:${iconoColor};">◂ ${rangoFmt}</div>
-        </div>
-      </div>
-      <div style="margin-top:0.85rem; padding:0.55rem 0.85rem; border-radius:10px; background:${badgeBg}; display:inline-flex; align-items:center; gap:0.5rem;">
-        <span style="font-size:0.82rem; font-weight:700; color:${badgeColor};">${badgeText}</span>
-      </div>
-      ${eventosHTML}
-    `;
-    lucide.createIcons();
-}
-
-document.addEventListener('calendarioDataLista', function() {
-    renderInfoSemanal();
-    document.getElementById('btn-vista-dias-portal').style.display = 'block';
-});
-
-let _modoDiasPortal = false;
-function _toggleVistaDiasPortal() {
-    _modoDiasPortal = !_modoDiasPortal;
-    const bloque  = document.getElementById('bloque-semana-portal');
-    const diasDiv = document.getElementById('vista-dias-portal');
-    const btn     = document.getElementById('btn-vdp-inner');
-    if (_modoDiasPortal) {
-        bloque.style.display  = 'none';
-        diasDiv.style.display = 'block';
-        window.renderVistaDiasPortal(diasDiv, new Date());
-        btn.textContent = '⬅ Resumida';
-    } else {
-        bloque.style.display  = 'block';
-        diasDiv.style.display = 'none';
-        btn.textContent = '📅 Detalle';
-    }
-}
+new CalendarWidget('cal-widget-padre', { filtro: 'alumno', views: ['semana'], view: 'semana' }).mount();
 
 // Logout
 window.logout = function() {

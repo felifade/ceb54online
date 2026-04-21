@@ -46,7 +46,7 @@ function doGet(e) {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
         const _act = e.parameter.action || "";
-    if (['loginAlumno','getCalAlumno','getCalPadre','getConfig','getEncuestaStatus','adminPortal','getPrefecturaBase','getIncidencias'].includes(_act)) {
+    if (['loginAlumno','getCalAlumno','getCalPadre','getConfig','getEncuestaStatus','adminPortal','getPrefecturaBase','getIncidencias','getCalifSabanas','getMensajes','getCumpleanosAdmin'].includes(_act)) {
       return doGetPortal(e);
     }
     if (['getDashboard','getAlumnos','getGrupos','getMaterias','getIndicadores','getAlumnosGrupo','getCumpleanos'].includes(_act)) {
@@ -332,7 +332,7 @@ function doPost(e) {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const body = JSON.parse(e.postData.contents);
     const action = body.action || "";
-    if (['encuestaAlumno','encuestaPadre','adminPortal','saveIncidencia','marcarLaborSocial'].includes(action)) {
+    if (['encuestaAlumno','encuestaPadre','adminPortal','saveIncidencia','marcarLaborSocial','saveMensaje','toggleMensaje','deleteMensaje','saveCumpleanos','toggleCumpleanos','deleteCumpleanos'].includes(action)) {
       return doPostPortal(e);
     }
     if (['importarPDF','limpiarParcial'].includes(action)) {

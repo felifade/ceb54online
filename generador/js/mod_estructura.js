@@ -3033,7 +3033,8 @@ function _estCapvHTML() {
     modeBar+
     '<span id="est-capv-topbar-sel" style="display:contents">'+_estCapvSelectorHTML()+'</span>'+
     '<span class="est-capv-hint">Selecciona una materia (panel izq.) · clic en bloque vacío para asignar · clic en bloque ocupado para quitar</span>'+
-    '</div>';
+    '</div>'+
+    (_estCapvMode === 'grupo' ? _estAutoBarHTML() : '');
 
   return topbar + '<div id="est-capv-inner">'+_estCapvInnerHTML()+'</div>';
 }
@@ -3166,6 +3167,7 @@ function _estCapvCambiarGrupo(g) {
   _estCapvGrupo = g;
   _estCapvBrush = -1;
   _estCapvRefresh();
+  _estAutoRefreshBar();
 }
 
 function _estCapvCellClick(td) {
@@ -3277,4 +3279,276 @@ function _estCapvClear(rowIdx, dia) {
 function _estCapvRefresh() {
   var inner = document.getElementById('est-capv-inner'); if (!inner) return;
   inner.innerHTML = _estCapvInnerHTML();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  AUTOACOMODO DE HORARIOS
+// ══════════════════════════════════════════════════════════════════════
+
+var _estAutoSnap = null; // { grupo, rows: [{rowIdx, lunes, martes, …}] }
+
+/* Rango de horas válidas según turno */
+function _estAutoRangoTurno(turno) {
+  var t = String(turno||'').trim().toLowerCase();
+  if (t === 'vespertino') return { ini: 14, fin: 21 };
+  if (t === 'matutino')   return { ini: 7,  fin: 14 };
+  return { ini: 7, fin: 21 }; // Mixto o sin turno
+}
+
+/* Algoritmo greedy: genera propuesta de slots para horas pendientes del grupo */
+function _estAutoProponerGrupo(grupo) {
+  var filas = _estCapvRowsForGrupo(grupo);
+  if (!filas.length) return { proposals: {}, unplaced: [], msg: 'Sin filas para este grupo.' };
+
+  // ── Mapa de ocupación GLOBAL (todas las filas de _estData) ──────
+  var grupoMap   = {};  // dia → { hora → rowIdx }   (solo el grupo actual)
+  var docenteMap = {};  // docente → dia → hora → true (todos los grupos)
+  _EST_DIAS_.forEach(function(d) { grupoMap[d] = {}; });
+
+  _estData.forEach(function(row, i) {
+    var g   = String(row.grupo||'').trim();
+    var doc = String(row.docente||'').trim();
+    var tp  = String(row.tipo_asignacion_docente||'').trim();
+    _EST_DIAS_.forEach(function(dia) {
+      var v = String(row[dia]||'').trim(); if (!v) return;
+      var m = v.match(/^(\d{1,2}):(\d{2})\s*[-–]\s*(\d{1,2}):(\d{2})$/);
+      if (!m) return;
+      var hs = parseInt(m[1],10), he = parseInt(m[3],10);
+      for (var h = hs; h < he; h++) {
+        if (g === grupo) grupoMap[dia][h] = i;
+        if (doc && tp !== 'Vacante') {
+          if (!docenteMap[doc])           docenteMap[doc] = {};
+          if (!docenteMap[doc][dia])      docenteMap[doc][dia] = {};
+          docenteMap[doc][dia][h] = true;
+        }
+      }
+    });
+  });
+
+  // ── Pendientes ───────────────────────────────────────────────────
+  var pending = [];
+  filas.forEach(function(rowIdx) {
+    var row = _estData[rowIdx];
+    var tot = Number(row.tot_horas) || 0;
+    if (!tot) return;
+    var asig = _EST_DIAS_.reduce(function(s,d){ return s + _estParseHorasDia(row[d]); }, 0);
+    var pend = tot - asig;
+    if (pend <= 0) return;
+    pending.push({
+      rowIdx: rowIdx,
+      uac:    String(row.uac||'').trim() || '(sin nombre)',
+      doc:    String(row.docente||'').trim(),
+      tipo:   String(row.tipo_asignacion_docente||'').trim(),
+      turno:  String(row.turno||'').trim(),
+      tot:    tot, asig: asig, pend: pend
+    });
+  });
+
+  if (!pending.length) return { proposals: {}, unplaced: [], msg: 'Todo ya está asignado para este grupo.' };
+
+  // Ordenar: más horas pendientes primero (más difíciles de colocar)
+  pending.sort(function(a,b){ return b.pend - a.pend; });
+
+  var proposals = {}; // rowIdx → { dia → slotLabel }
+  var unplaced  = [];
+
+  pending.forEach(function(mat) {
+    var rango    = _estAutoRangoTurno(mat.turno);
+    var horasLeft = mat.pend;
+    var rowIdx    = mat.rowIdx;
+    var row       = _estData[rowIdx];
+
+    // Días ya asignados a esta materia (antes y durante el algoritmo)
+    var usedDias = {};
+    _EST_DIAS_.forEach(function(d) { if (String(row[d]||'').trim()) usedDias[d] = true; });
+    if (proposals[rowIdx]) Object.keys(proposals[rowIdx]).forEach(function(d){ usedDias[d] = true; });
+
+    // Carga actual por día (para el grupo)
+    function diaLoad(dia) {
+      var c = 0;
+      for (var h = rango.ini; h < rango.fin; h++) if (grupoMap[dia][h] !== undefined) c++;
+      return c;
+    }
+
+    // Preferir días nuevos (no usados), ordenados de menor a mayor carga
+    var diasFresh = _EST_DIAS_.filter(function(d){ return !usedDias[d]; });
+    diasFresh.sort(function(a,b){ return diaLoad(a) - diaLoad(b); });
+    var diasUsed  = _EST_DIAS_.filter(function(d){ return usedDias[d]; });
+    diasUsed.sort(function(a,b){ return diaLoad(a) - diaLoad(b); });
+    var diasOrd   = diasFresh.concat(diasUsed);
+
+    // Tamaño de bloque preferido: materias de >4h se distribuyen en bloques de 2
+    var preferBlk = mat.pend > 4 ? 2 : 3;
+
+    for (var di = 0; di < diasOrd.length && horasLeft > 0; di++) {
+      var dia    = diasOrd[di];
+      var maxBlk = Math.min(preferBlk, horasLeft);
+      var placed = false;
+
+      for (var startH = rango.ini; startH < rango.fin && !placed; startH++) {
+        for (var blk = maxBlk; blk >= 1; blk--) {
+          var endH = startH + blk;
+          if (endH > rango.fin) continue;
+
+          // Verificar grupo libre
+          var ok = true;
+          for (var h = startH; h < endH; h++) {
+            if (grupoMap[dia][h] !== undefined) { ok = false; break; }
+          }
+          if (!ok) continue;
+
+          // Verificar docente libre (si aplica)
+          if (mat.doc && mat.tipo !== 'Vacante') {
+            for (var h2 = startH; h2 < endH; h2++) {
+              if (docenteMap[mat.doc] && docenteMap[mat.doc][dia] && docenteMap[mat.doc][dia][h2]) {
+                ok = false; break;
+              }
+            }
+          }
+          if (!ok) continue;
+
+          // Slot válido — asignar
+          var label = (startH<10?'0':'')+startH+':00-'+(endH<10?'0':'')+endH+':00';
+          if (!proposals[rowIdx]) proposals[rowIdx] = {};
+          proposals[rowIdx][dia] = label;
+
+          // Actualizar mapas para las siguientes iteraciones
+          for (var h3 = startH; h3 < endH; h3++) {
+            grupoMap[dia][h3] = rowIdx;
+            if (mat.doc && mat.tipo !== 'Vacante') {
+              if (!docenteMap[mat.doc])           docenteMap[mat.doc] = {};
+              if (!docenteMap[mat.doc][dia])      docenteMap[mat.doc][dia] = {};
+              docenteMap[mat.doc][dia][h3] = true;
+            }
+          }
+
+          horasLeft -= blk;
+          usedDias[dia] = true;
+          placed = true;
+          break; // siguiente día
+        }
+      }
+    }
+
+    if (horasLeft > 0)
+      unplaced.push({ uac: mat.uac, horas: horasLeft,
+        razon: mat.doc ? 'Sin slots libres para ' + mat.doc : 'Sin slots disponibles' });
+  });
+
+  return { proposals: proposals, unplaced: unplaced };
+}
+
+/* Aplica propuestas a _estData y guarda snapshot para deshacer */
+function _estAutoAplicar(grupo, proposals) {
+  var snap = [];
+  Object.keys(proposals).forEach(function(ri) {
+    var rowIdx = parseInt(ri, 10);
+    var row    = _estData[rowIdx];
+    snap.push({ rowIdx: rowIdx,
+      lunes: row.lunes, martes: row.martes, miercoles: row.miercoles,
+      jueves: row.jueves, viernes: row.viernes });
+    Object.keys(proposals[ri]).forEach(function(dia) {
+      row[dia] = proposals[ri][dia];
+      _estDirtySet.add(row);
+    });
+  });
+  _estAutoSnap = { grupo: grupo, rows: snap };
+  _estDirty = true;
+  _estUpdateSaveBtn();
+  _estUpdateDashboard();
+  _estValidarLocal();
+}
+
+/* Limpia todos los días del grupo y guarda snapshot */
+function _estAutoLimpiarGrupo(grupo) {
+  var filas = _estCapvRowsForGrupo(grupo);
+  if (!filas.length) return;
+  var snap = [];
+  var tieneDatos = false;
+  filas.forEach(function(rowIdx) {
+    var row = _estData[rowIdx];
+    var orig = { rowIdx: rowIdx,
+      lunes: row.lunes, martes: row.martes, miercoles: row.miercoles,
+      jueves: row.jueves, viernes: row.viernes };
+    snap.push(orig);
+    var hayAlgo = _EST_DIAS_.some(function(d){ return String(row[d]||'').trim(); });
+    if (hayAlgo) {
+      tieneDatos = true;
+      _EST_DIAS_.forEach(function(d){ row[d] = ''; });
+      _estDirtySet.add(row);
+    }
+  });
+  if (!tieneDatos) { genToast('El grupo ya está vacío.', 'info'); return; }
+  _estAutoSnap = { grupo: grupo, rows: snap };
+  _estDirty = true;
+  _estUpdateSaveBtn();
+  _estUpdateDashboard();
+  _estValidarLocal();
+  _estCapvRefresh();
+  _estAutoRefreshBar();
+  genToast('Horario del grupo limpiado. Usa "Deshacer" si fue un error.', 'ok');
+}
+
+/* Deshace la última acción (propuesta o limpieza) */
+function _estAutoDeshacer() {
+  if (!_estAutoSnap) return;
+  _estAutoSnap.rows.forEach(function(s) {
+    var row = _estData[s.rowIdx];
+    row.lunes = s.lunes; row.martes = s.martes; row.miercoles = s.miercoles;
+    row.jueves = s.jueves; row.viernes = s.viernes;
+    _estDirtySet.add(row);
+  });
+  _estAutoSnap = null;
+  _estDirty = true;
+  _estUpdateSaveBtn();
+  _estUpdateDashboard();
+  _estValidarLocal();
+  _estCapvRefresh();
+  _estAutoRefreshBar();
+  genToast('Acción deshecha.', 'ok');
+}
+
+/* Handler botón "Proponer horario" */
+function _estAutoProponer() {
+  if (!_estCapvGrupo) return;
+  var result = _estAutoProponerGrupo(_estCapvGrupo);
+
+  if (result.msg) { genToast(result.msg, 'info'); return; }
+  var propCount = Object.keys(result.proposals).length;
+  if (!propCount) { genToast('No hay horas pendientes por asignar.', 'info'); return; }
+
+  _estAutoAplicar(_estCapvGrupo, result.proposals);
+  _estCapvRefresh();
+  _estAutoRefreshBar();
+
+  if (result.unplaced.length) {
+    var pendMsg = result.unplaced.map(function(u){
+      return '"'+u.uac+'" ('+u.horas+'h — '+u.razon+')';
+    }).join('; ');
+    genToast(propCount+' materia'+(propCount>1?'s':'')+' acomodada'+(propCount>1?'s':'')+
+      '. ⚠ Sin colocar: '+pendMsg, 'warning');
+  } else {
+    genToast('✓ '+propCount+' materia'+(propCount>1?'s':'')+' acomodada'+(propCount>1?'s':'')+
+      ' correctamente.', 'ok');
+  }
+}
+
+/* Actualiza la barra de autoacomodo sin re-renderizar todo */
+function _estAutoRefreshBar() {
+  var bar = document.getElementById('est-auto-bar');
+  if (bar) bar.outerHTML = _estAutoBarHTML();
+}
+
+/* HTML de la barra de acciones de autoacomodo */
+function _estAutoBarHTML() {
+  var hasSnap = _estAutoSnap && _estAutoSnap.grupo === _estCapvGrupo;
+  return '<div class="est-auto-bar" id="est-auto-bar">'+
+    '<span class="est-auto-label">Autoacomodo:</span>'+
+    '<button class="gen-btn gen-btn-sm gen-btn-primary est-auto-btn" onclick="_estAutoProponer()" title="Asignar automáticamente las horas pendientes de este grupo">'+
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polygon points="5 3 19 12 5 21 5 3"/></svg> Proponer horario</button>'+
+    '<button class="gen-btn gen-btn-sm est-auto-btn" onclick="_estAutoLimpiarGrupo(\''+genEsc(_estCapvGrupo)+'\')" title="Borrar todos los horarios del grupo para empezar de cero">'+
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg> Limpiar grupo</button>'+
+    (hasSnap ? '<button class="gen-btn gen-btn-sm est-auto-btn est-auto-undo" onclick="_estAutoDeshacer()" title="Deshacer la última acción automática">'+
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg> Deshacer</button>' : '')+
+    '</div>';
 }

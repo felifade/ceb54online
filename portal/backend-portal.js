@@ -4,19 +4,32 @@
  * Despliega como aplicación web independiente del backend PEC
  *
  * Hojas requeridas en el mismo Google Sheets activo:
- *   Portal_Alumnos   → CURP | Nombre | Grupo | Semestre
- *   Portal_Padres    → Folio | Nombre_Padre | CURP_Hijo | Nombre_Hijo | Grupo_Hijo
- *   Enc_Alumnos      → (se crea automáticamente)
- *   Enc_Padres       → (se crea automáticamente)
- *   Configuracion    → compartida con el sistema PEC
- *   Evaluaciones     → compartida con el sistema PEC (calificaciones P2, P3)
+ *   Portal_Alumnos        → CURP | Nombre | Grupo | Semestre
+ *   Portal_Padres         → Folio | Nombre_Padre | CURP_Hijo | Nombre_Hijo | Grupo_Hijo
+ *   Enc_Alumnos           → (se crea automáticamente)
+ *   Enc_Padres            → (se crea automáticamente)
+ *   Configuracion         → compartida con el sistema PEC
+ *   Evaluaciones          → compartida con el sistema PEC (calificaciones P2, P3)
+ *   Calificaciones_Sabanas → generada por el procesador de sábanas (calificaciones completas)
  */
+
+// ── CONSTANTES SÁBANAS ───────────────────────────────────────────────
+const SH_CAL_SAB = 'Calificaciones_Sabanas';
+const COLS_SAB   = [
+  'ciclo','periodo','grupo','asignatura','docente','curp','nombre',
+  'p1_portafolio','p1_examen','p1_pec','p1_c4','p1_total','p1_faltas',
+  'p2_portafolio','p2_examen','p2_pec','p2_c4','p2_total','p2_faltas',
+  'p3_portafolio','p3_examen','p3_pec','p3_c4','p3_total','p3_faltas',
+  'global','archivo_origen','fecha_proceso'
+];
 
 // ── IDs HOJAS HISTÓRICAS P1 ─────────────────────────────────────────
 const P_OLD_2S = "1MmAwYm2mfRBH3q-BGlKklwvsHE8iSYY5y1ac4mO07rQ";
 const P_OLD_4S = "1aRY6lP8R5-myw61Epbffsc1WmzNDYo67N0ovGOWng7s";
 
 // ── NOMBRES DE HOJAS ────────────────────────────────────────────────
+const SH_MSG  = "Calendario_eventos";
+const SH_CMP  = "Calendario_cumple";
 const SH_ALU  = "Portal_Alumnos";
 const SH_PAD  = "Portal_Padres";
 const SH_EA   = "Enc_Alumnos";
@@ -161,6 +174,9 @@ function doGetPortal(e) {
     if (act === "loginPadre")        return loginPadre(e, ss);
     if (act === "getCalAlumno")      return getCalAlumno(e, ss);
     if (act === "getCalPadre")       return getCalPadre(e, ss);
+    if (act === "getCalifSabanas")   return getCalifSabanasHandler(e, ss);
+    if (act === "getMensajes")        return getMensajesHandler(e, ss);
+    if (act === "getCumpleanosAdmin") return getCumpleanosAdminHandler(e, ss);
     if (act === "getConfig")         return ok({ status:"success", config: readConfig(ss) });
     if (act === "getEncuestaStatus")    return getEncuestaStatus(e, ss);
     if (act === "adminPortal")          return adminPortalGet(e, ss);
@@ -252,11 +268,17 @@ function doPostPortal(e) {
     const ss   = SpreadsheetApp.getActiveSpreadsheet();
     const body = JSON.parse(e.postData.contents);
     const act  = body.action || "";
-    if (act === "encuestaAlumno")   return saveEncAlumno(body, ss);
-    if (act === "encuestaPadre")    return saveEncPadre(body, ss);
-    if (act === "adminPortal")      return adminPortal(body, ss);
+    if (act === "encuestaAlumno")    return saveEncAlumno(body, ss);
+    if (act === "encuestaPadre")     return saveEncPadre(body, ss);
+    if (act === "adminPortal")       return adminPortal(body, ss);
     if (act === "saveIncidencia")    return saveIncidencia(body, ss);
     if (act === "marcarLaborSocial") return marcarLaborSocial(body, ss);
+    if (act === "saveMensaje")       return saveMensajeHandler(body, ss);
+    if (act === "toggleMensaje")     return toggleMensajeHandler(body, ss);
+    if (act === "deleteMensaje")     return deleteMensajeHandler(body, ss);
+    if (act === "saveCumpleanos")    return saveCumpleanosHandler(body, ss);
+    if (act === "toggleCumpleanos")  return toggleCumpleanosHandler(body, ss);
+    if (act === "deleteCumpleanos")  return deleteCumpleanosHandler(body, ss);
     return err("Acción no válida");
   } catch(ex) { return err(ex.toString()); }
 }
@@ -375,14 +397,11 @@ function adminPortal(body, ss) {
 }
 
 // ── CALENDARIO: eventos y cumpleaños desde Sheets ───────────────────
-// Hojas esperadas en el mismo spreadsheet:
-//   Calendario_Eventos: titulo | tipo | fecha_inicio | fecha_fin | hora | categoria | prioridad | descripcion | visible | portal_alumno
-//   Calendario_Cumple:  nombre | fecha | cargo | visible
+// Hoja: Calendario_eventos (misma que SH_MSG)
+// Columnas detectadas dinámicamente por header para evitar desajustes de posición
 function getCalendario(ss) {
-  const sEv  = getSheet(ss, "Calendario_Eventos");
-  const sCum = getSheet(ss, "Calendario_Cumple");
+  const sEv  = getSheet(ss, SH_MSG);
 
-  // Formato ISO yyyy-MM-dd requerido por el calendario frontend
   function fmtISO(val) {
     if (!val) return "";
     if (val instanceof Date && !isNaN(val))
@@ -391,37 +410,46 @@ function getCalendario(ss) {
   }
 
   const eventos = [];
-  if (sEv) {
-    const rows = sEv.getDataRange().getValues();
-    rows.shift();
-    rows.forEach(r => {
-      if (!r[0]) return;
+  if (sEv && sEv.getLastRow() > 1) {
+    const all = sEv.getDataRange().getValues();
+    const hdr = all[0].map(h => norm(String(h)));
+    const c = k => { const i = hdr.indexOf(norm(k)); return i >= 0 ? i : null; };
+    const g = (r, k, def) => { const i = c(k); return i !== null ? r[i] : (def !== undefined ? def : ""); };
+    all.slice(1).forEach(r => {
+      const titulo = String(g(r, "titulo", "") || "").trim();
+      if (!titulo) return;
       eventos.push({
-        titulo:            String(r[0] || "").trim(),
-        tipo:              String(r[1] || "evento").trim().toLowerCase(),
-        fecha_inicio:      fmtISO(r[2]),
-        fecha_fin:         fmtISO(r[3]),
-        hora:              String(r[4] || "").trim(),
-        categoria:         String(r[5] || "academico").trim().toLowerCase(),
-        prioridad:         String(r[6] || "").trim().toLowerCase(),
-        descripcion:       String(r[7] || "").trim(),
-        visible:           String(r[8] || "si").trim().toLowerCase() !== "no" ? "SI" : "NO",
-        portal_alumno:     String(r[9] || "no").trim().toLowerCase() === "si" ? "SI" : "NO"
+        titulo:        titulo,
+        tipo:          String(g(r, "tipo",          "evento") || "evento").trim().toLowerCase(),
+        fecha_inicio:  fmtISO(g(r, "fecha_inicio",  "")),
+        fecha_fin:     fmtISO(g(r, "fecha_fin",     "")),
+        hora:          String(g(r, "hora",           "") || "").trim(),
+        categoria:     String(g(r, "categoria",      "academico") || "academico").trim().toLowerCase(),
+        descripcion:   String(g(r, "descripcion",    "") || "").trim(),
+        prioridad:     String(g(r, "prioridad",      "") || "").trim().toLowerCase(),
+        visible:       norm(String(g(r, "visible",   "SI") || "SI")) !== "no" ? "SI" : "NO",
+        portal_alumno: norm(String(g(r, "portal_alumno", "NO") || "NO")) === "si" ? "SI" : "NO"
       });
     });
   }
 
   const cumpleanos = [];
-  if (sCum) {
-    const rows = sCum.getDataRange().getValues();
-    rows.shift();
-    rows.forEach(r => {
-      if (!r[0]) return;
+
+  const sCmp = getSheet(ss, SH_CMP);
+  if (sCmp && sCmp.getLastRow() > 1) {
+    const rows = sCmp.getDataRange().getValues();
+    const hdr  = rows[0].map(h => norm(String(h)));
+    const ci   = k => { const i = hdr.indexOf(norm(k)); return i >= 0 ? i : -1; };
+    rows.slice(1).forEach(r => {
+      const nom = String(r[ci("nombre") >= 0 ? ci("nombre") : 0] || "").trim();
+      if (!nom) return;
+      const iVis = ci("visible");
+      if (iVis >= 0 && norm(String(r[iVis])) === "no") return;
       cumpleanos.push({
-        nombre:  String(r[0] || "").trim(),
-        fecha:   fmtISO(r[1]),
-        cargo:   String(r[2] || "Docente").trim(),
-        visible: String(r[3] || "si").trim().toLowerCase() !== "no" ? "SI" : "NO"
+        nombre: nom,
+        fecha:  fmtISO(r[ci("fecha") >= 0 ? ci("fecha") : 1]),
+        cargo:  String(r[ci("cargo") >= 0 ? ci("cargo") : 2] || "Docente").trim(),
+        visible: "SI"
       });
     });
   }
@@ -429,3 +457,226 @@ function getCalendario(ss) {
   return ok({ status: "success", eventos, cumpleanos });
 }
 
+// ════════════════════════════════════════════════════════════════════════
+//  CALIFICACIONES DE SÁBANAS — handler para el portal
+//  action=getCalifSabanas&curp=CURP_DEL_ALUMNO
+//  Retorna todas las materias con calificaciones completas (3 parciales + global)
+// ════════════════════════════════════════════════════════════════════════
+function getCalifSabanasHandler(e, ss) {
+  const curp = String(e.parameter.curp || "").trim().toUpperCase();
+  if (!curp) return err("Se requiere el parámetro curp.");
+
+  const hoja = ss.getSheetByName(SH_CAL_SAB);
+  if (!hoja || hoja.getLastRow() < 2)
+    return ok({ status: "success", materias: [] });
+
+  const curpIdx = COLS_SAB.indexOf("curp");
+  const data    = hoja.getRange(2, 1, hoja.getLastRow() - 1, COLS_SAB.length).getValues();
+
+  const materias = data
+    .filter(r => String(r[curpIdx]).toUpperCase() === curp)
+    .map(r => {
+      const obj = {};
+      COLS_SAB.forEach((col, i) => {
+        // No exponer datos de auditoría al alumno
+        if (col === "archivo_origen" || col === "fecha_proceso") return;
+        obj[col] = r[i];
+      });
+      return obj;
+    });
+
+  return ok({ status: "success", materias });
+}
+
+// ════════════════════════════════════════════════════════════════════════
+//  MENSAJES INSTITUCIONALES
+//  Hoja: Calendario_eventos
+//  Columnas reales: titulo | tipo | fecha_inicio | fecha_fin | hora |
+//                  categoria | descripcion | visible | prioridad | portal_alumno
+//  Mapeo frontend: categoria→destinatario, descripcion→contenido, visible→activo
+//  id sintético: "ROW_N" (número de fila en la hoja, 1-based)
+// ════════════════════════════════════════════════════════════════════════
+
+const ADMIN_KEY  = "CEB54_ADMIN_PORTAL";
+
+function getMensajesHandler(e, ss) {
+  if (e.parameter.adminKey !== ADMIN_KEY) return err("No autorizado.");
+  const s = getSheet(ss, SH_MSG);
+  if (!s || s.getLastRow() < 2) return ok({ status:"success", mensajes: [] });
+  const all = s.getDataRange().getValues();
+  const hdr = all[0].map(h => norm(String(h)));
+  const fmtD = v => v instanceof Date
+    ? Utilities.formatDate(v, Session.getScriptTimeZone(), "yyyy-MM-dd")
+    : String(v ?? "").trim();
+  const col = k => { const i = hdr.indexOf(norm(k)); return i >= 0 ? i : null; };
+  const get = (r, k) => { const i = col(k); return i !== null ? fmtD(r[i]) : ""; };
+
+  const mensajes = all.slice(1)
+    .map((r, i) => ({
+      id:            "ROW_" + (i + 2),
+      titulo:        get(r, "titulo"),
+      tipo:          get(r, "tipo"),
+      fecha_inicio:  get(r, "fecha_inicio"),
+      fecha_fin:     get(r, "fecha_fin"),
+      destinatario:  get(r, "categoria"),
+      contenido:     get(r, "descripcion"),
+      activo:        norm(get(r, "visible")) !== "no",
+      portal_alumno: norm(get(r, "portal_alumno")) === "si"
+    }))
+    .filter(m => m.titulo);
+  return ok({ status:"success", mensajes });
+}
+
+function saveMensajeHandler(body, ss) {
+  if (body.adminKey !== ADMIN_KEY) return err("No autorizado.");
+  const s = getSheet(ss, SH_MSG);
+  if (!s) return err("Hoja no encontrada.");
+  const id = String(body.id || "").trim();
+  const all = s.getDataRange().getValues();
+  const hdr = all[0].map(h => norm(String(h)));
+  const visVal = (body.activo === false || body.activo === "false" || body.activo === "no") ? "NO" : "SI";
+  const setCol = (row, key, val) => { const i = hdr.indexOf(norm(key)); if (i >= 0) row[i] = val; };
+
+  if (id && id.startsWith("ROW_")) {
+    const rowNum = parseInt(id.replace("ROW_", ""), 10);
+    if (isNaN(rowNum) || rowNum < 2 || rowNum > all.length) return err("Mensaje no encontrado.");
+    const row = [...all[rowNum - 1]];
+    const portalVal = (body.portal_alumno === true || body.portal_alumno === "true" || body.portal_alumno === "si") ? "SI" : "NO";
+    setCol(row, "titulo",        String(body.titulo       || "").trim());
+    setCol(row, "tipo",          String(body.tipo         || "evento").trim());
+    setCol(row, "fecha_inicio",  String(body.fecha_inicio || "").trim());
+    setCol(row, "fecha_fin",     String(body.fecha_fin    || "").trim());
+    setCol(row, "categoria",     String(body.destinatario || "").trim());
+    setCol(row, "descripcion",   String(body.contenido    || "").trim());
+    setCol(row, "visible",       visVal);
+    setCol(row, "portal_alumno", portalVal);
+    s.getRange(rowNum, 1, 1, row.length).setValues([row]);
+    return ok({ status:"success", id });
+  } else {
+    const portalVal = (body.portal_alumno === true || body.portal_alumno === "true" || body.portal_alumno === "si") ? "SI" : "NO";
+    const newRow = new Array(hdr.length).fill("");
+    setCol(newRow, "titulo",        String(body.titulo       || "").trim());
+    setCol(newRow, "tipo",          String(body.tipo         || "evento").trim());
+    setCol(newRow, "fecha_inicio",  String(body.fecha_inicio || "").trim());
+    setCol(newRow, "fecha_fin",     String(body.fecha_fin    || "").trim());
+    setCol(newRow, "categoria",     String(body.destinatario || "").trim());
+    setCol(newRow, "descripcion",   String(body.contenido    || "").trim());
+    setCol(newRow, "visible",       visVal);
+    setCol(newRow, "portal_alumno", portalVal);
+    s.appendRow(newRow);
+    return ok({ status:"success", id: "ROW_" + s.getLastRow() });
+  }
+}
+
+function toggleMensajeHandler(body, ss) {
+  if (body.adminKey !== ADMIN_KEY) return err("No autorizado.");
+  const id = String(body.id || "").trim();
+  if (!id || !id.startsWith("ROW_")) return err("Se requiere id válido.");
+  const rowNum = parseInt(id.replace("ROW_", ""), 10);
+  if (isNaN(rowNum) || rowNum < 2) return err("ID inválido.");
+  const s = getSheet(ss, SH_MSG);
+  if (!s || rowNum > s.getLastRow()) return err("Mensaje no encontrado.");
+  const all = s.getDataRange().getValues();
+  const hdr = all[0].map(h => norm(String(h)));
+  const iVis = hdr.indexOf(norm("visible"));
+  const col = iVis >= 0 ? iVis : 7;
+  const current = norm(String(all[rowNum - 1][col] ?? ""));
+  const nuevo = current === "no" ? "SI" : "NO";
+  s.getRange(rowNum, col + 1).setValue(nuevo);
+  return ok({ status:"success", activo: nuevo !== "NO" });
+}
+
+function deleteMensajeHandler(body, ss) {
+  if (body.adminKey !== ADMIN_KEY) return err("No autorizado.");
+  const id = String(body.id || "").trim();
+  if (!id || !id.startsWith("ROW_")) return err("Se requiere id válido.");
+  const rowNum = parseInt(id.replace("ROW_", ""), 10);
+  if (isNaN(rowNum) || rowNum < 2) return err("ID inválido.");
+  const s = getSheet(ss, SH_MSG);
+  if (!s || rowNum > s.getLastRow()) return err("Mensaje no encontrado.");
+  s.deleteRow(rowNum);
+  return ok({ status:"success" });
+}
+
+// ════════════════════════════════════════════════════════════════════════
+//  CUMPLEAÑOS
+//  Hoja: Cumpleaños
+//  Columnas: id | nombre | fecha | tipo | cargo | mostrar_portal | notas
+// ════════════════════════════════════════════════════════════════════════
+
+// Columnas reales de Calendario_cumple: nombre | fecha | cargo | visible
+const HDR_CMP = ["nombre","fecha","cargo","visible"];
+
+function getCumpleanosAdminHandler(e, ss) {
+  if (e.parameter.adminKey !== ADMIN_KEY) return err("No autorizado.");
+  const s = ensureSheet(ss, SH_CMP, HDR_CMP);
+  if (s.getLastRow() < 2) return ok({ status:"success", cumpleanos: [] });
+  const all  = s.getDataRange().getValues();
+  const hdr  = all[0].map(h => norm(String(h)));
+  const ci   = k => { const i = hdr.indexOf(norm(k)); return i >= 0 ? i : -1; };
+  const fmtD = v => v instanceof Date
+    ? Utilities.formatDate(v, Session.getScriptTimeZone(), "yyyy-MM-dd")
+    : String(v ?? "").trim();
+  const cumpleanos = all.slice(1).map((r, i) => ({
+    id:      "ROW_" + (i + 2),
+    nombre:  String(r[ci("nombre") >= 0 ? ci("nombre") : 0] || "").trim(),
+    fecha:   fmtD(r[ci("fecha")   >= 0 ? ci("fecha")   : 1]),
+    cargo:   String(r[ci("cargo") >= 0 ? ci("cargo")   : 2] || "").trim(),
+    visible: norm(String(r[ci("visible") >= 0 ? ci("visible") : 3] || "si")) !== "no"
+  })).filter(r => r.nombre);
+  return ok({ status:"success", cumpleanos });
+}
+
+function saveCumpleanosHandler(body, ss) {
+  if (body.adminKey !== ADMIN_KEY) return err("No autorizado.");
+  const s = ensureSheet(ss, SH_CMP, HDR_CMP);
+  const id = String(body.id || "").trim();
+  const fmtDate = v => {
+    if (!v) return "";
+    if (v instanceof Date) return Utilities.formatDate(v, Session.getScriptTimeZone(), "yyyy-MM-dd");
+    return String(v).trim();
+  };
+  const row = [
+    String(body.nombre  || "").trim(),
+    fmtDate(body.fecha),
+    String(body.cargo   || "Docente").trim(),
+    body.visible === false || norm(String(body.visible)) === "no" ? "NO" : "SI"
+  ];
+  if (id.startsWith("ROW_")) {
+    const rowNum = parseInt(id.replace("ROW_", ""), 10);
+    if (isNaN(rowNum) || rowNum < 2) return err("ID inválido.");
+    s.getRange(rowNum, 1, 1, HDR_CMP.length).setValues([row]);
+  } else {
+    s.appendRow(row);
+  }
+  return ok({ status:"success" });
+}
+
+function toggleCumpleanosHandler(body, ss) {
+  if (body.adminKey !== ADMIN_KEY) return err("No autorizado.");
+  const id = String(body.id || "").trim();
+  if (!id.startsWith("ROW_")) return err("Se requiere id.");
+  const rowNum = parseInt(id.replace("ROW_", ""), 10);
+  if (isNaN(rowNum) || rowNum < 2) return err("ID inválido.");
+  const s = getSheet(ss, SH_CMP);
+  if (!s) return err("Hoja no encontrada.");
+  const hdr  = s.getDataRange().getValues()[0].map(h => norm(String(h)));
+  const iVis = hdr.indexOf("visible");
+  const col  = (iVis >= 0 ? iVis : 3) + 1;
+  const current = norm(String(s.getRange(rowNum, col).getValue()));
+  const nuevo   = current === "no" ? "SI" : "NO";
+  s.getRange(rowNum, col).setValue(nuevo);
+  return ok({ status:"success", visible: nuevo });
+}
+
+function deleteCumpleanosHandler(body, ss) {
+  if (body.adminKey !== ADMIN_KEY) return err("No autorizado.");
+  const id = String(body.id || "").trim();
+  if (!id.startsWith("ROW_")) return err("Se requiere id.");
+  const rowNum = parseInt(id.replace("ROW_", ""), 10);
+  if (isNaN(rowNum) || rowNum < 2) return err("ID inválido.");
+  const s = getSheet(ss, SH_CMP);
+  if (!s) return err("Hoja no encontrada.");
+  s.deleteRow(rowNum);
+  return ok({ status:"success" });
+}

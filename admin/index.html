@@ -225,6 +225,9 @@
     .adm-nav-sub { display: block; font-size: 0.7rem; color: #94a3b8; margin-top: 1px; }
     .adm-nav-item.active .adm-nav-sub { color: #a78bfa; }
     .adm-sidebar-sep { height: 1px; background: #f1f5f9; margin: 0.5rem 0.875rem; }
+    .adm-nav-item.locked { opacity: 0.45; cursor: not-allowed; }
+    .adm-nav-item.locked:hover { background: none; color: #475569; }
+    .adm-nav-item.locked:hover .adm-nav-icon { background: #f1f5f9; }
 
     /* ── Main content ── */
     .adm-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #f1f5f9; }
@@ -458,6 +461,21 @@
         </button>
 
       </div>
+
+      <div class="adm-sidebar-sep"></div>
+
+      <div class="adm-sidebar-section">
+        <div class="adm-sidebar-label">Comunicación</div>
+
+        <button class="adm-nav-item" id="adm-btn-mensajes" data-area="mensajes" data-url="../admin/mensajes.html" onclick="_admLoadAreaMensajes(this)">
+          <div class="adm-nav-icon">💬</div>
+          <div class="adm-nav-text">
+            <span class="adm-nav-name">Mensajes institucionales</span>
+            <span class="adm-nav-sub">Comunicados y cumpleaños</span>
+          </div>
+        </button>
+
+      </div>
     </nav>
 
     <main class="adm-main" id="adm-main">
@@ -567,6 +585,7 @@
     var name = sessionStorage.getItem('user_name') || sessionStorage.getItem('user_email') || '';
     var display = document.getElementById('adm-user-display');
     if (display) display.textContent = name;
+    _admApplyRoleLocks();
     /* Cargar primera sección automáticamente */
     var first = document.querySelector('.adm-nav-item[data-area]');
     if (first) _admLoadArea(first);
@@ -602,12 +621,13 @@
 
   /* ── Area metadata ── */
   var AREAS = {
-    direccion:    { icon: '🏛️', name: 'Dirección',              sub: 'Gestión y liderazgo institucional' },
-    subdireccion: { icon: '📋', name: 'Subdirección',            sub: 'Coordinación académica y operativa' },
-    orientacion:  { icon: '🎓', name: 'Orientación',             sub: 'Orientación educativa y vocacional' },
-    prefectura:   { icon: '🔍', name: 'Prefectura',              sub: 'Registro de incidencias y disciplina' },
-    tutorias:     { icon: '📝', name: 'Tutorías',                sub: 'Seguimiento y reportes de tutorías' },
-    horarios:     { icon: '🗓️', name: 'Generador de Horarios',  sub: 'Captura y publicación de horarios' },
+    direccion:    { icon: '🏛️', name: 'Dirección',                  sub: 'Gestión y liderazgo institucional' },
+    subdireccion: { icon: '📋', name: 'Subdirección',                sub: 'Coordinación académica y operativa' },
+    orientacion:  { icon: '🎓', name: 'Orientación',                 sub: 'Orientación educativa y vocacional' },
+    prefectura:   { icon: '🔍', name: 'Prefectura',                  sub: 'Registro de incidencias y disciplina' },
+    tutorias:     { icon: '📝', name: 'Tutorías',                    sub: 'Seguimiento y reportes de tutorías' },
+    horarios:     { icon: '🗓️', name: 'Generador de Horarios',      sub: 'Captura y publicación de horarios' },
+    mensajes:     { icon: '💬', name: 'Mensajes institucionales',    sub: 'Comunicados y cumpleaños' },
   };
 
   var welcome    = document.getElementById('adm-welcome');
@@ -633,6 +653,27 @@
       }
     }
   })();
+
+  /* ── Mensajes: solo Admin puede acceder ── */
+  window._admLoadAreaMensajes = function(btn) {
+    var role = sessionStorage.getItem('user_role') || '';
+    if (role !== 'Admin') return; // locked — click does nothing
+    _admLoadArea(btn);
+  };
+
+  /* ── Aplicar estado bloqueado al botón de mensajes según rol ── */
+  function _admApplyRoleLocks() {
+    var role = sessionStorage.getItem('user_role') || '';
+    var btn  = document.getElementById('adm-btn-mensajes');
+    if (!btn) return;
+    if (role !== 'Admin') {
+      btn.classList.add('locked');
+      btn.title = 'Disponible solo para administrador';
+    } else {
+      btn.classList.remove('locked');
+      btn.title = '';
+    }
+  }
 
   window._admLoadArea = function(btn) {
     var id   = btn.dataset.area;
