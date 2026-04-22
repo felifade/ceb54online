@@ -267,18 +267,18 @@
     var loading = document.getElementById('d2-materia-loading');
     var title   = document.getElementById('d2-materia-loader-title');
 
-    if (title)   title.textContent = 'Cargando ' + (label || 'materia') + '…';
-    if (loading) loading.classList.remove('hidden');
-
     /* Recargar solo si cambió la URL */
     var fullHref = href + (href.indexOf('?') === -1 ? '?' : '&') + 'd2embed=1';
-    if (iframe.src !== location.origin + '/' + fullHref && iframe.getAttribute('src') !== fullHref) {
+    var needsLoad = iframe.getAttribute('src') !== fullHref;
+
+    if (needsLoad) {
+      if (title)   title.textContent = 'Cargando ' + (label || 'materia') + '…';
+      if (loading) loading.classList.remove('hidden');
+      iframe.onload = function() {
+        if (loading) loading.classList.add('hidden');
+      };
       iframe.src = fullHref;
     }
-
-    iframe.onload = function() {
-      if (loading) loading.classList.add('hidden');
-    };
 
     closeSidebar();
     window.scrollTo(0, 0);
