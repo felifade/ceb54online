@@ -95,6 +95,7 @@
         sessionStorage.setItem('user_name',  result.nombre || email);
         sessionStorage.setItem('user_email', email);
         sessionStorage.setItem('user_role',  rol || 'Docente');
+        sessionStorage.setItem('session_ts', Date.now());
         showApp();
       } else {
         showLoginError(result.message || 'Credenciales incorrectas. Verifica e intenta de nuevo.');

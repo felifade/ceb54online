@@ -4,6 +4,7 @@
 <head>
   <script>const APP_VERSION = "v20260418";</script>
     <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso Tutorías | CEB 5/4</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,7 +13,7 @@
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=Inter:wght@400;500;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="css/style.css?v=20260418">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@0.511.0"></script>
     <style>
         body {
             margin: 0;
@@ -254,6 +255,7 @@
                     sessionStorage.setItem('user_name', result.nombre);
                     sessionStorage.setItem('user_email', email.toLowerCase().trim());
                     sessionStorage.setItem('user_role', result.rol || 'Docente');
+                    sessionStorage.setItem('session_ts', Date.now());
                     window.location.href = 'index.html';
                 } else {
                     errorBox.textContent = result.message || 'Credenciales incorrectas';

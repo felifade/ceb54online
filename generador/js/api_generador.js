@@ -36,7 +36,7 @@ async function _genGet_(action, params) {
   var qs = Object.keys(params || {}).map(function (k) {
     return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
   }).join('&');
-  var url = GEN_API_URL + '?action=' + action + (qs ? '&' + qs : '') + '&_t=' + Date.now();
+  var url = GEN_API_URL + '?action=' + action + (qs ? '&' + qs : '');
   var res = await fetch(url, { method: 'GET', redirect: 'follow' });
   var json = await res.json();
   if (json.status === 'error') throw new Error(json.message);

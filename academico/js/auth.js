@@ -6,11 +6,19 @@
 (function () {
   'use strict';
 
-  const KEY = 'cebAcadOk';
-  const OK  = 'Y2ViNTRhZG1pbjIwMjY='; // acceso institucional
+  const KEY         = 'cebAcadOk';
+  const KEY_TS      = 'cebAcadTs';
+  const SESSION_MAX = 8 * 60 * 60 * 1000; // 8 horas en ms
+  // Usuario ficticio en hoja Usuarios: email=academico@ceb54.mx, contraseña=la que defina el admin
+  const API_URL     = 'https://script.google.com/macros/s/AKfycbz4q9VlhAvvVJ1XYOwqNTJ9eMkVRm3HgoyFJNpEQaPJsDdK1JcfhbTX1CRfDg38x79fsA/exec';
+  const ACAD_EMAIL  = 'academico@ceb54.mx';
 
-  // Si ya autenticó en esta sesión del navegador, no interrumpir
-  if (sessionStorage.getItem(KEY) === '1') return;
+  // Verificar sesión activa y no expirada
+  const ts      = parseInt(sessionStorage.getItem(KEY_TS) || '0', 10);
+  const expired = !ts || (Date.now() - ts) > SESSION_MAX;
+  if (sessionStorage.getItem(KEY) === '1' && !expired) return;
+  // Si expiró, limpiar y mostrar muro nuevamente
+  if (expired) { sessionStorage.removeItem(KEY); sessionStorage.removeItem(KEY_TS); }
 
   // Ocultar contenido de la página hasta autenticar
   const hideStyle = document.createElement('style');
@@ -186,33 +194,60 @@
     }, 150);
   }
 
-  function checkPwd() {
+  function removeWall() {
+    sessionStorage.setItem(KEY, '1');
+    sessionStorage.setItem(KEY_TS, Date.now());
+    const wall = document.getElementById('ceb-auth-wall');
+    const hs   = document.getElementById('auth-hide-style');
+    const cs   = document.getElementById('auth-wall-style');
+    if (wall) wall.remove();
+    if (hs)   hs.remove();
+    if (cs)   cs.remove();
+    document.body.style.overflow = '';
+  }
+
+  function showError() {
     const inp = document.getElementById('auth-pwd-input');
     const err = document.getElementById('auth-err');
+    const btn = document.getElementById('auth-submit-btn');
+    if (err) err.style.display = 'block';
+    if (btn) { btn.disabled = false; btn.textContent = 'Entrar al sistema'; }
+    if (inp) { inp.value = ''; inp.focus(); }
+    const card = inp && inp.closest('.auth-card');
+    if (card) {
+      card.classList.add('auth-shake');
+      setTimeout(() => card.classList.remove('auth-shake'), 600);
+    }
+  }
+
+  function checkPwd() {
+    const inp = document.getElementById('auth-pwd-input');
+    const btn = document.getElementById('auth-submit-btn');
     if (!inp) return;
     const val = inp.value.trim();
     if (!val) { inp.focus(); return; }
 
-    if (btoa(val) === OK) {
-      sessionStorage.setItem(KEY, '1');
-      // Limpiar muros
-      const wall = document.getElementById('ceb-auth-wall');
-      const hs   = document.getElementById('auth-hide-style');
-      const cs   = document.getElementById('auth-wall-style');
-      if (wall) wall.remove();
-      if (hs)   hs.remove();
-      if (cs)   cs.remove();
-      document.body.style.overflow = '';
-    } else {
-      err.style.display = 'block';
-      inp.value = '';
-      inp.focus();
-      inp.closest('.auth-card') && inp.closest('.auth-card').classList.add('auth-shake');
-      setTimeout(() => inp.closest('.auth-card') && inp.closest('.auth-card').classList.remove('auth-shake'), 600);
-    }
+    if (btn) { btn.disabled = true; btn.textContent = 'Verificando…'; }
+
+    fetch(API_URL, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'login', email: ACAD_EMAIL, password: val })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(result) {
+      if (result && result.status === 'success') {
+        removeWall();
+      } else {
+        showError();
+      }
+    })
+    .catch(function() {
+      showError();
+    });
   }
 
-  // Exponer para uso desde acceso.html (no necesario aquí, pero útil)
   window.__cebAuthCheck = checkPwd;
 
   // Ejecutar

@@ -1,24 +1,31 @@
 // pec/js/auth.js
 
 (function() {
-    // Verificar si hay una sesión activa en sessionStorage
+    const SESSION_MAX = 8 * 60 * 60 * 1000; // 8 horas en ms
+
     const authRecord = sessionStorage.getItem('tutorias_auth');
-    const userEmail = sessionStorage.getItem('user_email');
+    const userEmail  = sessionStorage.getItem('user_email');
+    const sessionTs  = parseInt(sessionStorage.getItem('session_ts') || '0', 10);
+    const expired    = !sessionTs || (Date.now() - sessionTs) > SESSION_MAX;
 
-    // Si no está autenticado o no tiene email, redirigir
-    if ((!authRecord || !userEmail) && !window.location.pathname.includes('login.html')) {
-        sessionStorage.removeItem('tutorias_auth');
-        // Guardar la ruta original para redirigir después del login
-        sessionStorage.setItem('pec_redirect_after_login', window.location.href);
-        window.location.href = 'login.html';
-    }
-
-    // Función para Cerrar Sesión
-    window.logout = function() {
+    function clearSession() {
         sessionStorage.removeItem('tutorias_auth');
         sessionStorage.removeItem('user_name');
         sessionStorage.removeItem('user_email');
         sessionStorage.removeItem('user_role');
+        sessionStorage.removeItem('session_ts');
+    }
+
+    if (!window.location.pathname.includes('login.html')) {
+        if (!authRecord || !userEmail || expired) {
+            clearSession();
+            sessionStorage.setItem('pec_redirect_after_login', window.location.href);
+            window.location.href = 'login.html';
+        }
+    }
+
+    window.logout = function() {
+        clearSession();
         window.location.href = 'login.html';
     };
 })();
