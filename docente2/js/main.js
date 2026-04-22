@@ -68,7 +68,9 @@
     sabanas:  { title: 'Mis Calificaciones',  sub: 'Calificaciones por materia · Parciales · Global' },
     curps:       { title: 'Buscar CURP',            sub: 'Consulta rápida de CURP de alumnos' },
     materia:     { title: 'Mi Materia',             sub: 'Portal de actividades del docente' },
-    prefectura:  { title: 'Reportes de Uniforme',   sub: 'Seguimiento de incidencias · Prefectura' }
+    prefectura:  { title: 'Reportes de Uniforme',   sub: 'Seguimiento de incidencias · Prefectura' },
+    directorio:  { title: 'Directorio PEC',          sub: 'Grupos · Materias · Ponderaciones por parcial' },
+    edicion_pec: { title: 'Edición Rápida PEC',      sub: 'Modificación ágil de evaluaciones · Solo autorizado' }
   };
 
   /* Emails autorizados para herramientas especiales (CURP + portal docente) */
@@ -320,11 +322,19 @@
     var btnUni = document.getElementById('d2-nav-btn-uniforme');
     if (btnUni) btnUni.addEventListener('click', function() { activateMod('prefectura'); });
 
+    /* Directorio PEC → módulo nativo */
+    var btnDir = document.getElementById('d2-nav-btn-directorio');
+    if (btnDir) btnDir.addEventListener('click', function() { activateMod('directorio'); });
+
     /* Botón CURPs → activar módulo */
     var btnCurps = navEsp.querySelector('[data-mod="curps"]');
     if (btnCurps) {
       btnCurps.addEventListener('click', function() { activateMod('curps'); });
     }
+
+    /* Edición Rápida PEC */
+    var btnEdPec = document.getElementById('d2-nav-btn-edicion-pec');
+    if (btnEdPec) btnEdPec.addEventListener('click', function() { activateMod('edicion_pec'); });
   }
 
   /* ════════════════════════════════════════════════════════
@@ -365,6 +375,8 @@
     if (modId === 'sabanas')  lazyLoadSabanas();
     if (modId === 'curps')       loadCurps();
     if (modId === 'prefectura')  lazyLoadPrefectura();
+    if (modId === 'directorio')  initDirectorio();
+    if (modId === 'edicion_pec') initEdicionPEC();
 
     closeSidebar();
     window.scrollTo(0, 0);
@@ -992,6 +1004,243 @@
     if (v===''||v===null||v===undefined) return null;
     var n = Number(v); return isNaN(n) ? null : n;
   }
+  /* ════════════════════════════════════════════════════════
+     MÓDULO: DIRECTORIO PEC
+  ════════════════════════════════════════════════════════ */
+  var _dirData    = null;   /* caché de filas */
+  var _dirDirty   = {};     /* {key: nuevoPonderacion} para cambios pendientes */
+  var _dirInited  = false;
+
+  function _dirTurno(grupo) {
+    var g = String(grupo || '').trim().toUpperCase();
+    if (g.charAt(0) === 'V') return 'Vespertino';
+    if (g.charAt(0) === 'M') return 'Matutino';
+    return 'Otro';
+  }
+  function _dirKey(r) { return r.grupo + '||' + r.materia + '||' + r.parcial; }
+
+  function initDirectorio() {
+    if (_dirInited) { _dirApplyFilters(); return; }
+    _dirInited = true;
+
+    /* Bind filtros */
+    ['d2-dir-turno','d2-dir-parcial','d2-dir-grupo','d2-dir-search'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('change', _dirApplyFilters);
+      if (el && id === 'd2-dir-search') el.addEventListener('input', _dirApplyFilters);
+    });
+
+    /* Guardar */
+    var saveBtn = document.getElementById('d2-dir-save-btn');
+    if (saveBtn) saveBtn.addEventListener('click', _dirSave);
+
+    /* Recargar */
+    var reloadBtn = document.getElementById('d2-dir-reload-btn');
+    if (reloadBtn) reloadBtn.addEventListener('click', function() { _dirData = null; _dirDirty = {}; _dirInited = false; initDirectorio(); });
+
+    _dirLoad();
+  }
+
+  function _dirLoad() {
+    var status = document.getElementById('d2-dir-status');
+    var wrap   = document.getElementById('d2-dir-table-wrap');
+    if (status) { status.textContent = 'Cargando directorio…'; status.style.display = 'block'; }
+    if (wrap)   wrap.style.display = 'none';
+
+    var ctrl    = new AbortController();
+    var timer   = setTimeout(function() { ctrl.abort(); }, 20000);
+
+    fetch(API_URL + '?action=getDirectorio&_t=' + Date.now(), { signal: ctrl.signal })
+      .then(function(r) { clearTimeout(timer); return r.json(); })
+      .then(function(res) {
+        if (res.status === 'error' || !res.directorio) throw new Error(res.message || 'Sin datos');
+        _dirData = res.directorio;
+        _dirPopulateGrupos();
+        _dirApplyFilters();
+      })
+      .catch(function(e) {
+        clearTimeout(timer);
+        var status = document.getElementById('d2-dir-status');
+        var msg = e.name === 'AbortError'
+          ? 'El servidor tardó demasiado. Actualiza el GAS y vuelve a intentarlo.'
+          : 'Error al cargar el directorio: ' + (e.message || 'verifica que el GAS esté desplegado.');
+        if (status) { status.textContent = msg; status.style.display = 'block'; }
+        console.error('[Directorio]', e);
+      });
+  }
+
+  function _dirPopulateGrupos() {
+    var sel = document.getElementById('d2-dir-grupo');
+    if (!sel || !_dirData) return;
+    var grupos = [...new Set(_dirData.map(function(r) { return r.grupo; }))].sort();
+    var current = sel.value;
+    sel.innerHTML = '<option value="">Todos los grupos</option>' +
+      grupos.map(function(g) { return '<option value="' + g + '">' + g + '</option>'; }).join('');
+    if (current) sel.value = current;
+  }
+
+  function _dirApplyFilters() {
+    if (!_dirData) return;
+    var turno   = (document.getElementById('d2-dir-turno')   || {}).value || '';
+    var parcial = (document.getElementById('d2-dir-parcial') || {}).value || '';
+    var grupo   = (document.getElementById('d2-dir-grupo')   || {}).value || '';
+    var q       = ((document.getElementById('d2-dir-search') || {}).value || '').toLowerCase().trim();
+
+    var filtered = _dirData.filter(function(r) {
+      if (turno   && _dirTurno(r.grupo).charAt(0) !== turno) return false;
+      if (parcial && String(r.parcial) !== parcial) return false;
+      if (grupo   && r.grupo !== grupo) return false;
+      if (q && (r.materia + ' ' + r.docente + ' ' + r.grupo).toLowerCase().indexOf(q) === -1) return false;
+      return true;
+    });
+
+    _dirRender(filtered);
+  }
+
+  function _dirSemestre(grupo) {
+    var m = String(grupo || '').match(/(\d)/);
+    return m ? m[1] + 'º Semestre' : 'Sin semestre';
+  }
+
+  function _dirRender(rows) {
+    var status  = document.getElementById('d2-dir-status');
+    var wrap    = document.getElementById('d2-dir-table-wrap');
+    var tbody   = document.getElementById('d2-dir-tbody');
+    var count   = document.getElementById('d2-dir-count');
+    if (!tbody) return;
+
+    if (status) status.style.display = 'none';
+    if (wrap)   wrap.style.display = 'block';
+
+    if (rows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="padding:1.5rem; text-align:center; color:var(--d2-text-muted);">Sin resultados para los filtros seleccionados</td></tr>';
+      if (count) count.textContent = '0 registros';
+      return;
+    }
+
+    /* Ordenar: semestre → grupo */
+    rows = rows.slice().sort(function(a, b) {
+      var sa = _dirSemestre(a.grupo), sb = _dirSemestre(b.grupo);
+      if (sa !== sb) return sa.localeCompare(sb);
+      return a.grupo.localeCompare(b.grupo);
+    });
+
+    var html    = '';
+    var lastSem = null;
+    var rowIdx  = 0;
+
+    rows.forEach(function(r) {
+      var sem = _dirSemestre(r.grupo);
+      if (sem !== lastSem) {
+        lastSem = sem;
+        rowIdx  = 0;
+        html += '<tr><td colspan="6" style="padding:.6rem 1rem; background:#1e40af;'
+          + ' font-size:0.74rem; font-weight:800; text-transform:uppercase; letter-spacing:.07em;'
+          + ' color:#fff; border-left:4px solid #60a5fa;">&#9656; ' + sem + '</td></tr>';
+      }
+      var key     = _dirKey(r);
+      var pond    = _dirDirty.hasOwnProperty(key) ? _dirDirty[key] : r.ponderacion;
+      var isDirty = _dirDirty.hasOwnProperty(key);
+      var bg      = rowIdx % 2 === 0 ? '' : 'background:var(--d2-surface);';
+      html += '<tr style="border-top:1px solid var(--d2-border);' + bg + '">'
+        + '<td style="padding:.55rem .9rem; font-weight:700;">' + r.grupo + '</td>'
+        + '<td style="padding:.55rem .9rem;">'
+          + '<span style="font-size:0.72rem; padding:.2rem .5rem; border-radius:20px; font-weight:600;'
+          + (_dirTurno(r.grupo) === 'Vespertino' ? 'background:#fef9c3;color:#854d0e;' : 'background:#dbeafe;color:#1e40af;')
+          + '">' + _dirTurno(r.grupo) + '</span>'
+        + '</td>'
+        + '<td style="padding:.55rem .9rem;">' + r.materia + '</td>'
+        + '<td style="padding:.55rem .9rem; font-size:0.8rem; color:var(--d2-text-muted);">' + r.docente + '</td>'
+        + '<td style="padding:.55rem .9rem; text-align:center;">'
+          + '<span style="background:var(--d2-sidebar-bg); padding:.2rem .6rem; border-radius:20px; font-weight:700; font-size:0.8rem;">' + r.parcial + '</span>'
+        + '</td>'
+        + '<td style="padding:.55rem .9rem; text-align:center;">'
+          + '<input type="number" step="0.05" min="0" max="10"'
+          + ' value="' + pond + '"'
+          + ' data-key="' + key + '" data-orig="' + r.ponderacion + '"'
+          + ' oninput="window._d2DirChange(this)"'
+          + ' style="width:70px; text-align:center; padding:.3rem .4rem; border:1.5px solid '
+          + (isDirty ? '#f59e0b' : 'var(--d2-border)') + '; border-radius:6px;'
+          + ' font-size:0.88rem; font-family:inherit; background:' + (isDirty ? '#fffbeb' : 'var(--d2-surface)') + '; color:var(--d2-text);">'
+        + '</td>'
+        + '</tr>';
+      rowIdx++;
+    });
+
+    tbody.innerHTML = html;
+    if (count) count.textContent = rows.length + ' registro' + (rows.length !== 1 ? 's' : '');
+  }
+
+  window._d2DirChange = function(input) {
+    var key  = input.dataset.key;
+    var orig = input.dataset.orig;
+    var val  = input.value.trim();
+    if (val === orig) {
+      delete _dirDirty[key];
+    } else {
+      _dirDirty[key] = val;
+    }
+    var hasDirty = Object.keys(_dirDirty).length > 0;
+    var saveBtn  = document.getElementById('d2-dir-save-btn');
+    var pending  = document.getElementById('d2-dir-pending');
+    if (saveBtn) {
+      saveBtn.style.background    = hasDirty ? '#16a34a' : 'var(--d2-border)';
+      saveBtn.style.color         = hasDirty ? '#fff'    : 'var(--d2-text-muted)';
+      saveBtn.style.cursor        = hasDirty ? 'pointer' : 'not-allowed';
+      saveBtn.style.pointerEvents = hasDirty ? 'auto'    : 'none';
+    }
+    if (pending) pending.style.display = hasDirty ? 'inline' : 'none';
+    input.style.border = (val !== orig) ? '1.5px solid #f59e0b' : '1.5px solid var(--d2-border)';
+    input.style.background = (val !== orig) ? '#fffbeb' : 'var(--d2-surface)';
+  };
+
+  function _dirSave() {
+    var keys = Object.keys(_dirDirty);
+    if (!keys.length) return;
+
+    var saveBtn = document.getElementById('d2-dir-save-btn');
+    if (saveBtn) { saveBtn.textContent = 'Guardando…'; saveBtn.style.opacity = '.7'; saveBtn.style.pointerEvents = 'none'; }
+
+    /* Construir lista de actualizaciones desde _dirData */
+    var updates = keys.map(function(key) {
+      var parts = key.split('||');
+      return { grupo: parts[0], materia: parts[1], parcial: parts[2], ponderacion: _dirDirty[key] };
+    });
+
+    var promises = updates.map(function(u) {
+      return fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'setPonderacion', grupo: u.grupo, materia: u.materia, parcial: u.parcial, ponderacion: u.ponderacion })
+      }).then(function(r) { return r.json(); });
+    });
+
+    Promise.all(promises).then(function(results) {
+      var errors = results.filter(function(r) { return r.status !== 'success'; });
+      if (errors.length === 0) {
+        /* Actualizar caché local */
+        updates.forEach(function(u) {
+          var key = u.grupo + '||' + u.materia + '||' + u.parcial;
+          var row = _dirData.find(function(r) { return _dirKey(r) === key; });
+          if (row) row.ponderacion = u.ponderacion;
+          delete _dirDirty[key];
+        });
+        if (saveBtn) { saveBtn.textContent = '✓ Guardado'; setTimeout(function() { saveBtn.textContent = 'Guardar cambios'; }, 2000); }
+        var pending = document.getElementById('d2-dir-pending');
+        if (pending) pending.style.display = 'none';
+        _dirApplyFilters();
+      } else {
+        if (saveBtn) { saveBtn.textContent = '⚠ Error al guardar'; saveBtn.style.opacity = '1'; saveBtn.style.pointerEvents = 'auto'; }
+        setTimeout(function() { if (saveBtn) saveBtn.textContent = 'Guardar cambios'; }, 3000);
+        console.error('[Directorio] Errores al guardar:', errors);
+      }
+    }).catch(function(e) {
+      if (saveBtn) { saveBtn.textContent = '⚠ Error de red'; saveBtn.style.opacity = '1'; saveBtn.style.pointerEvents = 'auto'; }
+      setTimeout(function() { if (saveBtn) saveBtn.textContent = 'Guardar cambios'; }, 3000);
+      console.error('[Directorio] Error de red:', e);
+    });
+  }
+
   function _sabEsc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function _sabCell(v) {
     if (v === null) return '<span class="cn">—</span>';
@@ -1015,6 +1264,270 @@
     iframe.onload = function() {
       if (loading) loading.classList.add('hidden');
     };
+  }
+
+  /* ════════════════════════════════════════════════════════
+     MÓDULO: EDICIÓN RÁPIDA PEC
+     Solo Felipe / Admin — edición inline de evaluaciones
+  ════════════════════════════════════════════════════════ */
+  var _pecEdData   = null;
+  var _pecEdInited = false;
+  var _pecEdRowMap = {};   /* rowIndex → row object para el handler de guardado */
+
+  function initEdicionPEC() {
+    if (_pecEdInited) { _pecEdFilter(); return; }
+    _pecEdInited = true;
+
+    ['d2-ed-semestre', 'd2-ed-parcial', 'd2-ed-grupo'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('change', _pecEdFilter);
+    });
+    ['d2-ed-materia', 'd2-ed-alumno'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('input', _pecEdFilter);
+    });
+
+    var reloadBtn = document.getElementById('d2-ed-reload-btn');
+    if (reloadBtn) reloadBtn.addEventListener('click', function() {
+      _pecEdData = null; _pecEdRowMap = {}; _pecEdInited = false;
+      initEdicionPEC();
+    });
+
+    _pecEdLoad();
+  }
+
+  function _pecEdLoad() {
+    var status  = document.getElementById('d2-ed-status');
+    var wrap    = document.getElementById('d2-ed-table-wrap');
+    var cierreEl = document.getElementById('d2-ed-cierre');
+    if (status) { status.textContent = 'Cargando evaluaciones…'; status.style.display = 'block'; }
+    if (wrap)   wrap.style.display = 'none';
+    if (cierreEl) cierreEl.style.display = 'none';
+
+    var email = (sessionStorage.getItem('user_email') || '').toLowerCase().trim();
+    fetch(API_URL + '?action=getEdicion&userEmail=' + encodeURIComponent(email) + '&_t=' + Date.now())
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        _pecEdData = res.evaluaciones || [];
+
+        if (cierreEl) {
+          if (!res.edicionAbierta) {
+            cierreEl.textContent = '⚠ Periodo de edición cerrado el ' + res.fechaCierre + '. Solo administradores pueden modificar.';
+            cierreEl.style.display = 'block';
+          } else if (res.fechaCierre) {
+            cierreEl.textContent = 'Edición abierta hasta el ' + res.fechaCierre;
+            cierreEl.style.display = 'block';
+            cierreEl.style.borderColor = 'var(--d2-primary)';
+            cierreEl.style.background  = 'color-mix(in srgb, var(--d2-primary) 8%, transparent)';
+            cierreEl.style.color = 'var(--d2-primary)';
+          }
+        }
+
+        _pecEdPopulateGrupos();
+        _pecEdFilter();
+      })
+      .catch(function(e) {
+        if (status) status.textContent = 'Error al cargar evaluaciones. Verifica la conexión.';
+        console.error('[EdicionPEC]', e);
+      });
+  }
+
+  function _pecEdPopulateGrupos() {
+    if (!_pecEdData) return;
+
+    var semestres = [], grupos = [];
+    _pecEdData.forEach(function(r) {
+      var sem = _pecEdSemestre(r.grupoId);
+      if (semestres.indexOf(sem) === -1) semestres.push(sem);
+      if (r.grupoId && grupos.indexOf(r.grupoId) === -1) grupos.push(r.grupoId);
+    });
+    semestres.sort();
+    grupos.sort();
+
+    var selSem = document.getElementById('d2-ed-semestre');
+    if (selSem) {
+      var curSem = selSem.value;
+      selSem.innerHTML = '<option value="">Todos los semestres</option>' +
+        semestres.map(function(s) { return '<option value="' + s + '">' + s + '</option>'; }).join('');
+      if (curSem) selSem.value = curSem;
+    }
+
+    var selGrp = document.getElementById('d2-ed-grupo');
+    if (selGrp) {
+      var curGrp = selGrp.value;
+      selGrp.innerHTML = '<option value="">Todos los grupos</option>' +
+        grupos.map(function(g) { return '<option value="' + g + '">' + g + '</option>'; }).join('');
+      if (curGrp) selGrp.value = curGrp;
+    }
+  }
+
+  function _pecEdFilter() {
+    if (!_pecEdData) return;
+    var semestre = (document.getElementById('d2-ed-semestre') || {}).value || '';
+    var parcial  = (document.getElementById('d2-ed-parcial')  || {}).value || '';
+    var grupo    = (document.getElementById('d2-ed-grupo')    || {}).value || '';
+    var matQ     = ((document.getElementById('d2-ed-materia') || {}).value || '').toLowerCase().trim();
+    var alumQ    = ((document.getElementById('d2-ed-alumno')  || {}).value || '').toLowerCase().trim();
+
+    var filtered = _pecEdData.filter(function(r) {
+      if (semestre && _pecEdSemestre(r.grupoId) !== semestre)        return false;
+      if (parcial  && r.parcial !== parcial)                          return false;
+      if (grupo    && r.grupoId !== grupo)                            return false;
+      if (matQ     && r.materia.toLowerCase().indexOf(matQ)  === -1) return false;
+      if (alumQ    && r.alumno.toLowerCase().indexOf(alumQ)  === -1)  return false;
+      return true;
+    });
+    _pecEdRender(filtered);
+  }
+
+  function _pecEdSemestre(grupoId) {
+    var m = String(grupoId || '').match(/(\d)/);
+    return m ? m[1] + 'º Semestre' : 'Sin semestre';
+  }
+
+  function _pecEdRender(rows) {
+    var status = document.getElementById('d2-ed-status');
+    var wrap   = document.getElementById('d2-ed-table-wrap');
+    var tbody  = document.getElementById('d2-ed-tbody');
+    var count  = document.getElementById('d2-ed-count');
+    if (!tbody) return;
+
+    if (status) status.style.display = 'none';
+    if (wrap)   wrap.style.display = 'block';
+
+    if (rows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" style="padding:1.5rem; text-align:center; color:var(--d2-text-muted);">Sin resultados para los filtros seleccionados</td></tr>';
+      if (count) count.textContent = '0 registros';
+      return;
+    }
+
+    /* Ordenar: semestre → grupo → alumno */
+    rows = rows.slice().sort(function(a, b) {
+      var sa = _pecEdSemestre(a.grupoId), sb = _pecEdSemestre(b.grupoId);
+      if (sa !== sb) return sa.localeCompare(sb);
+      if (a.grupoId !== b.grupoId) return a.grupoId.localeCompare(b.grupoId);
+      return a.alumno.localeCompare(b.alumno);
+    });
+
+    _pecEdRowMap = {};
+    rows.forEach(function(r) { _pecEdRowMap[r.rowIndex] = r; });
+
+    var html = '';
+    var lastSem = null;
+    var rowIdx  = 0;
+
+    rows.forEach(function(r) {
+      var sem = _pecEdSemestre(r.grupoId);
+      if (sem !== lastSem) {
+        lastSem = sem;
+        rowIdx  = 0;
+        html += '<tr><td colspan="8" style="padding:.7rem 1.1rem; background:#1e40af;'
+          + ' font-size:0.78rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em;'
+          + ' color:#fff; border-left:4px solid #60a5fa;">'
+          + '&#9656; ' + sem + '</td></tr>';
+      }
+      var isEdited = r.tipoRegistro === 'EDICION';
+      var bg  = rowIdx % 2 === 0 ? '' : 'background:var(--d2-surface);';
+      var ri  = r.rowIndex;
+      var editBadge = isEdited
+        ? '<div style="font-size:0.68rem; color:var(--d2-text-muted); margin-top:3px; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="' + _pecEdEsc(r.fechaEdicion) + ' · ' + _pecEdEsc(r.usuarioEdicion) + '">' + _pecEdEsc(r.usuarioEdicion || '') + '</div>'
+        : '';
+      html += '<tr style="border-top:1px solid var(--d2-border);' + bg + '" id="d2-ed-row-' + ri + '">'
+        + '<td style="padding:.5rem .6rem; text-align:center;">'
+            + '<span style="background:var(--d2-sidebar-bg); padding:.15rem .5rem; border-radius:20px; font-weight:700; font-size:0.78rem;">' + _pecEdEsc(r.parcial) + '</span>'
+          + '</td>'
+        + '<td style="padding:.5rem .6rem; font-weight:700; font-size:0.84rem; white-space:nowrap;">' + _pecEdEsc(r.grupoId) + '</td>'
+        + '<td style="padding:.5rem .6rem; font-size:0.82rem; max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="' + _pecEdEsc(r.equipoNombre) + '">' + _pecEdEsc(r.equipoNombre || r.equipoId) + '</td>'
+        + '<td style="padding:.5rem .6rem; font-size:0.82rem; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="' + _pecEdEsc(r.materia) + '">' + _pecEdEsc(r.materia) + '</td>'
+        + '<td style="padding:.5rem .6rem; font-size:0.82rem; white-space:nowrap;">' + _pecEdEsc(r.alumno) + '</td>'
+        + '<td style="padding:.5rem .4rem; text-align:center;">'
+            + '<input type="number" id="d2-ed-pts-' + ri + '" step="0.5" min="0" max="10" value="' + r.puntaje + '"'
+            + ' style="width:58px; text-align:center; padding:.3rem .2rem; border:1.5px solid var(--d2-border); border-radius:6px;'
+            + ' font-size:0.92rem; font-weight:700; font-family:inherit;'
+            + ' background:' + (isEdited ? '#fffbeb' : 'var(--d2-surface)') + '; color:var(--d2-text);">'
+          + '</td>'
+        + '<td style="padding:.5rem .4rem;">'
+            + '<input type="text" id="d2-ed-obs-' + ri + '" value="' + _pecEdEsc(r.observaciones) + '" placeholder="Observaciones…"'
+            + ' style="width:100%; min-width:110px; padding:.3rem .45rem; border:1.5px solid var(--d2-border); border-radius:6px; font-size:0.82rem; font-family:inherit; background:var(--d2-surface); color:var(--d2-text);">'
+          + '</td>'
+        + '<td style="padding:.5rem .4rem; text-align:center;">'
+            + '<button id="d2-ed-savebtn-' + ri + '" onclick="window._d2EdSaveRow(' + ri + ')"'
+            + ' style="padding:.35rem .9rem; background:' + (isEdited ? '#f59e0b' : 'var(--d2-primary)') + '; color:#fff; border:none; border-radius:6px;'
+            + ' font-size:0.8rem; font-weight:700; font-family:inherit; cursor:pointer; white-space:nowrap; transition:background .2s; min-width:76px;">'
+            + (isEdited ? '✎ Editar' : '💾 Guardar')
+            + '</button>'
+            + editBadge
+          + '</td>'
+        + '</tr>';
+      rowIdx++;
+    });
+
+    tbody.innerHTML = html;
+    if (count) count.textContent = rows.length + ' registro' + (rows.length !== 1 ? 's' : '');
+  }
+
+  window._d2EdSaveRow = function(rowIndex) {
+    var row     = _pecEdRowMap[rowIndex];
+    var ptsEl   = document.getElementById('d2-ed-pts-' + rowIndex);
+    var obsEl   = document.getElementById('d2-ed-obs-' + rowIndex);
+    var saveBtn = document.getElementById('d2-ed-savebtn-' + rowIndex);
+    if (!row || !ptsEl) return;
+
+    var nuevoPuntaje = parseFloat(ptsEl.value);
+    if (isNaN(nuevoPuntaje) || nuevoPuntaje < 0 || nuevoPuntaje > 10) {
+      alert('El puntaje debe ser un número entre 0 y 10');
+      return;
+    }
+
+    var email = (sessionStorage.getItem('user_email') || '').toLowerCase().trim();
+    if (saveBtn) { saveBtn.textContent = '…'; saveBtn.disabled = true; saveBtn.style.background = '#94a3b8'; }
+
+    fetch(API_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action:       'editarEvaluacion',
+        userEmail:    email,
+        parcial:      row.parcial,
+        equipoId:     row.equipoId,
+        materia:      row.materia,
+        alumno:       row.alumno,
+        nuevoPuntaje: nuevoPuntaje,
+        nuevaObs:     obsEl ? obsEl.value.trim() : '',
+        motivo:       'Edición rápida desde Docente 2.0'
+      })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (res.status === 'success') {
+        if (saveBtn) { saveBtn.textContent = '✓ Listo'; saveBtn.style.background = '#22c55e'; saveBtn.disabled = false; }
+        row.puntaje        = nuevoPuntaje;
+        row.observaciones  = obsEl ? obsEl.value.trim() : row.observaciones;
+        row.tipoRegistro   = 'EDICION';
+        row.usuarioEdicion = email;
+        if (ptsEl) ptsEl.style.background = '#fffbeb';
+        setTimeout(function() {
+          if (saveBtn) { saveBtn.textContent = '✎ Editar'; saveBtn.style.background = ''; }
+        }, 2000);
+      } else {
+        if (saveBtn) { saveBtn.textContent = '⚠ Error'; saveBtn.style.background = '#ef4444'; saveBtn.disabled = false; }
+        setTimeout(function() {
+          if (saveBtn) { saveBtn.textContent = '✎ Editar'; saveBtn.style.background = ''; }
+        }, 3000);
+        alert(res.message || 'Error al guardar. Intenta de nuevo.');
+      }
+    })
+    .catch(function(e) {
+      if (saveBtn) { saveBtn.textContent = '⚠ Error'; saveBtn.style.background = '#ef4444'; saveBtn.disabled = false; }
+      setTimeout(function() {
+        if (saveBtn) { saveBtn.textContent = '✎ Editar'; saveBtn.style.background = ''; }
+      }, 3000);
+      console.error('[EdicionPEC]', e);
+    });
+  };
+
+  function _pecEdEsc(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
 })();

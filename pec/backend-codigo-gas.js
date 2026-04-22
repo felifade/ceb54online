@@ -53,6 +53,23 @@ function doGet(e) {
       return doGetAcademico(e);
     }
 
+    // ── Directorio completo (admin / Felipe) ──────────────────────────────
+    if (_act === "getDirectorio") {
+      const sDir = getSheet(ss, S_DIRECTORIO);
+      if (!sDir) return ContentService.createTextOutput(JSON.stringify({ status: "success", directorio: [] })).setMimeType(ContentService.MimeType.JSON);
+      const d = sDir.getDataRange().getValues(); d.shift();
+      const directorio = d.map((r, i) => ({
+        row: i + 2,
+        grupo:       String(r[0] || '').trim(),
+        materia:     String(r[1] || '').trim(),
+        docente:     String(r[2] || '').trim(),
+        correo:      String(r[3] || '').trim(),
+        parcial:     String(r[4] || '').trim(),
+        ponderacion: String(r[5] || '').trim()
+      })).filter(x => x.grupo !== '');
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", directorio })).setMimeType(ContentService.MimeType.JSON);
+    }
+
 
     // Módulo Presentación / Cierre PEC (alimentado desde Sheets)
     if (e.parameter.action === "getPecCierre") {
@@ -337,6 +354,24 @@ function doPost(e) {
     }
     if (['importarPDF','limpiarParcial'].includes(action)) {
       return doPostAcademico(e);
+    }
+
+    // ── Actualizar ponderación individual ─────────────────────────────────
+    if (action === "setPonderacion") {
+      const sDir = getSheet(ss, S_DIRECTORIO);
+      if (!sDir) return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Hoja Directorio no encontrada" })).setMimeType(ContentService.MimeType.JSON);
+      const rows = sDir.getDataRange().getValues();
+      let updated = 0;
+      for (let i = 1; i < rows.length; i++) {
+        const matchGrupo   = String(rows[i][0] || '').trim() === String(body.grupo   || '').trim();
+        const matchMateria = String(rows[i][1] || '').trim() === String(body.materia || '').trim();
+        const matchParcial = String(rows[i][4] || '').trim() === String(body.parcial || '').trim();
+        if (matchGrupo && matchMateria && matchParcial) {
+          sDir.getRange(i + 1, 6).setValue(Number(body.ponderacion));
+          updated++;
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", updated })).setMimeType(ContentService.MimeType.JSON);
     }
 
     // LOGIN

@@ -138,9 +138,17 @@
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
           <span>Mi Portal Docente</span>
         </button>
+        <button class="d2-nav-item" id="d2-nav-btn-directorio" data-mod="directorio">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+          <span>Directorio PEC</span>
+        </button>
         <button class="d2-nav-item" id="d2-nav-btn-uniforme" data-mod="prefectura">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.57a2 2 0 0 0-1.34-2.23z"/></svg>
           <span>Reportes de Uniforme</span>
+        </button>
+        <button class="d2-nav-item" id="d2-nav-btn-edicion-pec" data-mod="edicion_pec">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <span>Edición Rápida PEC</span>
         </button>
       </div>
 
@@ -372,12 +380,129 @@
         </div>
       </div><!-- /d2-mod-prefectura -->
 
+      <!-- ══ MÓDULO: DIRECTORIO PEC ══════════════════════════
+           Filtrado y edición de ponderaciones — Admin / Felipe
+      ════════════════════════════════════════════════════ -->
+      <div class="d2-module" id="d2-mod-directorio">
+        <div style="padding:1.25rem 1.5rem; max-width:1100px; margin:0 auto;">
+
+          <!-- Filtros -->
+          <div style="display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; margin-bottom:1.1rem;">
+            <select id="d2-dir-turno" style="padding:.45rem .75rem; border:1.5px solid var(--d2-border); border-radius:8px; font-size:0.85rem; background:var(--d2-surface); color:var(--d2-text); font-family:inherit;">
+              <option value="">Todos los turnos</option>
+              <option value="V">Vespertino</option>
+              <option value="M">Matutino</option>
+            </select>
+            <select id="d2-dir-parcial" style="padding:.45rem .75rem; border:1.5px solid var(--d2-border); border-radius:8px; font-size:0.85rem; background:var(--d2-surface); color:var(--d2-text); font-family:inherit;">
+              <option value="">Todos los parciales</option>
+              <option value="1">Parcial 1</option>
+              <option value="2">Parcial 2</option>
+              <option value="3">Parcial 3</option>
+            </select>
+            <select id="d2-dir-grupo" style="padding:.45rem .75rem; border:1.5px solid var(--d2-border); border-radius:8px; font-size:0.85rem; background:var(--d2-surface); color:var(--d2-text); font-family:inherit;">
+              <option value="">Todos los grupos</option>
+            </select>
+            <input id="d2-dir-search" type="search" placeholder="🔍 Materia o docente…"
+              style="flex:1; min-width:180px; padding:.45rem .75rem; border:1.5px solid var(--d2-border); border-radius:8px; font-size:0.85rem; background:var(--d2-surface); color:var(--d2-text); font-family:inherit;">
+            <button id="d2-dir-save-btn" style="padding:.45rem 1.1rem; background:var(--d2-border); color:var(--d2-text-muted); border:none; border-radius:8px; font-size:0.85rem; font-weight:700; font-family:inherit; cursor:not-allowed; transition:background .2s, color .2s; pointer-events:none;">
+              Guardar cambios
+            </button>
+            <button id="d2-dir-reload-btn" title="Recargar" style="padding:.45rem .65rem; background:var(--d2-surface); border:1.5px solid var(--d2-border); border-radius:8px; font-size:1rem; cursor:pointer;">⟳</button>
+          </div>
+
+          <!-- Estado -->
+          <div id="d2-dir-status" style="text-align:center; padding:2rem; color:var(--d2-text-muted); font-size:0.9rem;">
+            Cargando directorio…
+          </div>
+
+          <!-- Tabla -->
+          <div id="d2-dir-table-wrap" style="display:none; overflow-x:auto; border-radius:12px; border:1px solid var(--d2-border);">
+            <table style="width:100%; border-collapse:collapse; font-size:0.84rem;">
+              <thead>
+                <tr style="background:var(--d2-sidebar-bg); color:var(--d2-text-muted); text-transform:uppercase; font-size:0.72rem; letter-spacing:.04em;">
+                  <th style="padding:.7rem 1rem; text-align:left; font-weight:600;">Grupo</th>
+                  <th style="padding:.7rem 1rem; text-align:left; font-weight:600;">Turno</th>
+                  <th style="padding:.7rem 1rem; text-align:left; font-weight:600;">Materia</th>
+                  <th style="padding:.7rem 1rem; text-align:left; font-weight:600;">Docente</th>
+                  <th style="padding:.7rem .6rem; text-align:center; font-weight:600;">Parcial</th>
+                  <th style="padding:.7rem .8rem; text-align:center; font-weight:600;">Ponderación</th>
+                </tr>
+              </thead>
+              <tbody id="d2-dir-tbody"></tbody>
+            </table>
+            <div id="d2-dir-footer" style="padding:.55rem 1rem; font-size:0.77rem; color:var(--d2-text-muted); border-top:1px solid var(--d2-border); display:flex; justify-content:space-between; align-items:center;">
+              <span id="d2-dir-count"></span>
+              <span id="d2-dir-pending" style="color:#f59e0b; font-weight:700; display:none;">● Cambios sin guardar</span>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /d2-mod-directorio -->
+
+      <!-- ══ MÓDULO: EDICIÓN RÁPIDA PEC ══════════════════════
+           Solo Felipe / Admin — modificación ágil de evaluaciones
+      ════════════════════════════════════════════════════ -->
+      <div class="d2-module" id="d2-mod-edicion_pec">
+        <div style="padding:1.25rem 1.5rem; max-width:1200px; margin:0 auto;">
+
+          <!-- Filtros -->
+          <div style="display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; margin-bottom:1rem;">
+            <select id="d2-ed-semestre" style="padding:.45rem .75rem; border:1.5px solid var(--d2-border); border-radius:8px; font-size:0.85rem; background:var(--d2-surface); color:var(--d2-text); font-family:inherit;">
+              <option value="">Todos los semestres</option>
+            </select>
+            <select id="d2-ed-parcial" style="padding:.45rem .75rem; border:1.5px solid var(--d2-border); border-radius:8px; font-size:0.85rem; background:var(--d2-surface); color:var(--d2-text); font-family:inherit;">
+              <option value="">Todos los parciales</option>
+              <option value="1">Parcial 1</option>
+              <option value="2">Parcial 2</option>
+              <option value="3">Parcial 3</option>
+            </select>
+            <select id="d2-ed-grupo" style="padding:.45rem .75rem; border:1.5px solid var(--d2-border); border-radius:8px; font-size:0.85rem; background:var(--d2-surface); color:var(--d2-text); font-family:inherit;">
+              <option value="">Todos los grupos</option>
+            </select>
+            <input id="d2-ed-materia" type="search" placeholder="🔍 Materia…"
+              style="flex:1; min-width:140px; padding:.45rem .75rem; border:1.5px solid var(--d2-border); border-radius:8px; font-size:0.85rem; background:var(--d2-surface); color:var(--d2-text); font-family:inherit;">
+            <input id="d2-ed-alumno" type="search" placeholder="🔍 Alumno…"
+              style="flex:1; min-width:140px; padding:.45rem .75rem; border:1.5px solid var(--d2-border); border-radius:8px; font-size:0.85rem; background:var(--d2-surface); color:var(--d2-text); font-family:inherit;">
+            <button id="d2-ed-reload-btn" title="Recargar datos" style="padding:.45rem .65rem; background:var(--d2-surface); border:1.5px solid var(--d2-border); border-radius:8px; font-size:1rem; cursor:pointer;">⟳</button>
+          </div>
+
+          <!-- Aviso periodo edición -->
+          <div id="d2-ed-cierre" style="display:none; padding:.6rem 1rem; border-radius:8px; font-size:0.84rem; font-weight:600; margin-bottom:1rem; border:1.5px solid #f59e0b; background:#fffbeb; color:#92400e;"></div>
+
+          <!-- Estado de carga -->
+          <div id="d2-ed-status" style="text-align:center; padding:2rem; color:var(--d2-text-muted); font-size:0.9rem;">Cargando evaluaciones…</div>
+
+          <!-- Tabla -->
+          <div id="d2-ed-table-wrap" style="display:none; overflow-x:auto; border-radius:12px; border:1px solid var(--d2-border);">
+            <table style="width:100%; border-collapse:collapse; font-size:0.84rem;">
+              <thead>
+                <tr style="background:var(--d2-sidebar-bg); color:var(--d2-text-muted); text-transform:uppercase; font-size:0.71rem; letter-spacing:.04em;">
+                  <th style="padding:.65rem .7rem; text-align:center; font-weight:600;">Parcial</th>
+                  <th style="padding:.65rem .7rem; text-align:left; font-weight:600;">Grupo</th>
+                  <th style="padding:.65rem .7rem; text-align:left; font-weight:600;">Equipo</th>
+                  <th style="padding:.65rem .7rem; text-align:left; font-weight:600;">Materia</th>
+                  <th style="padding:.65rem .7rem; text-align:left; font-weight:600;">Alumno</th>
+                  <th style="padding:.65rem .5rem; text-align:center; font-weight:600;">Puntaje</th>
+                  <th style="padding:.65rem .7rem; text-align:left; font-weight:600;">Observaciones</th>
+                  <th style="padding:.65rem .5rem; text-align:center; font-weight:600;">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="d2-ed-tbody"></tbody>
+            </table>
+            <div id="d2-ed-footer" style="padding:.55rem 1rem; font-size:0.77rem; color:var(--d2-text-muted); border-top:1px solid var(--d2-border); text-align:right;">
+              <span id="d2-ed-count"></span>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /d2-mod-edicion_pec -->
+
     </div><!-- /d2-content -->
   </div><!-- /d2-main -->
 </div><!-- /d2-app -->
 
-<script src="js/mod-info.js?v=20260421"></script>
-<script src="js/mod-horario.js?v=20260421"></script>
-<script src="js/main.js?v=20260421"></script>
+<script src="js/mod-info.js?v=20260422d"></script>
+<script src="js/mod-horario.js?v=20260422d"></script>
+<script src="js/main.js?v=20260422d"></script>
 </body>
 </html>
