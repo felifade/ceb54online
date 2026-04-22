@@ -907,9 +907,14 @@ function generarConcentradoDeAsignaturas(ss) {
 // ============================================================
 
 // Helper: verificar admin reutilizable
+const _ADMIN_EMAILS_FIJOS = [
+  "admin@ceb54.online",
+  "felifade@icloud.com",
+  "d.flopez54@dgb.edu.mx"
+];
 function _esAdmin(ss, userEmail) {
   if (!userEmail) return false;
-  if (userEmail === normalizeText("admin@ceb54.online")) return true;
+  if (_ADMIN_EMAILS_FIJOS.includes(normalizeText(userEmail))) return true;
   const sUsr = getSheet(ss, S_USUARIOS);
   if (!sUsr) return false;
   const rows = sUsr.getDataRange().getValues();

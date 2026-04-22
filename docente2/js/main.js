@@ -1024,10 +1024,20 @@
     _dirInited = true;
 
     /* Bind filtros */
-    ['d2-dir-turno','d2-dir-parcial','d2-dir-grupo','d2-dir-search'].forEach(function(id) {
+    ['d2-dir-groupby','d2-dir-semestre','d2-dir-turno','d2-dir-parcial','d2-dir-grupo','d2-dir-search'].forEach(function(id) {
       var el = document.getElementById(id);
       if (el) el.addEventListener('change', _dirApplyFilters);
       if (el && id === 'd2-dir-search') el.addEventListener('input', _dirApplyFilters);
+    });
+
+    /* Limpiar filtros */
+    var clearBtn = document.getElementById('d2-dir-clear-btn');
+    if (clearBtn) clearBtn.addEventListener('click', function() {
+      ['d2-dir-semestre','d2-dir-turno','d2-dir-parcial','d2-dir-grupo'].forEach(function(id) {
+        var el = document.getElementById(id); if (el) el.value = '';
+      });
+      var s = document.getElementById('d2-dir-search'); if (s) s.value = '';
+      _dirApplyFilters();
     });
 
     /* Guardar */
@@ -1056,6 +1066,7 @@
         if (res.status === 'error' || !res.directorio) throw new Error(res.message || 'Sin datos');
         _dirData = res.directorio;
         _dirPopulateGrupos();
+        _dirPopulateSemestres();
         _dirApplyFilters();
       })
       .catch(function(e) {
@@ -1069,6 +1080,10 @@
       });
   }
 
+  function _dirExtractSem(grupo) {
+    return String(grupo || '').replace(/^[A-Za-z]+/, '').charAt(0);
+  }
+
   function _dirPopulateGrupos() {
     var sel = document.getElementById('d2-dir-grupo');
     if (!sel || !_dirData) return;
@@ -1079,96 +1094,204 @@
     if (current) sel.value = current;
   }
 
+  function _dirPopulateSemestres() {
+    var sel = document.getElementById('d2-dir-semestre');
+    if (!sel || !_dirData) return;
+    var sems = [...new Set(_dirData.map(function(r) { return _dirExtractSem(r.grupo); }))]
+      .filter(Boolean).sort();
+    sel.innerHTML = '<option value="">Todos los semestres</option>' +
+      sems.map(function(s) { return '<option value="' + s + '">' + s + '° Semestre</option>'; }).join('');
+  }
+
   function _dirApplyFilters() {
     if (!_dirData) return;
-    var turno   = (document.getElementById('d2-dir-turno')   || {}).value || '';
-    var parcial = (document.getElementById('d2-dir-parcial') || {}).value || '';
-    var grupo   = (document.getElementById('d2-dir-grupo')   || {}).value || '';
-    var q       = ((document.getElementById('d2-dir-search') || {}).value || '').toLowerCase().trim();
+    var sem     = (document.getElementById('d2-dir-semestre') || {}).value || '';
+    var turno   = (document.getElementById('d2-dir-turno')    || {}).value || '';
+    var parcial = (document.getElementById('d2-dir-parcial')  || {}).value || '';
+    var grupo   = (document.getElementById('d2-dir-grupo')    || {}).value || '';
+    var q       = ((document.getElementById('d2-dir-search')  || {}).value || '').toLowerCase().trim();
 
     var filtered = _dirData.filter(function(r) {
+      if (sem     && _dirExtractSem(r.grupo) !== sem) return false;
       if (turno   && _dirTurno(r.grupo).charAt(0) !== turno) return false;
-      if (parcial && String(r.parcial) !== parcial) return false;
+      if (parcial && String(r.parcial).replace(/\D/g, '') !== parcial) return false;
       if (grupo   && r.grupo !== grupo) return false;
       if (q && (r.materia + ' ' + r.docente + ' ' + r.grupo).toLowerCase().indexOf(q) === -1) return false;
       return true;
     });
 
-    _dirRender(filtered);
+    var clearBtn = document.getElementById('d2-dir-clear-btn');
+    if (clearBtn) clearBtn.style.display = (sem || turno || parcial || grupo || q) ? 'flex' : 'none';
+
+    var groupBy = (document.getElementById('d2-dir-groupby') || {}).value || 'grupo';
+    _dirRender(filtered, groupBy);
   }
 
-  function _dirSemestre(grupo) {
-    var m = String(grupo || '').match(/(\d)/);
-    return m ? m[1] + 'º Semestre' : 'Sin semestre';
+  function _dirPondInput(r) {
+    if (!r) return '<td style="padding:.5rem .6rem; text-align:center; color:var(--d2-text-muted); font-size:0.75rem;">—</td>';
+    var key     = _dirKey(r);
+    var pond    = _dirDirty.hasOwnProperty(key) ? _dirDirty[key] : r.ponderacion;
+    var isDirty = _dirDirty.hasOwnProperty(key);
+    return '<td style="padding:.5rem .6rem; text-align:center;">'
+      + '<input type="number" step="0.05" min="0" max="10"'
+      + ' value="' + pond + '"'
+      + ' data-key="' + key + '" data-orig="' + r.ponderacion + '"'
+      + ' oninput="window._d2DirChange(this)"'
+      + ' style="width:68px; text-align:center; padding:.3rem .3rem; border:1.5px solid '
+      + (isDirty ? '#f59e0b' : 'var(--d2-border)') + '; border-radius:6px;'
+      + ' font-size:0.88rem; font-family:inherit; background:' + (isDirty ? '#fffbeb' : 'var(--d2-surface)') + '; color:var(--d2-text);">'
+      + '</td>';
   }
 
-  function _dirRender(rows) {
-    var status  = document.getElementById('d2-dir-status');
-    var wrap    = document.getElementById('d2-dir-table-wrap');
-    var tbody   = document.getElementById('d2-dir-tbody');
-    var count   = document.getElementById('d2-dir-count');
+  /* ── Render helpers ──────────────────────────────────── */
+  function _dirUpdateThead(groupBy) {
+    var th = document.getElementById('d2-dir-thead');
+    if (!th) return;
+    var left = (groupBy === 'grupo')
+      ? '<th style="padding:.7rem 1rem .7rem 1.4rem; text-align:left; font-weight:700;">Materia</th>'
+        + '<th style="padding:.7rem .8rem; text-align:left; font-weight:700;">Docente</th>'
+      : '<th style="padding:.7rem 1rem .7rem 1.4rem; text-align:left; font-weight:700;">Grupo</th>'
+        + '<th style="padding:.7rem .8rem; text-align:left; font-weight:700;">Turno</th>';
+    th.innerHTML = '<tr style="background:#0f172a; color:#94a3b8; text-transform:uppercase; font-size:0.7rem; letter-spacing:.06em;">'
+      + left
+      + '<th style="padding:.7rem 1rem; text-align:center; font-weight:700;">Parcial 1</th>'
+      + '<th style="padding:.7rem 1rem; text-align:center; font-weight:700;">Parcial 2</th>'
+      + '<th style="padding:.7rem 1rem; text-align:center; font-weight:700;">Parcial 3</th>'
+      + '</tr>';
+  }
+  function _hGrupo(grp) {
+    var turno = _dirTurno(grp);
+    var badge = turno === 'Vespertino'
+      ? 'background:rgba(254,249,195,.22);color:#fef9c3;'
+      : 'background:rgba(219,234,254,.22);color:#bfdbfe;';
+    return '<tr><td colspan="5" style="padding:.55rem 1rem; background:#1e40af; color:#fff;'
+      + ' border-left:4px solid #93c5fd; font-size:0.83rem; font-weight:800;">'
+      + grp
+      + '<span style="font-size:0.7rem; font-weight:500; margin-left:.55rem; padding:.1rem .5rem; border-radius:20px; ' + badge + '">' + turno + '</span>'
+      + '</td></tr>';
+  }
+  function _dirGrupoModeRow(p, idx) {
+    var bg = (idx % 2 === 0) ? '#ffffff' : '#f8fafc';
+    return '<tr style="border-top:1px solid #e2e8f0; background:' + bg + ';">'
+      + '<td style="padding:.5rem 1rem .5rem 2rem; font-size:0.84rem; font-weight:600; color:#0f172a;">' + p.materia + '</td>'
+      + '<td style="padding:.5rem .8rem; font-size:0.78rem; color:#475569;">' + p.docente + '</td>'
+      + _dirPondInput(p.p1)
+      + _dirPondInput(p.p2)
+      + _dirPondInput(p.p3)
+      + '</tr>';
+  }
+  function _hMatTop(mat, docStr) {
+    return '<tr><td colspan="5" style="padding:.55rem 1rem; background:#1e40af; color:#fff;'
+      + ' border-left:4px solid #93c5fd; font-size:0.83rem; font-weight:800;">'
+      + mat
+      + (docStr ? '<span style="font-size:0.72rem; font-weight:500; margin-left:.7rem; opacity:.8;">' + docStr + '</span>' : '')
+      + '</td></tr>';
+  }
+  function _hDoc(doc) {
+    return '<tr><td colspan="5" style="padding:.55rem 1rem; background:#065f46; color:#fff;'
+      + ' border-left:4px solid #6ee7b7; font-size:0.72rem; font-weight:800;'
+      + ' text-transform:uppercase; letter-spacing:.08em;">&#9656; ' + doc + '</td></tr>';
+  }
+  function _hMatGreen(mat) {
+    return '<tr><td colspan="5" style="padding:.42rem 1rem .42rem 1.5rem;'
+      + ' background:#f0fdf4; border-top:1px solid #bbf7d0;">'
+      + '<span style="font-weight:700; font-size:0.82rem; color:#065f46;">' + mat + '</span>'
+      + '</td></tr>';
+  }
+  function _dirGroupRow(p, idx) {
+    var turno = _dirTurno(p.grupo);
+    var bg = (idx % 2 === 0) ? '#ffffff' : '#f8fafc';
+    return '<tr style="border-top:1px solid #e2e8f0; background:' + bg + ';">'
+      + '<td style="padding:.5rem 1rem .5rem 2rem; font-weight:700; font-size:0.84rem; color:#0f172a;">' + p.grupo + '</td>'
+      + '<td style="padding:.5rem .8rem;">'
+      + '<span style="font-size:0.71rem; padding:.15rem .5rem; border-radius:20px; font-weight:600;'
+      + (turno === 'Vespertino' ? 'background:#fef9c3;color:#854d0e;' : 'background:#dbeafe;color:#1e40af;')
+      + '">' + turno + '</span>'
+      + '</td>'
+      + _dirPondInput(p.p1)
+      + _dirPondInput(p.p2)
+      + _dirPondInput(p.p3)
+      + '</tr>';
+  }
+
+  function _dirRender(rows, groupBy) {
+    var status = document.getElementById('d2-dir-status');
+    var wrap   = document.getElementById('d2-dir-table-wrap');
+    var tbody  = document.getElementById('d2-dir-tbody');
+    var count  = document.getElementById('d2-dir-count');
     if (!tbody) return;
 
     if (status) status.style.display = 'none';
     if (wrap)   wrap.style.display = 'block';
 
+    groupBy = groupBy || 'grupo';
+    _dirUpdateThead(groupBy);
+
     if (rows.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="padding:1.5rem; text-align:center; color:var(--d2-text-muted);">Sin resultados para los filtros seleccionados</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" style="padding:1.5rem; text-align:center; color:#64748b;">Sin resultados para los filtros seleccionados</td></tr>';
       if (count) count.textContent = '0 registros';
       return;
     }
 
-    /* Ordenar: semestre → grupo */
-    rows = rows.slice().sort(function(a, b) {
-      var sa = _dirSemestre(a.grupo), sb = _dirSemestre(b.grupo);
-      if (sa !== sb) return sa.localeCompare(sb);
-      return a.grupo.localeCompare(b.grupo);
-    });
-
-    var html    = '';
-    var lastSem = null;
-    var rowIdx  = 0;
-
+    /* Pivot: una entrada por grupo+materia.
+       Normaliza parcial: "Parcial 1"→"p1", "1"→"p1" */
+    var pivots = {};
     rows.forEach(function(r) {
-      var sem = _dirSemestre(r.grupo);
-      if (sem !== lastSem) {
-        lastSem = sem;
-        rowIdx  = 0;
-        html += '<tr><td colspan="6" style="padding:.6rem 1rem; background:#1e40af;'
-          + ' font-size:0.74rem; font-weight:800; text-transform:uppercase; letter-spacing:.07em;'
-          + ' color:#fff; border-left:4px solid #60a5fa;">&#9656; ' + sem + '</td></tr>';
-      }
-      var key     = _dirKey(r);
-      var pond    = _dirDirty.hasOwnProperty(key) ? _dirDirty[key] : r.ponderacion;
-      var isDirty = _dirDirty.hasOwnProperty(key);
-      var bg      = rowIdx % 2 === 0 ? '' : 'background:var(--d2-surface);';
-      html += '<tr style="border-top:1px solid var(--d2-border);' + bg + '">'
-        + '<td style="padding:.55rem .9rem; font-weight:700;">' + r.grupo + '</td>'
-        + '<td style="padding:.55rem .9rem;">'
-          + '<span style="font-size:0.72rem; padding:.2rem .5rem; border-radius:20px; font-weight:600;'
-          + (_dirTurno(r.grupo) === 'Vespertino' ? 'background:#fef9c3;color:#854d0e;' : 'background:#dbeafe;color:#1e40af;')
-          + '">' + _dirTurno(r.grupo) + '</span>'
-        + '</td>'
-        + '<td style="padding:.55rem .9rem;">' + r.materia + '</td>'
-        + '<td style="padding:.55rem .9rem; font-size:0.8rem; color:var(--d2-text-muted);">' + r.docente + '</td>'
-        + '<td style="padding:.55rem .9rem; text-align:center;">'
-          + '<span style="background:var(--d2-sidebar-bg); padding:.2rem .6rem; border-radius:20px; font-weight:700; font-size:0.8rem;">' + r.parcial + '</span>'
-        + '</td>'
-        + '<td style="padding:.55rem .9rem; text-align:center;">'
-          + '<input type="number" step="0.05" min="0" max="10"'
-          + ' value="' + pond + '"'
-          + ' data-key="' + key + '" data-orig="' + r.ponderacion + '"'
-          + ' oninput="window._d2DirChange(this)"'
-          + ' style="width:70px; text-align:center; padding:.3rem .4rem; border:1.5px solid '
-          + (isDirty ? '#f59e0b' : 'var(--d2-border)') + '; border-radius:6px;'
-          + ' font-size:0.88rem; font-family:inherit; background:' + (isDirty ? '#fffbeb' : 'var(--d2-surface)') + '; color:var(--d2-text);">'
-        + '</td>'
-        + '</tr>';
-      rowIdx++;
+      var pk   = r.grupo + '\x00' + r.materia;
+      var pKey = 'p' + String(r.parcial).replace(/\D/g, '');
+      if (!pivots[pk]) pivots[pk] = { grupo: r.grupo, materia: r.materia, docente: r.docente };
+      pivots[pk][pKey] = r;
     });
+    var pivotArr = Object.keys(pivots).map(function(pk) { return pivots[pk]; })
+      .sort(function(a, b) { return (a.grupo + a.materia).localeCompare(b.grupo + b.materia); });
+
+    var html = '';
+    var total = 0;
+
+    if (groupBy === 'grupo') {
+      var byGrp = {};
+      pivotArr.forEach(function(p) {
+        if (!byGrp[p.grupo]) byGrp[p.grupo] = [];
+        byGrp[p.grupo].push(p);
+      });
+      Object.keys(byGrp).sort().forEach(function(grp) {
+        html += _hGrupo(grp);
+        byGrp[grp].sort(function(a, b) { return a.materia.localeCompare(b.materia); })
+          .forEach(function(p, i) { html += _dirGrupoModeRow(p, i); total++; });
+      });
+
+    } else if (groupBy === 'materia') {
+      var byMat = {};
+      pivotArr.forEach(function(p) {
+        if (!byMat[p.materia]) byMat[p.materia] = { docentes: {}, rows: [] };
+        byMat[p.materia].docentes[p.docente] = true;
+        byMat[p.materia].rows.push(p);
+      });
+      Object.keys(byMat).sort().forEach(function(mat) {
+        var md = byMat[mat];
+        var docStr = Object.keys(md.docentes).sort().join(', ');
+        html += _hMatTop(mat, docStr);
+        md.rows.forEach(function(p, i) { html += _dirGroupRow(p, i); total++; });
+      });
+
+    } else { /* docente */
+      var byDoc = {};
+      pivotArr.forEach(function(p) {
+        if (!byDoc[p.docente]) byDoc[p.docente] = {};
+        if (!byDoc[p.docente][p.materia]) byDoc[p.docente][p.materia] = [];
+        byDoc[p.docente][p.materia].push(p);
+      });
+      Object.keys(byDoc).sort().forEach(function(doc) {
+        html += _hDoc(doc);
+        Object.keys(byDoc[doc]).sort().forEach(function(mat) {
+          html += _hMatGreen(mat);
+          byDoc[doc][mat].forEach(function(p, i) { html += _dirGroupRow(p, i); total++; });
+        });
+      });
+    }
 
     tbody.innerHTML = html;
-    if (count) count.textContent = rows.length + ' registro' + (rows.length !== 1 ? 's' : '');
+    if (count) count.textContent = total + ' registro' + (total !== 1 ? 's' : '');
   }
 
   window._d2DirChange = function(input) {
@@ -1209,8 +1332,9 @@
 
     var promises = updates.map(function(u) {
       return fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method:   'POST',
+        headers:  { 'Content-Type': 'text/plain;charset=utf-8' },
+        redirect: 'follow',
         body: JSON.stringify({ action: 'setPonderacion', grupo: u.grupo, materia: u.materia, parcial: u.parcial, ponderacion: u.ponderacion })
       }).then(function(r) { return r.json(); });
     });
@@ -1297,37 +1421,62 @@
   }
 
   function _pecEdLoad() {
-    var status  = document.getElementById('d2-ed-status');
-    var wrap    = document.getElementById('d2-ed-table-wrap');
+    var status   = document.getElementById('d2-ed-status');
+    var wrap     = document.getElementById('d2-ed-table-wrap');
     var cierreEl = document.getElementById('d2-ed-cierre');
-    if (status) { status.textContent = 'Cargando evaluaciones…'; status.style.display = 'block'; }
-    if (wrap)   wrap.style.display = 'none';
+    if (status)   { status.textContent = 'Cargando evaluaciones…'; status.style.display = 'block'; }
+    if (wrap)     wrap.style.display = 'none';
     if (cierreEl) cierreEl.style.display = 'none';
 
     var email = (sessionStorage.getItem('user_email') || '').toLowerCase().trim();
-    fetch(API_URL + '?action=getEdicion&userEmail=' + encodeURIComponent(email) + '&_t=' + Date.now())
-      .then(function(r) { return r.json(); })
-      .then(function(res) {
+    var ctrl  = new AbortController();
+    var timer = setTimeout(function() { ctrl.abort(); }, 18000);
+
+    fetch(API_URL + '?action=getEdicion&userEmail=' + encodeURIComponent(email) + '&_t=' + Date.now(), {
+      redirect: 'follow',
+      signal: ctrl.signal
+    })
+      .then(function(r) { clearTimeout(timer); return r.text(); })
+      .then(function(txt) {
+        var res;
+        try { res = JSON.parse(txt); } catch(parseErr) {
+          console.error('[EdicionPEC] Respuesta no JSON:', txt.substring(0, 300));
+          throw new Error('El GAS no devolvió JSON. Necesitas republicar el script en Google Apps Script.');
+        }
+        if (res.status === 'error') throw new Error(res.message || 'Error en el servidor');
+
         _pecEdData = res.evaluaciones || [];
 
         if (cierreEl) {
           if (!res.edicionAbierta) {
-            cierreEl.textContent = '⚠ Periodo de edición cerrado el ' + res.fechaCierre + '. Solo administradores pueden modificar.';
+            cierreEl.textContent = '⚠ Periodo de edición cerrado' + (res.fechaCierre ? ' el ' + res.fechaCierre : '') + '. Solo administradores pueden modificar.';
             cierreEl.style.display = 'block';
           } else if (res.fechaCierre) {
             cierreEl.textContent = 'Edición abierta hasta el ' + res.fechaCierre;
             cierreEl.style.display = 'block';
-            cierreEl.style.borderColor = 'var(--d2-primary)';
-            cierreEl.style.background  = 'color-mix(in srgb, var(--d2-primary) 8%, transparent)';
-            cierreEl.style.color = 'var(--d2-primary)';
+            cierreEl.style.borderColor = '#3b82f6';
+            cierreEl.style.background  = '#eff6ff';
+            cierreEl.style.color       = '#1e40af';
           }
+        }
+
+        if (_pecEdData.length === 0 && status) {
+          status.textContent = 'Sin evaluaciones registradas para tu usuario. Si es un error, verifica que el correo ' + (email || '(no detectado)') + ' esté en el directorio.';
+          status.style.display = 'block';
+          if (wrap) wrap.style.display = 'none';
+          return;
         }
 
         _pecEdPopulateGrupos();
         _pecEdFilter();
       })
       .catch(function(e) {
-        if (status) status.textContent = 'Error al cargar evaluaciones. Verifica la conexión.';
+        clearTimeout(timer);
+        var msg = e.name === 'AbortError'
+          ? 'El servidor tardó demasiado (18 s). Recarga o verifica que el GAS esté desplegado.'
+          : (e.message || 'Error desconocido al cargar evaluaciones.');
+        if (status) { status.textContent = '⚠ ' + msg; status.style.display = 'block'; }
+        if (wrap) wrap.style.display = 'none';
         console.error('[EdicionPEC]', e);
       });
   }
@@ -1396,68 +1545,95 @@
     if (wrap)   wrap.style.display = 'block';
 
     if (rows.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="8" style="padding:1.5rem; text-align:center; color:var(--d2-text-muted);">Sin resultados para los filtros seleccionados</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="padding:1.5rem; text-align:center; color:#64748b;">Sin resultados para los filtros seleccionados</td></tr>';
       if (count) count.textContent = '0 registros';
       return;
     }
 
-    /* Ordenar: semestre → grupo → alumno */
+    /* Ordenar: semestre → grupo → equipo → parcial → alumno */
     rows = rows.slice().sort(function(a, b) {
       var sa = _pecEdSemestre(a.grupoId), sb = _pecEdSemestre(b.grupoId);
       if (sa !== sb) return sa.localeCompare(sb);
       if (a.grupoId !== b.grupoId) return a.grupoId.localeCompare(b.grupoId);
-      return a.alumno.localeCompare(b.alumno);
+      if ((a.equipoId || '') !== (b.equipoId || '')) return (a.equipoId || '').localeCompare(b.equipoId || '');
+      if (String(a.parcial) !== String(b.parcial)) return String(a.parcial).localeCompare(String(b.parcial));
+      return (a.alumno || '').localeCompare(b.alumno || '');
     });
 
     _pecEdRowMap = {};
     rows.forEach(function(r) { _pecEdRowMap[r.rowIndex] = r; });
 
-    var html = '';
-    var lastSem = null;
-    var rowIdx  = 0;
+    var html         = '';
+    var lastSem      = null;
+    var lastEqKey    = null;
+    var rowIdx       = 0;
 
     rows.forEach(function(r) {
-      var sem = _pecEdSemestre(r.grupoId);
+      var sem   = _pecEdSemestre(r.grupoId);
+      var eqKey = r.grupoId + '\x00' + (r.equipoId || '') + '\x00' + r.parcial;
+
+      /* ── Encabezado de semestre ── */
       if (sem !== lastSem) {
-        lastSem = sem;
-        rowIdx  = 0;
-        html += '<tr><td colspan="8" style="padding:.7rem 1.1rem; background:#1e40af;'
-          + ' font-size:0.78rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em;'
-          + ' color:#fff; border-left:4px solid #60a5fa;">'
-          + '&#9656; ' + sem + '</td></tr>';
+        lastSem   = sem;
+        lastEqKey = null;
+        html += '<tr><td colspan="8" style="padding:.65rem 1.1rem; background:#1e40af;'
+          + ' font-size:0.75rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em;'
+          + ' color:#fff; border-left:4px solid #60a5fa;">&#9656; ' + sem + '</td></tr>';
       }
-      var isEdited = r.tipoRegistro === 'EDICION';
-      var bg  = rowIdx % 2 === 0 ? '' : 'background:var(--d2-surface);';
-      var ri  = r.rowIndex;
+
+      /* ── Encabezado de equipo (cambia por grupo + equipo + parcial) ── */
+      if (eqKey !== lastEqKey) {
+        lastEqKey = eqKey;
+        rowIdx    = 0;
+        var isVesp = String(r.grupoId || '').toUpperCase().charAt(0) === 'V';
+        var tBadge = isVesp
+          ? 'background:#fef9c3;color:#854d0e;'
+          : 'background:#dbeafe;color:#1e40af;';
+        var tLabel = isVesp ? 'Vespertino' : 'Matutino';
+        html += '<tr><td colspan="8" style="padding:.45rem 1rem .45rem 1.4rem; background:#fef3c7; border-top:2px solid #fde68a;">'
+          + '<span style="font-weight:800; font-size:0.84rem; color:#92400e;">' + _pecEdEsc(r.grupoId) + '</span>'
+          + '<span style="font-size:0.7rem; padding:.1rem .45rem; border-radius:20px; margin-left:.35rem; font-weight:600; ' + tBadge + '">' + tLabel + '</span>'
+          + '<span style="margin:0 .5rem; color:#d97706;">|</span>'
+          + '<span style="font-weight:700; font-size:0.84rem; color:#92400e;">' + _pecEdEsc(r.equipoNombre || r.equipoId) + '</span>'
+          + '<span style="margin:0 .5rem; color:#d97706;">|</span>'
+          + '<span style="font-size:0.81rem; color:#78350f;">' + _pecEdEsc(r.materia) + '</span>'
+          + '<span style="margin-left:.5rem; font-size:0.72rem; background:#d97706; color:#fff; padding:.1rem .55rem; border-radius:20px; font-weight:700;">Parcial ' + _pecEdEsc(r.parcial) + '</span>'
+          + '</td></tr>';
+      }
+
+      var isEdited  = r.tipoRegistro === 'EDICION';
+      var bg        = (rowIdx % 2 === 0) ? '#ffffff' : '#fafafa';
+      var ri        = r.rowIndex;
       var editBadge = isEdited
-        ? '<div style="font-size:0.68rem; color:var(--d2-text-muted); margin-top:3px; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="' + _pecEdEsc(r.fechaEdicion) + ' · ' + _pecEdEsc(r.usuarioEdicion) + '">' + _pecEdEsc(r.usuarioEdicion || '') + '</div>'
+        ? '<div style="font-size:0.68rem; color:#64748b; margin-top:3px; max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="' + _pecEdEsc(r.fechaEdicion) + ' · ' + _pecEdEsc(r.usuarioEdicion) + '">' + _pecEdEsc(r.usuarioEdicion || '') + '</div>'
         : '';
-      html += '<tr style="border-top:1px solid var(--d2-border);' + bg + '" id="d2-ed-row-' + ri + '">'
+
+      html += '<tr style="border-top:1px solid #e2e8f0; background:' + bg + ';" id="d2-ed-row-' + ri + '">'
         + '<td style="padding:.5rem .6rem; text-align:center;">'
-            + '<span style="background:var(--d2-sidebar-bg); padding:.15rem .5rem; border-radius:20px; font-weight:700; font-size:0.78rem;">' + _pecEdEsc(r.parcial) + '</span>'
-          + '</td>'
-        + '<td style="padding:.5rem .6rem; font-weight:700; font-size:0.84rem; white-space:nowrap;">' + _pecEdEsc(r.grupoId) + '</td>'
-        + '<td style="padding:.5rem .6rem; font-size:0.82rem; max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="' + _pecEdEsc(r.equipoNombre) + '">' + _pecEdEsc(r.equipoNombre || r.equipoId) + '</td>'
-        + '<td style="padding:.5rem .6rem; font-size:0.82rem; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="' + _pecEdEsc(r.materia) + '">' + _pecEdEsc(r.materia) + '</td>'
-        + '<td style="padding:.5rem .6rem; font-size:0.82rem; white-space:nowrap;">' + _pecEdEsc(r.alumno) + '</td>'
+          + '<span style="background:#0f172a; color:#94a3b8; padding:.15rem .5rem; border-radius:20px; font-weight:700; font-size:0.76rem;">P' + _pecEdEsc(r.parcial) + '</span>'
+        + '</td>'
+        + '<td style="padding:.5rem .6rem; font-weight:700; font-size:0.84rem; white-space:nowrap; color:#0f172a;">' + _pecEdEsc(r.grupoId) + '</td>'
+        + '<td style="padding:.5rem .6rem; font-size:0.82rem; max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#334155;" title="' + _pecEdEsc(r.equipoNombre) + '">' + _pecEdEsc(r.equipoNombre || r.equipoId) + '</td>'
+        + '<td style="padding:.5rem .6rem; font-size:0.82rem; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#334155;" title="' + _pecEdEsc(r.materia) + '">' + _pecEdEsc(r.materia) + '</td>'
+        + '<td style="padding:.5rem .6rem; font-size:0.84rem; font-weight:600; white-space:nowrap; color:#0f172a;">' + _pecEdEsc(r.alumno) + '</td>'
         + '<td style="padding:.5rem .4rem; text-align:center;">'
-            + '<input type="number" id="d2-ed-pts-' + ri + '" step="0.5" min="0" max="10" value="' + r.puntaje + '"'
-            + ' style="width:58px; text-align:center; padding:.3rem .2rem; border:1.5px solid var(--d2-border); border-radius:6px;'
-            + ' font-size:0.92rem; font-weight:700; font-family:inherit;'
-            + ' background:' + (isEdited ? '#fffbeb' : 'var(--d2-surface)') + '; color:var(--d2-text);">'
-          + '</td>'
+          + '<input type="number" id="d2-ed-pts-' + ri + '" step="0.5" min="0" max="10" value="' + r.puntaje + '"'
+          + ' style="width:58px; text-align:center; padding:.3rem .2rem; border:1.5px solid #e2e8f0; border-radius:6px;'
+          + ' font-size:0.92rem; font-weight:700; font-family:inherit;'
+          + ' background:' + (isEdited ? '#fffbeb' : '#ffffff') + '; color:#0f172a;">'
+        + '</td>'
         + '<td style="padding:.5rem .4rem;">'
-            + '<input type="text" id="d2-ed-obs-' + ri + '" value="' + _pecEdEsc(r.observaciones) + '" placeholder="Observaciones…"'
-            + ' style="width:100%; min-width:110px; padding:.3rem .45rem; border:1.5px solid var(--d2-border); border-radius:6px; font-size:0.82rem; font-family:inherit; background:var(--d2-surface); color:var(--d2-text);">'
-          + '</td>'
+          + '<input type="text" id="d2-ed-obs-' + ri + '" value="' + _pecEdEsc(r.observaciones) + '" placeholder="Observaciones…"'
+          + ' style="width:100%; min-width:110px; padding:.3rem .45rem; border:1.5px solid #e2e8f0; border-radius:6px; font-size:0.82rem; font-family:inherit; background:#ffffff; color:#0f172a;">'
+        + '</td>'
         + '<td style="padding:.5rem .4rem; text-align:center;">'
-            + '<button id="d2-ed-savebtn-' + ri + '" onclick="window._d2EdSaveRow(' + ri + ')"'
-            + ' style="padding:.35rem .9rem; background:' + (isEdited ? '#f59e0b' : 'var(--d2-primary)') + '; color:#fff; border:none; border-radius:6px;'
-            + ' font-size:0.8rem; font-weight:700; font-family:inherit; cursor:pointer; white-space:nowrap; transition:background .2s; min-width:76px;">'
-            + (isEdited ? '✎ Editar' : '💾 Guardar')
-            + '</button>'
-            + editBadge
-          + '</td>'
+          + '<button id="d2-ed-savebtn-' + ri + '" onclick="window._d2EdSaveRow(' + ri + ')"'
+          + ' style="padding:.35rem .9rem; background:' + (isEdited ? '#f59e0b' : '#3b82f6') + '; color:#fff; border:none; border-radius:6px;'
+          + ' font-size:0.8rem; font-weight:700; font-family:inherit; cursor:pointer; white-space:nowrap; transition:background .2s; min-width:76px;">'
+          + (isEdited ? '&#9998; Editar' : 'Guardar')
+          + '</button>'
+          + editBadge
+        + '</td>'
         + '</tr>';
       rowIdx++;
     });
@@ -1479,12 +1655,14 @@
       return;
     }
 
-    var email = (sessionStorage.getItem('user_email') || '').toLowerCase().trim();
+    var email   = (sessionStorage.getItem('user_email') || '').toLowerCase().trim();
+    var nuevaObs = obsEl ? obsEl.value.trim() : '';
     if (saveBtn) { saveBtn.textContent = '…'; saveBtn.disabled = true; saveBtn.style.background = '#94a3b8'; }
 
     fetch(API_URL, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method:   'POST',
+      headers:  { 'Content-Type': 'text/plain;charset=utf-8' },
+      redirect: 'follow',
       body: JSON.stringify({
         action:       'editarEvaluacion',
         userEmail:    email,
@@ -1493,7 +1671,7 @@
         materia:      row.materia,
         alumno:       row.alumno,
         nuevoPuntaje: nuevoPuntaje,
-        nuevaObs:     obsEl ? obsEl.value.trim() : '',
+        nuevaObs:     nuevaObs,
         motivo:       'Edición rápida desde Docente 2.0'
       })
     })
@@ -1502,26 +1680,25 @@
       if (res.status === 'success') {
         if (saveBtn) { saveBtn.textContent = '✓ Listo'; saveBtn.style.background = '#22c55e'; saveBtn.disabled = false; }
         row.puntaje        = nuevoPuntaje;
-        row.observaciones  = obsEl ? obsEl.value.trim() : row.observaciones;
+        row.observaciones  = nuevaObs;
         row.tipoRegistro   = 'EDICION';
         row.usuarioEdicion = email;
         if (ptsEl) ptsEl.style.background = '#fffbeb';
         setTimeout(function() {
-          if (saveBtn) { saveBtn.textContent = '✎ Editar'; saveBtn.style.background = ''; }
+          if (saveBtn) { saveBtn.textContent = '✎ Editar'; saveBtn.style.background = '#f59e0b'; }
         }, 2000);
       } else {
-        if (saveBtn) { saveBtn.textContent = '⚠ Error'; saveBtn.style.background = '#ef4444'; saveBtn.disabled = false; }
+        if (saveBtn) { saveBtn.textContent = '⚠ ' + (res.message || 'Error'); saveBtn.style.background = '#ef4444'; saveBtn.disabled = false; }
         setTimeout(function() {
-          if (saveBtn) { saveBtn.textContent = '✎ Editar'; saveBtn.style.background = ''; }
-        }, 3000);
-        alert(res.message || 'Error al guardar. Intenta de nuevo.');
+          if (saveBtn) { saveBtn.textContent = row.tipoRegistro === 'EDICION' ? '✎ Editar' : '💾 Guardar'; saveBtn.style.background = row.tipoRegistro === 'EDICION' ? '#f59e0b' : ''; }
+        }, 4000);
       }
     })
     .catch(function(e) {
-      if (saveBtn) { saveBtn.textContent = '⚠ Error'; saveBtn.style.background = '#ef4444'; saveBtn.disabled = false; }
+      if (saveBtn) { saveBtn.textContent = '⚠ Sin conexión'; saveBtn.style.background = '#ef4444'; saveBtn.disabled = false; }
       setTimeout(function() {
-        if (saveBtn) { saveBtn.textContent = '✎ Editar'; saveBtn.style.background = ''; }
-      }, 3000);
+        if (saveBtn) { saveBtn.textContent = row.tipoRegistro === 'EDICION' ? '✎ Editar' : '💾 Guardar'; saveBtn.style.background = row.tipoRegistro === 'EDICION' ? '#f59e0b' : ''; }
+      }, 4000);
       console.error('[EdicionPEC]', e);
     });
   };
