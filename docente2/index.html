@@ -126,6 +126,24 @@
         <div id="d2-materias-items"></div>
       </div>
 
+      <!-- Herramientas especiales: solo Felipe / Admin — mostrado por JS -->
+      <div id="d2-nav-especial" style="display:none;">
+        <div class="d2-nav-sep"></div>
+        <div class="d2-nav-label">Mis accesos</div>
+        <button class="d2-nav-item" data-mod="curps">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M7 15h.01"/><path d="M11 15h2"/></svg>
+          <span>Buscar CURP</span>
+        </button>
+        <button class="d2-nav-item" id="d2-nav-btn-pdocente" data-mod="ext" data-href="../portal-docente/index.html">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          <span>Mi Portal Docente</span>
+        </button>
+        <button class="d2-nav-item" id="d2-nav-btn-uniforme" data-mod="prefectura">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.57a2 2 0 0 0-1.34-2.23z"/></svg>
+          <span>Reportes de Uniforme</span>
+        </button>
+      </div>
+
     </nav>
 
     <div class="d2-sidebar-bottom">
@@ -290,6 +308,69 @@
       <div class="d2-module" id="d2-mod-horario">
         <!-- d2RenderHorario() inyecta .d2-horario-inner > #hd-container -->
       </div><!-- /d2-mod-horario -->
+
+      <!-- ══ MÓDULO: BUSCAR CURP ══════════════════════════════
+           Solo visible para Felipe / Admin
+      ════════════════════════════════════════════════════ -->
+      <div class="d2-module" id="d2-mod-curps">
+        <div style="padding:1.5rem; max-width:900px; margin:0 auto;">
+          <div style="margin-bottom:1.25rem;">
+            <input id="d2-curp-search" type="search" placeholder="🔍  Buscar por nombre, CURP o grupo…"
+              style="width:100%; padding:0.7rem 1rem; border:1.5px solid var(--d2-border); border-radius:10px;
+                     font-size:0.95rem; font-family:inherit; outline:none; background:var(--d2-surface);
+                     color:var(--d2-text); box-sizing:border-box; transition:border-color .2s;"
+              oninput="d2CurpFilter(this.value)">
+          </div>
+          <div id="d2-curp-status" style="text-align:center; padding:2rem; color:var(--d2-text-muted); font-size:0.9rem;">
+            Cargando lista de alumnos…
+          </div>
+          <div id="d2-curp-table-wrap" style="display:none; overflow-x:auto; border-radius:12px; border:1px solid var(--d2-border);">
+            <table style="width:100%; border-collapse:collapse; font-size:0.875rem;">
+              <thead>
+                <tr style="background:var(--d2-sidebar-bg); color:var(--d2-text-muted); text-transform:uppercase; font-size:0.75rem; letter-spacing:.04em;">
+                  <th style="padding:.75rem 1rem; text-align:left; font-weight:600;">#</th>
+                  <th style="padding:.75rem 1rem; text-align:left; font-weight:600;">Nombre</th>
+                  <th style="padding:.75rem 1rem; text-align:left; font-weight:600;">Grupo</th>
+                  <th style="padding:.75rem 1rem; text-align:left; font-weight:600;">CURP</th>
+                  <th style="padding:.75rem 1rem; text-align:center; font-weight:600;">Copiar</th>
+                </tr>
+              </thead>
+              <tbody id="d2-curp-tbody"></tbody>
+            </table>
+            <div id="d2-curp-footer" style="padding:.6rem 1rem; font-size:0.78rem; color:var(--d2-text-muted); border-top:1px solid var(--d2-border); text-align:right;"></div>
+          </div>
+        </div>
+      </div><!-- /d2-mod-curps -->
+
+      <!-- ══ MÓDULO: MI MATERIA (iframe compartido) ══════════
+           Reutilizado para cada materia dinámica del docente
+      ════════════════════════════════════════════════════ -->
+      <div class="d2-module" id="d2-mod-materia">
+        <div class="d2-iframe-wrap" id="d2-materia-wrap">
+          <div class="d2-iframe-loading" id="d2-materia-loading">
+            <div class="d2-spinner"></div>
+            <div>
+              <div class="d2-loader-title" id="d2-materia-loader-title">Cargando materia…</div>
+              <div class="d2-loader-sub"></div>
+            </div>
+          </div>
+          <iframe id="d2-iframe-materia" title="Mi Materia — CEB 5/4"></iframe>
+        </div>
+      </div><!-- /d2-mod-materia -->
+
+      <!-- ══ MÓDULO: PREFECTURA (Reportes de Uniforme) ══════ -->
+      <div class="d2-module" id="d2-mod-prefectura">
+        <div class="d2-iframe-wrap" id="d2-prefectura-wrap">
+          <div class="d2-iframe-loading" id="d2-prefectura-loading">
+            <div class="d2-spinner"></div>
+            <div>
+              <div class="d2-loader-title">Cargando Reportes de Uniforme…</div>
+              <div class="d2-loader-sub"></div>
+            </div>
+          </div>
+          <iframe id="d2-iframe-prefectura" title="Prefectura — CEB 5/4"></iframe>
+        </div>
+      </div><!-- /d2-mod-prefectura -->
 
     </div><!-- /d2-content -->
   </div><!-- /d2-main -->

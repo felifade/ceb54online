@@ -13,14 +13,24 @@
     <link rel="stylesheet" href="css/style.css?v=20260418">
 </head>
 
+<script>
+(function(){
+  if(new URLSearchParams(location.search).get('d2embed')==='1'){
+    document.documentElement.classList.add('d2-embedded');
+  }
+})();
+</script>
+<style>
+.d2-embedded .back-to-portal { color: var(--accent) !important; }
+</style>
 <body oncontextmenu="return false" onselectstart="return false" oncopy="return false" oncut="return false"
     onpaste="return false">
 
     <div class="app-container">
         <!-- Sidebar Modular -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="cd-sidebar">
             <div class="sidebar-header">
-                <a href="../portal/alumno.html" class="back-to-portal">
+                <a href="#" onclick="(function(){try{sessionStorage.removeItem('portal_came_from_eval');}catch(e){}; var emb=new URLSearchParams(location.search).get('d2embed')==='1'; location.href=emb?'../docente2/index.html':'../portal/alumno.html';})(); return false;" class="back-to-portal">
                     <i data-lucide="arrow-left-circle"></i> Volver al Portal
                 </a>
                 <img src="../assets/logo.png" alt="Logo CEB" class="logo-sidebar">
@@ -64,6 +74,9 @@
                 </div>
             </nav>
         </aside>
+        <button class="cd-sidebar-toggle" id="cd-sidebar-toggle" title="Ocultar / mostrar panel" aria-label="Toggle sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
 
         <!-- Área de la Libreta -->
         <main class="main-content">
@@ -1012,6 +1025,27 @@
                 setTimeout(() => switchWeek(latest), 100);
             }
         });
+    </script>
+
+    <script>
+    (function() {
+      var sidebar = document.getElementById('cd-sidebar');
+      var btn     = document.getElementById('cd-sidebar-toggle');
+      var KEY     = 'cd_sidebar_collapsed';
+      if (!sidebar || !btn) return;
+
+      function setCollapsed(on) {
+        sidebar.classList.toggle('sidebar--collapsed', on);
+        try { localStorage.setItem(KEY, on ? '1' : '0'); } catch(e) {}
+      }
+
+      /* Restaurar estado guardado */
+      try { if (localStorage.getItem(KEY) === '1') setCollapsed(true); } catch(e) {}
+
+      btn.addEventListener('click', function() {
+        setCollapsed(!sidebar.classList.contains('sidebar--collapsed'));
+      });
+    })();
     </script>
 
     <button class="teacher-notes-btn" onclick="toggleTeacherPanel()">

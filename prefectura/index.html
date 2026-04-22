@@ -9,8 +9,18 @@
       if (auth !== 'true' || !email) {
         window.location.replace('../admin/index.html');
       }
+      if (new URLSearchParams(location.search).get('d2embed') === '1') {
+        document.documentElement.classList.add('d2-embedded');
+      }
     })();
   </script>
+  <style>
+    .d2-embedded .sidebar { display: none !important; }
+    .d2-embedded .sidebar-overlay { display: none !important; }
+    .d2-embedded .main-content { margin-left: 0 !important; width: 100% !important; }
+    .d2-embedded .top-header { display: none !important; }
+    .d2-embedded .btn-hamburger { display: none !important; }
+  </style>
   <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">

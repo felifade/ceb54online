@@ -508,11 +508,13 @@ function renderAccesoPortal(grupo) {
 
   if (!config) {
     container.style.display = 'none';
+    const p = document.getElementById('portal-acceso-principal');
+    if (p) p.style.display = 'none';
     return;
   }
 
-  container.style.display = 'block';
-  container.innerHTML = `
+  // Tarjeta completa (pestaña Cultura Digital)
+  const cardFull = `
     <a href="${config.url}"
        onclick="sessionStorage.setItem('portal_came_from_eval','1')"
        style="display:flex; align-items:center; gap:0.75rem;
@@ -536,6 +538,54 @@ function renderAccesoPortal(grupo) {
       <i data-lucide="arrow-right" style="width:17px; height:17px; color:rgba(255,255,255,0.7); flex-shrink:0;"></i>
     </a>
   `;
+
+  container.style.display = 'block';
+  container.innerHTML = cardFull;
+
+  // Tarjeta en la pestaña Principal — formato app-card con pulso de atención
+  const principal = document.getElementById('portal-acceso-principal');
+  if (principal) {
+    principal.style.display = 'block';
+    principal.innerHTML = `
+      <div style="background:white; border-radius:18px;
+                  box-shadow:0 2px 12px rgba(0,0,0,0.07);
+                  border:1.5px solid ${config.bgLight};
+                  overflow:hidden;">
+        <a href="${config.url}"
+           onclick="sessionStorage.setItem('portal_came_from_eval','1')"
+           style="display:flex; align-items:center; gap:1rem;
+                  padding:1rem 1.1rem; text-decoration:none; color:inherit;
+                  transition:background 0.15s;"
+           onmouseover="this.style.background='${config.bgLight}'"
+           onmouseout="this.style.background=''">
+          <div style="width:46px; height:46px; border-radius:13px;
+                      background:${config.bg};
+                      display:flex; align-items:center; justify-content:center;
+                      flex-shrink:0; box-shadow:0 4px 12px ${config.shadow};">
+            <i data-lucide="${config.icon}" style="width:22px; height:22px; color:white;"></i>
+          </div>
+          <div style="flex:1; min-width:0;">
+            <div style="font-size:0.62rem; font-weight:700; color:${config.color};
+                        text-transform:uppercase; letter-spacing:0.07em; margin-bottom:0.18rem;">
+              ${config.semLabel} · Materia digital
+            </div>
+            <div style="font-size:1rem; font-weight:800; color:#0f172a; line-height:1.2;">
+              ${config.titulo}
+            </div>
+            <div style="font-size:0.72rem; color:#64748b; margin-top:0.18rem;">
+              Toca para entrar al portal →
+            </div>
+          </div>
+          <div style="width:32px; height:32px; border-radius:50%;
+                      background:${config.bgLight};
+                      display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <i data-lucide="arrow-right" style="width:15px; height:15px; color:${config.color};"></i>
+          </div>
+        </a>
+      </div>
+    `;
+  }
+
   lucide.createIcons();
 }
 

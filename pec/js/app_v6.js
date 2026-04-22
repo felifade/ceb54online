@@ -957,16 +957,23 @@ document.addEventListener("DOMContentLoaded", () => {
                         hintDiv.innerHTML = `
                             <div style="background:#EEF2FF; border:1px solid #C7D2FE; color:#4338CA; padding:10px 14px; border-radius:8px; font-size:0.85rem; margin-top:8px;">
                                 📌 <strong>${selectedOpt.value}</strong> tiene una ponderación de <strong>${pond} punto(s)</strong> sobre los 2 puntos totales del PEC.
-                                <br><span style="font-size:0.8rem; color:#6366f1;">Calificación sugerida: de 0 a ${pond}</span>
+                                <br><span style="font-size:0.8rem; color:#6366f1;">⚠️ La calificación máxima permitida es <strong>${pond}</strong>. No ingreses un valor mayor.</span>
                             </div>
                         `;
+                        // Ajustar max en todos los inputs de captura
+                        if (puntajeGenInput) { puntajeGenInput.max = pond; puntajeGenInput.dataset.pond = pond; }
+                        document.querySelectorAll('.eval-indiv-input').forEach(inp => { inp.max = pond; inp.dataset.pond = pond; });
                     } else {
                         hintDiv.innerHTML = '';
+                        if (puntajeGenInput) { puntajeGenInput.removeAttribute('max'); delete puntajeGenInput.dataset.pond; }
+                        document.querySelectorAll('.eval-indiv-input').forEach(inp => { inp.max = 10; delete inp.dataset.pond; });
                     }
                 }
             } else {
                 document.getElementById('eval-docente').value = '';
                 hintDiv.innerHTML = '';
+                if (puntajeGenInput) { puntajeGenInput.removeAttribute('max'); delete puntajeGenInput.dataset.pond; }
+                document.querySelectorAll('.eval-indiv-input').forEach(inp => { inp.max = 10; delete inp.dataset.pond; });
             }
         };
 
@@ -1050,6 +1057,32 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!submitIsAdmin && correoMateria && normS(correoMateria) !== normS(submitEmail)) {
             alert("⛔ No puedes guardar esta evaluación. La materia seleccionada no te corresponde.");
             return;
+        }
+
+        // Validación de ponderación — bloquea si algún puntaje excede el máximo asignado
+        const maxPond = selectedOpt ? parseFloat(selectedOpt.dataset.ponderacion || '0') : 0;
+        if (maxPond > 0) {
+            const generalVal = parseFloat(document.getElementById('eval-puntaje').value);
+            const fuera = [];
+            if (!isNaN(generalVal) && generalVal > maxPond) {
+                fuera.push(`Calificación general: ${generalVal}`);
+            }
+            document.querySelectorAll('.eval-indiv-input').forEach(inp => {
+                if (inp.value !== '') {
+                    const v = parseFloat(inp.value);
+                    if (!isNaN(v) && v > maxPond) fuera.push(`${inp.dataset.alumno}: ${v}`);
+                }
+            });
+            if (fuera.length > 0) {
+                alert(
+                    `⚠️ Calificación fuera del rango permitido\n\n` +
+                    `La ponderación máxima para "${selectedOpt.value}" es ${maxPond} punto(s).\n\n` +
+                    `Valores que exceden el límite:\n` +
+                    fuera.map(f => `  • ${f}`).join('\n') +
+                    `\n\nCorrige los valores antes de guardar.`
+                );
+                return;
+            }
         }
 
         const payload = {

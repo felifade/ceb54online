@@ -14,11 +14,13 @@
   var API_URL = 'https://script.google.com/macros/s/AKfycbz4q9VlhAvvVJ1XYOwqNTJ9eMkVRm3HgoyFJNpEQaPJsDdK1JcfhbTX1CRfDg38x79fsA/exec';
 
   /* ── Materias por docente (email → módulos externos) ─── */
+  var _FELIPE_MATERIAS = [
+    { label: 'Cultura Digital II',  href: '../cultura-digital/index.html',    icon: 'monitor' },
+    { label: 'Cultura Digital III', href: '../cultura-digital-iii/index.html', icon: 'code' }
+  ];
   var MATERIA_MAP = {
-    'felifade@icloud.com': [
-      { label: 'Cultura Digital II',  href: '../cultura-digital/index.html',    icon: 'monitor' },
-      { label: 'Cultura Digital III', href: '../cultura-digital-iii/index.html', icon: 'code' }
-    ]
+    'felifade@icloud.com':    _FELIPE_MATERIAS,
+    'd.flopez54@dgb.edu.mx': _FELIPE_MATERIAS
   };
 
   /* Íconos SVG inline para las materias */
@@ -63,8 +65,14 @@
     tutorias: { title: 'Tutorías',            sub: 'Registro de sesiones, historial y reportes' },
     pec:      { title: 'PEC',                 sub: 'Proyecto Educativo Colaborativo — CEB 5/4' },
     horario:  { title: 'Horario',             sub: 'Horario definitivo de clases — CEB 5/4' },
-    sabanas:  { title: 'Mis Calificaciones',  sub: 'Calificaciones por materia · Parciales · Global' }
+    sabanas:  { title: 'Mis Calificaciones',  sub: 'Calificaciones por materia · Parciales · Global' },
+    curps:       { title: 'Buscar CURP',            sub: 'Consulta rápida de CURP de alumnos' },
+    materia:     { title: 'Mi Materia',             sub: 'Portal de actividades del docente' },
+    prefectura:  { title: 'Reportes de Uniforme',   sub: 'Seguimiento de incidencias · Prefectura' }
   };
+
+  /* Emails autorizados para herramientas especiales (CURP + portal docente) */
+  var ESPECIAL_EMAILS = ['felifade@icloud.com', 'd.flopez54@dgb.edu.mx'];
   var _sabanasLoaded = false;
 
   /* ── DOM refs ────────────────────────────────────────── */
@@ -172,6 +180,7 @@
   function initApp() {
     populateSidebarUser();
     populateMaterias();
+    setupEspecial();
     activateMod('info');
     if (typeof d2RenderInfo === 'function') d2RenderInfo();
   }
@@ -212,26 +221,110 @@
   function populateMaterias() {
     var email    = (sessionStorage.getItem('user_email') || '').toLowerCase().trim();
     var materias = MATERIA_MAP[email] || [];
-    var wrap     = document.getElementById('d2-nav-materias');
-    var items    = document.getElementById('d2-materias-items');
-    if (!materias.length || !wrap || !items) return;
+    if (!materias.length) return;
 
-    var html = materias.map(function(m) {
+    /* Si es usuario especial, las materias se inyectan en setupEspecial — no aquí */
+    if (ESPECIAL_EMAILS.indexOf(email) !== -1) return;
+
+    var wrap  = document.getElementById('d2-nav-materias');
+    var items = document.getElementById('d2-materias-items');
+    if (!wrap || !items) return;
+
+    items.innerHTML = materias.map(function(m) {
       var ico = MATERIA_ICONS[m.icon] || MATERIA_ICONS['monitor'];
-      return '<button class="d2-nav-item" data-mod="ext" data-href="' + m.href + '">' +
+      return '<button class="d2-nav-item" data-mod="materia" data-href="' + m.href + '" data-label="' + m.label + '">' +
                ico + '<span>' + m.label + '</span>' +
              '</button>';
     }).join('');
-
-    items.innerHTML = html;
     wrap.style.display = 'block';
 
-    /* wire clicks */
     items.querySelectorAll('.d2-nav-item').forEach(function(btn) {
       btn.addEventListener('click', function() {
-        window.open(btn.dataset.href, '_blank');
+        activateMateria(btn.dataset.href, btn.dataset.label);
       });
     });
+  }
+
+  /* Carga una materia en el iframe compartido */
+  function activateMateria(href, label) {
+    /* Actualizar topbar con el nombre de la materia */
+    document.getElementById('d2-topbar-title').textContent = label || 'Mi Materia';
+    document.getElementById('d2-topbar-sub').textContent   = 'Portal de actividades del docente';
+
+    /* Marcar activo en sidebar */
+    document.querySelectorAll('.d2-nav-item[data-mod]').forEach(function(b) {
+      b.classList.toggle('active', b.dataset.mod === 'materia' && b.dataset.href === href);
+    });
+
+    /* Mostrar panel */
+    document.querySelectorAll('.d2-module').forEach(function(el) {
+      el.classList.toggle('active', el.id === 'd2-mod-materia');
+    });
+
+    var iframe  = document.getElementById('d2-iframe-materia');
+    var loading = document.getElementById('d2-materia-loading');
+    var title   = document.getElementById('d2-materia-loader-title');
+
+    if (title)   title.textContent = 'Cargando ' + (label || 'materia') + '…';
+    if (loading) loading.classList.remove('hidden');
+
+    /* Recargar solo si cambió la URL */
+    var fullHref = href + (href.indexOf('?') === -1 ? '?' : '&') + 'd2embed=1';
+    if (iframe.src !== location.origin + '/' + fullHref && iframe.getAttribute('src') !== fullHref) {
+      iframe.src = fullHref;
+    }
+
+    iframe.onload = function() {
+      if (loading) loading.classList.add('hidden');
+    };
+
+    closeSidebar();
+    window.scrollTo(0, 0);
+  }
+
+  /* ════════════════════════════════════════════════════════
+     HERRAMIENTAS ESPECIALES (Felipe / Admin)
+  ════════════════════════════════════════════════════════ */
+  function setupEspecial() {
+    var email = (sessionStorage.getItem('user_email') || '').toLowerCase().trim();
+    var role  = (sessionStorage.getItem('user_role')  || '').toLowerCase();
+    var isEspecial = ESPECIAL_EMAILS.indexOf(email) !== -1 || role.indexOf('admin') !== -1 || role.indexOf('direct') !== -1;
+    if (!isEspecial) return;
+
+    var navEsp = document.getElementById('d2-nav-especial');
+    if (!navEsp) return;
+    navEsp.style.display = 'block';
+
+    /* Inyectar materias del docente al inicio de la sección especial */
+    var materias = MATERIA_MAP[email] || [];
+    if (materias.length) {
+      var label = navEsp.querySelector('.d2-nav-label');
+      materias.forEach(function(m) {
+        var ico = MATERIA_ICONS[m.icon] || MATERIA_ICONS['monitor'];
+        var btn = document.createElement('button');
+        btn.className = 'd2-nav-item';
+        btn.dataset.mod   = 'materia';
+        btn.dataset.href  = m.href;
+        btn.dataset.label = m.label;
+        btn.innerHTML = ico + '<span>' + m.label + '</span>';
+        btn.addEventListener('click', function() { activateMateria(m.href, m.label); });
+        navEsp.insertBefore(btn, label ? label.nextSibling : null);
+      });
+    }
+
+    /* Portal docente → nueva pestaña */
+    var btnPD = document.getElementById('d2-nav-btn-pdocente');
+    if (btnPD) btnPD.addEventListener('click', function() { window.open('../portal-docente/index.html', '_blank'); });
+
+    /* Reportes de Uniforme → módulo embebido */
+    var btnUni = document.getElementById('d2-nav-btn-uniforme');
+    if (btnUni) btnUni.addEventListener('click', function() { activateMod('prefectura'); });
+
+    /* Botón CURPs → activar módulo */
+    var btnCurps = navEsp.querySelector('[data-mod="curps"]');
+    if (btnCurps) {
+      btnCurps.addEventListener('click', function() { activateMod('curps'); });
+    }
   }
 
   /* ════════════════════════════════════════════════════════
@@ -270,10 +363,89 @@
     if (modId === 'pec')      lazyLoadPec();
     if (modId === 'horario' && typeof d2RenderHorario === 'function') d2RenderHorario();
     if (modId === 'sabanas')  lazyLoadSabanas();
+    if (modId === 'curps')       loadCurps();
+    if (modId === 'prefectura')  lazyLoadPrefectura();
 
     closeSidebar();
     window.scrollTo(0, 0);
   }
+
+  /* ════════════════════════════════════════════════════════
+     MÓDULO: BUSCAR CURP
+  ════════════════════════════════════════════════════════ */
+  var _curpsData = null;   /* caché local */
+
+  function loadCurps() {
+    if (_curpsData) { d2CurpRender(_curpsData, ''); return; }
+    var status = document.getElementById('d2-curp-status');
+    var wrap   = document.getElementById('d2-curp-table-wrap');
+    if (status) status.style.display = 'block';
+    if (wrap)   wrap.style.display   = 'none';
+
+    fetch(API_URL + '?action=getAlumnos&_t=' + Date.now())
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        var alumnos = (res.alumnos || []).filter(function(a) {
+          return a.nombre || a.curp;
+        });
+        /* Ordenar por grupo luego nombre */
+        alumnos.sort(function(a, b) {
+          var g = String(a.grupo || '').localeCompare(String(b.grupo || ''));
+          if (g !== 0) return g;
+          return String(a.nombre || '').localeCompare(String(b.nombre || ''));
+        });
+        _curpsData = alumnos;
+        d2CurpRender(alumnos, '');
+      })
+      .catch(function(err) {
+        if (status) status.textContent = 'Error al cargar la lista. Intenta de nuevo.';
+        console.error('[CURP]', err);
+      });
+  }
+
+  function d2CurpRender(alumnos, query) {
+    var status = document.getElementById('d2-curp-status');
+    var wrap   = document.getElementById('d2-curp-table-wrap');
+    var tbody  = document.getElementById('d2-curp-tbody');
+    var footer = document.getElementById('d2-curp-footer');
+    if (!tbody) return;
+
+    var q = (query || '').toLowerCase().trim();
+    var filtered = q
+      ? alumnos.filter(function(a) {
+          return (String(a.nombre || '')).toLowerCase().indexOf(q) !== -1
+              || (String(a.curp   || '')).toLowerCase().indexOf(q) !== -1
+              || (String(a.grupo  || '')).toLowerCase().indexOf(q) !== -1;
+        })
+      : alumnos;
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="padding:1.5rem; text-align:center; color:var(--d2-text-muted);">Sin resultados para "' + query + '"</td></tr>';
+    } else {
+      tbody.innerHTML = filtered.map(function(a, i) {
+        var curp = String(a.curp || '—');
+        return '<tr style="border-top:1px solid var(--d2-border); transition:background .15s;" '
+          + 'onmouseover="this.style.background=\'var(--d2-surface)\'" onmouseout="this.style.background=\'\'">'
+          + '<td style="padding:.6rem 1rem; color:var(--d2-text-muted);">' + (i+1) + '</td>'
+          + '<td style="padding:.6rem 1rem; font-weight:600;">' + (a.nombre || '—') + '</td>'
+          + '<td style="padding:.6rem 1rem;">' + (a.grupo || '—') + '</td>'
+          + '<td style="padding:.6rem 1rem; font-family:monospace; font-size:.82rem; letter-spacing:.02em;">' + curp + '</td>'
+          + '<td style="padding:.6rem 1rem; text-align:center;">'
+          + '<button onclick="navigator.clipboard.writeText(\'' + curp + '\').then(function(){var b=this;b.textContent=\'✓\';setTimeout(function(){b.textContent=\'📋\';},1200);}.bind(this))" '
+          + 'style="background:none; border:1px solid var(--d2-border); border-radius:6px; padding:.25rem .5rem; cursor:pointer; font-size:.9rem;" title="Copiar CURP">📋</button>'
+          + '</td></tr>';
+      }).join('');
+    }
+
+    if (footer) footer.textContent = filtered.length + ' alumno' + (filtered.length !== 1 ? 's' : '') + (q ? ' encontrado' + (filtered.length !== 1 ? 's' : '') : ' en total');
+    if (status) status.style.display = 'none';
+    if (wrap)   wrap.style.display   = 'block';
+  }
+
+  /* Exponer filtro al HTML inline */
+  window.d2CurpFilter = function(q) {
+    if (_curpsData) d2CurpRender(_curpsData, q);
+  };
 
   /* ════════════════════════════════════════════════════════
      IFRAME — TUTORÍAS  (carga lazy, chrome oculto)
@@ -824,6 +996,25 @@
   function _sabCell(v) {
     if (v === null) return '<span class="cn">—</span>';
     return v < 6 ? '<span class="cf">'+v.toFixed(1)+'</span>' : '<span class="cp">'+v.toFixed(1)+'</span>';
+  }
+
+  /* ════════════════════════════════════════════════════════
+     IFRAME — PREFECTURA (carga lazy)
+  ════════════════════════════════════════════════════════ */
+  var _prefecturaLoaded = false;
+
+  function lazyLoadPrefectura() {
+    var iframe  = document.getElementById('d2-iframe-prefectura');
+    var loading = document.getElementById('d2-prefectura-loading');
+    if (!iframe) return;
+    if (_prefecturaLoaded) return;
+    _prefecturaLoaded = true;
+
+    if (loading) loading.classList.remove('hidden');
+    iframe.src = '../prefectura/index.html?d2embed=1';
+    iframe.onload = function() {
+      if (loading) loading.classList.add('hidden');
+    };
   }
 
 })();

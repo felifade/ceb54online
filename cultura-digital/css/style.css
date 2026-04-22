@@ -474,10 +474,51 @@ h1, h2, h3, .font-outfit {
     margin-bottom: 0.75rem;
 }
 
+/* ── Sidebar toggle ─────────────────────────────────── */
+.sidebar {
+    position: relative;
+    transition: width 0.28s cubic-bezier(.4,0,.2,1), padding 0.28s;
+    overflow: hidden;
+}
+
+/* El botón es hermano del sidebar — no queda recortado por overflow:hidden */
+.cd-sidebar-toggle {
+    position: fixed;
+    top: 50vh;
+    left: calc(300px - 14px); /* borde derecho del sidebar expandido */
+    transform: translateY(-50%);
+    width: 28px; height: 28px;
+    background: white;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,.12);
+    z-index: 100;
+    flex-shrink: 0;
+    transition: left 0.28s cubic-bezier(.4,0,.2,1), background .15s;
+}
+.cd-sidebar-toggle:hover { background: var(--accent, #10b981); border-color: var(--accent, #10b981); }
+.cd-sidebar-toggle:hover svg { stroke: #fff; }
+.cd-sidebar-toggle svg { width: 14px; height: 14px; stroke: #64748b; transition: transform .28s, stroke .15s; }
+
+/* Selector hermano: cuando el sidebar está colapsado el botón se desplaza a la izquierda */
+.sidebar--collapsed ~ .cd-sidebar-toggle {
+    left: -14px;
+}
+.sidebar--collapsed ~ .cd-sidebar-toggle svg { transform: rotate(180deg); }
+
+/* Estado colapsado */
+.sidebar--collapsed {
+    width: 0 !important;
+    padding: 0 !important;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
     .sidebar { width: 240px; }
     .notebook-page { padding: 2rem; }
+    .cd-sidebar-toggle { left: calc(240px - 14px); }
 }
 
 @media (max-width: 768px) {
@@ -485,4 +526,5 @@ h1, h2, h3, .font-outfit {
     .sidebar { width: 100%; height: auto; position: relative; }
     .notebook-page { padding: 1.5rem; border-left: 0; border-top: 10px solid #e2e8f0; }
     .week-title-main { font-size: 1.5rem; }
+    .cd-sidebar-toggle { display: none; }
 }

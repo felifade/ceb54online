@@ -3199,7 +3199,7 @@ function _estCapvShowPicker(td, dia, hour, rowIdx) {
   var rows = _estCapvCurrentRows();
   var map  = _estCapvBuildMap(rows);
   var slots = [];
-  for (var dur=1; dur<=3; dur++) {
+  for (var dur=1; dur<=2; dur++) {
     if (hour+dur > 22) break;
     var label = (hour<10?'0':'')+hour+':00-'+(hour+dur<10?'0':'')+(hour+dur)+':00';
     var free = true;
