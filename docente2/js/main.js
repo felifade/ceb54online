@@ -30,6 +30,22 @@
   /* El chrome de los iframes se oculta via ?d2embed=1 en la URL
      (clase .d2-embedded en <html> aplicada antes de que cargue el CSS) */
 
+  /* ── Etiquetas de vistas para el loader ─────────────── */
+  var TUT_VIEW_LABELS = {
+    dashboard: 'Dashboard', captura: 'Registrar sesión',
+    historial: 'Historial', reporte: 'Generar reporte', encuesta: 'Opinión estudiantil'
+  };
+  var PEC_VIEW_LABELS = {
+    pecportal: 'Portal PEC', dashboard: 'Dashboard', rapida: 'Vista rápida',
+    directorio: 'Directorio', auditoria: 'Auditoría',
+    grupos: 'Evaluar equipos', edicion: 'Editar capturas'
+  };
+
+  function setLoaderSub(subId, label) {
+    var el = document.getElementById(subId);
+    if (el) el.textContent = label ? label : '';
+  }
+
   /* ── Estado interno ──────────────────────────────────── */
   var state = {
     mod:          'info',
@@ -333,7 +349,8 @@
       if (state.tutLoaded) {
         tutSwitchView(view);
       } else {
-        state.tutQueue = view;  /* pendiente hasta que cargue */
+        state.tutQueue = view;
+        setLoaderSub('d2-tutorias-loading-sub', TUT_VIEW_LABELS[view] || view);
         lazyLoadTutorias();
       }
     });
@@ -349,6 +366,7 @@
         state.pecInCalif = true;
         var iframe = document.getElementById('d2-iframe-pec');
         showPanelLoader('d2-pec-loading');
+        setLoaderSub('d2-pec-loading-sub', 'Calificaciones');
         iframe.onload = function() { hidePanelLoader('d2-pec-loading'); };
         iframe.src = '../pec/calificaciones.html?d2embed=1';
         return;
@@ -372,6 +390,7 @@
       if (!reloadNeeded && state.pecLoaded) {
         pecSwitchView(view);
       } else {
+        setLoaderSub('d2-pec-loading-sub', PEC_VIEW_LABELS[view] || view);
         lazyLoadPec();
       }
     });
@@ -384,7 +403,11 @@
         _setSubnavActive(pecSubnavDash, btn.dataset.subview);
         state.pecView = btn.dataset.subview;
         if (state.pecLoaded) pecSwitchView(btn.dataset.subview);
-        else { state.pecQueue = btn.dataset.subview; lazyLoadPec(); }
+        else {
+          state.pecQueue = btn.dataset.subview;
+          setLoaderSub('d2-pec-loading-sub', PEC_VIEW_LABELS[btn.dataset.subview] || btn.dataset.subview);
+          lazyLoadPec();
+        }
       });
     });
   }
@@ -396,7 +419,11 @@
         _setSubnavActive(pecSubnavCap, btn.dataset.subview);
         state.pecView = btn.dataset.subview;
         if (state.pecLoaded) pecSwitchView(btn.dataset.subview);
-        else { state.pecQueue = btn.dataset.subview; lazyLoadPec(); }
+        else {
+          state.pecQueue = btn.dataset.subview;
+          setLoaderSub('d2-pec-loading-sub', PEC_VIEW_LABELS[btn.dataset.subview] || btn.dataset.subview);
+          lazyLoadPec();
+        }
       });
     });
   }

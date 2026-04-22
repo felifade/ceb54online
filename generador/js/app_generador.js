@@ -282,6 +282,7 @@ async function genNavTo(modId) {
   }
 
   _genApp.currentMod = modId;
+  genUpdateWizard(modId);
   genShowLoading();
 
   // Cerrar sidebar en móvil
@@ -294,6 +295,23 @@ async function genNavTo(modId) {
     genShowError('Error al cargar el módulo: ' + err.message);
     console.error(err);
   }
+}
+
+// ── WIZARD ────────────────────────────────────────────────────────
+function genUpdateWizard(modId) {
+  var steps = document.querySelectorAll('#gen-wizard .gen-wizard-step');
+  var activeStep = -1;
+  steps.forEach(function(step) {
+    var mods = (step.dataset.mods || '').split(' ');
+    if (mods.indexOf(modId) !== -1) activeStep = parseInt(step.dataset.step, 10);
+  });
+  if (activeStep === -1) return;
+  steps.forEach(function(step) {
+    var n = parseInt(step.dataset.step, 10);
+    step.classList.remove('active', 'done');
+    if (n === activeStep) step.classList.add('active');
+    else if (n < activeStep) step.classList.add('done');
+  });
 }
 
 // ── SELECTOR DE CICLO ─────────────────────────────────────────────

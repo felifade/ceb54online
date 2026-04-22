@@ -116,6 +116,68 @@ body.gen-collapsed #gen-app-content { margin-left: 56px; }
   box-shadow: var(--gen-shadow);
 }
 
+/* ── WIZARD DE PASOS ─────────────────────────────────────────────── */
+#gen-wizard {
+  display: flex;
+  align-items: center;
+  padding: 10px 24px;
+  background: var(--gen-surface);
+  border-bottom: 1px solid var(--gen-border);
+  gap: 0;
+}
+.gen-wizard-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: default;
+}
+.gen-wizard-dot {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--gen-border);
+  background: #f8fafc;
+  color: var(--gen-muted);
+  font-size: 0.72rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  flex-shrink: 0;
+}
+.gen-wizard-label {
+  font-size: 0.75rem; font-weight: 600;
+  color: var(--gen-muted);
+  white-space: nowrap;
+  transition: color 0.2s;
+}
+.gen-wizard-connector {
+  flex: 1;
+  min-width: 24px;
+  height: 2px;
+  background: var(--gen-border);
+  margin: 0 8px;
+  transition: background 0.2s;
+}
+/* Step active */
+.gen-wizard-step.active .gen-wizard-dot {
+  background: var(--gen-primary);
+  border-color: var(--gen-primary);
+  color: #fff;
+}
+.gen-wizard-step.active .gen-wizard-label {
+  color: var(--gen-primary);
+}
+/* Step done (before active) */
+.gen-wizard-step.done .gen-wizard-dot {
+  background: #dcfce7;
+  border-color: #16a34a;
+  color: #16a34a;
+}
+.gen-wizard-step.done .gen-wizard-label {
+  color: #16a34a;
+}
+.gen-wizard-step.done + .gen-wizard-connector {
+  background: #16a34a;
+}
+
 #gen-main-content {
   flex: 1;
   padding: 24px;
