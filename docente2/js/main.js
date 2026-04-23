@@ -314,10 +314,6 @@
       });
     }
 
-    /* Portal docente → nueva pestaña */
-    var btnPD = document.getElementById('d2-nav-btn-pdocente');
-    if (btnPD) btnPD.addEventListener('click', function() { window.open('../portal-docente/index.html', '_blank'); });
-
     /* Reportes de Uniforme → módulo embebido */
     var btnUni = document.getElementById('d2-nav-btn-uniforme');
     if (btnUni) btnUni.addEventListener('click', function() { activateMod('prefectura'); });

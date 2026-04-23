@@ -20,6 +20,26 @@
     .d2-embedded .main-content { margin-left: 0 !important; width: 100% !important; }
     .d2-embedded .top-header { display: none !important; }
     .d2-embedded .btn-hamburger { display: none !important; }
+
+    /* Barra de navegación para modo embebido (reemplaza sidebar + top-header) */
+    #pref-embed-nav { display: none; }
+    .d2-embedded #pref-embed-nav {
+      display: flex; align-items: center; gap: .25rem;
+      padding: .5rem .75rem; background: #0f172a;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .pref-embed-tab {
+      flex: 1; border: none; border-radius: 8px;
+      padding: .45rem .5rem; cursor: pointer; font-size: .78rem;
+      font-family: 'Inter', sans-serif; font-weight: 600;
+      background: transparent; color: #94a3b8;
+      transition: background .15s, color .15s;
+      display: flex; align-items: center; justify-content: center; gap: .35rem;
+    }
+    .pref-embed-tab.active { background: #1e293b; color: #e2e8f0; }
+    .pref-embed-tab:hover:not(.active) { background: #1e293b88; color: #cbd5e1; }
+    .pref-embed-tab svg { width: 14px; height: 14px; flex-shrink: 0; }
   </style>
   <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
@@ -75,6 +95,22 @@
 
   <!-- ══ MAIN ══ -->
   <main class="main-content">
+
+    <!-- Navegación compacta solo visible en modo embebido (d2embed=1) -->
+    <nav id="pref-embed-nav" aria-label="Navegación Prefectura">
+      <button class="pref-embed-tab active" onclick="prefEmbedNav('dashboard',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Resumen
+      </button>
+      <button class="pref-embed-tab" onclick="prefEmbedNav('registrar',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Registrar
+      </button>
+      <button class="pref-embed-tab" onclick="prefEmbedNav('consultar',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Consultar
+      </button>
+    </nav>
 
     <header class="top-header">
       <div style="display:flex; align-items:center; gap:0.75rem;">
@@ -454,6 +490,13 @@
   function cerrarSidebar() {
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebar-overlay').classList.remove('show');
+  }
+
+  // ── Navegación en modo embebido ───────────────────────────────────
+  function prefEmbedNav(nombre, btn) {
+    irAVista(nombre);
+    document.querySelectorAll('.pref-embed-tab').forEach(t => t.classList.remove('active'));
+    if (btn) btn.classList.add('active');
   }
 
   // ── Init ──────────────────────────────────────────────────────────

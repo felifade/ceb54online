@@ -835,6 +835,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const modal = document.getElementById('modal-captura');
     const formEval = document.getElementById('form-evaluacion');
     const puntajeGenInput = document.getElementById('eval-puntaje');
+    let _pecSaving = false; // bandera anti-doble-envío
 
     // Autollenar a los integrantes cuando se pone la calificación general
     puntajeGenInput.addEventListener('input', (e) => {
@@ -1005,6 +1006,12 @@ document.addEventListener("DOMContentLoaded", () => {
     formEval.addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        // ── Bloqueo anti-doble-envío ──────────────────────────────────
+        if (_pecSaving) return;
+        _pecSaving = true;
+        const btnGuardarSubmit = document.getElementById('btn-guardar-eval') || formEval.querySelector('button[type="submit"]');
+        if (btnGuardarSubmit) { btnGuardarSubmit.disabled = true; btnGuardarSubmit.textContent = 'Guardando…'; }
+
         const individual = [];
         document.querySelectorAll('.eval-indiv-input').forEach(inp => {
             if (inp.value !== "") {
@@ -1040,7 +1047,9 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
             if (duplicado) {
-                alert("⛔ Este equipo ya fue capturado para esta materia y parcial.\n\nUtiliza el módulo de Edición para realizar cambios.");
+                alert("⛔ Esta evaluación ya fue capturada anteriormente. No se realizó un segundo registro.\n\nUtiliza el módulo de Edición para realizar cambios.");
+                _pecSaving = false;
+                if (btnGuardarSubmit) { btnGuardarSubmit.disabled = false; btnGuardarSubmit.textContent = 'Guardar evaluación'; }
                 return;
             }
         } catch (_) {
@@ -1056,6 +1065,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const normS = s => String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
         if (!submitIsAdmin && correoMateria && normS(correoMateria) !== normS(submitEmail)) {
             alert("⛔ No puedes guardar esta evaluación. La materia seleccionada no te corresponde.");
+            _pecSaving = false;
+            if (btnGuardarSubmit) { btnGuardarSubmit.disabled = false; btnGuardarSubmit.textContent = 'Guardar evaluación'; }
             return;
         }
 
@@ -1081,6 +1092,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     fuera.map(f => `  • ${f}`).join('\n') +
                     `\n\nCorrige los valores antes de guardar.`
                 );
+                _pecSaving = false;
+                if (btnGuardarSubmit) { btnGuardarSubmit.disabled = false; btnGuardarSubmit.textContent = 'Guardar evaluación'; }
                 return;
             }
         }
@@ -1102,11 +1115,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         modal.classList.add('hidden');
         showLoader();
-        
+
         try {
             const resultado = await api.guardarEvaluacion(payload);
             if (resultado && resultado.status === "duplicado") {
-                alert("⛔ " + resultado.message);
+                alert("⛔ Esta evaluación ya fue capturada anteriormente. No se realizó un segundo registro.\n\n" + resultado.message);
                 return;
             }
             alert("Evaluación guardada exitosamente en Google Sheets.");
@@ -1122,8 +1135,12 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             console.error(error);
             alert("Ocurrió un error al enviar a Google Sheets.");
+        } finally {
+            // Liberar lock siempre, incluso si hubo error o duplicado
+            _pecSaving = false;
+            if (btnGuardarSubmit) { btnGuardarSubmit.disabled = false; btnGuardarSubmit.textContent = 'Guardar evaluación'; }
+            hideLoader();
         }
-        hideLoader();
     });
 
     /* =======================================
