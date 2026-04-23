@@ -90,6 +90,10 @@ function doGet(e) {
     if (e.parameter.action === "getCalendario") {
       return getCalendarioData(ss);
     }
+    // ── Diagnóstico de duplicados históricos (solo admin) ─────────────────
+    if (e.parameter.action === "getDuplicados") {
+      return getDuplicadosData(e, ss);
+    }
     const userEmail = normalizeText(e.parameter.userEmail || "");
 
     // ── CACHÉ GAS: evita releer Sheets si los datos ya están en memoria ──────
@@ -1187,4 +1191,87 @@ function getCalendarioData(ss) {
     cumpleanos: cumpleanos,
     eventos: eventos
   })).setMimeType(ContentService.MimeType.JSON);
+}
+
+// ============================================================
+// DIAGNÓSTICO DE DUPLICADOS HISTÓRICOS EN EVALUACIONES
+// action=getDuplicados&userEmail=...
+// Solo accesible para admins. NO modifica ningún dato.
+// Devuelve grupos con más de 1 registro para la misma llave.
+// ============================================================
+function getDuplicadosData(e, ss) {
+  try {
+    const userEmail = normalizeText(e.parameter.userEmail || "");
+    if (!_esAdmin(ss, userEmail)) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "error",
+        message: "Acceso restringido a administradores."
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const sEv = getSheet(ss, S_EVALUACIONES);
+    if (!sEv) return ContentService.createTextOutput(JSON.stringify({ status: "success", duplicados: [], total: 0 })).setMimeType(ContentService.MimeType.JSON);
+
+    const rows = sEv.getDataRange().getValues();
+    rows.shift(); // quitar fila de encabezados
+
+    // Columnas (0-indexed):
+    // 0=Timestamp, 1=Parcial, 2=GrupoId, 3=EquipoId, 4=EquipoNombre,
+    // 5=Materia,   6=Docente,  7=Puntaje, 8=Observaciones, 9=Alumno,
+    // 10=EmailCaptura, 11=TipoRegistro
+
+    const grupos = {}; // key → [rowIndex, ...]
+
+    rows.forEach((r, i) => {
+      const parcial = normalizeParcial(r[1]);
+      const equipo  = String(r[3] || "").trim();
+      const materia = normalizeText(r[5] || "");
+      const alumno  = String(r[9] || "").trim();
+      const tipo    = String(r[11] || "").toUpperCase();
+
+      // Solo analizar capturas originales (no ediciones de bitácora)
+      if (tipo && tipo !== "CAPTURA" && tipo !== "") return;
+      if (!parcial || !equipo || !materia) return;
+
+      const key = `${parcial}|${equipo}|${materia}|${alumno}`;
+      if (!grupos[key]) grupos[key] = [];
+      grupos[key].push({
+        fila:     i + 2, // +2 porque shift() quitó fila 1 y Sheets es 1-indexed
+        timestamp: r[0] ? new Date(r[0]).toISOString() : "",
+        parcial:   r[1],
+        grupoId:   r[2],
+        equipoId:  r[3],
+        equipoNombre: r[4],
+        materia:   r[5],
+        docente:   r[6],
+        puntaje:   r[7],
+        alumno:    r[9],
+        emailCaptura: r[10],
+        tipo:      r[11]
+      });
+    });
+
+    // Filtrar solo llaves con más de 1 registro
+    const duplicados = Object.entries(grupos)
+      .filter(([, registros]) => registros.length > 1)
+      .map(([llave, registros]) => ({
+        llave,
+        cantidad: registros.length,
+        registros
+      }))
+      .sort((a, b) => b.cantidad - a.cantidad);
+
+    return ContentService.createTextOutput(JSON.stringify({
+      status:     "success",
+      total:      duplicados.reduce((s, d) => s + d.registros.length, 0),
+      grupos:     duplicados.length,
+      duplicados
+    })).setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error",
+      message: err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
 }
