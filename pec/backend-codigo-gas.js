@@ -94,6 +94,10 @@ function doGet(e) {
     if (e.parameter.action === "getDuplicados") {
       return getDuplicadosData(e, ss);
     }
+    // ── Semanas activables (CD2 / CD3) — lectura pública ──────────────────
+    if (e.parameter.action === "getSemanasActivas") {
+      return getSemanasActivasData(e);
+    }
     const userEmail = normalizeText(e.parameter.userEmail || "");
 
     // ── CACHÉ GAS: evita releer Sheets si los datos ya están en memoria ──────
@@ -358,6 +362,10 @@ function doPost(e) {
     }
     if (['importarPDF','limpiarParcial'].includes(action)) {
       return doPostAcademico(e);
+    }
+    // ── Guardar semanas activas (CD2 / CD3) — solo admin ──────────────────
+    if (action === "setSemanasActivas") {
+      return setSemanasActivasData(body);
     }
 
     // ── Actualizar ponderación individual ─────────────────────────────────
@@ -1273,5 +1281,47 @@ function getDuplicadosData(e, ss) {
       status: "error",
       message: err.toString()
     })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// ============================================================
+// SEMANAS ACTIVABLES — CD2 / CD3
+// GET  ?action=getSemanasActivas&mat=cd2   → {status, activas:[1,2,...]}
+// POST {action:"setSemanasActivas", mat, activas:[], userEmail} (admin)
+// ============================================================
+const _CD_DEFAULTS = { cd2: [1,2,3,4,5,6,7,8,9], cd3: [1,2,3,4,5,6,7,8,9] };
+
+function getSemanasActivasData(e) {
+  try {
+    const mat = String(e.parameter.mat || "").toLowerCase().trim();
+    if (!_CD_DEFAULTS[mat]) {
+      return ContentService.createTextOutput(JSON.stringify({ status:"error", message:"Materia no reconocida." })).setMimeType(ContentService.MimeType.JSON);
+    }
+    const props = PropertiesService.getScriptProperties();
+    const raw   = props.getProperty("semanas_" + mat);
+    const activas = raw ? JSON.parse(raw) : _CD_DEFAULTS[mat];
+    return ContentService.createTextOutput(JSON.stringify({ status:"success", mat, activas }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ status:"error", message: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function setSemanasActivasData(body) {
+  try {
+    const userEmail = normalizeText(body.userEmail || "");
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (!_esAdmin(ss, userEmail)) {
+      return ContentService.createTextOutput(JSON.stringify({ status:"error", message:"Solo el administrador puede modificar semanas activas." })).setMimeType(ContentService.MimeType.JSON);
+    }
+    const mat = String(body.mat || "").toLowerCase().trim();
+    if (!_CD_DEFAULTS[mat]) {
+      return ContentService.createTextOutput(JSON.stringify({ status:"error", message:"Materia no reconocida." })).setMimeType(ContentService.MimeType.JSON);
+    }
+    const activas = Array.isArray(body.activas) ? body.activas.map(Number).filter(n => n > 0) : _CD_DEFAULTS[mat];
+    PropertiesService.getScriptProperties().setProperty("semanas_" + mat, JSON.stringify(activas));
+    return ContentService.createTextOutput(JSON.stringify({ status:"success", mat, activas })).setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ status:"error", message: err.toString() })).setMimeType(ContentService.MimeType.JSON);
   }
 }

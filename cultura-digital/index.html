@@ -22,6 +22,102 @@
 </script>
 <style>
 .d2-embedded .back-to-portal { color: var(--accent) !important; }
+
+/* ── Semanas activables ── */
+.cd-sem-locked {
+  opacity: .45 !important;
+  cursor: not-allowed !important;
+  filter: grayscale(.4);
+}
+.cd-sem-locked:hover { background: transparent !important; color: inherit !important; }
+.cd-sem-preview { opacity: .72 !important; }
+.cd-sem-preview::after { content: ' ·'; font-size:.6em; color:#f59e0b; }
+
+/* Banner maestro */
+#cd-preview-banner {
+  display: none;
+  align-items: center; gap: .6rem;
+  margin: .75rem 1rem .25rem;
+  padding: .6rem 1rem;
+  background: #fef3c7; border: 2px solid #fde68a; border-radius: 10px;
+  font-size: .79rem; font-weight: 700; color: #92400e;
+}
+
+/* Panel de control maestro */
+.cd-ctrl-panel {
+  position: fixed; bottom: 5.5rem; right: 1rem; z-index: 10000;
+  width: 270px; background: #0f172a; color: #e2e8f0;
+  border-radius: 14px; box-shadow: 0 24px 48px rgba(0,0,0,.5);
+  overflow: hidden; display: none;
+}
+.cd-ctrl-panel.cd-ctrl-open { display: block; }
+.cd-ctrl-panel-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .75rem 1rem; background: #1e293b;
+  font-weight: 700; font-size: .82rem;
+}
+.cd-ctrl-panel-hdr button { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1rem; line-height: 1; padding: 0; }
+.cd-ctrl-panel-hdr button:hover { color: #e2e8f0; }
+.cd-ctrl-body { padding: .75rem 1rem; max-height: 340px; overflow-y: auto; }
+.cd-ctrl-section-label { font-size: .68rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: .06em; margin: .5rem 0 .4rem; }
+.cd-ctrl-weeks { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .5rem; }
+.cd-ctrl-week-btn {
+  width: 44px; height: 32px; border-radius: 8px; border: 2px solid #334155;
+  background: #1e293b; color: #94a3b8; font-size: .72rem; font-weight: 700;
+  cursor: pointer; transition: all .15s;
+}
+.cd-ctrl-week-btn.on { background: #4f46e5; border-color: #6366f1; color: #fff; }
+.cd-ctrl-week-btn:hover { border-color: #6366f1; }
+.cd-ctrl-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .6rem 1rem; border-top: 1px solid #1e293b;
+}
+.cd-ctrl-footer span { font-size: .68rem; color: #64748b; }
+.cd-ctrl-save-btn {
+  background: #4f46e5; color: #fff; border: none; border-radius: 8px;
+  padding: .4rem .85rem; font-size: .75rem; font-weight: 700; cursor: pointer;
+  transition: background .15s;
+}
+.cd-ctrl-save-btn:hover { background: #4338ca; }
+.cd-ctrl-save-btn:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
+
+/* FAB del maestro */
+.cd-ctrl-fab {
+  display: none;
+  position: fixed; bottom: 1.5rem; right: 1rem; z-index: 10001;
+  width: 48px; height: 48px; border-radius: 50%; border: none;
+  background: #4f46e5; color: #fff; font-size: 1.3rem;
+  box-shadow: 0 8px 24px rgba(79,70,229,.5); cursor: pointer;
+  align-items: center; justify-content: center;
+  transition: transform .15s, background .15s;
+}
+.cd-ctrl-fab:hover { background: #4338ca; transform: scale(1.08); }
+
+/* ── Sidebar: acordeón por parcial ── */
+.menu-title {
+  cursor: pointer; user-select: none;
+  justify-content: space-between;
+  padding: .2rem .3rem; border-radius: 6px;
+  transition: background .12s;
+}
+.menu-title:hover { background: rgba(0,0,0,.05); }
+.cd-sec-chev {
+  width: 13px; height: 13px; flex-shrink: 0;
+  stroke: currentColor; fill: none; stroke-width: 2.5;
+  stroke-linecap: round; stroke-linejoin: round;
+  transition: transform .22s cubic-bezier(.4,0,.2,1);
+}
+.menu-section.cd-collapsed .cd-sec-chev { transform: rotate(-90deg); }
+.menu-list {
+  max-height: 320px; overflow: hidden;
+  transition: max-height .3s cubic-bezier(.4,0,.2,1), opacity .22s;
+  opacity: 1;
+}
+.menu-section.cd-collapsed .menu-list { max-height: 0 !important; opacity: 0; }
+/* Items más compactos */
+.menu-link { padding: .38rem .7rem; font-size: .82rem; }
+.menu-item { margin-bottom: .08rem; }
+.menu-section { margin-bottom: .7rem; }
 </style>
 <body oncontextmenu="return false" onselectstart="return false" oncopy="return false" oncut="return false"
     onpaste="return false">
@@ -40,10 +136,23 @@
                 <div class="subject-name">Cultura Digital II</div>
             </div>
             <nav class="sidebar-nav">
+                <!-- 3ER PARCIAL -->
+                <div class="menu-section">
+                    <div class="menu-title"><i data-lucide="graduation-cap"></i> 3er Parcial</div>
+                    <ul class="menu-list">
+                        <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(15)" class="menu-link" id="link-s15">🎓 Semana 15 <span class="menu-date">02 - 06 Jun</span></a></li>
+                        <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(14)" class="menu-link" id="link-s14">🌐 Semana 14 <span class="menu-date">26 - 30 May</span></a></li>
+                        <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(13)" class="menu-link" id="link-s13">🌐 Semana 13 <span class="menu-date">19 - 23 May</span></a></li>
+                        <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(12)" class="menu-link" id="link-s12">🌐 Semana 12 <span class="menu-date">12 - 16 May</span></a></li>
+                        <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(11)" class="menu-link" id="link-s11">🌐 Semana 11 <span class="menu-date">05 - 09 May</span></a></li>
+                    </ul>
+                </div>
+
                 <!-- 2DO PARCIAL -->
                 <div class="menu-section">
                     <div class="menu-title"><i data-lucide="brain"></i> 2do Parcial</div>
                     <ul class="menu-list">
+                        <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(10)" class="menu-link" id="link-s10">📋 Semana 10 <span class="menu-date">28 Abr - 02 May</span></a></li>
                         <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(9)" class="menu-link"
                                 id="link-s9">🧠 Semana 09 <span class="menu-date">21 - 25 Abr</span></a></li>
                         <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(8)" class="menu-link"
@@ -80,6 +189,12 @@
 
         <!-- Área de la Libreta -->
         <main class="main-content">
+
+            <!-- Banner de vista previa (solo maestro, semanas no publicadas) -->
+            <div id="cd-preview-banner">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              Vista previa — Esta semana aún no está publicada para los alumnos
+            </div>
 
             <div class="week-header">
                 <span class="week-title-pre">Actividades a Realizar</span>
@@ -917,6 +1032,212 @@
                             </table>
                         </div>
 
+                        <!-- SEMANA 10: 2do Parcial — Examen -->
+                        <div class="sheet" id="sheet-s10-h1">
+                            <div class="hour-header">Semana 10: HORA 1 — Segundo Examen Parcial</div>
+                            <table class="academic-table">
+                                <thead><tr><th class="col-instruction">Instrucción</th><th class="col-content">Detalle</th></tr></thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Paso 1</span>
+                                            <p class="instruction-text">Abre <strong>Google Classroom</strong> con tu correo institucional.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box">Busca la tarea: <strong>"Segundo Examen Parcial — Cultura Digital"</strong></div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Paso 2</span>
+                                            <p class="instruction-text">Abre el <strong>Formulario de Google</strong> adjunto en la tarea.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box">Contesta todas las preguntas con calma y presiona <strong>Enviar</strong> al terminar.</div>
+                                        </td>
+                                    </tr>
+                                    <tr style="background:#f0fdf4;">
+                                        <td class="col-instruction">
+                                            <span class="activity-num" style="color:#0369a1;">Temas del examen</span>
+                                            <p class="instruction-text">Repasa estos temas antes de comenzar.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <ul style="padding-left:1.2rem;line-height:2;">
+                                                <li>📱 Semana 06 · Introducción a las aplicaciones móviles</li>
+                                                <li>📲 Semana 07 · Pensamiento computacional</li>
+                                                <li>📱 Semana 08 · Aplicaciones y productividad</li>
+                                                <li>🧠 Semana 09 · Desarrollo de aplicaciones móviles</li>
+                                            </ul>
+                                        </td>
+                                    </tr>
+                                    <tr style="background:#fffbeb;">
+                                        <td class="col-instruction">
+                                            <span class="activity-num" style="color:#b45309;">📸 Evidencia obligatoria</span>
+                                            <p class="instruction-text">Al terminar el formulario, Google mostrará la pantalla de confirmación.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="border-color:#f59e0b;background:#fffbeb;">
+                                                <ol style="padding-left:1.2rem;line-height:2.2;margin:0;">
+                                                    <li>Toma una <strong>captura de pantalla</strong> de la confirmación o resultado.</li>
+                                                    <li>Abre tu documento de Google.</li>
+                                                    <li>Crea una <strong>nueva pestaña</strong> y nómbrala exactamente:<br><strong style="font-size:1rem;">Semana 10 📋</strong></li>
+                                                    <li>Pega la captura dentro de esa pestaña.</li>
+                                                </ol>
+                                            </div>
+                                            <p style="margin-top:.75rem;font-size:.8rem;color:#b45309;font-weight:700;">⚠️ Sin la captura en tu documento no se cuenta como entregado.</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="sheet" id="sheet-s10-h2">
+                            <div class="hour-header">Semana 10: HORA 2 — Segundo Examen Parcial</div>
+                            <table class="academic-table">
+                                <thead><tr><th class="col-instruction">Instrucción</th><th class="col-content">Detalle</th></tr></thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Paso 1</span>
+                                            <p class="instruction-text">Abre <strong>Google Classroom</strong> con tu correo institucional.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box">Busca la tarea: <strong>"Segundo Examen Parcial — Cultura Digital"</strong></div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Paso 2</span>
+                                            <p class="instruction-text">Abre el <strong>Formulario de Google</strong> adjunto en la tarea.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box">Contesta todas las preguntas con calma y presiona <strong>Enviar</strong> al terminar.</div>
+                                        </td>
+                                    </tr>
+                                    <tr style="background:#f0fdf4;">
+                                        <td class="col-instruction">
+                                            <span class="activity-num" style="color:#0369a1;">Temas del examen</span>
+                                            <p class="instruction-text">Repasa estos temas antes de comenzar.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <ul style="padding-left:1.2rem;line-height:2;">
+                                                <li>📱 Semana 06 · Introducción a las aplicaciones móviles</li>
+                                                <li>📲 Semana 07 · Pensamiento computacional</li>
+                                                <li>📱 Semana 08 · Aplicaciones y productividad</li>
+                                                <li>🧠 Semana 09 · Desarrollo de aplicaciones móviles</li>
+                                            </ul>
+                                        </td>
+                                    </tr>
+                                    <tr style="background:#fffbeb;">
+                                        <td class="col-instruction">
+                                            <span class="activity-num" style="color:#b45309;">📸 Evidencia obligatoria</span>
+                                            <p class="instruction-text">Al terminar el formulario, Google mostrará la pantalla de confirmación.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="border-color:#f59e0b;background:#fffbeb;">
+                                                <ol style="padding-left:1.2rem;line-height:2.2;margin:0;">
+                                                    <li>Toma una <strong>captura de pantalla</strong> de la confirmación o resultado.</li>
+                                                    <li>Abre tu documento de Google.</li>
+                                                    <li>Crea una <strong>nueva pestaña</strong> y nómbrala exactamente:<br><strong style="font-size:1rem;">Semana 10 📋</strong></li>
+                                                    <li>Pega la captura dentro de esa pestaña.</li>
+                                                </ol>
+                                            </div>
+                                            <p style="margin-top:.75rem;font-size:.8rem;color:#b45309;font-weight:700;">⚠️ Sin la captura en tu documento no se cuenta como entregado.</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- SEMANA 11: 3er Parcial -->
+                        <div class="sheet" id="sheet-s11-h1">
+                            <div class="hour-header">Semana 11: HORA 1 — Tercer Parcial</div>
+                            <div style="padding:2.5rem 1rem;text-align:center;color:#64748b;">
+                                <div style="font-size:2.5rem;margin-bottom:1rem;">🌐</div>
+                                <p style="font-size:.9rem;line-height:1.6;max-width:300px;margin:0 auto;">Contenido en preparación.<br>El maestro publicará esta semana próximamente.</p>
+                            </div>
+                        </div>
+                        <div class="sheet" id="sheet-s11-h2">
+                            <div class="hour-header">Semana 11: HORA 2 — Tercer Parcial</div>
+                            <div style="padding:2.5rem 1rem;text-align:center;color:#64748b;">
+                                <div style="font-size:2.5rem;margin-bottom:1rem;">🌐</div>
+                                <p style="font-size:.9rem;line-height:1.6;max-width:300px;margin:0 auto;">Contenido en preparación.<br>El maestro publicará esta semana próximamente.</p>
+                            </div>
+                        </div>
+
+                        <!-- SEMANA 12: 3er Parcial -->
+                        <div class="sheet" id="sheet-s12-h1">
+                            <div class="hour-header">Semana 12: HORA 1 — Tercer Parcial</div>
+                            <div style="padding:2.5rem 1rem;text-align:center;color:#64748b;">
+                                <div style="font-size:2.5rem;margin-bottom:1rem;">🌐</div>
+                                <p style="font-size:.9rem;line-height:1.6;max-width:300px;margin:0 auto;">Contenido en preparación.<br>El maestro publicará esta semana próximamente.</p>
+                            </div>
+                        </div>
+                        <div class="sheet" id="sheet-s12-h2">
+                            <div class="hour-header">Semana 12: HORA 2 — Tercer Parcial</div>
+                            <div style="padding:2.5rem 1rem;text-align:center;color:#64748b;">
+                                <div style="font-size:2.5rem;margin-bottom:1rem;">🌐</div>
+                                <p style="font-size:.9rem;line-height:1.6;max-width:300px;margin:0 auto;">Contenido en preparación.<br>El maestro publicará esta semana próximamente.</p>
+                            </div>
+                        </div>
+
+                        <!-- SEMANA 13: 3er Parcial -->
+                        <div class="sheet" id="sheet-s13-h1">
+                            <div class="hour-header">Semana 13: HORA 1 — Tercer Parcial</div>
+                            <div style="padding:2.5rem 1rem;text-align:center;color:#64748b;">
+                                <div style="font-size:2.5rem;margin-bottom:1rem;">🌐</div>
+                                <p style="font-size:.9rem;line-height:1.6;max-width:300px;margin:0 auto;">Contenido en preparación.<br>El maestro publicará esta semana próximamente.</p>
+                            </div>
+                        </div>
+                        <div class="sheet" id="sheet-s13-h2">
+                            <div class="hour-header">Semana 13: HORA 2 — Tercer Parcial</div>
+                            <div style="padding:2.5rem 1rem;text-align:center;color:#64748b;">
+                                <div style="font-size:2.5rem;margin-bottom:1rem;">🌐</div>
+                                <p style="font-size:.9rem;line-height:1.6;max-width:300px;margin:0 auto;">Contenido en preparación.<br>El maestro publicará esta semana próximamente.</p>
+                            </div>
+                        </div>
+
+                        <!-- SEMANA 14: 3er Parcial -->
+                        <div class="sheet" id="sheet-s14-h1">
+                            <div class="hour-header">Semana 14: HORA 1 — Tercer Parcial</div>
+                            <div style="padding:2.5rem 1rem;text-align:center;color:#64748b;">
+                                <div style="font-size:2.5rem;margin-bottom:1rem;">🌐</div>
+                                <p style="font-size:.9rem;line-height:1.6;max-width:300px;margin:0 auto;">Contenido en preparación.<br>El maestro publicará esta semana próximamente.</p>
+                            </div>
+                        </div>
+                        <div class="sheet" id="sheet-s14-h2">
+                            <div class="hour-header">Semana 14: HORA 2 — Tercer Parcial</div>
+                            <div style="padding:2.5rem 1rem;text-align:center;color:#64748b;">
+                                <div style="font-size:2.5rem;margin-bottom:1rem;">🌐</div>
+                                <p style="font-size:.9rem;line-height:1.6;max-width:300px;margin:0 auto;">Contenido en preparación.<br>El maestro publicará esta semana próximamente.</p>
+                            </div>
+                        </div>
+
+                        <!-- SEMANA 15: 3er Examen Parcial -->
+                        <div class="sheet" id="sheet-s15-h1">
+                            <div class="hour-header">Semana 15: HORA 1 — Tercer Examen Parcial</div>
+                            <div style="padding:2.5rem 1rem;text-align:center;color:#64748b;">
+                                <div style="font-size:2.5rem;margin-bottom:1rem;">🎓</div>
+                                <p style="font-size:.9rem;line-height:1.6;max-width:300px;margin:0 auto;">Contenido en preparación.<br>El maestro publicará esta semana próximamente.</p>
+                            </div>
+                        </div>
+                        <div class="sheet" id="sheet-s15-h2">
+                            <div class="hour-header">Semana 15: HORA 2 — Tercer Examen Parcial</div>
+                            <div style="padding:2.5rem 1rem;text-align:center;color:#64748b;">
+                                <div style="font-size:2.5rem;margin-bottom:1rem;">🎓</div>
+                                <p style="font-size:.9rem;line-height:1.6;max-width:300px;margin:0 auto;">Contenido en preparación.<br>El maestro publicará esta semana próximamente.</p>
+                            </div>
+                        </div>
+
+                        <!-- Semana bloqueada: placeholder para alumnos -->
+                        <div class="sheet" id="sheet-locked" style="display:none;">
+                            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3.5rem 1rem;text-align:center;min-height:280px;">
+                                <div style="font-size:3.5rem;margin-bottom:1.25rem;filter:grayscale(.3);">🔒</div>
+                                <h2 style="font-size:1.15rem;font-weight:800;color:#1e293b;margin-bottom:.6rem;">Semana no disponible aún</h2>
+                                <p style="color:#64748b;max-width:280px;line-height:1.6;font-size:.9rem;">Tu maestro publicará el contenido de esta semana próximamente.<br>Mantente al pendiente.</p>
+                                <div id="cd-locked-label" style="margin-top:1.5rem;font-size:.75rem;font-weight:700;color:#94a3b8;background:#f1f5f9;padding:5px 14px;border-radius:20px;border:1px solid #e2e8f0;"></div>
+                            </div>
+                        </div>
+
                     </div><!-- .sheet-container -->
 
                 </div><!-- .notebook-page -->
@@ -938,8 +1259,46 @@
             6: "📱 SEMANA 06: Introducción a las Apps",
             7: "📲 SEMANA 07: Pensamiento computacional",
             8: "📱 SEMANA 08: Aplicaciones y Productividad",
-            9: "🧠 SEMANA 09: Desarrollo de aplicaciones móviles"
+            9: "🧠 SEMANA 09: Desarrollo de aplicaciones móviles",
+            10: "📋 SEMANA 10: Segundo Examen Parcial",
+            11: "🌐 SEMANA 11: Tercer Parcial",
+            12: "🌐 SEMANA 12: Tercer Parcial",
+            13: "🌐 SEMANA 13: Tercer Parcial",
+            14: "🌐 SEMANA 14: Tercer Parcial",
+            15: "🎓 SEMANA 15: Tercer Examen Parcial",
         };
+        // Semanas publicadas por defecto (sin GAS): solo 1er y 2do Parcial
+        const _CD_LOCAL_DEFAULT = [1,2,3,4,5,6,7,8,9];
+
+        // Fechas de cada semana para detección automática de la semana actual
+        const WEEK_DATES = [
+            [1,  '2026-02-11','2026-02-13'],
+            [2,  '2026-02-16','2026-02-20'],
+            [3,  '2026-02-23','2026-02-27'],
+            [4,  '2026-03-02','2026-03-06'],
+            [5,  '2026-03-09','2026-03-13'],
+            [6,  '2026-03-16','2026-03-20'],
+            [7,  '2026-03-23','2026-03-27'],
+            [8,  '2026-04-13','2026-04-17'],
+            [9,  '2026-04-21','2026-04-25'],
+            [10, '2026-04-28','2026-05-02'],
+            [11, '2026-05-05','2026-05-09'],
+            [12, '2026-05-12','2026-05-16'],
+            [13, '2026-05-19','2026-05-23'],
+            [14, '2026-05-26','2026-05-30'],
+            [15, '2026-06-02','2026-06-06'],
+        ];
+        function _getSchoolWeek() {
+            const today = new Date(); today.setHours(0,0,0,0);
+            let best = 1;
+            for (const [n, s, e] of WEEK_DATES) {
+                const start = new Date(s), end = new Date(e);
+                end.setHours(23,59,59,999);
+                if (today >= start) best = n;
+                if (today >= start && today <= end) return n;
+            }
+            return best;
+        }
 
         const DOUBLE_HOUR_WEEKS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
@@ -948,6 +1307,27 @@
 
         function switchWeek(num) {
             if (num === currentWeek) return;
+
+            // ── Gating: semana bloqueada para alumno ──────────────────────
+            const _activa = !_cdActivas || _cdActivas.includes(num);
+            if (!_activa && !_cdMaestro) {
+                currentWeek = num;
+                currentHour = 1;
+                document.querySelectorAll('.menu-link').forEach(l => l.classList.remove('active'));
+                const lkLocked = document.getElementById('link-s' + num);
+                if (lkLocked) lkLocked.classList.add('active');
+                _cdExpandSection(num);
+                document.getElementById('hour-nav').style.display = 'none';
+                document.getElementById('main-title').innerHTML = (WEEK_TITLES[num] || `SEMANA ${num}`) + ' 🔒';
+                document.querySelectorAll('.sheet').forEach(s => { s.classList.remove('active'); s.style.display = ''; });
+                const lkSheet = document.getElementById('sheet-locked');
+                if (lkSheet) { lkSheet.style.display = 'block'; lkSheet.classList.add('active'); }
+                const lbl = document.getElementById('cd-locked-label');
+                if (lbl) lbl.textContent = WEEK_TITLES[num] ? WEEK_TITLES[num].replace(/^[^\s]+\s/, '') : `Semana ${num}`;
+                _cdUpdateBanner(num);
+                return;
+            }
+
             currentWeek = num;
             currentHour = 1;
 
@@ -959,11 +1339,16 @@
             document.querySelectorAll('.menu-link').forEach(l => l.classList.remove('active'));
             const activeLink = document.getElementById('link-s' + num);
             if (activeLink) activeLink.classList.add('active');
+            _cdExpandSection(num);
 
-            // Navegación de horas (Siempre visible)
+            // Mostrar horas
             hourNav.style.display = 'flex';
             document.getElementById('btn-h1').classList.add('active');
             document.getElementById('btn-h2').classList.remove('active');
+
+            // Asegurarse de que sheet-locked esté oculto
+            const lkSheet2 = document.getElementById('sheet-locked');
+            if (lkSheet2) { lkSheet2.classList.remove('active'); lkSheet2.style.display = 'none'; }
 
             // Animación
             page.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
@@ -972,13 +1357,14 @@
 
             setTimeout(() => {
                 mainTitle.innerHTML = WEEK_TITLES[num] || `SEMANA ${num}`;
-
-                document.querySelectorAll('.sheet').forEach(s => s.classList.remove('active'));
+                document.querySelectorAll('.sheet').forEach(s => { s.classList.remove('active'); s.style.display = ''; });
+                const lkSheet3 = document.getElementById('sheet-locked');
+                if (lkSheet3) { lkSheet3.classList.remove('active'); lkSheet3.style.display = 'none'; }
                 const targetSheet = document.getElementById(`sheet-s${num}-h1`);
                 if (targetSheet) targetSheet.classList.add('active');
-
                 page.style.transform = 'rotateY(0deg) scale(1)';
                 lucide.createIcons();
+                _cdUpdateBanner(num);
             }, 300);
         }
 
@@ -1004,7 +1390,152 @@
             }, 300);
         }
 
-        // Lógica del Panel del Docente
+        // ═══════════════════════════════════════════════════════════
+        // MOTOR DE SEMANAS ACTIVABLES — Cultura Digital II
+        // ═══════════════════════════════════════════════════════════
+        const _CD_GAS = 'https://script.google.com/macros/s/AKfycbz4q9VlhAvvVJ1XYOwqNTJ9eMkVRm3HgoyFJNpEQaPJsDdK1JcfhbTX1CRfDg38x79fsA/exec';
+        const _CD_MAT = 'cd2';
+        let _cdActivas = [..._CD_LOCAL_DEFAULT]; // default inmediato; GAS lo actualiza después
+        let _cdMaestro = (new URLSearchParams(location.search).get('d2embed') === '1');
+        let _cdSaving  = false;
+        let _cdDraft   = null;   // estado pendiente en panel de control
+
+        async function _cdLoadActivas() {
+            try {
+                const r   = await fetch(`${_CD_GAS}?action=getSemanasActivas&mat=${_CD_MAT}&_t=${Date.now()}`, { redirect: 'follow' });
+                const txt = await r.text();
+                const d   = JSON.parse(txt);
+                _cdActivas = Array.isArray(d.activas) ? d.activas.map(Number) : _CD_LOCAL_DEFAULT;
+            } catch(_) {
+                _cdActivas = _CD_LOCAL_DEFAULT; // fallback: solo semanas ya publicadas
+            }
+            _cdApply();
+        }
+
+        function _cdApply() {
+            const allWeeks = Object.keys(WEEK_TITLES).map(Number);
+            allWeeks.forEach(n => {
+                const lnk  = document.getElementById('link-s' + n);
+                if (!lnk) return;
+                lnk.classList.remove('cd-sem-locked', 'cd-sem-preview');
+                const item = lnk.closest('.menu-item');
+                if (_cdMaestro) {
+                    // Maestro: ve todas las semanas normalmente
+                    if (item) item.style.display = '';
+                } else {
+                    // Alumno: oculta semanas no publicadas (no grises, invisible)
+                    const activa = _cdActivas.includes(n);
+                    if (item) item.style.display = activa ? '' : 'none';
+                }
+            });
+
+            // Ocultar secciones sin semanas visibles (para alumnos)
+            document.querySelectorAll('#cd-sidebar .menu-section').forEach(sec => {
+                if (_cdMaestro) {
+                    sec.style.display = '';
+                } else {
+                    const hayVisibles = !!sec.querySelector('.menu-item:not([style*="none"])');
+                    sec.style.display = hayVisibles ? '' : 'none';
+                }
+            });
+
+            if (_cdMaestro) {
+                const fab = document.getElementById('cd-ctrl-fab');
+                if (fab) fab.style.display = 'flex';
+                const notesBtn = document.getElementById('cd-notes-btn');
+                if (notesBtn) notesBtn.style.display = 'none';
+                _cdBuildPanel();
+            }
+
+            // Re-navegar solo si: primera carga O alumno está en semana bloqueada
+            const allNums = Object.keys(WEEK_TITLES).map(Number);
+            const _currLocked = !_cdMaestro && currentWeek > 0 && !_cdActivas.includes(currentWeek);
+            if (currentWeek === 0 || _currLocked) {
+                const target = _cdMaestro
+                    ? _getSchoolWeek()
+                    : Math.max(...(_cdActivas.length ? _cdActivas : [allNums[0]]));
+                setTimeout(() => switchWeek(target), 150);
+            }
+            _cdUpdateBanner(currentWeek);
+        }
+
+        function _cdUpdateBanner(num) {
+            const banner = document.getElementById('cd-preview-banner');
+            if (!banner) return;
+            const activa = !_cdActivas || _cdActivas.includes(num);
+            banner.style.display = (_cdMaestro && !activa) ? 'flex' : 'none';
+        }
+
+        // ── Panel de control ─────────────────────────────────────
+        function _cdTogglePanel() {
+            document.getElementById('cd-ctrl-panel').classList.toggle('cd-ctrl-open');
+        }
+
+        function _cdBuildPanel() {
+            const body = document.getElementById('cd-ctrl-body');
+            if (!body) return;
+            _cdDraft = [..._cdActivas];
+
+            const sections = [
+                { label: '📚 1er Parcial', nums: [1,2,3,4,5] },
+                { label: '🧠 2do Parcial', nums: [6,7,8,9,10] },
+                { label: '🎓 3er Parcial', nums: [11,12,13,14,15] },
+            ];
+            let html = '';
+            sections.forEach(sec => {
+                const visibleNums = sec.nums.filter(n => WEEK_TITLES[n]);
+                if (!visibleNums.length) return;
+                html += `<div class="cd-ctrl-section-label">${sec.label}</div><div class="cd-ctrl-weeks">`;
+                visibleNums.forEach(n => {
+                    const on = _cdDraft.includes(n);
+                    html += `<button class="cd-ctrl-week-btn${on?' on':''}" id="cd-wb-${n}" onclick="_cdToggleWeek(${n})" title="${WEEK_TITLES[n]||'S'+n}">S${String(n).padStart(2,'0')}</button>`;
+                });
+                html += '</div>';
+            });
+            body.innerHTML = html;
+        }
+
+        function _cdToggleWeek(n) {
+            if (!_cdDraft) _cdDraft = [..._cdActivas];
+            const idx = _cdDraft.indexOf(n);
+            if (idx === -1) _cdDraft.push(n); else _cdDraft.splice(idx, 1);
+            _cdDraft.sort((a,b) => a-b);
+            const btn = document.getElementById('cd-wb-' + n);
+            if (btn) btn.classList.toggle('on', _cdDraft.includes(n));
+            document.getElementById('cd-ctrl-status').textContent = '● Sin guardar';
+        }
+
+        async function _cdSaveActivas() {
+            if (_cdSaving || !_cdDraft) return;
+            _cdSaving = true;
+            const saveBtn = document.getElementById('cd-ctrl-save');
+            const status  = document.getElementById('cd-ctrl-status');
+            if (saveBtn) saveBtn.disabled = true;
+            if (status)  status.textContent = 'Guardando…';
+            const userEmail = sessionStorage.getItem('user_email') || '';
+            try {
+                const r = await fetch(_CD_GAS, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'setSemanasActivas', mat: _CD_MAT, activas: _cdDraft, userEmail }),
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                });
+                const d = await r.json();
+                if (d.status === 'success') {
+                    _cdActivas = [..._cdDraft];
+                    _cdApply();
+                    if (status) status.textContent = '✓ Guardado';
+                } else {
+                    if (status) status.textContent = '⚠ ' + (d.message || 'Error');
+                }
+            } catch(e) {
+                if (status) status.textContent = '⚠ Sin conexión';
+            } finally {
+                _cdSaving = false;
+                if (saveBtn) saveBtn.disabled = false;
+            }
+        }
+
+        // ── Panel de notas (standalone / contraseña) ─────────────
         let isTeacherAuthenticated = false;
         function toggleTeacherPanel() {
             const panel = document.getElementById('teacher-panel');
@@ -1016,7 +1547,7 @@
             }
         }
 
-        // Protecciones
+        // ── Protecciones ─────────────────────────────────────────
         document.addEventListener('contextmenu', e => { if (!e.target.closest('.allow-copy')) e.preventDefault(); });
         document.addEventListener('copy', e => {
             if (!e.target.closest('.allow-copy')) { e.preventDefault(); alert("⚠️ Contenido restringido."); }
@@ -1033,48 +1564,94 @@
             }
         });
 
-        // Inicialización automática a la semana más reciente
+        // Acordeón: solo aplica al maestro; alumnos siempre ven todo expandido
+        function _cdExpandSection(num) {
+            if (!_cdMaestro) return;
+            const lnk = document.getElementById('link-s' + num);
+            if (!lnk) return;
+            const activeSec = lnk.closest('.menu-section');
+            document.querySelectorAll('#cd-sidebar .menu-section').forEach(s => {
+                s.classList.toggle('cd-collapsed', s !== activeSec);
+            });
+        }
+
+        // ── Inicialización ───────────────────────────────────────
         window.addEventListener('DOMContentLoaded', () => {
-            const weeks = Object.keys(WEEK_TITLES).map(Number);
-            const latest = Math.max(...weeks);
-            if (latest > 0) {
-                setTimeout(() => switchWeek(latest), 100);
-            }
+            _cdApply();                                       // filtrar sidebar inmediatamente con el default
+            setTimeout(() => switchWeek(_getSchoolWeek()), 50);
+            _cdLoadActivas();                                 // actualizar desde GAS en segundo plano
         });
     </script>
 
     <script>
     (function() {
+      // ── Toggle colapso del sidebar ──
+      var _isMaestro = new URLSearchParams(location.search).get('d2embed') === '1';
       var sidebar = document.getElementById('cd-sidebar');
       var btn     = document.getElementById('cd-sidebar-toggle');
       var KEY     = 'cd_sidebar_collapsed';
-      if (!sidebar || !btn) return;
-
-      function setCollapsed(on) {
-        sidebar.classList.toggle('sidebar--collapsed', on);
-        try { localStorage.setItem(KEY, on ? '1' : '0'); } catch(e) {}
+      if (sidebar && btn) {
+        function setCollapsed(on) {
+          sidebar.classList.toggle('sidebar--collapsed', on);
+          try { localStorage.setItem(KEY, on ? '1' : '0'); } catch(e) {}
+        }
+        // Solo el maestro restaura el estado colapsado — alumnos siempre ven el sidebar
+        if (_isMaestro) {
+          try { if (localStorage.getItem(KEY) === '1') setCollapsed(true); } catch(e) {}
+        }
+        btn.addEventListener('click', function() {
+          setCollapsed(!sidebar.classList.contains('sidebar--collapsed'));
+        });
       }
 
-      /* Restaurar estado guardado */
-      try { if (localStorage.getItem(KEY) === '1') setCollapsed(true); } catch(e) {}
-
-      btn.addEventListener('click', function() {
-        setCollapsed(!sidebar.classList.contains('sidebar--collapsed'));
+      // ── Acordeón de parciales (solo maestro) ──
+      document.querySelectorAll('#cd-sidebar .menu-title').forEach(function(title) {
+        if (!_isMaestro) return; // alumnos: sin chevron ni acordeón
+        var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('class', 'cd-sec-chev');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.innerHTML = '<polyline points="6 9 12 15 18 9"/>';
+        title.appendChild(svg);
+        title.addEventListener('click', function() {
+          title.closest('.menu-section').classList.toggle('cd-collapsed');
+        });
       });
+      // Solo colapsar secciones para el maestro
+      if (_isMaestro) {
+        document.querySelectorAll('#cd-sidebar .menu-section').forEach(function(sec) {
+          if (!sec.querySelector('.menu-link.active')) sec.classList.add('cd-collapsed');
+        });
+      }
     })();
     </script>
 
-    <button class="teacher-notes-btn" onclick="toggleTeacherPanel()">
-        <i data-lucide="lock"></i> Notas del Docente
+    <!-- FAB del maestro (visible solo en modo docente) -->
+    <button class="cd-ctrl-fab" id="cd-ctrl-fab" onclick="_cdTogglePanel()" title="Control de semanas">
+        🎛
     </button>
 
+    <!-- Panel de control de semanas -->
+    <div class="cd-ctrl-panel" id="cd-ctrl-panel">
+        <div class="cd-ctrl-panel-hdr">
+            <span>🎛 Semanas — CD II</span>
+            <button onclick="document.getElementById('cd-ctrl-panel').classList.remove('cd-ctrl-open')">✕</button>
+        </div>
+        <div class="cd-ctrl-body" id="cd-ctrl-body"><!-- generado por JS --></div>
+        <div class="cd-ctrl-footer">
+            <span id="cd-ctrl-status"></span>
+            <button class="cd-ctrl-save-btn" id="cd-ctrl-save" onclick="_cdSaveActivas()">Guardar</button>
+        </div>
+    </div>
+
+    <!-- Panel de notas docente (acceso por contraseña, modo standalone) -->
+    <button class="teacher-notes-btn" id="cd-notes-btn" onclick="toggleTeacherPanel()">
+        <i data-lucide="lock"></i> Notas del Docente
+    </button>
     <div class="teacher-panel" id="teacher-panel">
         <div class="tp-header"><i data-lucide="book-open-check"></i> Privado: Guía Docente</div>
         <div class="tp-content">
-            <div class="tp-note"><strong>Dr. Felipe:</strong> El sistema de horas ahora es dinámico. Las semanas [2, 6,
-                7, 8] mostrarán automáticamente selector de 2 horas.</div>
-            <div class="tp-note"><strong>Protección:</strong> La clase .no-copy sigue activa en todos los dictados
-                teóricos.</div>
+            <div class="tp-note"><strong>Dr. Felipe:</strong> El sistema de horas es dinámico. Semanas [2,6,7,8,9] muestran selector de 2 horas.</div>
+            <div class="tp-note"><strong>Protección:</strong> La clase .no-copy está activa en todos los dictados.</div>
         </div>
     </div>
 </body>
