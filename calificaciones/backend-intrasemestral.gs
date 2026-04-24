@@ -27,7 +27,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 // ── CONFIGURACIÓN — solo cambia esto ────────────────────────────────
-const SHEET_ID   = "PEGA_AQUI_EL_ID_DEL_SHEETS_DE_SUBDIRECCION";
+const SHEET_ID   = "17dSH2SL4S2iPYZFSlqVeEI-ESqvjIf_l5wdcWlpVLSE";
 const SHEET_NAME = "CONCENTRADO SUBDIRECCION"; // sin acento, así lo crea el script
 // ────────────────────────────────────────────────────────────────────
 

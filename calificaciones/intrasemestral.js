@@ -9,7 +9,7 @@
        asignatura, docente, tipo, calificacion, observacion } ] }
 ═══════════════════════════════════════════════════════════════ */
 
-const GAS_URL = "PEGA_AQUI_LA_URL_DE_TU_GAS"; // ← único punto de configuración
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyEjX4bOiwO04fBvoxGOm4ruX-goEy5SlyMvkT0N5_1Htky8hzQSbGl4tmNsc5nTUUc/exec"; // ← único punto de configuración
 
 // Calificación mínima para acreditar (ajustable)
 const CAL_MINIMA = 6;
