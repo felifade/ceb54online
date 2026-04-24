@@ -69,11 +69,13 @@ function updateSummary(data) {
 
 /* ── Poblar dropdowns de grupo y asignatura ──────────────── */
 function populateDropdowns(data) {
-  const grupos = [...new Set(data.map(r => r.grupo).filter(Boolean))].sort();
-  const asigs  = [...new Set(data.map(r => r.asignatura).filter(Boolean))].sort();
+  const grupos   = [...new Set(data.map(r => r.grupo).filter(Boolean))].sort();
+  const asigs    = [...new Set(data.map(r => r.asignatura).filter(Boolean))].sort();
+  const docentes = [...new Set(data.map(r => r.docente).filter(Boolean))].sort();
 
-  const selGrupo = document.getElementById("filter-grupo");
-  const selAsig  = document.getElementById("filter-asig");
+  const selGrupo   = document.getElementById("filter-grupo");
+  const selAsig    = document.getElementById("filter-asig");
+  const selDocente = document.getElementById("filter-docente");
 
   grupos.forEach(g => {
     const o = document.createElement("option");
@@ -84,6 +86,11 @@ function populateDropdowns(data) {
     const o = document.createElement("option");
     o.value = a; o.textContent = a;
     selAsig.appendChild(o);
+  });
+  docentes.forEach(d => {
+    const o = document.createElement("option");
+    o.value = d; o.textContent = d;
+    selDocente.appendChild(o);
   });
 }
 
@@ -128,18 +135,20 @@ function renderTable(data) {
 
 /* ── Leer filtros actuales y aplicar ─────────────────────── */
 function applyFilters() {
-  const query  = norm(document.getElementById("search-name").value);
-  const grupo  = document.getElementById("filter-grupo").value;
-  const asig   = document.getElementById("filter-asig").value;
-  const tipo   = document.querySelector("#tipo-group .tog-btn.active")?.dataset.tipo   || "";
-  const estado = document.querySelector("#estado-group .tog-btn.active")?.dataset.estado || "";
+  const query   = norm(document.getElementById("search-name").value);
+  const grupo   = document.getElementById("filter-grupo").value;
+  const asig    = document.getElementById("filter-asig").value;
+  const docente = document.getElementById("filter-docente").value;
+  const tipo    = document.querySelector("#tipo-group .tog-btn.active")?.dataset.tipo   || "";
+  const estado  = document.querySelector("#estado-group .tog-btn.active")?.dataset.estado || "";
 
   _filtered = _allData.filter(r => {
-    if (query  && !norm(r.nombre).includes(query))       return false;
-    if (grupo  && r.grupo      !== grupo)                return false;
-    if (asig   && r.asignatura !== asig)                 return false;
-    if (tipo   && r.tipo.toUpperCase() !== tipo)         return false;
-    if (estado && getEstado(r.calificacion) !== estado)  return false;
+    if (query   && !norm(r.nombre).includes(query))      return false;
+    if (grupo   && r.grupo      !== grupo)               return false;
+    if (asig    && r.asignatura !== asig)                return false;
+    if (docente && r.docente    !== docente)             return false;
+    if (tipo    && r.tipo.toUpperCase() !== tipo)        return false;
+    if (estado  && getEstado(r.calificacion) !== estado) return false;
     return true;
   });
 
@@ -208,8 +217,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Dropdowns
-  document.getElementById("filter-grupo").addEventListener("change", applyFilters);
-  document.getElementById("filter-asig").addEventListener("change",  applyFilters);
+  document.getElementById("filter-grupo").addEventListener("change",   applyFilters);
+  document.getElementById("filter-asig").addEventListener("change",    applyFilters);
+  document.getElementById("filter-docente").addEventListener("change", applyFilters);
 
   // Toggle buttons — tipo
   document.querySelectorAll("#tipo-group .tog-btn").forEach(btn => {
@@ -234,6 +244,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("search-name").value      = "";
     document.getElementById("filter-grupo").value     = "";
     document.getElementById("filter-asig").value      = "";
+    document.getElementById("filter-docente").value   = "";
     document.querySelectorAll("#tipo-group .tog-btn").forEach((b, i) => b.classList.toggle("active", i === 0));
     document.querySelectorAll("#estado-group .tog-btn").forEach((b, i) => b.classList.toggle("active", i === 0));
     applyFilters();
