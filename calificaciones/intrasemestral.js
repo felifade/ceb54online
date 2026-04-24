@@ -371,10 +371,9 @@ function renderCaptura() {
   const tipo  = document.getElementById("cap-tipo").value;
 
   const data = _allData.filter(r => {
-    if (!grupo)                               return false; // grupo obligatorio
-    if (r.grupo !== grupo)                    return false;
-    if (asig && r.asignatura !== asig)        return false;
-    if (tipo && r.tipo.toUpperCase() !== tipo) return false;
+    if (grupo && r.grupo !== grupo)            return false;
+    if (asig  && r.asignatura !== asig)        return false;
+    if (tipo  && r.tipo.toUpperCase() !== tipo) return false;
     return true;
   });
 
@@ -382,16 +381,10 @@ function renderCaptura() {
   const empty = document.getElementById("cap-empty");
   const info  = document.getElementById("cap-info");
 
-  if (!grupo) {
-    wrap.style.display  = "none";
-    empty.style.display = "flex";
-    info.textContent    = "Selecciona un grupo para comenzar";
-    return;
-  }
-
   if (data.length === 0) {
     wrap.style.display  = "none";
     empty.style.display = "flex";
+    empty.querySelector("p").textContent = "Sin registros con los filtros seleccionados.";
     empty.querySelector("p").textContent = "Sin registros con los filtros seleccionados.";
     info.textContent = "0 registros";
     return;
@@ -544,7 +537,7 @@ document.addEventListener("DOMContentLoaded", () => {
     filterBar.style.display = (tab === "materias" || tab === "docentes") ? "flex" : "none";
     if (tab === "materias") renderMaterias(resFiltrado());
     if (tab === "docentes") renderDocentes(resFiltrado());
-    if (tab === "captura")  renderCaptura();
+    if (tab === "captura" && _allData.length) renderCaptura();
   }
 
   document.querySelectorAll(".tab-btn").forEach(btn =>
