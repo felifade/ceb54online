@@ -670,19 +670,20 @@ document.addEventListener("DOMContentLoaded", () => {
                     return parcialesArray.includes(parseNum(pActivo));
                 });
             }
+            // Evaluaciones propias del docente actual en este parcial y grupo
+            const misEvalsAqui = userEmail ? todasEvals.filter(ev =>
+                (String(ev.docenteEmail || ev.docente_email || "").trim().toLowerCase() === String(userEmail).trim().toLowerCase()) &&
+                String(ev.parcial) === String(pActivo) &&
+                cleanGroupStr(ev.grupoId) === targetClean
+            ) : [];
+            const equiposEvaluadosPorMi = new Set(misEvalsAqui.map(ev => ev.equipoId));
+
             // ===================================
             // PROGRESO PERSONAL DEL DOCENTE (NUEVO)
             // ===================================
             if (userEmail && puedeEvaluar) {
-                const misEvalsAqui = todasEvals.filter(ev =>
-                    (String(ev.docenteEmail || ev.docente_email || "").trim().toLowerCase() === String(userEmail).trim().toLowerCase()) &&
-                    String(ev.parcial) === String(pActivo) &&
-                    cleanGroupStr(ev.grupoId) === targetClean
-                );
-                
-                const equiposYaCalificados = new Set(misEvalsAqui.map(ev => ev.equipoId));
                 let evaluadosMios = 0;
-                equipos.forEach(eq => { if (equiposYaCalificados.has(eq.id)) evaluadosMios++; });
+                equipos.forEach(eq => { if (equiposEvaluadosPorMi.has(eq.id)) evaluadosMios++; });
 
                 const totalMios = equipos.length;
                 const pct = totalMios > 0 ? (evaluadosMios / totalMios) * 100 : 0;
@@ -712,7 +713,11 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             equipos.forEach(eq => {
-                const isEvaluado = eq.estado === 'Evaluado';
+                // Para docentes: verificar si *este* docente evaluó el equipo en el parcial activo.
+                // eq.estado viene del backend y puede reflejar evaluaciones de otros docentes.
+                const isEvaluado = (userEmail && !isAdmin)
+                    ? equiposEvaluadosPorMi.has(eq.id)
+                    : eq.estado === 'Evaluado';
                 
                 // Determinar el aspecto del botón
                 let btnHtml = '';
