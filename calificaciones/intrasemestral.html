@@ -44,6 +44,9 @@
     <button class="tab-btn" data-tab="docentes">
       <i data-lucide="users"></i> Por Profesor
     </button>
+    <button class="tab-btn" data-tab="captura">
+      <i data-lucide="pencil-line"></i> Captura
+    </button>
   </div>
 
   <!-- ══════════════ TARJETAS RESUMEN ══════════════ -->
@@ -198,6 +201,63 @@
   <div id="panel-docentes" style="display:none">
     <div class="resumen-grid" id="grid-docentes"></div>
   </div>
+
+  <!-- ══════════════ PANEL: CAPTURA ══════════════ -->
+  <div id="panel-captura" style="display:none">
+
+    <!-- Filtros de captura -->
+    <div class="cap-filter-bar">
+      <div class="cap-filter-item">
+        <label for="cap-grupo">Grupo</label>
+        <select id="cap-grupo">
+          <option value="">— Selecciona grupo —</option>
+        </select>
+      </div>
+      <div class="cap-filter-item">
+        <label for="cap-asig">Asignatura</label>
+        <select id="cap-asig">
+          <option value="">Todas</option>
+        </select>
+      </div>
+      <div class="cap-filter-item">
+        <label for="cap-tipo">Tipo</label>
+        <select id="cap-tipo">
+          <option value="">Todos</option>
+          <option value="CURSO">Curso</option>
+          <option value="EXAMEN">Examen</option>
+        </select>
+      </div>
+      <span class="cap-info" id="cap-info">Selecciona un grupo para comenzar</span>
+      <button class="cap-btn-save" id="cap-btn-save" disabled>
+        <i data-lucide="save"></i> Guardar cambios
+      </button>
+    </div>
+
+    <!-- Estado vacío -->
+    <div id="cap-empty" class="cap-empty">
+      <i data-lucide="table-properties" style="width:2.5rem;height:2.5rem;color:#cbd5e1;"></i>
+      <p>Selecciona un grupo para ver y editar las calificaciones.</p>
+    </div>
+
+    <!-- Tabla editable -->
+    <div id="cap-wrap" class="cap-wrap" style="display:none">
+      <table class="cal-table cap-table">
+        <thead>
+          <tr>
+            <th>Alumno(a)</th>
+            <th>Grupo</th>
+            <th>Asignatura</th>
+            <th>Tipo</th>
+            <th class="th-cal">Calificación</th>
+            <th class="th-obs">Observación</th>
+            <th class="th-st"></th>
+          </tr>
+        </thead>
+        <tbody id="cap-tbody"></tbody>
+      </table>
+    </div>
+
+  </div><!-- /panel-captura -->
 
 </main>
 

@@ -567,6 +567,136 @@ body { font-family:var(--font-b); background:var(--bg); color:var(--dark); line-
   margin-top: 2rem;
 }
 
+/* ── CAPTURA ─────────────────────────────────────────────── */
+.cap-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: .75rem;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow);
+}
+.cap-filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+}
+.cap-filter-item label {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  color: var(--muted);
+}
+.cap-filter-item select {
+  padding: .5rem .85rem;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--font-b);
+  font-size: .88rem;
+  color: var(--dark);
+  background: var(--bg);
+  outline: none;
+  cursor: pointer;
+  transition: border-color .2s;
+  min-width: 180px;
+}
+.cap-filter-item select:focus { border-color: var(--blue); }
+.cap-info {
+  font-size: .82rem;
+  color: var(--muted);
+  align-self: flex-end;
+  margin-left: auto;
+  white-space: nowrap;
+}
+.cap-btn-save {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .55rem 1.25rem;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-b);
+  font-size: .88rem;
+  font-weight: 700;
+  cursor: pointer;
+  align-self: flex-end;
+  transition: opacity .2s, background .2s;
+  white-space: nowrap;
+}
+.cap-btn-save i { width: 15px; height: 15px; }
+.cap-btn-save:hover:not(:disabled) { background: #2563eb; }
+.cap-btn-save:disabled { opacity: .4; cursor: not-allowed; }
+
+.cap-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .85rem;
+  padding: 3rem 2rem;
+  color: var(--muted);
+  font-size: .9rem;
+  text-align: center;
+}
+.cap-wrap {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.cap-table .th-cal { width: 120px; text-align: center; }
+.cap-table .th-obs { min-width: 200px; }
+.cap-table .th-st  { width: 38px; }
+
+.cap-cal-input {
+  width: 90px;
+  padding: .35rem .5rem;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  font-family: var(--font-h);
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+  background: var(--bg);
+  transition: border-color .18s, background .18s;
+}
+.cap-cal-input:focus { border-color: var(--blue); background: var(--white); }
+
+.cap-obs-input {
+  width: 100%;
+  min-width: 180px;
+  padding: .35rem .6rem;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  font-family: var(--font-b);
+  font-size: .82rem;
+  outline: none;
+  background: var(--bg);
+  transition: border-color .18s;
+}
+.cap-obs-input:focus { border-color: var(--blue); }
+
+/* Estados de fila */
+.cap-row.cap-dirty td { background: #fffbeb; }
+.cap-row.cap-dirty .cap-cal-input,
+.cap-row.cap-dirty .cap-obs-input { border-color: var(--amber); }
+.cap-row.cap-saved td  { background: #f0fdf4; }
+.cap-row.cap-error td  { background: #fff1f2; }
+
+.cap-row-status {
+  font-size: 1rem;
+  text-align: center;
+  line-height: 1;
+}
+
 /* ══════════════════════ RESPONSIVE ══════════════════════ */
 @media (max-width: 900px) {
   .summary-grid { grid-template-columns: repeat(2, 1fr); }
