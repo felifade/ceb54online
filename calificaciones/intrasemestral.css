@@ -614,7 +614,32 @@ body { font-family:var(--font-b); background:var(--bg); color:var(--dark); line-
   align-self: flex-end;
   flex: 1;
 }
-.cap-action-btns { display: flex; gap: .5rem; align-self: flex-end; }
+.cap-action-btns { display: flex; gap: .5rem; align-self: flex-end; flex-wrap: wrap; }
+.pdf-combo {
+  display: flex;
+  align-items: stretch;
+  border: 1.5px solid #0f172a;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.pdf-combo select {
+  padding: .5rem .75rem;
+  border: none;
+  border-right: 1.5px solid rgba(255,255,255,.15);
+  background: #0f172a;
+  color: #e2e8f0;
+  font-family: var(--font-b);
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  min-width: 130px;
+}
+.pdf-combo select option { background: #1e293b; }
+.pdf-combo .cap-btn-pdf {
+  border-radius: 0;
+  border: none;
+}
 .cap-btn-save, .cap-btn-pdf {
   display: flex;
   align-items: center;

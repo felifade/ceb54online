@@ -229,9 +229,17 @@
       </div>
       <span class="cap-info" id="cap-info"></span>
       <div class="cap-action-btns">
-        <button class="cap-btn-pdf" id="cap-btn-pdf">
-          <i data-lucide="file-down"></i> Generar PDF
-        </button>
+        <div class="pdf-combo">
+          <select id="pdf-tipo" title="Tipo de PDF">
+            <option value="grupo">Por grupo</option>
+            <option value="docente">Por docente</option>
+            <option value="materia">Por materia</option>
+            <option value="general">General (todo)</option>
+          </select>
+          <button class="cap-btn-pdf" id="cap-btn-pdf">
+            <i data-lucide="file-down"></i> Generar PDF
+          </button>
+        </div>
         <button class="cap-btn-save" id="cap-btn-save" disabled>
           <i data-lucide="save"></i> Guardar al Sheet
         </button>
