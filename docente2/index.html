@@ -127,10 +127,10 @@
         <span>Mis calificaciones</span>
       </button>
 
-      <a href="https://ceb54.online/calificaciones/intrasemestral.html" target="_blank" class="d2-nav-item d2-nav-temp" style="text-decoration:none;">
+      <button class="d2-nav-item d2-nav-temp" data-mod="intrasemestral">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
         <span>Cal. Intrasemestrales<br><small style="font-size:0.62rem;font-weight:400;opacity:0.75;">Feb–Jun 2026</small> <span class="d2-temp-badge">TEMPORAL</span></span>
-      </a>
+      </button>
 
       <!-- Materias dinámicas inyectadas por main.js según docente autenticado -->
       <div id="d2-nav-materias" style="display:none;">
@@ -572,6 +572,22 @@
 
         </div>
       </div><!-- /d2-mod-edicion_pec -->
+
+      <!-- ══ MÓDULO: CALIFICACIONES INTRASEMESTRALES ═══════════
+           Iframe a /calificaciones/intrasemestral.html — temporal
+      ════════════════════════════════════════════════════ -->
+      <div class="d2-module" id="d2-mod-intrasemestral">
+        <div class="d2-iframe-wrap" id="d2-intrasemestral-wrap">
+          <div class="d2-iframe-loading" id="d2-intrasemestral-loading">
+            <div class="d2-spinner"></div>
+            <div>
+              <div class="d2-loader-title">Cargando Calificaciones Intrasemestrales…</div>
+              <div class="d2-loader-sub">Feb–Jun 2026</div>
+            </div>
+          </div>
+          <iframe id="d2-iframe-intrasemestral" title="Calificaciones Intrasemestrales — CEB 5/4"></iframe>
+        </div>
+      </div><!-- /d2-mod-intrasemestral -->
 
     </div><!-- /d2-content -->
   </div><!-- /d2-main -->

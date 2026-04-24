@@ -70,7 +70,8 @@
     materia:     { title: 'Mi Materia',             sub: 'Portal de actividades del docente' },
     prefectura:  { title: 'Reportes de Uniforme',   sub: 'Seguimiento de incidencias · Prefectura' },
     directorio:  { title: 'Directorio PEC',          sub: 'Grupos · Materias · Ponderaciones por parcial' },
-    edicion_pec: { title: 'Edición Rápida PEC',      sub: 'Modificación ágil de evaluaciones · Solo autorizado' }
+    edicion_pec:      { title: 'Edición Rápida PEC',              sub: 'Modificación ágil de evaluaciones · Solo autorizado' },
+    intrasemestral:   { title: 'Calificaciones Intrasemestrales', sub: 'Consulta previa · Feb–Jun 2026 · Temporal' }
   };
 
   /* Emails autorizados para herramientas especiales (CURP + portal docente) */
@@ -372,7 +373,8 @@
     if (modId === 'curps')       loadCurps();
     if (modId === 'prefectura')  lazyLoadPrefectura();
     if (modId === 'directorio')  initDirectorio();
-    if (modId === 'edicion_pec') initEdicionPEC();
+    if (modId === 'edicion_pec')    initEdicionPEC();
+    if (modId === 'intrasemestral') lazyLoadIntrasemestral();
 
     closeSidebar();
     window.scrollTo(0, 0);
@@ -1381,6 +1383,25 @@
 
     if (loading) loading.classList.remove('hidden');
     iframe.src = '../prefectura/index.html?d2embed=1';
+    iframe.onload = function() {
+      if (loading) loading.classList.add('hidden');
+    };
+  }
+
+  /* ════════════════════════════════════════════════════════
+     MÓDULO: CALIFICACIONES INTRASEMESTRALES (temporal)
+  ════════════════════════════════════════════════════════ */
+  var _intrasemestralLoaded = false;
+
+  function lazyLoadIntrasemestral() {
+    var iframe  = document.getElementById('d2-iframe-intrasemestral');
+    var loading = document.getElementById('d2-intrasemestral-loading');
+    if (!iframe) return;
+    if (_intrasemestralLoaded) return;
+    _intrasemestralLoaded = true;
+
+    if (loading) loading.classList.remove('hidden');
+    iframe.src = '../calificaciones/intrasemestral.html';
     iframe.onload = function() {
       if (loading) loading.classList.add('hidden');
     };
