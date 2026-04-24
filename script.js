@@ -57,4 +57,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Run on scroll
     window.addEventListener('scroll', revealOnScroll);
 
+    // ── Firma del autor ──────────────────────────────────────────────
+    const footerBottom = document.querySelector('.footer-bottom .container');
+    if (footerBottom) {
+        const firma = document.createElement('p');
+        firma.className = 'footer-firma';
+        firma.innerHTML =
+            '<span class="firma-sep">✦</span>' +
+            ' Diseñado y desarrollado por ' +
+            '<span class="firma-nombre">Dr. Felipe López Salazar</span>';
+        footerBottom.appendChild(firma);
+    }
+
 });
