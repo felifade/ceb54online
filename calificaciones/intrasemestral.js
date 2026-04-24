@@ -205,9 +205,92 @@ function showError(msg) {
   lucide.createIcons();
 }
 
+/* ── Renderizar resumen por asignatura/docente ───────────── */
+function renderResumen(data) {
+  const grid = document.getElementById("resumen-grid");
+  if (!grid) return;
+
+  // Agrupar por asignatura + docente + tipo
+  const map = {};
+  data.forEach(r => {
+    const key = `${r.asignatura}||${r.docente}||${r.tipo}`;
+    if (!map[key]) map[key] = { asignatura: r.asignatura, docente: r.docente, tipo: r.tipo, rows: [] };
+    map[key].rows.push(r);
+  });
+
+  const groups = Object.values(map).sort((a, b) => {
+    const c = (a.asignatura || "").localeCompare(b.asignatura || "");
+    return c !== 0 ? c : (a.docente || "").localeCompare(b.docente || "");
+  });
+
+  if (groups.length === 0) {
+    grid.innerHTML = `<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:2rem;">Sin datos para mostrar.</p>`;
+    return;
+  }
+
+  grid.innerHTML = groups.map(g => {
+    const total = g.rows.length;
+    const acred = g.rows.filter(r => getEstado(r.calificacion) === "acreditado").length;
+    const noAcr = g.rows.filter(r => getEstado(r.calificacion) === "no_acreditado").length;
+    const pend  = g.rows.filter(r => getEstado(r.calificacion) === "pendiente").length;
+    const pct   = total > 0 ? Math.round(acred / total * 100) : 0;
+    const barColor = pct >= 80 ? "var(--green)" : pct >= 50 ? "var(--amber)" : "var(--red)";
+
+    return `
+      <div class="rm-card">
+        <div class="rm-card-head">
+          <div class="rm-card-asig">${g.asignatura || "—"}</div>
+          ${badgeTipo(g.tipo)}
+        </div>
+        <div class="rm-card-docente">
+          <i data-lucide="user-round"></i>
+          ${g.docente || "—"}
+        </div>
+        <div class="rm-stats-row">
+          <div class="rm-stat">
+            <span class="rm-stat-num" style="color:var(--blue)">${total}</span>
+            <span class="rm-stat-lbl">Total</span>
+          </div>
+          <div class="rm-stat">
+            <span class="rm-stat-num" style="color:var(--green)">${acred}</span>
+            <span class="rm-stat-lbl">Acred.</span>
+          </div>
+          <div class="rm-stat">
+            <span class="rm-stat-num" style="color:var(--red)">${noAcr}</span>
+            <span class="rm-stat-lbl">No acred.</span>
+          </div>
+          <div class="rm-stat">
+            <span class="rm-stat-num" style="color:var(--amber)">${pend}</span>
+            <span class="rm-stat-lbl">Pendiente</span>
+          </div>
+        </div>
+        <div class="rm-progress-wrap">
+          <div class="rm-progress-track">
+            <div class="rm-progress-fill" style="width:${pct}%;background:${barColor}"></div>
+          </div>
+          <span class="rm-progress-pct">${pct}% acreditado</span>
+        </div>
+      </div>`;
+  }).join("");
+
+  lucide.createIcons();
+}
+
 /* ── Inicializar eventos ─────────────────────────────────── */
 document.addEventListener("DOMContentLoaded", () => {
   lucide.createIcons();
+
+  // Pestañas
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const tab = btn.dataset.tab;
+      document.getElementById("panel-registros").style.display = tab === "registros" ? "" : "none";
+      document.getElementById("panel-resumen").style.display   = tab === "resumen"   ? "" : "none";
+      if (tab === "resumen") renderResumen(_allData);
+    });
+  });
 
   // Búsqueda en tiempo real (debounce 300ms)
   let _searchTimer;

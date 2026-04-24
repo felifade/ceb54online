@@ -33,6 +33,16 @@
 
 <main class="main-wrap">
 
+  <!-- ══════════════ PESTAÑAS ══════════════ -->
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="registros">
+      <i data-lucide="table-2"></i> Registros
+    </button>
+    <button class="tab-btn" data-tab="resumen">
+      <i data-lucide="layout-grid"></i> Resumen por Materia
+    </button>
+  </div>
+
   <!-- ══════════════ TARJETAS RESUMEN ══════════════ -->
   <section class="summary-grid" id="summary-grid">
     <div class="summary-card" id="card-total">
@@ -64,6 +74,9 @@
       </div>
     </div>
   </section>
+
+  <!-- ══════════════ PANEL: REGISTROS ══════════════ -->
+  <div id="panel-registros">
 
   <!-- ══════════════ FILTROS ══════════════ -->
   <section class="filters-wrap">
@@ -161,6 +174,15 @@
       </table>
     </div>
   </section>
+
+  </div><!-- /panel-registros -->
+
+  <!-- ══════════════ PANEL: RESUMEN POR MATERIA ══════════════ -->
+  <div id="panel-resumen" style="display:none">
+    <div class="resumen-grid" id="resumen-grid">
+      <!-- tarjetas inyectadas por JS -->
+    </div>
+  </div>
 
 </main>
 
