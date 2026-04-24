@@ -753,19 +753,24 @@ async function generarPDF() {
       return row;
     });
 
-    // Anchos de columna dinámicos
+    // Anchos adaptados según cuántas columnas extra se muestran
+    // (carta horizontal = 279mm; márgenes 14+14 = 251mm útiles)
+    const nombreW = tipo === "general" ? 43 : tipo === "grupo" ? 54 : tipo === "docente" ? 58 : 62;
+    const asigW   = tipo === "general" ? 34 : tipo === "grupo" ? 46 : 50;
+    const docW    = tipo === "general" ? 28 : tipo === "grupo" ? 36 : 40;
+
     const colStyles = {
-      0: { cellWidth: 8,  halign: "center" },
-      1: { cellWidth: 50 },
+      0: { cellWidth: 7,      halign: "center" },
+      1: { cellWidth: nombreW, overflow: "linebreak" },
     };
     let ci = 2;
-    if (showGrupo)   { colStyles[ci] = { cellWidth: 13, halign: "center" }; ci++; }
-    if (showAsig)    { colStyles[ci] = { cellWidth: 44 }; ci++; }
-    if (showDocente) { colStyles[ci] = { cellWidth: 36 }; ci++; }
-    for (let j = 0; j < NUM_ASIST; j++) { colStyles[ci] = { cellWidth: 6.5, halign: "center" }; ci++; }
-    colStyles[ci] = { cellWidth: 10, halign: "center" }; ci++;   // total
-    for (let j = 0; j < 5; j++) { colStyles[ci] = { cellWidth: 8, halign: "center" }; ci++; }
-    colStyles[ci] = { cellWidth: 16, halign: "center" };          // calificación
+    if (showGrupo)   { colStyles[ci] = { cellWidth: 11, halign: "center" }; ci++; }
+    if (showAsig)    { colStyles[ci] = { cellWidth: asigW, overflow: "linebreak" }; ci++; }
+    if (showDocente) { colStyles[ci] = { cellWidth: docW,  overflow: "linebreak" }; ci++; }
+    for (let j = 0; j < NUM_ASIST; j++) { colStyles[ci] = { cellWidth: 5.5, halign: "center" }; ci++; }
+    colStyles[ci] = { cellWidth: 9, halign: "center" }; ci++;    // total
+    for (let j = 0; j < 5; j++) { colStyles[ci] = { cellWidth: 7, halign: "center" }; ci++; }
+    colStyles[ci] = { cellWidth: 14, halign: "center" };          // calificación
 
     doc.autoTable({
       startY,
