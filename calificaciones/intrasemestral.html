@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Calificaciones Intrasemestrales | CEB 5/4</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@0.511.0"></script>
+  <link rel="stylesheet" href="intrasemestral.css">
+</head>
+<body>
+
+<!-- ══════════════════════ ENCABEZADO ══════════════════════ -->
+<header class="site-header">
+  <div class="header-inner">
+    <img src="../assets/logo.png" alt="CEB 5/4" class="header-logo">
+    <div class="header-text">
+      <span class="header-plantel">CEB 5/4 "Profr. Rafael Ramírez"</span>
+      <h1 class="header-title">Consulta de Calificaciones Intrasemestrales</h1>
+      <p class="header-sub">Revisión previa a la emisión de calificaciones finales</p>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════════════════ AVISO ══════════════════════ -->
+<div class="notice-bar">
+  <i data-lucide="info"></i>
+  <p>Esta información es de consulta previa. En caso de detectar alguna inconsistencia, comunícate con el docente responsable o con el área correspondiente <strong>antes</strong> de la emisión de calificaciones finales.</p>
+</div>
+
+<main class="main-wrap">
+
+  <!-- ══════════════ TARJETAS RESUMEN ══════════════ -->
+  <section class="summary-grid" id="summary-grid">
+    <div class="summary-card" id="card-total">
+      <div class="sc-icon sc-blue"><i data-lucide="clipboard-list"></i></div>
+      <div class="sc-body">
+        <span class="sc-num" id="cnt-total">—</span>
+        <span class="sc-label">Total registros</span>
+      </div>
+    </div>
+    <div class="summary-card" id="card-acred">
+      <div class="sc-icon sc-green"><i data-lucide="check-circle-2"></i></div>
+      <div class="sc-body">
+        <span class="sc-num" id="cnt-acred">—</span>
+        <span class="sc-label">Acreditados</span>
+      </div>
+    </div>
+    <div class="summary-card" id="card-no">
+      <div class="sc-icon sc-red"><i data-lucide="x-circle"></i></div>
+      <div class="sc-body">
+        <span class="sc-num" id="cnt-no">—</span>
+        <span class="sc-label">No acreditados</span>
+      </div>
+    </div>
+    <div class="summary-card" id="card-pend">
+      <div class="sc-icon sc-amber"><i data-lucide="clock"></i></div>
+      <div class="sc-body">
+        <span class="sc-num" id="cnt-pend">—</span>
+        <span class="sc-label">Pendientes</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ FILTROS ══════════════ -->
+  <section class="filters-wrap">
+    <div class="filter-row">
+      <!-- Búsqueda por nombre -->
+      <div class="filter-search">
+        <i data-lucide="search"></i>
+        <input type="text" id="search-name" placeholder="Buscar por nombre del alumno..." autocomplete="off">
+      </div>
+      <!-- Grupo -->
+      <div class="filter-select-wrap">
+        <label for="filter-grupo">Grupo</label>
+        <select id="filter-grupo">
+          <option value="">Todos los grupos</option>
+        </select>
+      </div>
+      <!-- Asignatura -->
+      <div class="filter-select-wrap">
+        <label for="filter-asig">Asignatura</label>
+        <select id="filter-asig">
+          <option value="">Todas las materias</option>
+        </select>
+      </div>
+    </div>
+    <div class="filter-row filter-row-btns">
+      <!-- Tipo -->
+      <div class="btn-group-wrap">
+        <span class="btn-group-label">Tipo</span>
+        <div class="btn-group" id="tipo-group">
+          <button class="tog-btn active" data-tipo="">Todos</button>
+          <button class="tog-btn" data-tipo="CURSO">Curso</button>
+          <button class="tog-btn" data-tipo="EXAMEN">Examen</button>
+        </div>
+      </div>
+      <!-- Estado -->
+      <div class="btn-group-wrap">
+        <span class="btn-group-label">Estado</span>
+        <div class="btn-group" id="estado-group">
+          <button class="tog-btn active" data-estado="">Todos</button>
+          <button class="tog-btn tog-green" data-estado="acreditado">Acreditado</button>
+          <button class="tog-btn tog-red"   data-estado="no_acreditado">No acreditado</button>
+          <button class="tog-btn tog-amber" data-estado="pendiente">Pendiente</button>
+        </div>
+      </div>
+      <!-- Limpiar -->
+      <button class="btn-clear" id="btn-clear" title="Limpiar filtros">
+        <i data-lucide="filter-x"></i> Limpiar
+      </button>
+    </div>
+  </section>
+
+  <!-- ══════════════ RESULTADOS ══════════════ -->
+  <section class="results-wrap">
+    <div class="results-header">
+      <span id="results-count" class="results-count">—</span>
+    </div>
+
+    <!-- Estados de carga / vacío / error -->
+    <div id="state-loading" class="state-box">
+      <div class="spinner"></div>
+      <p>Cargando calificaciones…</p>
+    </div>
+    <div id="state-error" class="state-box" style="display:none">
+      <i data-lucide="wifi-off" style="width:2.5rem;height:2.5rem;color:#ef4444;"></i>
+      <p id="state-error-msg">No fue posible conectar con el servidor. Verifica tu conexión e intenta de nuevo.</p>
+      <button class="btn-retry" onclick="loadData()"><i data-lucide="refresh-cw"></i> Reintentar</button>
+    </div>
+    <div id="state-empty" class="state-box" style="display:none">
+      <i data-lucide="search-x" style="width:2.5rem;height:2.5rem;color:#94a3b8;"></i>
+      <p>No se encontraron registros con los filtros seleccionados.</p>
+    </div>
+
+    <!-- Tabla -->
+    <div id="table-wrap" class="table-wrap" style="display:none">
+      <table class="cal-table" id="cal-table">
+        <thead>
+          <tr>
+            <th>Alumno(a)</th>
+            <th>Grupo</th>
+            <th>Asignatura</th>
+            <th>Docente</th>
+            <th>Tipo</th>
+            <th>Calificación</th>
+            <th>Estado</th>
+            <th>Observaciones</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>CEB 5/4 "Profr. Rafael Ramírez" · Consulta de uso institucional · Información sujeta a validación final</p>
+</footer>
+
+<script src="intrasemestral.js"></script>
+</body>
+</html>

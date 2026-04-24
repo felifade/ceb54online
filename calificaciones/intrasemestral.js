@@ -1,0 +1,244 @@
+/* ═══════════════════════════════════════════════════════════════
+   CALIFICACIONES INTRASEMESTRALES — CEB 5/4
+   Fuente: Google Apps Script (endpoint JSON)
+   ─────────────────────────────────────────────────────────────
+   CONFIGURACIÓN:  cambia GAS_URL por la URL de tu deployment.
+   La hoja que se lee es "CONCENTRADO SUBDIRECCIÓN" del Sheets
+   de Subdirección.  El GAS devuelve JSON con la forma:
+     { status: "ok", total: N, registros: [ { nombre, grupo,
+       asignatura, docente, tipo, calificacion, observacion } ] }
+═══════════════════════════════════════════════════════════════ */
+
+const GAS_URL = "PEGA_AQUI_LA_URL_DE_TU_GAS"; // ← único punto de configuración
+
+// Calificación mínima para acreditar (ajustable)
+const CAL_MINIMA = 6;
+
+/* ── Estado de la app ─────────────────────────────────────── */
+let _allData   = [];   // todos los registros cargados
+let _filtered  = [];   // registros después de aplicar filtros
+
+/* ── Normalizar texto (quitar acentos, minúsculas) ───────── */
+function norm(str) {
+  return String(str || "")
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .toLowerCase().trim();
+}
+
+/* ── Determinar estado de acreditación ───────────────────── */
+function getEstado(cal) {
+  if (cal === null || cal === "" || cal === undefined) return "pendiente";
+  const n = parseFloat(cal);
+  if (isNaN(n)) return "pendiente";
+  return n >= CAL_MINIMA ? "acreditado" : "no_acreditado";
+}
+
+/* ── Renderizar badge de estado ──────────────────────────── */
+function badgeEstado(estado) {
+  if (estado === "acreditado")    return `<span class="badge-estado badge-acred">✓ Acreditado</span>`;
+  if (estado === "no_acreditado") return `<span class="badge-estado badge-no">✗ No acreditado</span>`;
+  return `<span class="badge-estado badge-pend">⏳ Pendiente</span>`;
+}
+
+/* ── Renderizar badge de tipo ────────────────────────────── */
+function badgeTipo(tipo) {
+  const t = String(tipo || "").toUpperCase();
+  if (t === "EXAMEN") return `<span class="badge-tipo badge-examen">Examen</span>`;
+  return `<span class="badge-tipo badge-curso">Curso</span>`;
+}
+
+/* ── Clase CSS para la calificación ─────────────────────── */
+function calClass(estado) {
+  if (estado === "acreditado")    return "cal-acred";
+  if (estado === "no_acreditado") return "cal-no";
+  return "cal-pending";
+}
+
+/* ── Actualizar tarjetas resumen ─────────────────────────── */
+function updateSummary(data) {
+  const total  = data.length;
+  const acred  = data.filter(r => getEstado(r.calificacion) === "acreditado").length;
+  const noAcr  = data.filter(r => getEstado(r.calificacion) === "no_acreditado").length;
+  const pend   = data.filter(r => getEstado(r.calificacion) === "pendiente").length;
+
+  document.getElementById("cnt-total").textContent = total;
+  document.getElementById("cnt-acred").textContent = acred;
+  document.getElementById("cnt-no").textContent    = noAcr;
+  document.getElementById("cnt-pend").textContent  = pend;
+}
+
+/* ── Poblar dropdowns de grupo y asignatura ──────────────── */
+function populateDropdowns(data) {
+  const grupos = [...new Set(data.map(r => r.grupo).filter(Boolean))].sort();
+  const asigs  = [...new Set(data.map(r => r.asignatura).filter(Boolean))].sort();
+
+  const selGrupo = document.getElementById("filter-grupo");
+  const selAsig  = document.getElementById("filter-asig");
+
+  grupos.forEach(g => {
+    const o = document.createElement("option");
+    o.value = g; o.textContent = g;
+    selGrupo.appendChild(o);
+  });
+  asigs.forEach(a => {
+    const o = document.createElement("option");
+    o.value = a; o.textContent = a;
+    selAsig.appendChild(o);
+  });
+}
+
+/* ── Renderizar tabla ────────────────────────────────────── */
+function renderTable(data) {
+  const tbody = document.getElementById("table-body");
+  const countEl = document.getElementById("results-count");
+  const tableWrap  = document.getElementById("table-wrap");
+  const stateEmpty = document.getElementById("state-empty");
+
+  if (data.length === 0) {
+    tableWrap.style.display  = "none";
+    stateEmpty.style.display = "flex";
+    countEl.textContent = "Sin resultados";
+    return;
+  }
+
+  stateEmpty.style.display = "none";
+  tableWrap.style.display  = "block";
+  countEl.textContent = `${data.length} registro${data.length !== 1 ? "s" : ""} encontrado${data.length !== 1 ? "s" : ""}`;
+
+  tbody.innerHTML = data.map(r => {
+    const estado = getEstado(r.calificacion);
+    const calDisplay = (r.calificacion !== null && r.calificacion !== "")
+      ? parseFloat(r.calificacion).toFixed(1)
+      : "—";
+    return `
+      <tr>
+        <td class="td-alumno">${r.nombre}</td>
+        <td class="td-grupo">${r.grupo || "—"}</td>
+        <td class="td-asig">${r.asignatura || "—"}</td>
+        <td class="td-docente">${r.docente || "—"}</td>
+        <td>${badgeTipo(r.tipo)}</td>
+        <td class="td-cal ${calClass(estado)}">${calDisplay}</td>
+        <td>${badgeEstado(estado)}</td>
+        <td class="td-obs">${r.observacion || ""}</td>
+      </tr>`;
+  }).join("");
+
+  lucide.createIcons();
+}
+
+/* ── Leer filtros actuales y aplicar ─────────────────────── */
+function applyFilters() {
+  const query  = norm(document.getElementById("search-name").value);
+  const grupo  = document.getElementById("filter-grupo").value;
+  const asig   = document.getElementById("filter-asig").value;
+  const tipo   = document.querySelector("#tipo-group .tog-btn.active")?.dataset.tipo   || "";
+  const estado = document.querySelector("#estado-group .tog-btn.active")?.dataset.estado || "";
+
+  _filtered = _allData.filter(r => {
+    if (query  && !norm(r.nombre).includes(query))       return false;
+    if (grupo  && r.grupo      !== grupo)                return false;
+    if (asig   && r.asignatura !== asig)                 return false;
+    if (tipo   && r.tipo.toUpperCase() !== tipo)         return false;
+    if (estado && getEstado(r.calificacion) !== estado)  return false;
+    return true;
+  });
+
+  updateSummary(_filtered);
+  renderTable(_filtered);
+}
+
+/* ── Cargar datos desde GAS ──────────────────────────────── */
+async function loadData() {
+  // Mostrar loading
+  document.getElementById("state-loading").style.display = "flex";
+  document.getElementById("state-error").style.display   = "none";
+  document.getElementById("state-empty").style.display   = "none";
+  document.getElementById("table-wrap").style.display    = "none";
+
+  // Verificar que la URL esté configurada
+  if (!GAS_URL || GAS_URL.startsWith("PEGA_AQUI")) {
+    showError("La URL del endpoint aún no está configurada. Edita intrasemestral.js y reemplaza GAS_URL.");
+    return;
+  }
+
+  try {
+    const url = `${GAS_URL}?action=getCalifIntrasemestral&_t=${Date.now()}`;
+    const res  = await fetch(url, { redirect: "follow" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    const data = JSON.parse(text);
+
+    if (data.status !== "ok") throw new Error(data.message || "Respuesta inesperada del servidor");
+
+    _allData = data.registros || [];
+
+    // Ordenar: grupo → nombre alumno
+    _allData.sort((a, b) => {
+      const g = (a.grupo || "").localeCompare(b.grupo || "");
+      return g !== 0 ? g : (a.nombre || "").localeCompare(b.nombre || "");
+    });
+
+    // Ocultar loading
+    document.getElementById("state-loading").style.display = "none";
+
+    populateDropdowns(_allData);
+    applyFilters();
+
+  } catch (err) {
+    showError(`No fue posible cargar los datos. (${err.message})`);
+  }
+}
+
+function showError(msg) {
+  document.getElementById("state-loading").style.display = "none";
+  document.getElementById("state-error").style.display   = "flex";
+  document.getElementById("state-error-msg").textContent = msg;
+  lucide.createIcons();
+}
+
+/* ── Inicializar eventos ─────────────────────────────────── */
+document.addEventListener("DOMContentLoaded", () => {
+  lucide.createIcons();
+
+  // Búsqueda en tiempo real (debounce 300ms)
+  let _searchTimer;
+  document.getElementById("search-name").addEventListener("input", () => {
+    clearTimeout(_searchTimer);
+    _searchTimer = setTimeout(applyFilters, 300);
+  });
+
+  // Dropdowns
+  document.getElementById("filter-grupo").addEventListener("change", applyFilters);
+  document.getElementById("filter-asig").addEventListener("change",  applyFilters);
+
+  // Toggle buttons — tipo
+  document.querySelectorAll("#tipo-group .tog-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#tipo-group .tog-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      applyFilters();
+    });
+  });
+
+  // Toggle buttons — estado
+  document.querySelectorAll("#estado-group .tog-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#estado-group .tog-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      applyFilters();
+    });
+  });
+
+  // Limpiar filtros
+  document.getElementById("btn-clear").addEventListener("click", () => {
+    document.getElementById("search-name").value      = "";
+    document.getElementById("filter-grupo").value     = "";
+    document.getElementById("filter-asig").value      = "";
+    document.querySelectorAll("#tipo-group .tog-btn").forEach((b, i) => b.classList.toggle("active", i === 0));
+    document.querySelectorAll("#estado-group .tog-btn").forEach((b, i) => b.classList.toggle("active", i === 0));
+    applyFilters();
+  });
+
+  // Carga inicial
+  loadData();
+});
