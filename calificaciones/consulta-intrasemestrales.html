@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Consulta de Resultados Intrasemestrales | CEB 5/4</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@0.511.0"></script>
+  <style>
+    :root {
+      --blue:    #3884C0;
+      --blue-lt: #ebf4fc;
+      --dark:    #0f172a;
+      --muted:   #64748b;
+      --border:  #e2e8f0;
+      --bg:      #f1f5f9;
+      --white:   #ffffff;
+      --green:   #16a34a;
+      --green-lt:#dcfce7;
+      --red:     #dc2626;
+      --red-lt:  #fee2e2;
+      --amber:   #d97706;
+      --amber-lt:#fef3c7;
+      --radius:  12px;
+      --shadow:  0 4px 16px rgba(0,0,0,.08);
+      --font-h:  'Outfit', sans-serif;
+      --font-b:  'Inter', sans-serif;
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body { font-family: var(--font-b); background: var(--bg); color: var(--dark); min-height: 100vh; }
+
+    /* ── ENCABEZADO ── */
+    .cq-header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+      color: white;
+      padding: 1.75rem 2rem;
+    }
+    .cq-header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+    .cq-logo {
+      width: 52px;
+      height: auto;
+      flex-shrink: 0;
+      filter: brightness(0) invert(1);
+      opacity: .9;
+    }
+    .cq-plantel {
+      font-family: var(--font-h);
+      font-size: .68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--blue);
+      display: block;
+      margin-bottom: .3rem;
+    }
+    .cq-title {
+      font-family: var(--font-h);
+      font-size: 1.45rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    .cq-sub {
+      font-size: .82rem;
+      color: #94a3b8;
+      margin-top: .25rem;
+    }
+
+    /* ── AVISO ── */
+    .cq-notice {
+      background: #eff6ff;
+      border-bottom: 2px solid #bfdbfe;
+      padding: .8rem 2rem;
+      display: flex;
+      align-items: flex-start;
+      gap: .65rem;
+      font-size: .82rem;
+      color: #1e40af;
+      line-height: 1.5;
+    }
+    .cq-notice i { width: 16px; height: 16px; flex-shrink: 0; margin-top: .1rem; }
+
+    /* ── MAIN ── */
+    .cq-main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.5rem 1.5rem 3rem;
+    }
+
+    /* ── NAVEGACIÓN DE GRUPOS ── */
+    .cq-nav {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .85rem 1.1rem;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      flex-wrap: wrap;
+    }
+    .cq-nav-label {
+      font-size: .7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .7px;
+      color: var(--muted);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: .3rem;
+    }
+    .cq-nav-label i { width: 13px; height: 13px; }
+    .cq-nav-sep { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
+    .cq-nav-btns { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .cq-nav-btn {
+      height: 30px;
+      padding: 0 .75rem;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      font-family: var(--font-h);
+      font-size: .78rem;
+      font-weight: 700;
+      color: var(--dark);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      transition: background .15s, border-color .15s, color .15s;
+    }
+    .cq-nav-btn:hover {
+      background: var(--blue-lt);
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    /* ── ESTADO / SPINNERS ── */
+    .cq-state {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem 1rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: .9rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .65rem;
+      box-shadow: var(--shadow);
+    }
+    .cq-state i { width: 2.5rem; height: 2.5rem; }
+    .cq-spinner {
+      width: 34px; height: 34px;
+      border: 3px solid var(--border);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: cq-spin .7s linear infinite;
+    }
+    @keyframes cq-spin { to { transform: rotate(360deg); } }
+
+    /* ── SECCIÓN POR GRUPO ── */
+    .cq-section {
+      margin-bottom: 1.75rem;
+      scroll-margin-top: 1rem;
+    }
+    .cq-section-hd {
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      margin-bottom: .6rem;
+    }
+    .cq-section-badge {
+      font-family: var(--font-h);
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--white);
+      background: var(--blue);
+      padding: .25rem .85rem;
+      border-radius: 20px;
+      letter-spacing: .5px;
+    }
+    .cq-section-count {
+      font-size: .78rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* ── TABLA DESKTOP ── */
+    .cq-table-wrap {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .cq-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .8rem;
+    }
+    .cq-table thead th {
+      padding: .5rem .85rem;
+      text-align: left;
+      font-size: .66rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .7px;
+      color: var(--muted);
+      background: #f8fafc;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    .cq-table td {
+      padding: .48rem .85rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .cq-table tbody tr:last-child td { border-bottom: none; }
+    .cq-table tbody tr:hover td { background: #f8fafc; }
+
+    .cq-alumno { font-weight: 600; color: var(--dark); font-size: .8rem; }
+    .cq-asig   { color: var(--dark); font-size: .75rem; }
+    .cq-cal    { text-align: center; font-family: var(--font-h); font-weight: 800; font-size: .92rem; }
+    .cq-cal-acred { color: var(--green); }
+    .cq-cal-no    { color: var(--red); }
+    .cq-cal-pend  { color: var(--muted); }
+    .cq-obs { font-size: .72rem; color: var(--muted); font-style: italic; }
+
+    /* ── BADGES ── */
+    .cq-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .2rem;
+      padding: .18rem .55rem;
+      border-radius: 20px;
+      font-size: .67rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .cq-badge-acred { background: var(--green-lt); color: var(--green); }
+    .cq-badge-no    { background: var(--red-lt);   color: var(--red);   }
+    .cq-badge-pend  { background: var(--amber-lt); color: var(--amber); }
+
+    /* ── TARJETAS MÓVIL ── */
+    .cq-cards { display: none; }
+    .cq-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .9rem 1rem;
+      box-shadow: var(--shadow);
+      margin-bottom: .55rem;
+    }
+    .cq-card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: .5rem;
+      margin-bottom: .35rem;
+    }
+    .cq-card-nombre { font-weight: 700; font-size: .9rem; flex: 1; }
+    .cq-card-asig   { font-size: .77rem; color: var(--muted); margin-bottom: .5rem; }
+    .cq-card-grades { display: flex; gap: .6rem; margin-bottom: .5rem; }
+    .cq-grade-box {
+      flex: 1;
+      background: var(--bg);
+      border-radius: 8px;
+      padding: .35rem .5rem;
+      text-align: center;
+    }
+    .cq-grade-lbl {
+      font-size: .6rem; text-transform: uppercase; letter-spacing: .5px;
+      color: var(--muted); font-weight: 600; display: block; margin-bottom: .1rem;
+    }
+    .cq-grade-val { font-family: var(--font-h); font-size: 1.15rem; font-weight: 800; line-height: 1; }
+    .cq-card-foot { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
+    .cq-card-obs  { font-size: .72rem; color: var(--muted); font-style: italic; }
+
+    /* ── FOOTER ── */
+    .cq-footer {
+      border-top: 1px solid var(--border);
+      padding: 1.25rem 2rem;
+      text-align: center;
+      font-size: .75rem;
+      color: var(--muted);
+      background: var(--white);
+      margin-top: 2rem;
+    }
+    .cq-footer-inner { max-width: 1100px; margin: 0 auto; }
+    .cq-priv-notice {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 8px;
+      padding: .45rem .85rem;
+      font-size: .75rem;
+      color: #92400e;
+      margin-bottom: .75rem;
+    }
+    .cq-priv-notice i { width: 13px; height: 13px; flex-shrink: 0; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .cq-header  { padding: 1.25rem 1rem; }
+      .cq-main    { padding: 1.1rem 1rem 2.5rem; }
+      .cq-notice  { padding: .75rem 1rem; }
+      .cq-logo    { width: 40px; }
+      .cq-title   { font-size: 1.1rem; }
+      .cq-table-wrap { display: none !important; }
+      .cq-cards   { display: block; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── ENCABEZADO ── -->
+<header class="cq-header">
+  <div class="cq-header-inner">
+    <img src="../assets/logo.png" alt="CEB 5/4" class="cq-logo">
+    <div>
+      <span class="cq-plantel">Centro de Estudios de Bachillerato 5/4 "Profr. Rafael Ramírez"</span>
+      <h1 class="cq-title">Consulta de Resultados Intrasemestrales</h1>
+      <p class="cq-sub">Periodo Feb–Jun 2026 &nbsp;·&nbsp; Consulta preliminar</p>
+    </div>
+  </div>
+</header>
+
+<!-- ── AVISO ── -->
+<div class="cq-notice">
+  <i data-lucide="info"></i>
+  <p>Los resultados mostrados son de carácter informativo y preliminar. La acreditación final será validada por el área correspondiente antes de la emisión oficial de calificaciones.</p>
+</div>
+
+<main class="cq-main">
+
+  <!-- Navegación rápida por grupo (se llena con JS) -->
+  <nav class="cq-nav" id="cq-nav" style="display:none">
+    <span class="cq-nav-label"><i data-lucide="layers"></i> Ir al grupo</span>
+    <div class="cq-nav-sep"></div>
+    <div class="cq-nav-btns" id="cq-nav-btns"></div>
+  </nav>
+
+  <!-- Cargando -->
+  <div id="cq-loading" class="cq-state">
+    <div class="cq-spinner"></div>
+    <p>Cargando resultados…</p>
+  </div>
+
+  <!-- Error -->
+  <div id="cq-error" class="cq-state" style="display:none">
+    <i data-lucide="wifi-off" style="color:#ef4444"></i>
+    <p id="cq-error-msg">No fue posible conectar con el servidor.</p>
+    <button onclick="cargarDatos()"
+            style="margin-top:.5rem;padding:.4rem 1.1rem;background:var(--blue);color:white;
+                   border:none;border-radius:8px;cursor:pointer;font-family:var(--font-b);font-size:.83rem">
+      Reintentar
+    </button>
+  </div>
+
+  <!-- Contenido agrupado -->
+  <div id="cq-content"></div>
+
+</main>
+
+<!-- ── FOOTER ── -->
+<footer class="cq-footer">
+  <div class="cq-footer-inner">
+    <div class="cq-priv-notice">
+      <i data-lucide="shield-alert"></i>
+      Esta consulta es únicamente para revisión previa. Si detectas un error, repórtalo con tu docente o tutor.
+    </div>
+    <p>CEB 5/4 "Profr. Rafael Ramírez" &nbsp;·&nbsp; Información sujeta a validación final &nbsp;·&nbsp; Uso institucional</p>
+  </div>
+</footer>
+
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyEjX4bOiwO04fBvoxGOm4ruX-goEy5SlyMvkT0N5_1Htky8hzQSbGl4tmNsc5nTUUc/exec";
+const CAL_MIN = 6;
+
+/* ── Utilidades ─────────────────────────────────────────── */
+function norm(s) {
+  return String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+}
+
+function getEstado(cal) {
+  if (cal === null || cal === "" || cal === undefined) return "pendiente";
+  const n = parseFloat(cal);
+  return isNaN(n) ? "pendiente" : n >= CAL_MIN ? "acreditado" : "no_acreditado";
+}
+
+function estadoCombinado(row) {
+  const ec = getEstado(row.cal_curso);
+  const ee = getEstado(row.cal_examen);
+  if (ec === "no_acreditado" || ee === "no_acreditado") return "no_acreditado";
+  if (ec === "pendiente"     || ee === "pendiente")     return "pendiente";
+  return "acreditado";
+}
+
+function badge(estado) {
+  if (estado === "acreditado")    return `<span class="cq-badge cq-badge-acred">✓ Acreditado</span>`;
+  if (estado === "no_acreditado") return `<span class="cq-badge cq-badge-no">✗ No acreditado</span>`;
+  return `<span class="cq-badge cq-badge-pend">⏳ Pendiente</span>`;
+}
+
+function calHtml(cal, estado) {
+  if (cal === null) return `<span style="color:#94a3b8;font-size:.85rem">—</span>`;
+  const cls = estado === "acreditado" ? "cq-cal-acred"
+            : estado === "no_acreditado" ? "cq-cal-no" : "cq-cal-pend";
+  return `<span class="${cls}">${parseFloat(cal).toFixed(1)}</span>`;
+}
+
+function calColor(estado) {
+  return estado === "acreditado" ? "var(--green)"
+       : estado === "no_acreditado" ? "var(--red)" : "var(--muted)";
+}
+
+function slugGrupo(g) {
+  return "grupo-" + norm(g).replace(/\s+/g, "-");
+}
+
+/* ── Pivotar ─────────────────────────────────────────────── */
+function pivotar(data) {
+  const map = {};
+  data.forEach(r => {
+    const k = norm(r.nombre) + "||" + norm(r.grupo) + "||" + norm(r.asignatura);
+    if (!map[k]) {
+      map[k] = { nombre: r.nombre, grupo: r.grupo, asignatura: r.asignatura,
+                 cal_curso: null, cal_examen: null, obs: "" };
+    }
+    const tipo = (r.tipo || "").toUpperCase();
+    if (tipo === "CURSO") {
+      map[k].cal_curso = r.calificacion;
+      if (r.observacion) map[k].obs = r.observacion;
+    } else if (tipo === "EXAMEN") {
+      map[k].cal_examen = r.calificacion;
+      if (r.observacion && !map[k].obs) map[k].obs = r.observacion;
+    }
+  });
+  return Object.values(map).sort((a, b) => {
+    const g = (a.grupo || "").localeCompare(b.grupo || "");
+    return g !== 0 ? g : (a.nombre || "").localeCompare(b.nombre || "");
+  });
+}
+
+/* ── Agrupar por grupo ───────────────────────────────────── */
+function agrupar(pivoted) {
+  const map = {};
+  pivoted.forEach(r => {
+    const g = r.grupo || "Sin grupo";
+    if (!map[g]) map[g] = [];
+    map[g].push(r);
+  });
+  return map;
+}
+
+/* ── Renderizar ─────────────────────────────────────────── */
+function renderContent(pivoted) {
+  const grupos = agrupar(pivoted);
+  const grupoKeys = Object.keys(grupos).sort();
+
+  /* Navegación */
+  const nav    = document.getElementById("cq-nav");
+  const navBtns = document.getElementById("cq-nav-btns");
+  navBtns.innerHTML = grupoKeys.map(g =>
+    `<a class="cq-nav-btn" href="#${slugGrupo(g)}">${g}</a>`
+  ).join("");
+  nav.style.display = "";
+
+  /* Secciones */
+  const content = document.getElementById("cq-content");
+  content.innerHTML = grupoKeys.map(g => {
+    const rows  = grupos[g];
+    const slug  = slugGrupo(g);
+    const cant  = rows.length;
+
+    /* Tabla desktop */
+    const tableRows = rows.map(r => {
+      const ec  = getEstado(r.cal_curso);
+      const ee  = getEstado(r.cal_examen);
+      const est = estadoCombinado(r);
+      return `<tr>
+        <td class="cq-alumno">${r.nombre}</td>
+        <td class="cq-asig">${r.asignatura || "—"}</td>
+        <td class="cq-cal">${calHtml(r.cal_curso,  ec)}</td>
+        <td class="cq-cal">${calHtml(r.cal_examen, ee)}</td>
+        <td>${badge(est)}</td>
+        <td class="cq-obs">${r.obs || ""}</td>
+      </tr>`;
+    }).join("");
+
+    /* Tarjetas móvil */
+    const cards = rows.map(r => {
+      const ec  = getEstado(r.cal_curso);
+      const ee  = getEstado(r.cal_examen);
+      const est = estadoCombinado(r);
+      const calC = r.cal_curso  !== null ? parseFloat(r.cal_curso).toFixed(1)  : "—";
+      const calE = r.cal_examen !== null ? parseFloat(r.cal_examen).toFixed(1) : "—";
+      return `<div class="cq-card">
+        <div class="cq-card-head">
+          <span class="cq-card-nombre">${r.nombre}</span>
+          ${badge(est)}
+        </div>
+        <p class="cq-card-asig">${r.asignatura || "—"}</p>
+        <div class="cq-card-grades">
+          <div class="cq-grade-box">
+            <span class="cq-grade-lbl">Curso</span>
+            <span class="cq-grade-val" style="color:${calColor(ec)}">${calC}</span>
+          </div>
+          <div class="cq-grade-box">
+            <span class="cq-grade-lbl">Examen</span>
+            <span class="cq-grade-val" style="color:${calColor(ee)}">${calE}</span>
+          </div>
+        </div>
+        ${r.obs ? `<div class="cq-card-foot"><span class="cq-card-obs">${r.obs}</span></div>` : ""}
+      </div>`;
+    }).join("");
+
+    return `
+    <section class="cq-section" id="${slug}">
+      <div class="cq-section-hd">
+        <span class="cq-section-badge">${g}</span>
+        <span class="cq-section-count">${cant} alumno${cant !== 1 ? "s" : ""}</span>
+      </div>
+      <div class="cq-table-wrap">
+        <table class="cq-table">
+          <thead>
+            <tr>
+              <th>Alumno(a)</th>
+              <th>Asignatura</th>
+              <th style="text-align:center">Curso</th>
+              <th style="text-align:center">Examen</th>
+              <th>Estado</th>
+              <th>Observación</th>
+            </tr>
+          </thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+      </div>
+      <div class="cq-cards">${cards}</div>
+    </section>`;
+  }).join("");
+
+  lucide.createIcons();
+}
+
+/* ── Cargar desde GAS ───────────────────────────────────── */
+async function cargarDatos() {
+  document.getElementById("cq-content").innerHTML  = "";
+  document.getElementById("cq-nav").style.display  = "none";
+  document.getElementById("cq-error").style.display = "none";
+  document.getElementById("cq-loading").style.display = "flex";
+
+  try {
+    const url  = `${GAS_URL}?action=getCalifIntrasemestral&_t=${Date.now()}`;
+    const res  = await fetch(url, { redirect: "follow" });
+    const data = JSON.parse(await res.text());
+    if (data.status !== "ok") throw new Error(data.message || "Error del servidor");
+
+    const pivoted = pivotar(data.registros || []);
+    document.getElementById("cq-loading").style.display = "none";
+    renderContent(pivoted);
+  } catch (err) {
+    document.getElementById("cq-loading").style.display = "none";
+    document.getElementById("cq-error").style.display   = "flex";
+    document.getElementById("cq-error-msg").textContent =
+      `No fue posible cargar los resultados. (${err.message})`;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  lucide.createIcons();
+  cargarDatos();
+});
+</script>
+</body>
+</html>
