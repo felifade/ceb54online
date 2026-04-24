@@ -402,12 +402,14 @@ function getEstado(cal) {
   return isNaN(n) ? "pendiente" : n >= CAL_MIN ? "acreditado" : "no_acreditado";
 }
 
-function estadoCombinado(row) {
-  const ec = getEstado(row.cal_curso);
-  const ee = getEstado(row.cal_examen);
-  if (ec === "no_acreditado" || ee === "no_acreditado") return "no_acreditado";
-  if (ec === "pendiente"     || ee === "pendiente")     return "pendiente";
-  return "acreditado";
+/* Calificación final: promedio si hay dos, o la que exista */
+function calFinal(row) {
+  const c = row.cal_curso  !== null ? parseFloat(row.cal_curso)  : null;
+  const e = row.cal_examen !== null ? parseFloat(row.cal_examen) : null;
+  if (c !== null && e !== null) return Math.round((c + e) / 2 * 10) / 10;
+  if (c !== null) return c;
+  if (e !== null) return e;
+  return null;
 }
 
 function badge(estado) {
@@ -489,14 +491,12 @@ function renderContent(pivoted) {
 
     /* Tabla desktop */
     const tableRows = rows.map(r => {
-      const ec  = getEstado(r.cal_curso);
-      const ee  = getEstado(r.cal_examen);
-      const est = estadoCombinado(r);
+      const cf  = calFinal(r);
+      const est = getEstado(cf);
       return `<tr>
         <td class="cq-alumno">${r.nombre}</td>
         <td class="cq-asig">${r.asignatura || "—"}</td>
-        <td class="cq-cal">${calHtml(r.cal_curso,  ec)}</td>
-        <td class="cq-cal">${calHtml(r.cal_examen, ee)}</td>
+        <td class="cq-cal">${calHtml(cf, est)}</td>
         <td>${badge(est)}</td>
         <td class="cq-obs">${r.obs || ""}</td>
       </tr>`;
@@ -504,25 +504,19 @@ function renderContent(pivoted) {
 
     /* Tarjetas móvil */
     const cards = rows.map(r => {
-      const ec  = getEstado(r.cal_curso);
-      const ee  = getEstado(r.cal_examen);
-      const est = estadoCombinado(r);
-      const calC = r.cal_curso  !== null ? parseFloat(r.cal_curso).toFixed(1)  : "—";
-      const calE = r.cal_examen !== null ? parseFloat(r.cal_examen).toFixed(1) : "—";
+      const cf  = calFinal(r);
+      const est = getEstado(cf);
+      const calStr = cf !== null ? parseFloat(cf).toFixed(1) : "—";
       return `<div class="cq-card">
         <div class="cq-card-head">
           <span class="cq-card-nombre">${r.nombre}</span>
           ${badge(est)}
         </div>
         <p class="cq-card-asig">${r.asignatura || "—"}</p>
-        <div class="cq-card-grades">
-          <div class="cq-grade-box">
-            <span class="cq-grade-lbl">Curso</span>
-            <span class="cq-grade-val" style="color:${calColor(ec)}">${calC}</span>
-          </div>
-          <div class="cq-grade-box">
-            <span class="cq-grade-lbl">Examen</span>
-            <span class="cq-grade-val" style="color:${calColor(ee)}">${calE}</span>
+        <div style="margin-bottom:.5rem">
+          <div class="cq-grade-box" style="display:inline-block;min-width:80px">
+            <span class="cq-grade-lbl">Calificación</span>
+            <span class="cq-grade-val" style="color:${calColor(est)}">${calStr}</span>
           </div>
         </div>
         ${r.obs ? `<div class="cq-card-foot"><span class="cq-card-obs">${r.obs}</span></div>` : ""}
@@ -541,8 +535,7 @@ function renderContent(pivoted) {
             <tr>
               <th>Alumno(a)</th>
               <th>Asignatura</th>
-              <th style="text-align:center">Curso</th>
-              <th style="text-align:center">Examen</th>
+              <th style="text-align:center">Calificación</th>
               <th>Estado</th>
               <th>Observación</th>
             </tr>
