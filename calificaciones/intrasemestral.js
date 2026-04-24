@@ -77,10 +77,12 @@ function populateDropdowns(data) {
   const selAsig    = document.getElementById("filter-asig");
   const selDocente = document.getElementById("filter-docente");
 
+  const selRmGrupo = document.getElementById("rm-grupo");
   grupos.forEach(g => {
     const o = document.createElement("option");
     o.value = g; o.textContent = g;
     selGrupo.appendChild(o);
+    selRmGrupo.appendChild(o.cloneNode(true));
   });
   asigs.forEach(a => {
     const o = document.createElement("option");
@@ -270,6 +272,12 @@ function stats(rows) {
   return { total, acred, noAcr, pend };
 }
 
+/* ── Datos filtrados para vistas de resumen ─────────────── */
+function resFiltrado() {
+  const grupo = document.getElementById("rm-grupo")?.value || "";
+  return grupo ? _allData.filter(r => r.grupo === grupo) : _allData;
+}
+
 /* ── Vista: Por Materia ──────────────────────────────────── */
 function renderMaterias(data) {
   const grid = document.getElementById("grid-materias");
@@ -354,17 +362,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Pestañas
   const PANELS = ["registros", "materias", "docentes"];
-  document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      const tab = btn.dataset.tab;
-      PANELS.forEach(p => {
-        document.getElementById("panel-" + p).style.display = p === tab ? "" : "none";
-      });
-      if (tab === "materias") renderMaterias(_allData);
-      if (tab === "docentes") renderDocentes(_allData);
+  let _activeTab = "registros";
+
+  function activateTab(tab) {
+    _activeTab = tab;
+    document.querySelectorAll(".tab-btn").forEach(b =>
+      b.classList.toggle("active", b.dataset.tab === tab)
+    );
+    PANELS.forEach(p => {
+      document.getElementById("panel-" + p).style.display = p === tab ? "" : "none";
     });
+    const filterBar = document.getElementById("resumen-filter-bar");
+    filterBar.style.display = (tab === "materias" || tab === "docentes") ? "flex" : "none";
+    if (tab === "materias") renderMaterias(resFiltrado());
+    if (tab === "docentes") renderDocentes(resFiltrado());
+  }
+
+  document.querySelectorAll(".tab-btn").forEach(btn =>
+    btn.addEventListener("click", () => activateTab(btn.dataset.tab))
+  );
+
+  // Filtro de grupo para resumen
+  document.getElementById("rm-grupo").addEventListener("change", () => {
+    if (_activeTab === "materias") renderMaterias(resFiltrado());
+    if (_activeTab === "docentes") renderDocentes(resFiltrado());
   });
 
   // Búsqueda en tiempo real (debounce 300ms)
