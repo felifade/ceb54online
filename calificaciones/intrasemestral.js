@@ -76,23 +76,22 @@ function populateDropdowns(data) {
   const selGrupo   = document.getElementById("filter-grupo");
   const selAsig    = document.getElementById("filter-asig");
   const selDocente = document.getElementById("filter-docente");
-
-  const selRmGrupo  = document.getElementById("rm-grupo");
-  const dlCapGrupo  = document.getElementById("dl-cap-grupo");
-  const dlCapAsig   = document.getElementById("dl-cap-asig");
+  const selRmGrupo = document.getElementById("rm-grupo");
+  const dlCapGrupo = document.getElementById("dl-cap-grupo");
+  const dlCapAsig  = document.getElementById("dl-cap-asig");
 
   grupos.forEach(g => {
     const o = document.createElement("option");
     o.value = g; o.textContent = g;
     selGrupo.appendChild(o);
-    selRmGrupo.appendChild(o.cloneNode(true));
-    dlCapGrupo.appendChild(o.cloneNode(true));
+    if (selRmGrupo) selRmGrupo.appendChild(o.cloneNode(true));
+    if (dlCapGrupo) dlCapGrupo.appendChild(o.cloneNode(true));
   });
   asigs.forEach(a => {
     const o = document.createElement("option");
     o.value = a; o.textContent = a;
     selAsig.appendChild(o);
-    dlCapAsig.appendChild(o.cloneNode(true));
+    if (dlCapAsig) dlCapAsig.appendChild(o.cloneNode(true));
   });
   docentes.forEach(d => {
     const o = document.createElement("option");
@@ -160,7 +159,78 @@ function applyFilters() {
   });
 
   updateSummary(_filtered);
-  renderTable(_filtered);
+  renderVistaTable(_filtered);
+}
+
+/* ── Tabla unificada: consulta + captura en una sola vista ── */
+function renderVistaTable(data) {
+  const wrap       = document.getElementById("cap-wrap");
+  const capEmpty   = document.getElementById("cap-empty");
+  const stateEmpty = document.getElementById("state-empty");
+  const countEl    = document.getElementById("results-count");
+  const cntGas     = document.getElementById("cap-cnt-gas");
+
+  if (cntGas) cntGas.textContent = data.length;
+
+  if (data.length === 0) {
+    if (wrap)       wrap.style.display       = "none";
+    if (capEmpty)   capEmpty.style.display   = "none";
+    if (stateEmpty) stateEmpty.style.display = "flex";
+    if (countEl)    countEl.textContent      = "Sin resultados";
+    return;
+  }
+
+  if (stateEmpty) stateEmpty.style.display = "none";
+  if (capEmpty)   capEmpty.style.display   = "none";
+  if (wrap)       wrap.style.display       = "";
+  if (countEl)    countEl.textContent =
+    `${data.length} registro${data.length !== 1 ? "s" : ""}`;
+
+  const tbody = document.getElementById("cap-tbody");
+  tbody.innerHTML = data.map(r => {
+    const estado  = getEstado(r.calificacion);
+    const calVal  = r.calificacion !== null && r.calificacion !== ""
+      ? String(parseFloat(r.calificacion)) : "";
+    const obsVal  = r.observacion || "";
+    return `
+      <tr class="cap-row vc-row-${estado}" data-clave="${r.clave}"
+          data-cal-orig="${calVal}" data-obs-orig="${obsVal}">
+        <td class="td-alumno">${r.nombre}</td>
+        <td class="td-grupo">${r.grupo || "—"}</td>
+        <td class="td-asig">${r.asignatura || "—"}</td>
+        <td class="td-docente">${r.docente || "—"}</td>
+        <td>${badgeTipo(r.tipo)}</td>
+        <td style="text-align:center">
+          <input class="cap-cal-input" type="number" min="0" max="10" step="0.5"
+                 value="${calVal}" placeholder="—">
+        </td>
+        <td>${badgeEstado(estado)}</td>
+        <td>
+          <input class="cap-obs-input" type="text"
+                 value="${obsVal}" placeholder="Obs…">
+        </td>
+        <td class="cap-row-status"></td>
+      </tr>`;
+  }).join("");
+
+  tbody.querySelectorAll(".cap-row").forEach(row => {
+    const calInput = row.querySelector(".cap-cal-input");
+    const obsInput = row.querySelector(".cap-obs-input");
+    [calInput, obsInput].forEach(inp => {
+      inp.addEventListener("input", () => {
+        const dirty = calInput.value !== row.dataset.calOrig ||
+                      obsInput.value !== row.dataset.obsOrig;
+        row.classList.toggle("cap-dirty", dirty);
+        row.classList.remove("cap-saved", "cap-error");
+        row.querySelector(".cap-row-status").textContent = dirty ? "·" : "";
+        document.getElementById("cap-btn-save").disabled =
+          !tbody.querySelector(".cap-dirty");
+      });
+    });
+  });
+
+  updateCapInfo();
+  lucide.createIcons();
 }
 
 /* ── Cargar datos desde GAS ──────────────────────────────── */
@@ -169,7 +239,8 @@ async function loadData() {
   document.getElementById("state-loading").style.display = "flex";
   document.getElementById("state-error").style.display   = "none";
   document.getElementById("state-empty").style.display   = "none";
-  document.getElementById("table-wrap").style.display    = "none";
+  const _tw = document.getElementById("cap-wrap");
+  if (_tw) _tw.style.display = "none";
 
   // Verificar que la URL esté configurada
   if (!GAS_URL || GAS_URL.startsWith("PEGA_AQUI")) {
@@ -317,6 +388,59 @@ function renderMaterias(data) {
       chips:     docs,
       ...s
     });
+  }).join("");
+
+  lucide.createIcons();
+}
+
+/* ── Vista: Por Grupo ───────────────────────────────────── */
+function renderGrupos(data) {
+  const grid = document.getElementById("grid-grupos");
+  if (!grid) return;
+
+  const map = groupBy(data, r => r.grupo || "SIN GRUPO");
+
+  if (!Object.keys(map).length) {
+    grid.innerHTML = `<p class="rm-empty">Sin datos para mostrar.</p>`;
+    return;
+  }
+
+  const groups = Object.values(map).map(rows => {
+    const grupo   = (rows[0].grupo || "SIN GRUPO").trim();
+    const alumnos = [...new Set(rows.map(r => (r.nombre||"").trim()).filter(Boolean))].sort();
+    const nMaterias = new Set(rows.map(r => keyAsig(r.asignatura))).size;
+    return { grupo, alumnos, nMaterias, rows };
+  }).sort((a,b) => a.grupo.localeCompare(b.grupo));
+
+  grid.innerHTML = groups.map(g => {
+    const s = stats(g.rows);
+    const pct      = s.total > 0 ? Math.round(s.acred / s.total * 100) : 0;
+    const barColor = pct >= 80 ? "var(--green)" : pct >= 50 ? "var(--amber)" : "var(--red)";
+    const turno    = /^V/i.test(g.grupo) ? "Vespertino" : /^M/i.test(g.grupo) ? "Matutino" : "";
+    const alumnosHtml = g.alumnos.map(n => `<span class="rm-alumno-chip">${n}</span>`).join("");
+    return `
+      <div class="rm-card">
+        <div class="rm-card-head">
+          <div class="rm-card-asig">${g.grupo}</div>
+          ${turno ? `<span class="rm-chip">${turno}</span>` : ""}
+        </div>
+        <div class="rm-card-sub">
+          ${g.alumnos.length} alumno${g.alumnos.length!==1?"s":""} &nbsp;·&nbsp; ${g.nMaterias} materia${g.nMaterias!==1?"s":""}
+        </div>
+        <div class="rm-alumnos-list">${alumnosHtml}</div>
+        <div class="rm-stats-row">
+          <div class="rm-stat"><span class="rm-stat-num" style="color:var(--blue)">${s.total}</span><span class="rm-stat-lbl">Total</span></div>
+          <div class="rm-stat"><span class="rm-stat-num" style="color:var(--green)">${s.acred}</span><span class="rm-stat-lbl">Acred.</span></div>
+          <div class="rm-stat"><span class="rm-stat-num" style="color:var(--red)">${s.noAcr}</span><span class="rm-stat-lbl">No acred.</span></div>
+          <div class="rm-stat"><span class="rm-stat-num" style="color:var(--amber)">${s.pend}</span><span class="rm-stat-lbl">Pendiente</span></div>
+        </div>
+        <div class="rm-progress-wrap">
+          <div class="rm-progress-track">
+            <div class="rm-progress-fill" style="width:${pct}%;background:${barColor}"></div>
+          </div>
+          <span class="rm-progress-pct">${pct}% acreditado</span>
+        </div>
+      </div>`;
   }).join("");
 
   lucide.createIcons();
@@ -522,11 +646,10 @@ function renderLocalTabla() {
 }
 
 function updateCapInfo() {
-  const gasN   = document.getElementById("cap-tbody")?.querySelectorAll(".cap-row").length || 0;
   const localN = _capLocales.length;
-  const total  = gasN + localN;
-  document.getElementById("cap-info").textContent =
-    total > 0 ? `${total} registro${total !== 1 ? "s" : ""}` : "";
+  const cntLocal = document.getElementById("cap-cnt-local");
+  if (cntLocal) cntLocal.textContent = localN;
+  // cap-info se reserva para feedback de guardado (lo usa saveAllDirty)
 }
 
 /* ── Agregar alumno local ─────────────────────────────────── */
@@ -824,9 +947,9 @@ async function generarPDF() {
 document.addEventListener("DOMContentLoaded", () => {
   lucide.createIcons();
 
-  // Pestañas
-  const PANELS = ["registros", "materias", "docentes", "captura"];
-  let _activeTab = "registros";
+  // Pestañas (Vista y Captura + Por Grupo + Por Profesor)
+  const PANELS = ["vista", "grupos", "docentes"];
+  let _activeTab = "vista";
 
   function activateTab(tab) {
     _activeTab = tab;
@@ -837,10 +960,10 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("panel-" + p).style.display = p === tab ? "" : "none";
     });
     const filterBar = document.getElementById("resumen-filter-bar");
-    filterBar.style.display = (tab === "materias" || tab === "docentes") ? "flex" : "none";
-    if (tab === "materias") renderMaterias(resFiltrado());
+    filterBar.style.display = (tab === "grupos" || tab === "docentes") ? "flex" : "none";
+    if (tab === "grupos")   renderGrupos(resFiltrado());
     if (tab === "docentes") renderDocentes(resFiltrado());
-    if (tab === "captura" && _allData.length) { renderCaptura(); renderLocalTabla(); }
+    if (tab === "vista" && _allData.length) applyFilters();
   }
 
   document.querySelectorAll(".tab-btn").forEach(btn =>
@@ -849,7 +972,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Filtro de grupo para resumen
   document.getElementById("rm-grupo").addEventListener("change", () => {
-    if (_activeTab === "materias") renderMaterias(resFiltrado());
+    if (_activeTab === "grupos")   renderGrupos(resFiltrado());
     if (_activeTab === "docentes") renderDocentes(resFiltrado());
   });
 
@@ -885,25 +1008,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Limpiar filtros
   document.getElementById("btn-clear").addEventListener("click", () => {
-    document.getElementById("search-name").value      = "";
-    document.getElementById("filter-grupo").value     = "";
-    document.getElementById("filter-asig").value      = "";
-    document.getElementById("filter-docente").value   = "";
+    document.getElementById("search-name").value    = "";
+    document.getElementById("filter-grupo").value   = "";
+    document.getElementById("filter-asig").value    = "";
+    document.getElementById("filter-docente").value = "";
     document.querySelectorAll("#tipo-group .tog-btn").forEach((b, i) => b.classList.toggle("active", i === 0));
     document.querySelectorAll("#estado-group .tog-btn").forEach((b, i) => b.classList.toggle("active", i === 0));
     applyFilters();
-  });
-
-  // Filtros de captura (input para texto libre, change para select)
-  let _capTimer;
-  ["cap-grupo","cap-asig"].forEach(id =>
-    document.getElementById(id).addEventListener("input", () => {
-      clearTimeout(_capTimer);
-      _capTimer = setTimeout(() => { renderCaptura(); renderLocalTabla(); }, 250);
-    })
-  );
-  document.getElementById("cap-tipo").addEventListener("change", () => {
-    renderCaptura(); renderLocalTabla();
   });
 
   // Guardar al Sheet

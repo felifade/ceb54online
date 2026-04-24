@@ -824,14 +824,187 @@ body { font-family:var(--font-b); background:var(--bg); color:var(--dark); line-
 .cap-row.cap-error td { background: #fff1f2; }
 .cap-row-status { text-align: center; font-size: 1rem; line-height: 1; }
 
+/* ══════════════════════ VISTA Y CAPTURA — ESTILOS ══════════════════════ */
+
+/* Tarjetas compactas */
+.summary-compact { gap: .6rem; margin-bottom: .85rem; }
+.summary-compact .summary-card { padding: .55rem .9rem; gap: .55rem; }
+.summary-compact .sc-icon { width: 32px; height: 32px; }
+.summary-compact .sc-icon i { width: 15px; height: 15px; }
+.summary-compact .sc-num { font-size: 1.55rem; }
+.summary-compact .sc-label { font-size: .67rem; }
+
+/* Panel de filtros unificado */
+.vc-panel {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .75rem 1rem;
+  margin-bottom: .7rem;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  box-shadow: var(--shadow);
+}
+.vc-filter-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.5fr 1.5fr;
+  gap: .5rem;
+}
+.vc-field { position: relative; }
+.vc-field input,
+.vc-field select {
+  width: 100%;
+  height: 34px;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  padding: 0 .7rem;
+  font-family: var(--font-b);
+  font-size: .82rem;
+  background: var(--bg);
+  color: var(--dark);
+  outline: none;
+  transition: border-color .18s;
+}
+.vc-field input:focus,
+.vc-field select:focus { border-color: var(--blue); }
+.vc-field-icon {
+  position: absolute;
+  left: .6rem; top: 50%;
+  transform: translateY(-50%);
+  width: 14px; height: 14px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.vc-field-search input { padding-left: 2rem; }
+.vc-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+}
+.vc-actions {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+.vc-btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .4rem .85rem;
+  background: var(--blue-lt);
+  color: var(--blue);
+  border: 1.5px solid #bfdbfe;
+  border-radius: 8px;
+  font-family: var(--font-b);
+  font-size: .8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .18s;
+  white-space: nowrap;
+}
+.vc-btn-add:hover { background: #dbeafe; }
+.vc-btn-add i { width: 14px; height: 14px; }
+
+/* Formulario agregar alumno (dentro del panel) */
+.vc-add-form {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .65rem .9rem;
+  margin-bottom: .7rem;
+  flex-wrap: wrap;
+  gap: .45rem;
+}
+
+/* Acordeón alumnos adicionales */
+.vc-adicionales {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: .7rem;
+  overflow: hidden;
+}
+.vc-adicionales-hd {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .55rem .9rem;
+  cursor: pointer;
+  font-size: .83rem;
+  font-weight: 600;
+  color: var(--dark);
+  list-style: none;
+  user-select: none;
+}
+.vc-adicionales-hd::-webkit-details-marker { display: none; }
+.vc-adicionales-hd i { width: 14px; height: 14px; color: var(--blue); flex-shrink: 0; }
+.vc-adicionales-hd small { font-weight: 400; color: var(--muted); font-size: .75rem; }
+.vc-adicionales[open] .vc-adicionales-hd {
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+/* Barra de resultados */
+.vc-results-bar {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: .45rem;
+  min-height: 22px;
+}
+.vc-save-hint {
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+.vc-gas-badge { margin-left: auto; }
+
+/* Tabla principal compacta con scroll y cabecera sticky */
+.vc-table-scroll {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: auto;
+  max-height: 62vh;
+}
+.vc-dense-table th,
+.vc-dense-table td {
+  padding: .28rem .5rem;
+  font-size: .73rem;
+}
+.vc-dense-table .td-alumno { min-width: 140px; font-size: .72rem; }
+.vc-dense-table .td-asig   { min-width: 120px; font-size: .72rem; max-width: 180px; }
+.vc-dense-table .td-docente { min-width: 110px; font-size: .72rem; }
+.vc-dense-table .cap-cal-input { width: 58px; }
+.vc-dense-table .cap-obs-input { min-width: 100px; }
+/* sticky header: background explícito para tapar filas al hacer scroll
+   (border-collapse:collapse requiere bg en cada th, no hereda del tr)  */
+.vc-table-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f8fafc;
+}
+
+/* Colores de fila por estado */
+.cap-row.vc-row-acreditado    td { background: #f0fdf4; }
+.cap-row.vc-row-no_acreditado td { background: #fff1f2; }
+.cap-row.vc-row-pendiente     td { background: #fffbeb; }
+
 /* ══════════════════════ RESPONSIVE ══════════════════════ */
+@media (max-width: 1024px) {
+  .vc-filter-grid { grid-template-columns: 1fr 1fr; }
+}
 @media (max-width: 900px) {
   .summary-grid { grid-template-columns: repeat(2, 1fr); }
+  .vc-actions { margin-left: 0; }
 }
 @media (max-width: 640px) {
   .resumen-grid { grid-template-columns: 1fr; }
   .rm-stat-num  { font-size: 1.2rem; }
-
   .site-header   { padding: 1.2rem 1rem; }
   .header-inner  { flex-direction: column; align-items: flex-start; gap: .75rem; }
   .header-logo   { width: 44px; }
@@ -840,9 +1013,8 @@ body { font-family:var(--font-b); background:var(--bg); color:var(--dark); line-
   .main-wrap     { padding: 1.25rem 1rem 2.5rem; }
   .summary-grid  { grid-template-columns: repeat(2, 1fr); gap: .65rem; }
   .sc-num        { font-size: 1.4rem; }
-  .filters-wrap  { padding: 1rem; }
-  .filter-select-wrap { min-width: 140px; }
-  .cal-table th, .cal-table td { padding: .6rem .7rem; }
+  .vc-filter-grid { grid-template-columns: 1fr; }
+  .vc-table-scroll { max-height: 55vh; }
   .td-docente { display: none; }
 }
 @media (max-width: 400px) {
