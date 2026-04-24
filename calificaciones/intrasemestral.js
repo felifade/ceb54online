@@ -602,9 +602,20 @@ async function saveAllDirty() {
 }
 
 /* ── Generar PDF ─────────────────────────────────────────── */
-function generarPDF() {
+async function generarPDF() {
   const tipo = document.getElementById("pdf-tipo").value;
   const { jsPDF } = window.jspdf;
+
+  // Cargar logo (falla silenciosamente si no está disponible)
+  let logoDataUrl = null;
+  try {
+    const blob = await fetch("../assets/logo.png").then(r => r.blob());
+    logoDataUrl = await new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.readAsDataURL(blob);
+    });
+  } catch (_) { /* continuar sin logo */ }
 
   const NUM_ASIST = 8; // columnas de asistencia
 
@@ -661,7 +672,7 @@ function generarPDF() {
 
   const doc   = new jsPDF({ orientation: "landscape", unit: "mm", format: "letter" });
   const W     = doc.internal.pageSize.getWidth();
-  const mes   = new Date().toLocaleDateString("es-MX", { month: "long", year: "numeric" }).toUpperCase();
+  const mes   = "MAYO DE 2026";
   const fecha = new Date().toISOString().slice(0, 10);
   let first   = true;
 
@@ -673,6 +684,12 @@ function generarPDF() {
       ? (/^V/i.test(clave) ? "TURNO VESPERTINO" : /^M/i.test(clave) ? "TURNO MATUTINO" : "")
       : "";
     const etiqueta = etiquetaFn(clave);
+
+    // ── Logo ──
+    if (logoDataUrl) {
+      // Aspect ratio logo: 3093×4026 → portrait; ajustamos a 14mm de alto
+      doc.addImage(logoDataUrl, "PNG", 14, 7, 10.7, 14);
+    }
 
     // ── Encabezado de página ──
     doc.setFontSize(11); doc.setFont("helvetica", "bold");
