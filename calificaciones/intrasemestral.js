@@ -338,24 +338,40 @@ function renderDocentes(data) {
     const freq = {};
     rows.forEach(r => { const n=(r.docente||"Sin docente").trim(); freq[n]=(freq[n]||0)+1; });
     const displayName = Object.entries(freq).sort((a,b)=>b[1]-a[1])[0][0];
-    // materias únicas (nombre más frecuente por grupo normalizado)
-    const asigMap = groupBy(rows, r => keyAsig(r.asignatura) + "||" + (r.tipo||"").toUpperCase());
-    const materias = Object.values(asigMap).map(ar => {
-      const f = {};
-      ar.forEach(r => { const n=(r.asignatura||"").trim(); f[n]=(f[n]||0)+1; });
-      return Object.entries(f).sort((a,b)=>b[1]-a[1])[0][0];
-    }).sort();
-    return { displayName, materias, rows };
+    // Alumnos únicos (por nombre)
+    const alumnos = [...new Set(rows.map(r => (r.nombre||"").trim()).filter(Boolean))].sort();
+    // Materias únicas (para el conteo)
+    const nMaterias = new Set(rows.map(r => keyAsig(r.asignatura))).size;
+    return { displayName, alumnos, nMaterias, rows };
   }).sort((a,b) => a.displayName.localeCompare(b.displayName));
 
   grid.innerHTML = groups.map(g => {
     const s = stats(g.rows);
-    return rmCard({
-      title:  g.displayName,
-      subtitle: `<i data-lucide="graduation-cap" style="width:13px;height:13px;vertical-align:middle;"></i> ${g.rows.length} alumno${g.rows.length!==1?"s":""}`,
-      chips:  g.materias,
-      ...s
-    });
+    const pct      = s.total > 0 ? Math.round(s.acred / s.total * 100) : 0;
+    const barColor = pct >= 80 ? "var(--green)" : pct >= 50 ? "var(--amber)" : "var(--red)";
+    const alumnosHtml = g.alumnos.map(n => `<span class="rm-alumno-chip">${n}</span>`).join("");
+    return `
+      <div class="rm-card">
+        <div class="rm-card-head">
+          <div class="rm-card-asig">${g.displayName}</div>
+        </div>
+        <div class="rm-card-sub">
+          ${g.alumnos.length} alumno${g.alumnos.length!==1?"s":""} &nbsp;·&nbsp; ${g.nMaterias} materia${g.nMaterias!==1?"s":""}
+        </div>
+        <div class="rm-alumnos-list">${alumnosHtml}</div>
+        <div class="rm-stats-row">
+          <div class="rm-stat"><span class="rm-stat-num" style="color:var(--blue)">${s.total}</span><span class="rm-stat-lbl">Total</span></div>
+          <div class="rm-stat"><span class="rm-stat-num" style="color:var(--green)">${s.acred}</span><span class="rm-stat-lbl">Acred.</span></div>
+          <div class="rm-stat"><span class="rm-stat-num" style="color:var(--red)">${s.noAcr}</span><span class="rm-stat-lbl">No acred.</span></div>
+          <div class="rm-stat"><span class="rm-stat-num" style="color:var(--amber)">${s.pend}</span><span class="rm-stat-lbl">Pendiente</span></div>
+        </div>
+        <div class="rm-progress-wrap">
+          <div class="rm-progress-track">
+            <div class="rm-progress-fill" style="width:${pct}%;background:${barColor}"></div>
+          </div>
+          <span class="rm-progress-pct">${pct}% acreditado</span>
+        </div>
+      </div>`;
   }).join("");
 
   lucide.createIcons();

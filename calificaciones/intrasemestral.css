@@ -224,6 +224,26 @@ body { font-family:var(--font-b); background:var(--bg); color:var(--dark); line-
   border-radius: 20px;
   white-space: nowrap;
 }
+.rm-alumnos-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .22rem;
+  margin: .45rem 0 .65rem;
+  max-height: 88px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+.rm-alumno-chip {
+  font-size: .6rem;
+  font-family: var(--font-b);
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: .08rem .38rem;
+  white-space: nowrap;
+  line-height: 1.5;
+}
 .rm-empty {
   color: var(--muted);
   grid-column: 1 / -1;
