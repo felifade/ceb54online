@@ -38,8 +38,11 @@
     <button class="tab-btn active" data-tab="registros">
       <i data-lucide="table-2"></i> Registros
     </button>
-    <button class="tab-btn" data-tab="resumen">
-      <i data-lucide="layout-grid"></i> Resumen por Materia
+    <button class="tab-btn" data-tab="materias">
+      <i data-lucide="book-open"></i> Por Materia
+    </button>
+    <button class="tab-btn" data-tab="docentes">
+      <i data-lucide="users"></i> Por Profesor
     </button>
   </div>
 
@@ -177,11 +180,14 @@
 
   </div><!-- /panel-registros -->
 
-  <!-- ══════════════ PANEL: RESUMEN POR MATERIA ══════════════ -->
-  <div id="panel-resumen" style="display:none">
-    <div class="resumen-grid" id="resumen-grid">
-      <!-- tarjetas inyectadas por JS -->
-    </div>
+  <!-- ══════════════ PANEL: POR MATERIA ══════════════ -->
+  <div id="panel-materias" style="display:none">
+    <div class="resumen-grid" id="grid-materias"></div>
+  </div>
+
+  <!-- ══════════════ PANEL: POR PROFESOR ══════════════ -->
+  <div id="panel-docentes" style="display:none">
+    <div class="resumen-grid" id="grid-docentes"></div>
   </div>
 
 </main>

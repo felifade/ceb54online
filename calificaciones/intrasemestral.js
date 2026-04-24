@@ -205,108 +205,144 @@ function showError(msg) {
   lucide.createIcons();
 }
 
-/* ── Normalizar nombre de asignatura para agrupar ────────── */
-function normAsig(str) {
-  return norm(str)
-    .replace(/\s+/g, " ")   // colapsar espacios
-    .replace(/[_\-\/]/g, " ") // guiones/barras → espacio
-    .trim();
+/* ── Clave de agrupación: norma + colapsa variantes ─────────── */
+function keyAsig(str) {
+  return norm(str).replace(/[\s_\-\/]+/g, " ").trim();
 }
 
-/* ── Renderizar resumen por asignatura (con docentes dentro) ─ */
-function renderResumen(data) {
-  const grid = document.getElementById("resumen-grid");
-  if (!grid) return;
+/* ── Tarjeta HTML genérica ───────────────────────────────── */
+function rmCard({ title, subtitle, tipoBadge, total, acred, noAcr, pend, chips }) {
+  const pct      = total > 0 ? Math.round(acred / total * 100) : 0;
+  const barColor = pct >= 80 ? "var(--green)" : pct >= 50 ? "var(--amber)" : "var(--red)";
+  const chipsHtml = (chips || []).map(c =>
+    `<span class="rm-chip">${c}</span>`
+  ).join("");
+  return `
+    <div class="rm-card">
+      <div class="rm-card-head">
+        <div class="rm-card-asig">${title}</div>
+        ${tipoBadge || ""}
+      </div>
+      ${subtitle ? `<div class="rm-card-sub">${subtitle}</div>` : ""}
+      ${chipsHtml ? `<div class="rm-chips">${chipsHtml}</div>` : ""}
+      <div class="rm-stats-row">
+        <div class="rm-stat">
+          <span class="rm-stat-num" style="color:var(--blue)">${total}</span>
+          <span class="rm-stat-lbl">Total</span>
+        </div>
+        <div class="rm-stat">
+          <span class="rm-stat-num" style="color:var(--green)">${acred}</span>
+          <span class="rm-stat-lbl">Acred.</span>
+        </div>
+        <div class="rm-stat">
+          <span class="rm-stat-num" style="color:var(--red)">${noAcr}</span>
+          <span class="rm-stat-lbl">No acred.</span>
+        </div>
+        <div class="rm-stat">
+          <span class="rm-stat-num" style="color:var(--amber)">${pend}</span>
+          <span class="rm-stat-lbl">Pendiente</span>
+        </div>
+      </div>
+      <div class="rm-progress-wrap">
+        <div class="rm-progress-track">
+          <div class="rm-progress-fill" style="width:${pct}%;background:${barColor}"></div>
+        </div>
+        <span class="rm-progress-pct">${pct}% acreditado</span>
+      </div>
+    </div>`;
+}
 
-  // Agrupar por asignatura normalizada
+/* ── Agrupar datos y calcular stats ──────────────────────── */
+function groupBy(data, keyFn) {
   const map = {};
   data.forEach(r => {
-    const key = normAsig(r.asignatura);
-    if (!map[key]) map[key] = { nameFreq: {}, tipos: {}, docentes: {}, rows: [] };
-    const g = map[key];
-    // frecuencia de variantes de nombre para elegir la más común
-    const nombre = (r.asignatura || "").trim();
-    g.nameFreq[nombre] = (g.nameFreq[nombre] || 0) + 1;
-    // tipos presentes
-    const tipo = (r.tipo || "").toUpperCase();
-    g.tipos[tipo] = (g.tipos[tipo] || 0) + 1;
-    // sub-agrupación por docente
-    const doc = (r.docente || "").trim() || "Sin docente";
-    if (!g.docentes[doc]) g.docentes[doc] = [];
-    g.docentes[doc].push(r);
-    g.rows.push(r);
+    const k = keyFn(r);
+    if (!map[k]) map[k] = [];
+    map[k].push(r);
   });
+  return map;
+}
+function stats(rows) {
+  const total = rows.length;
+  const acred = rows.filter(r => getEstado(r.calificacion) === "acreditado").length;
+  const noAcr = rows.filter(r => getEstado(r.calificacion) === "no_acreditado").length;
+  const pend  = rows.filter(r => getEstado(r.calificacion) === "pendiente").length;
+  return { total, acred, noAcr, pend };
+}
 
-  if (Object.keys(map).length === 0) {
-    grid.innerHTML = `<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:2rem;">Sin datos para mostrar.</p>`;
+/* ── Vista: Por Materia ──────────────────────────────────── */
+function renderMaterias(data) {
+  const grid = document.getElementById("grid-materias");
+  if (!grid) return;
+
+  // Agrupar por asignatura+tipo normalizados
+  const map = groupBy(data, r =>
+    keyAsig(r.asignatura) + "||" + (r.tipo || "").toUpperCase()
+  );
+
+  if (!Object.keys(map).length) {
+    grid.innerHTML = `<p class="rm-empty">Sin datos para mostrar.</p>`;
     return;
   }
 
-  // Ordenar materias alfabéticamente por nombre más frecuente
-  const groups = Object.values(map)
-    .map(g => {
-      g.displayName = Object.entries(g.nameFreq).sort((a, b) => b[1] - a[1])[0][0];
-      // tipo predominante
-      g.tipoMain = Object.entries(g.tipos).sort((a, b) => b[1] - a[1])[0]?.[0] || "";
-      return g;
-    })
-    .sort((a, b) => a.displayName.localeCompare(b.displayName));
+  // Nombre a mostrar: el más frecuente dentro del grupo
+  const groups = Object.values(map).map(rows => {
+    const freq = {};
+    rows.forEach(r => { const n = (r.asignatura||"").trim(); freq[n] = (freq[n]||0)+1; });
+    const displayName = Object.entries(freq).sort((a,b)=>b[1]-a[1])[0][0];
+    const tipo = (rows[0].tipo || "").toUpperCase();
+    return { displayName, tipo, rows };
+  }).sort((a,b) => a.displayName.localeCompare(b.displayName));
 
   grid.innerHTML = groups.map(g => {
-    const total = g.rows.length;
-    const acred = g.rows.filter(r => getEstado(r.calificacion) === "acreditado").length;
-    const noAcr = g.rows.filter(r => getEstado(r.calificacion) === "no_acreditado").length;
-    const pend  = g.rows.filter(r => getEstado(r.calificacion) === "pendiente").length;
-    const pct   = total > 0 ? Math.round(acred / total * 100) : 0;
-    const barColor = pct >= 80 ? "var(--green)" : pct >= 50 ? "var(--amber)" : "var(--red)";
+    const s = stats(g.rows);
+    // docentes únicos como chips
+    const docs = [...new Set(g.rows.map(r => (r.docente||"").trim()).filter(Boolean))].sort();
+    return rmCard({
+      title:     g.displayName,
+      tipoBadge: badgeTipo(g.tipo),
+      chips:     docs,
+      ...s
+    });
+  }).join("");
 
-    const docenteRows = Object.entries(g.docentes)
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([doc, rows]) => {
-        const dAcred = rows.filter(r => getEstado(r.calificacion) === "acreditado").length;
-        const dTotal = rows.length;
-        const dPct   = dTotal > 0 ? Math.round(dAcred / dTotal * 100) : 0;
-        return `<div class="rm-doc-row">
-          <div class="rm-doc-name"><i data-lucide="user-round"></i><span>${doc}</span></div>
-          <div class="rm-doc-counts">
-            <span class="rm-doc-total">${dTotal} alumnos</span>
-            <span class="rm-doc-acred" style="color:var(--green)">${dAcred} acred. (${dPct}%)</span>
-          </div>
-        </div>`;
-      }).join("");
+  lucide.createIcons();
+}
 
-    return `
-      <div class="rm-card">
-        <div class="rm-card-head">
-          <div class="rm-card-asig">${g.displayName}</div>
-          ${badgeTipo(g.tipoMain)}
-        </div>
-        <div class="rm-doc-list">${docenteRows}</div>
-        <div class="rm-stats-row">
-          <div class="rm-stat">
-            <span class="rm-stat-num" style="color:var(--blue)">${total}</span>
-            <span class="rm-stat-lbl">Total</span>
-          </div>
-          <div class="rm-stat">
-            <span class="rm-stat-num" style="color:var(--green)">${acred}</span>
-            <span class="rm-stat-lbl">Acred.</span>
-          </div>
-          <div class="rm-stat">
-            <span class="rm-stat-num" style="color:var(--red)">${noAcr}</span>
-            <span class="rm-stat-lbl">No acred.</span>
-          </div>
-          <div class="rm-stat">
-            <span class="rm-stat-num" style="color:var(--amber)">${pend}</span>
-            <span class="rm-stat-lbl">Pendiente</span>
-          </div>
-        </div>
-        <div class="rm-progress-wrap">
-          <div class="rm-progress-track">
-            <div class="rm-progress-fill" style="width:${pct}%;background:${barColor}"></div>
-          </div>
-          <span class="rm-progress-pct">${pct}% acreditado</span>
-        </div>
-      </div>`;
+/* ── Vista: Por Profesor ─────────────────────────────────── */
+function renderDocentes(data) {
+  const grid = document.getElementById("grid-docentes");
+  if (!grid) return;
+
+  const map = groupBy(data, r => norm(r.docente || "sin docente"));
+
+  if (!Object.keys(map).length) {
+    grid.innerHTML = `<p class="rm-empty">Sin datos para mostrar.</p>`;
+    return;
+  }
+
+  const groups = Object.values(map).map(rows => {
+    const freq = {};
+    rows.forEach(r => { const n=(r.docente||"Sin docente").trim(); freq[n]=(freq[n]||0)+1; });
+    const displayName = Object.entries(freq).sort((a,b)=>b[1]-a[1])[0][0];
+    // materias únicas (nombre más frecuente por grupo normalizado)
+    const asigMap = groupBy(rows, r => keyAsig(r.asignatura) + "||" + (r.tipo||"").toUpperCase());
+    const materias = Object.values(asigMap).map(ar => {
+      const f = {};
+      ar.forEach(r => { const n=(r.asignatura||"").trim(); f[n]=(f[n]||0)+1; });
+      return Object.entries(f).sort((a,b)=>b[1]-a[1])[0][0];
+    }).sort();
+    return { displayName, materias, rows };
+  }).sort((a,b) => a.displayName.localeCompare(b.displayName));
+
+  grid.innerHTML = groups.map(g => {
+    const s = stats(g.rows);
+    return rmCard({
+      title:  g.displayName,
+      subtitle: `<i data-lucide="graduation-cap" style="width:13px;height:13px;vertical-align:middle;"></i> ${g.rows.length} alumno${g.rows.length!==1?"s":""}`,
+      chips:  g.materias,
+      ...s
+    });
   }).join("");
 
   lucide.createIcons();
@@ -317,14 +353,17 @@ document.addEventListener("DOMContentLoaded", () => {
   lucide.createIcons();
 
   // Pestañas
+  const PANELS = ["registros", "materias", "docentes"];
   document.querySelectorAll(".tab-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       const tab = btn.dataset.tab;
-      document.getElementById("panel-registros").style.display = tab === "registros" ? "" : "none";
-      document.getElementById("panel-resumen").style.display   = tab === "resumen"   ? "" : "none";
-      if (tab === "resumen") renderResumen(_allData);
+      PANELS.forEach(p => {
+        document.getElementById("panel-" + p).style.display = p === tab ? "" : "none";
+      });
+      if (tab === "materias") renderMaterias(_allData);
+      if (tab === "docentes") renderDocentes(_allData);
     });
   });
 
