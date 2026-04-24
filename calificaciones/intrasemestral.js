@@ -606,17 +606,18 @@ function generarPDF() {
   const tipo = document.getElementById("pdf-tipo").value;
   const { jsPDF } = window.jspdf;
 
+  const NUM_ASIST = 8; // columnas de asistencia
+
   // Recopilar todos los registros visibles
   const gasRows = [...document.querySelectorAll("#cap-tbody .cap-row")].map(row => ({
     nombre:      row.cells[0].textContent.trim(),
     grupo:       row.cells[1].textContent.trim(),
     asignatura:  row.cells[2].textContent.trim(),
-    docente:     "",   // no expuesto en tabla pero disponible en _allData
+    docente:     "",
     tipo:        row.cells[3].textContent.trim(),
     calificacion: row.querySelector(".cap-cal-input")?.value?.trim() || "",
   }));
 
-  // enriquecer con docente desde _allData
   gasRows.forEach(r => {
     const found = _allData.find(d => d.nombre === r.nombre && d.grupo === r.grupo && d.asignatura === r.asignatura);
     if (found) r.docente = found.docente || "";
@@ -632,7 +633,6 @@ function generarPDF() {
 
   if (!allRows.length) { alert("No hay registros para generar el PDF."); return; }
 
-  // Definir agrupación según tipo
   let grupoFn, etiquetaFn, subTitulo;
   if (tipo === "grupo") {
     grupoFn    = r => r.grupo || "SIN GRUPO";
@@ -669,13 +669,12 @@ function generarPDF() {
     if (!first) doc.addPage();
     first = false;
 
-    // Detectar turno solo aplica para agrupación por grupo
     const turno = tipo === "grupo"
       ? (/^V/i.test(clave) ? "TURNO VESPERTINO" : /^M/i.test(clave) ? "TURNO MATUTINO" : "")
       : "";
     const etiqueta = etiquetaFn(clave);
 
-    // ── Encabezado ──
+    // ── Encabezado de página ──
     doc.setFontSize(11); doc.setFont("helvetica", "bold");
     doc.text('CENTRO DE ESTUDIOS DE BACHILLERATO 5/4 "PROFR. RAFAEL RAMÍREZ"', W/2, 14, { align:"center" });
     doc.setFontSize(9.5);
@@ -686,56 +685,101 @@ function generarPDF() {
     doc.text("EVALUACIÓN EXTRAORDINARIA", W/2, turno ? 32 : 26, { align:"center" });
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8.5);
-    doc.text(etiqueta, 14, turno ? 32 : 26);
-    doc.text(mes, W - 14, turno ? 32 : 26, { align:"right" });
+    doc.text(etiqueta, 14, turno ? 38 : 32);
+    doc.text(mes, W - 14, turno ? 38 : 32, { align:"right" });
 
-    const startY = turno ? 38 : 32;
+    const startY = turno ? 42 : 36;
 
-    // ── Columnas según tipo ──
-    // Por grupo: oculta columna grupo (ya está en header); por docente: oculta docente; etc.
+    // ── Columnas según tipo de agrupación ──
     const showGrupo   = tipo !== "grupo";
     const showDocente = tipo !== "docente";
     const showAsig    = tipo !== "materia";
 
-    const head = ["No.", "NOMBRE DEL ALUMNO(A)"];
-    if (showGrupo)   head.push("GRUPO");
-    if (showAsig)    head.push("ASIGNATURA");
-    if (showDocente) head.push("DOCENTE");
-    head.push("","","","","","","","", "TOTAL","R1","R2","R3","R4","R5","CALIFICACIÓN");
+    // Estilo base de encabezado
+    const HS = { valign: "middle", halign: "center", fontStyle: "bold" };
 
+    // Fila 1: encabezados combinados
+    const head1 = [
+      { content: "No.",                   rowSpan: 2, styles: { ...HS } },
+      { content: "NOMBRE DEL ALUMNO(A)",  rowSpan: 2, styles: { ...HS, halign: "left" } },
+    ];
+    if (showGrupo)   head1.push({ content: "GRUPO",      rowSpan: 2, styles: { ...HS } });
+    if (showAsig)    head1.push({ content: "ASIGNATURA", rowSpan: 2, styles: { ...HS } });
+    if (showDocente) head1.push({ content: "DOCENTE",    rowSpan: 2, styles: { ...HS } });
+    head1.push(
+      { content: "ASISTENCIAS",           colSpan: NUM_ASIST, styles: { ...HS } },
+      { content: "TOTAL",                 rowSpan: 2, styles: { ...HS } },
+      { content: "RASGOS DE EVALUACION",  colSpan: 5, styles: { ...HS } },
+      { content: "CALIFICACION",          rowSpan: 2, styles: { ...HS } }
+    );
+
+    // Fila 2: sub-encabezados de asistencias (vacíos) y rasgos (1-5)
+    const head2 = [
+      ...Array(NUM_ASIST).fill({ content: "", styles: { halign: "center" } }),
+      { content: "1", styles: { halign: "center" } },
+      { content: "2", styles: { halign: "center" } },
+      { content: "3", styles: { halign: "center" } },
+      { content: "4", styles: { halign: "center" } },
+      { content: "5", styles: { halign: "center" } },
+    ];
+
+    // Cuerpo de la tabla
     const body = registros.map((r, i) => {
       const row = [i + 1, r.nombre];
-      if (showGrupo)   row.push(r.grupo);
-      if (showAsig)    row.push(r.asignatura);
+      if (showGrupo)   row.push(r.grupo   || "");
+      if (showAsig)    row.push(r.asignatura || "");
       if (showDocente) row.push(r.docente || "");
-      row.push(...Array(8).fill(""), "", "","","","","", r.calificacion || "");
+      row.push(...Array(NUM_ASIST).fill("")); // asistencias
+      row.push("");                            // total
+      row.push("", "", "", "", "");            // rasgos 1-5
+      row.push(r.calificacion || "");          // calificación
       return row;
     });
 
     // Anchos de columna dinámicos
-    const colStyles = { 0:{ cellWidth:8, halign:"center" }, 1:{ cellWidth:54 } };
+    const colStyles = {
+      0: { cellWidth: 8,  halign: "center" },
+      1: { cellWidth: 50 },
+    };
     let ci = 2;
-    if (showGrupo)   { colStyles[ci] = { cellWidth:13, halign:"center" }; ci++; }
-    if (showAsig)    { colStyles[ci] = { cellWidth:44 }; ci++; }
-    if (showDocente) { colStyles[ci] = { cellWidth:36 }; ci++; }
-    for (let j = 0; j < 8; j++)  { colStyles[ci] = { cellWidth:7 }; ci++; }
-    colStyles[ci]   = { cellWidth:10, halign:"center" }; ci++;
-    for (let j = 0; j < 5; j++)  { colStyles[ci] = { cellWidth:7, halign:"center" }; ci++; }
-    colStyles[ci]   = { cellWidth:16, halign:"center" };
+    if (showGrupo)   { colStyles[ci] = { cellWidth: 13, halign: "center" }; ci++; }
+    if (showAsig)    { colStyles[ci] = { cellWidth: 44 }; ci++; }
+    if (showDocente) { colStyles[ci] = { cellWidth: 36 }; ci++; }
+    for (let j = 0; j < NUM_ASIST; j++) { colStyles[ci] = { cellWidth: 6.5, halign: "center" }; ci++; }
+    colStyles[ci] = { cellWidth: 10, halign: "center" }; ci++;   // total
+    for (let j = 0; j < 5; j++) { colStyles[ci] = { cellWidth: 8, halign: "center" }; ci++; }
+    colStyles[ci] = { cellWidth: 16, halign: "center" };          // calificación
 
     doc.autoTable({
       startY,
-      head: [head],
+      head: [head1, head2],
       body,
-      styles:     { fontSize: 7, cellPadding: 1.2 },
-      headStyles: { fillColor:[15,23,42], textColor:255, fontSize:6.5, fontStyle:"bold", halign:"center" },
+      styles:       { fontSize: 7, cellPadding: 1.5 },
+      headStyles:   { fillColor: [15, 23, 42], textColor: 255, fontSize: 6.5, fontStyle: "bold", halign: "center" },
       columnStyles: colStyles,
-      margin: { left:14, right:14 },
-      theme: "grid",
+      margin:       { left: 14, right: 14 },
+      theme:        "grid",
     });
+
+    // ── Firma del docente ──
+    const tableEndY    = doc.lastAutoTable.finalY;
+    const sigY         = tableEndY + 20;
+    const docenteNombre = registros.find(r => r.docente)?.docente || "";
+    const sigX         = W / 2;
+
+    doc.setDrawColor(100, 100, 100);
+    doc.setLineWidth(0.3);
+    doc.line(sigX - 45, sigY, sigX + 45, sigY);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.text("Firma del Docente", sigX, sigY + 5, { align: "center" });
+    if (docenteNombre) {
+      doc.setFont("helvetica", "bold");
+      doc.text(docenteNombre, sigX, sigY + 10, { align: "center" });
+    }
   });
 
-  doc.save(`Eval_Extraordinaria_${subTitulo.replace(/ /g,"_")}_${fecha}.pdf`);
+  doc.save(`Eval_Extraordinaria_${subTitulo.replace(/ /g, "_")}_${fecha}.pdf`);
 }
 
 /* ── Inicializar eventos ─────────────────────────────────── */
