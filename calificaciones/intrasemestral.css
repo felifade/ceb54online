@@ -99,7 +99,7 @@ body { font-family:var(--font-b); background:var(--bg); color:var(--dark); line-
 /* ── RESUMEN POR MATERIA ─────────────────────────── */
 .resumen-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.1rem;
 }
 .rm-card {
@@ -167,6 +167,37 @@ body { font-family:var(--font-b); background:var(--bg); color:var(--dark); line-
   color: var(--muted);
   text-align: center;
 }
+/* Lista de docentes dentro de la tarjeta */
+.rm-doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: .6rem 0;
+}
+.rm-doc-row {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+}
+.rm-doc-name {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--dark);
+}
+.rm-doc-name i { width: 12px; height: 12px; color: var(--blue); flex-shrink: 0; }
+.rm-doc-counts {
+  display: flex;
+  gap: .75rem;
+  padding-left: 1.1rem;
+  font-size: .75rem;
+}
+.rm-doc-total { color: var(--muted); }
+
 .rm-progress-wrap {
   display: flex;
   flex-direction: column;

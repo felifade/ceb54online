@@ -205,28 +205,52 @@ function showError(msg) {
   lucide.createIcons();
 }
 
-/* ── Renderizar resumen por asignatura/docente ───────────── */
+/* ── Normalizar nombre de asignatura para agrupar ────────── */
+function normAsig(str) {
+  return norm(str)
+    .replace(/\s+/g, " ")   // colapsar espacios
+    .replace(/[_\-\/]/g, " ") // guiones/barras → espacio
+    .trim();
+}
+
+/* ── Renderizar resumen por asignatura (con docentes dentro) ─ */
 function renderResumen(data) {
   const grid = document.getElementById("resumen-grid");
   if (!grid) return;
 
-  // Agrupar por asignatura + docente + tipo
+  // Agrupar por asignatura normalizada
   const map = {};
   data.forEach(r => {
-    const key = `${r.asignatura}||${r.docente}||${r.tipo}`;
-    if (!map[key]) map[key] = { asignatura: r.asignatura, docente: r.docente, tipo: r.tipo, rows: [] };
-    map[key].rows.push(r);
+    const key = normAsig(r.asignatura);
+    if (!map[key]) map[key] = { nameFreq: {}, tipos: {}, docentes: {}, rows: [] };
+    const g = map[key];
+    // frecuencia de variantes de nombre para elegir la más común
+    const nombre = (r.asignatura || "").trim();
+    g.nameFreq[nombre] = (g.nameFreq[nombre] || 0) + 1;
+    // tipos presentes
+    const tipo = (r.tipo || "").toUpperCase();
+    g.tipos[tipo] = (g.tipos[tipo] || 0) + 1;
+    // sub-agrupación por docente
+    const doc = (r.docente || "").trim() || "Sin docente";
+    if (!g.docentes[doc]) g.docentes[doc] = [];
+    g.docentes[doc].push(r);
+    g.rows.push(r);
   });
 
-  const groups = Object.values(map).sort((a, b) => {
-    const c = (a.asignatura || "").localeCompare(b.asignatura || "");
-    return c !== 0 ? c : (a.docente || "").localeCompare(b.docente || "");
-  });
-
-  if (groups.length === 0) {
+  if (Object.keys(map).length === 0) {
     grid.innerHTML = `<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:2rem;">Sin datos para mostrar.</p>`;
     return;
   }
+
+  // Ordenar materias alfabéticamente por nombre más frecuente
+  const groups = Object.values(map)
+    .map(g => {
+      g.displayName = Object.entries(g.nameFreq).sort((a, b) => b[1] - a[1])[0][0];
+      // tipo predominante
+      g.tipoMain = Object.entries(g.tipos).sort((a, b) => b[1] - a[1])[0]?.[0] || "";
+      return g;
+    })
+    .sort((a, b) => a.displayName.localeCompare(b.displayName));
 
   grid.innerHTML = groups.map(g => {
     const total = g.rows.length;
@@ -236,16 +260,28 @@ function renderResumen(data) {
     const pct   = total > 0 ? Math.round(acred / total * 100) : 0;
     const barColor = pct >= 80 ? "var(--green)" : pct >= 50 ? "var(--amber)" : "var(--red)";
 
+    const docenteRows = Object.entries(g.docentes)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([doc, rows]) => {
+        const dAcred = rows.filter(r => getEstado(r.calificacion) === "acreditado").length;
+        const dTotal = rows.length;
+        const dPct   = dTotal > 0 ? Math.round(dAcred / dTotal * 100) : 0;
+        return `<div class="rm-doc-row">
+          <div class="rm-doc-name"><i data-lucide="user-round"></i><span>${doc}</span></div>
+          <div class="rm-doc-counts">
+            <span class="rm-doc-total">${dTotal} alumnos</span>
+            <span class="rm-doc-acred" style="color:var(--green)">${dAcred} acred. (${dPct}%)</span>
+          </div>
+        </div>`;
+      }).join("");
+
     return `
       <div class="rm-card">
         <div class="rm-card-head">
-          <div class="rm-card-asig">${g.asignatura || "—"}</div>
-          ${badgeTipo(g.tipo)}
+          <div class="rm-card-asig">${g.displayName}</div>
+          ${badgeTipo(g.tipoMain)}
         </div>
-        <div class="rm-card-docente">
-          <i data-lucide="user-round"></i>
-          ${g.docente || "—"}
-        </div>
+        <div class="rm-doc-list">${docenteRows}</div>
         <div class="rm-stats-row">
           <div class="rm-stat">
             <span class="rm-stat-num" style="color:var(--blue)">${total}</span>
