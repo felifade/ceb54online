@@ -592,6 +592,7 @@ body { font-family:var(--font-b); background:var(--bg); color:var(--dark); line-
   letter-spacing: .7px;
   color: var(--muted);
 }
+.cap-combo,
 .cap-filter-item select {
   padding: .5rem .85rem;
   border: 1.5px solid var(--border);
@@ -603,60 +604,141 @@ body { font-family:var(--font-b); background:var(--bg); color:var(--dark); line-
   outline: none;
   cursor: pointer;
   transition: border-color .2s;
-  min-width: 180px;
+  min-width: 170px;
 }
-.cap-filter-item select:focus { border-color: var(--blue); }
+.cap-combo:focus,
+.cap-filter-item select:focus { border-color: var(--blue); background: var(--white); }
 .cap-info {
   font-size: .82rem;
   color: var(--muted);
   align-self: flex-end;
-  margin-left: auto;
-  white-space: nowrap;
+  flex: 1;
 }
-.cap-btn-save {
+.cap-action-btns { display: flex; gap: .5rem; align-self: flex-end; }
+.cap-btn-save, .cap-btn-pdf {
   display: flex;
   align-items: center;
   gap: .45rem;
-  padding: .55rem 1.25rem;
-  background: var(--blue);
-  color: #fff;
+  padding: .55rem 1.1rem;
   border: none;
   border-radius: 8px;
   font-family: var(--font-b);
-  font-size: .88rem;
+  font-size: .85rem;
   font-weight: 700;
   cursor: pointer;
-  align-self: flex-end;
   transition: opacity .2s, background .2s;
   white-space: nowrap;
 }
-.cap-btn-save i { width: 15px; height: 15px; }
+.cap-btn-save { background: var(--blue); color: #fff; }
 .cap-btn-save:hover:not(:disabled) { background: #2563eb; }
 .cap-btn-save:disabled { opacity: .4; cursor: not-allowed; }
+.cap-btn-pdf  { background: #0f172a; color: #fff; }
+.cap-btn-pdf:hover { background: #1e293b; }
+.cap-btn-save i, .cap-btn-pdf i { width: 15px; height: 15px; }
 
-.cap-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: .85rem;
-  padding: 3rem 2rem;
-  color: var(--muted);
-  font-size: .9rem;
-  text-align: center;
-}
-.cap-wrap {
+/* Bloques de sección */
+.cap-section-block {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+  margin-bottom: 1.25rem;
   overflow: hidden;
 }
-.cap-table .th-cal { width: 120px; text-align: center; }
-.cap-table .th-obs { min-width: 200px; }
-.cap-table .th-st  { width: 38px; }
+.cap-section-hd {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .85rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: #f8fafc;
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--dark);
+}
+.cap-section-hd i { width: 16px; height: 16px; color: var(--blue); flex-shrink: 0; }
+.cap-section-hd small { font-weight: 400; color: var(--muted); }
+.cap-badge {
+  background: var(--blue-lt);
+  color: var(--blue);
+  font-size: .7rem;
+  font-weight: 700;
+  padding: .15rem .5rem;
+  border-radius: 20px;
+}
+.cap-btn-add {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  margin-left: auto;
+  padding: .35rem .85rem;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-family: var(--font-b);
+  font-size: .8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.cap-btn-add i { width: 13px; height: 13px; }
+.cap-btn-add:hover { background: #2563eb; }
+
+/* Formulario de nuevo alumno */
+.cap-add-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  align-items: center;
+  padding: .85rem 1.25rem;
+  background: #fffbeb;
+  border-bottom: 1px solid #fef3c7;
+}
+.cap-new-field {
+  padding: .45rem .7rem;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  font-family: var(--font-b);
+  font-size: .85rem;
+  background: var(--white);
+  outline: none;
+}
+.cap-new-field:focus { border-color: var(--blue); }
+.cap-new-nombre { flex: 1; min-width: 200px; }
+.cap-new-asig   { flex: 1; min-width: 180px; }
+.cap-new-short  { width: 110px; }
+.cap-new-cal    { width: 80px; text-align: center; }
+.cap-confirm-btn {
+  display: flex; align-items: center; gap: .3rem;
+  padding: .45rem .9rem;
+  background: var(--green); color: #fff;
+  border: none; border-radius: 7px;
+  font-family: var(--font-b); font-size: .82rem; font-weight: 700;
+  cursor: pointer;
+}
+.cap-confirm-btn i { width: 13px; height: 13px; }
+.cap-cancel-btn {
+  display: flex; align-items: center;
+  padding: .45rem .6rem;
+  background: transparent; color: var(--muted);
+  border: 1.5px solid var(--border); border-radius: 7px;
+  cursor: pointer;
+}
+.cap-cancel-btn i { width: 13px; height: 13px; }
+
+.cap-empty-inline {
+  padding: 1.25rem 1.5rem;
+  font-size: .85rem;
+  color: var(--muted);
+  text-align: center;
+}
+.cap-wrap { overflow-x: auto; }
+.cap-table .th-cal { width: 110px; text-align: center; }
+.cap-table .th-obs { min-width: 180px; }
+.cap-table .th-st  { width: 36px; text-align: center; }
 
 .cap-cal-input {
-  width: 90px;
+  width: 82px;
   padding: .35rem .5rem;
   border: 1.5px solid var(--border);
   border-radius: 7px;
@@ -669,10 +751,9 @@ body { font-family:var(--font-b); background:var(--bg); color:var(--dark); line-
   transition: border-color .18s, background .18s;
 }
 .cap-cal-input:focus { border-color: var(--blue); background: var(--white); }
-
 .cap-obs-input {
   width: 100%;
-  min-width: 180px;
+  min-width: 150px;
   padding: .35rem .6rem;
   border: 1.5px solid var(--border);
   border-radius: 7px;
@@ -680,22 +761,23 @@ body { font-family:var(--font-b); background:var(--bg); color:var(--dark); line-
   font-size: .82rem;
   outline: none;
   background: var(--bg);
-  transition: border-color .18s;
 }
 .cap-obs-input:focus { border-color: var(--blue); }
+.cap-btn-del {
+  background: none; border: none; cursor: pointer;
+  color: var(--muted); padding: .2rem .35rem;
+  border-radius: 5px; font-size: .9rem;
+  transition: color .15s;
+}
+.cap-btn-del:hover { color: var(--red); }
 
 /* Estados de fila */
 .cap-row.cap-dirty td { background: #fffbeb; }
 .cap-row.cap-dirty .cap-cal-input,
 .cap-row.cap-dirty .cap-obs-input { border-color: var(--amber); }
-.cap-row.cap-saved td  { background: #f0fdf4; }
-.cap-row.cap-error td  { background: #fff1f2; }
-
-.cap-row-status {
-  font-size: 1rem;
-  text-align: center;
-  line-height: 1;
-}
+.cap-row.cap-saved td { background: #f0fdf4; }
+.cap-row.cap-error td { background: #fff1f2; }
+.cap-row-status { text-align: center; font-size: 1rem; line-height: 1; }
 
 /* ══════════════════════ RESPONSIVE ══════════════════════ */
 @media (max-width: 900px) {

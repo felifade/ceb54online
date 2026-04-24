@@ -78,21 +78,21 @@ function populateDropdowns(data) {
   const selDocente = document.getElementById("filter-docente");
 
   const selRmGrupo  = document.getElementById("rm-grupo");
-  const selCapGrupo = document.getElementById("cap-grupo");
-  const selCapAsig  = document.getElementById("cap-asig");
+  const dlCapGrupo  = document.getElementById("dl-cap-grupo");
+  const dlCapAsig   = document.getElementById("dl-cap-asig");
 
   grupos.forEach(g => {
     const o = document.createElement("option");
     o.value = g; o.textContent = g;
     selGrupo.appendChild(o);
     selRmGrupo.appendChild(o.cloneNode(true));
-    selCapGrupo.appendChild(o.cloneNode(true));
+    dlCapGrupo.appendChild(o.cloneNode(true));
   });
   asigs.forEach(a => {
     const o = document.createElement("option");
     o.value = a; o.textContent = a;
     selAsig.appendChild(o);
-    selCapAsig.appendChild(o.cloneNode(true));
+    dlCapAsig.appendChild(o.cloneNode(true));
   });
   docentes.forEach(d => {
     const o = document.createElement("option");
@@ -365,35 +365,54 @@ function renderDocentes(data) {
    MÓDULO: CAPTURA DE CALIFICACIONES
 ═══════════════════════════════════════════════════════════ */
 
-function renderCaptura() {
-  const grupo = document.getElementById("cap-grupo").value;
-  const asig  = document.getElementById("cap-asig").value;
-  const tipo  = document.getElementById("cap-tipo").value;
+let _capLocales = []; // registros añadidos manualmente (no están en GAS)
 
-  const data = _allData.filter(r => {
-    if (grupo && r.grupo !== grupo)            return false;
-    if (asig  && r.asignatura !== asig)        return false;
-    if (tipo  && r.tipo.toUpperCase() !== tipo) return false;
+/* ── Filtros de captura ──────────────────────────────────── */
+function capFiltros() {
+  const grupo = document.getElementById("cap-grupo").value.trim();
+  const asig  = document.getElementById("cap-asig").value.trim();
+  const tipo  = document.getElementById("cap-tipo").value;
+  return { grupo, asig, tipo };
+}
+
+function capFiltrarGAS({ grupo, asig, tipo }) {
+  return _allData.filter(r => {
+    if (grupo && !r.grupo.toLowerCase().includes(grupo.toLowerCase()))       return false;
+    if (asig  && !r.asignatura.toLowerCase().includes(asig.toLowerCase()))   return false;
+    if (tipo  && r.tipo.toUpperCase() !== tipo)                              return false;
     return true;
   });
+}
+
+function capFiltrarLocal({ grupo, asig, tipo }) {
+  return _capLocales.filter(r => {
+    if (grupo && !r.grupo.toLowerCase().includes(grupo.toLowerCase()))       return false;
+    if (asig  && !r.asignatura.toLowerCase().includes(asig.toLowerCase()))   return false;
+    if (tipo  && r.tipo.toUpperCase() !== tipo)                              return false;
+    return true;
+  });
+}
+
+/* ── Renderizar tabla del concentrado ────────────────────── */
+function renderCaptura() {
+  const f    = capFiltros();
+  const data = capFiltrarGAS(f);
 
   const wrap  = document.getElementById("cap-wrap");
   const empty = document.getElementById("cap-empty");
-  const info  = document.getElementById("cap-info");
+  const cnt   = document.getElementById("cap-cnt-gas");
+
+  cnt.textContent = data.length;
 
   if (data.length === 0) {
     wrap.style.display  = "none";
-    empty.style.display = "flex";
-    empty.querySelector("p").textContent = "Sin registros con los filtros seleccionados.";
-    empty.querySelector("p").textContent = "Sin registros con los filtros seleccionados.";
-    info.textContent = "0 registros";
+    empty.style.display = "";
+    empty.textContent   = "Sin registros con los filtros seleccionados.";
     return;
   }
 
   empty.style.display = "none";
   wrap.style.display  = "";
-  info.textContent    = `${data.length} registro${data.length !== 1 ? "s" : ""}`;
-  setCapSaveBtn(false);
 
   const tbody = document.getElementById("cap-tbody");
   tbody.innerHTML = data.map(r => {
@@ -415,7 +434,7 @@ function renderCaptura() {
           <input class="cap-obs-input" type="text"
                  value="${obsVal}" placeholder="Observación…">
         </td>
-        <td class="cap-row-status" data-lucide-status></td>
+        <td class="cap-row-status"></td>
       </tr>`;
   }).join("");
 
@@ -428,24 +447,101 @@ function renderCaptura() {
                       obsInput.value !== row.dataset.obsOrig;
         row.classList.toggle("cap-dirty", dirty);
         row.classList.remove("cap-saved", "cap-error");
-        row.querySelector("[data-lucide-status]").textContent = dirty ? "·" : "";
-        setCapSaveBtn(!!tbody.querySelector(".cap-dirty"));
+        row.querySelector(".cap-row-status").textContent = dirty ? "·" : "";
+        document.getElementById("cap-btn-save").disabled =
+          !tbody.querySelector(".cap-dirty");
       });
+    });
+  });
+
+  updateCapInfo();
+  lucide.createIcons();
+}
+
+/* ── Renderizar tabla de alumnos locales ─────────────────── */
+function renderLocalTabla() {
+  const f    = capFiltros();
+  const data = capFiltrarLocal(f);
+  const wrap  = document.getElementById("cap-local-wrap");
+  const empty = document.getElementById("cap-local-empty");
+  const cnt   = document.getElementById("cap-cnt-local");
+
+  cnt.textContent = _capLocales.length;
+
+  if (_capLocales.length === 0) {
+    wrap.style.display  = "none";
+    empty.style.display = "";
+    return;
+  }
+
+  empty.style.display = "none";
+  wrap.style.display  = "";
+
+  document.getElementById("cap-local-tbody").innerHTML = data.map((r, i) => {
+    const idx = _capLocales.indexOf(r);
+    return `
+      <tr>
+        <td class="td-alumno">${r.nombre}</td>
+        <td class="td-grupo">${r.grupo}</td>
+        <td class="td-asig">${r.asignatura}</td>
+        <td>${badgeTipo(r.tipo)}</td>
+        <td style="text-align:center;font-family:var(--font-h);font-weight:800;font-size:1rem">
+          ${r.calificacion !== "" ? r.calificacion : "—"}
+        </td>
+        <td>
+          <button class="cap-btn-del" data-idx="${idx}" title="Eliminar">✕</button>
+        </td>
+      </tr>`;
+  }).join("");
+
+  document.querySelectorAll(".cap-btn-del").forEach(btn => {
+    btn.addEventListener("click", () => {
+      _capLocales.splice(parseInt(btn.dataset.idx), 1);
+      renderLocalTabla();
+      updateCapInfo();
     });
   });
 
   lucide.createIcons();
 }
 
-function setCapSaveBtn(enabled) {
-  const btn = document.getElementById("cap-btn-save");
-  btn.disabled = !enabled;
+function updateCapInfo() {
+  const gasN   = document.getElementById("cap-tbody")?.querySelectorAll(".cap-row").length || 0;
+  const localN = _capLocales.length;
+  const total  = gasN + localN;
+  document.getElementById("cap-info").textContent =
+    total > 0 ? `${total} registro${total !== 1 ? "s" : ""}` : "";
 }
 
+/* ── Agregar alumno local ─────────────────────────────────── */
+function confirmAddLocal() {
+  const nombre = document.getElementById("new-nombre").value.trim();
+  const grupo  = document.getElementById("new-grupo").value.trim();
+  const asig   = document.getElementById("new-asig").value.trim();
+  const tipo   = document.getElementById("new-tipo").value;
+  const cal    = document.getElementById("new-cal").value.trim();
+
+  if (!nombre || !grupo || !asig) {
+    alert("Nombre, grupo y asignatura son obligatorios.");
+    return;
+  }
+
+  _capLocales.push({ nombre, grupo, asignatura: asig, tipo, calificacion: cal });
+
+  // Limpiar form
+  ["new-nombre","new-grupo","new-asig","new-cal"].forEach(id =>
+    document.getElementById(id).value = ""
+  );
+  document.getElementById("new-nombre").focus();
+
+  renderLocalTabla();
+  updateCapInfo();
+}
+
+/* ── Guardar registros del concentrado (filas dirty) ─────── */
 async function saveAllDirty() {
-  const btn      = document.getElementById("cap-btn-save");
-  const info     = document.getElementById("cap-info");
-  const dirtyRows = [...document.querySelectorAll(".cap-row.cap-dirty")];
+  const btn       = document.getElementById("cap-btn-save");
+  const dirtyRows = [...document.querySelectorAll("#cap-tbody .cap-row.cap-dirty")];
   if (!dirtyRows.length) return;
 
   btn.disabled = true;
@@ -455,66 +551,152 @@ async function saveAllDirty() {
   let saved = 0, errors = 0;
 
   for (const row of dirtyRows) {
-    const clave  = row.dataset.clave;
-    const cal    = row.querySelector(".cap-cal-input").value.trim();
-    const obs    = row.querySelector(".cap-obs-input").value.trim();
-    const statusEl = row.querySelector("[data-lucide-status]");
-
+    const clave    = row.dataset.clave;
+    const cal      = row.querySelector(".cap-cal-input").value.trim();
+    const obs      = row.querySelector(".cap-obs-input").value.trim();
+    const statusEl = row.querySelector(".cap-row-status");
     statusEl.textContent = "⏳";
 
     try {
       const url = `${GAS_URL}?action=guardarCalif` +
         `&clave=${encodeURIComponent(clave)}` +
         `&calificacion=${encodeURIComponent(cal)}` +
-        `&observacion=${encodeURIComponent(obs)}` +
-        `&_t=${Date.now()}`;
-
+        `&observacion=${encodeURIComponent(obs)}&_t=${Date.now()}`;
       const res  = await fetch(url, { redirect: "follow" });
       const json = JSON.parse(await res.text());
 
       if (json.status === "ok") {
-        row.classList.remove("cap-dirty", "cap-error");
+        row.classList.remove("cap-dirty","cap-error");
         row.classList.add("cap-saved");
         row.dataset.calOrig = cal;
         row.dataset.obsOrig = obs;
         statusEl.textContent = "✓";
         statusEl.style.color = "var(--green)";
-        // actualizar caché local
         const rec = _allData.find(r => r.clave === clave);
-        if (rec) {
-          rec.calificacion = cal !== "" ? parseFloat(cal) : null;
-          rec.observacion  = obs;
-        }
+        if (rec) { rec.calificacion = cal !== "" ? parseFloat(cal) : null; rec.observacion = obs; }
         saved++;
-      } else {
-        throw new Error(json.message || "Error del servidor");
-      }
+      } else throw new Error(json.message || "Error del servidor");
     } catch (err) {
       row.classList.remove("cap-dirty");
       row.classList.add("cap-error");
       statusEl.textContent = "✗";
       statusEl.style.color = "var(--red)";
-      statusEl.title       = err.message;
+      statusEl.title = err.message;
       errors++;
     }
   }
 
-  btn.innerHTML = '<i data-lucide="save"></i> Guardar cambios';
+  btn.innerHTML = '<i data-lucide="save"></i> Guardar al Sheet';
   lucide.createIcons();
-  setCapSaveBtn(!!document.querySelector(".cap-dirty"));
+  btn.disabled = !document.querySelector("#cap-tbody .cap-dirty");
 
+  const info = document.getElementById("cap-info");
   if (errors === 0) {
-    info.textContent = `✓ ${saved} guardado${saved !== 1 ? "s" : ""}`;
+    info.textContent = `✓ ${saved} guardado${saved!==1?"s":""}`;
     info.style.color = "var(--green)";
-    setTimeout(() => {
-      info.textContent = document.getElementById("cap-grupo").value
-        ? `${document.querySelectorAll(".cap-row").length} registros` : "";
-      info.style.color = "";
-    }, 3000);
+    setTimeout(() => { info.style.color = ""; updateCapInfo(); }, 3000);
   } else {
-    info.textContent = `${saved} guardado${saved!==1?"s":""}, ${errors} con error`;
+    info.textContent = `${saved} guardados, ${errors} con error`;
     info.style.color = "var(--red)";
   }
+}
+
+/* ── Generar PDF por grupo ───────────────────────────────── */
+function generarPDF() {
+  const { jsPDF } = window.jspdf;
+
+  // Recopilar registros GAS visibles
+  const gasRows = [...document.querySelectorAll("#cap-tbody .cap-row")].map(row => ({
+    nombre:      row.cells[0].textContent.trim(),
+    grupo:       row.cells[1].textContent.trim(),
+    asignatura:  row.cells[2].textContent.trim(),
+    tipo:        row.cells[3].textContent.trim(),
+    calificacion: row.querySelector(".cap-cal-input")?.value?.trim() || "",
+  }));
+
+  const allRows = [...gasRows, ..._capLocales.map(r => ({
+    nombre: r.nombre, grupo: r.grupo, asignatura: r.asignatura,
+    tipo: r.tipo, calificacion: r.calificacion,
+  }))];
+
+  if (!allRows.length) { alert("No hay registros para generar el PDF."); return; }
+
+  // Agrupar por grupo
+  const porGrupo = {};
+  allRows.forEach(r => {
+    const g = r.grupo || "SIN GRUPO";
+    if (!porGrupo[g]) porGrupo[g] = [];
+    porGrupo[g].push(r);
+  });
+
+  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "letter" });
+  const W   = doc.internal.pageSize.getWidth();
+  const mes = new Date().toLocaleDateString("es-MX", { month: "long", year: "numeric" }).toUpperCase();
+  let first = true;
+
+  Object.entries(porGrupo).sort().forEach(([grupo, registros]) => {
+    if (!first) doc.addPage();
+    first = false;
+
+    const turno = /^V/i.test(grupo) ? "TURNO VESPERTINO" :
+                  /^M/i.test(grupo) ? "TURNO MATUTINO"  : "";
+
+    // Encabezado
+    doc.setFontSize(11); doc.setFont("helvetica", "bold");
+    doc.text('CENTRO DE ESTUDIOS DE BACHILLERATO 5/4 "PROFR. RAFAEL RAMÍREZ"', W/2, 14, { align:"center" });
+    doc.setFontSize(9.5);
+    doc.text(turno, W/2, 20, { align:"center" });
+    doc.setFont("helvetica", "normal");
+    doc.text("LISTA ASISTENCIAS Y CALIFICACIONES", W/2, 26, { align:"center" });
+    doc.setFont("helvetica", "bold");
+    doc.text("EVALUACIÓN EXTRAORDINARIA", W/2, 32, { align:"center" });
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.text(`GRUPO: ${grupo}`, 14, 32);
+    doc.text(mes, W - 14, 32, { align:"right" });
+
+    // Tabla
+    const asistCols = ["","","","","","","",""];
+    doc.autoTable({
+      startY: 37,
+      head: [[
+        "No.", "NOMBRE DEL ALUMNO(A)", "GRUPO", "ASIGNATURA",
+        ...asistCols,
+        "TOTAL", "1","2","3","4","5", "CALIFICACIÓN"
+      ]],
+      body: registros.map((r, i) => [
+        i + 1, r.nombre, r.grupo, r.asignatura,
+        ...Array(8).fill(""),
+        "", "","","","","", r.calificacion || ""
+      ]),
+      styles:     { fontSize: 7, cellPadding: 1.2 },
+      headStyles: { fillColor:[15,23,42], textColor:255, fontSize:6.5, fontStyle:"bold", halign:"center" },
+      columnStyles: {
+        0:  { cellWidth: 8,  halign:"center" },
+        1:  { cellWidth: 54 },
+        2:  { cellWidth: 13, halign:"center" },
+        3:  { cellWidth: 44 },
+        4:  { cellWidth: 7 }, 5:{cellWidth:7}, 6:{cellWidth:7}, 7:{cellWidth:7},
+        8:  { cellWidth: 7 }, 9:{cellWidth:7},10:{cellWidth:7},11:{cellWidth:7},
+        12: { cellWidth: 10, halign:"center" },
+        13: { cellWidth: 7, halign:"center" }, 14:{cellWidth:7,halign:"center"},
+        15: { cellWidth: 7, halign:"center" }, 16:{cellWidth:7,halign:"center"},
+        17: { cellWidth: 7, halign:"center" },
+        18: { cellWidth: 16, halign:"center" },
+      },
+      margin: { left:14, right:14 },
+      theme: "grid",
+      didDrawCell: (d) => {
+        // marcar columnas de asistencia/rasgos con fondo muy claro
+        if (d.section === "head") return;
+        if (d.column.index >= 4 && d.column.index <= 17 && d.row.index >= 0) {
+          doc.setFillColor(248, 250, 252);
+        }
+      }
+    });
+  });
+
+  doc.save(`Eval_Extraordinaria_${new Date().toISOString().slice(0,10)}.pdf`);
 }
 
 /* ── Inicializar eventos ─────────────────────────────────── */
@@ -537,7 +719,7 @@ document.addEventListener("DOMContentLoaded", () => {
     filterBar.style.display = (tab === "materias" || tab === "docentes") ? "flex" : "none";
     if (tab === "materias") renderMaterias(resFiltrado());
     if (tab === "docentes") renderDocentes(resFiltrado());
-    if (tab === "captura" && _allData.length) renderCaptura();
+    if (tab === "captura" && _allData.length) { renderCaptura(); renderLocalTabla(); }
   }
 
   document.querySelectorAll(".tab-btn").forEach(btn =>
@@ -591,11 +773,37 @@ document.addEventListener("DOMContentLoaded", () => {
     applyFilters();
   });
 
-  // Filtros de captura
-  ["cap-grupo", "cap-asig", "cap-tipo"].forEach(id =>
-    document.getElementById(id).addEventListener("change", renderCaptura)
+  // Filtros de captura (input para texto libre, change para select)
+  let _capTimer;
+  ["cap-grupo","cap-asig"].forEach(id =>
+    document.getElementById(id).addEventListener("input", () => {
+      clearTimeout(_capTimer);
+      _capTimer = setTimeout(() => { renderCaptura(); renderLocalTabla(); }, 250);
+    })
   );
+  document.getElementById("cap-tipo").addEventListener("change", () => {
+    renderCaptura(); renderLocalTabla();
+  });
+
+  // Guardar al Sheet
   document.getElementById("cap-btn-save").addEventListener("click", saveAllDirty);
+
+  // PDF
+  document.getElementById("cap-btn-pdf").addEventListener("click", generarPDF);
+
+  // Agregar alumno local
+  document.getElementById("cap-btn-add").addEventListener("click", () => {
+    const form = document.getElementById("cap-add-form");
+    form.style.display = form.style.display === "none" ? "" : "none";
+    if (form.style.display !== "none") document.getElementById("new-nombre").focus();
+  });
+  document.getElementById("cap-confirm-add").addEventListener("click", confirmAddLocal);
+  document.getElementById("cap-cancel-add").addEventListener("click", () => {
+    document.getElementById("cap-add-form").style.display = "none";
+  });
+  document.getElementById("new-nombre").addEventListener("keydown", e => {
+    if (e.key === "Enter") confirmAddLocal();
+  });
 
   // Carga inicial
   loadData();

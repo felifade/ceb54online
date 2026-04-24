@@ -205,19 +205,19 @@
   <!-- ══════════════ PANEL: CAPTURA ══════════════ -->
   <div id="panel-captura" style="display:none">
 
-    <!-- Filtros de captura -->
+    <!-- Barra de filtros / acciones -->
     <div class="cap-filter-bar">
       <div class="cap-filter-item">
         <label for="cap-grupo">Grupo</label>
-        <select id="cap-grupo">
-          <option value="">Todos los grupos</option>
-        </select>
+        <input type="text" id="cap-grupo" list="dl-cap-grupo"
+               placeholder="Ej: V607" autocomplete="off" class="cap-combo">
+        <datalist id="dl-cap-grupo"></datalist>
       </div>
       <div class="cap-filter-item">
         <label for="cap-asig">Asignatura</label>
-        <select id="cap-asig">
-          <option value="">Todas</option>
-        </select>
+        <input type="text" id="cap-asig" list="dl-cap-asig"
+               placeholder="Filtrar materia…" autocomplete="off" class="cap-combo">
+        <datalist id="dl-cap-asig"></datalist>
       </div>
       <div class="cap-filter-item">
         <label for="cap-tipo">Tipo</label>
@@ -227,34 +227,89 @@
           <option value="EXAMEN">Examen</option>
         </select>
       </div>
-      <span class="cap-info" id="cap-info">Selecciona un grupo para comenzar</span>
-      <button class="cap-btn-save" id="cap-btn-save" disabled>
-        <i data-lucide="save"></i> Guardar cambios
-      </button>
+      <span class="cap-info" id="cap-info"></span>
+      <div class="cap-action-btns">
+        <button class="cap-btn-pdf" id="cap-btn-pdf">
+          <i data-lucide="file-down"></i> Generar PDF
+        </button>
+        <button class="cap-btn-save" id="cap-btn-save" disabled>
+          <i data-lucide="save"></i> Guardar al Sheet
+        </button>
+      </div>
     </div>
 
-    <!-- Estado vacío -->
-    <div id="cap-empty" class="cap-empty">
-      <i data-lucide="table-properties" style="width:2.5rem;height:2.5rem;color:#cbd5e1;"></i>
-      <p>Selecciona un grupo para ver y editar las calificaciones.</p>
+    <!-- Registros del concentrado (editables) -->
+    <div class="cap-section-block">
+      <div class="cap-section-hd">
+        <i data-lucide="database"></i>
+        <span>Registros del concentrado</span>
+        <span class="cap-badge" id="cap-cnt-gas">0</span>
+      </div>
+      <div id="cap-wrap" class="cap-wrap" style="display:none">
+        <table class="cal-table cap-table">
+          <thead>
+            <tr>
+              <th>Alumno(a)</th><th>Grupo</th><th>Asignatura</th><th>Tipo</th>
+              <th class="th-cal">Calificación</th>
+              <th class="th-obs">Observación</th>
+              <th class="th-st"></th>
+            </tr>
+          </thead>
+          <tbody id="cap-tbody"></tbody>
+        </table>
+      </div>
+      <div id="cap-empty" class="cap-empty-inline">Cargando registros…</div>
     </div>
 
-    <!-- Tabla editable -->
-    <div id="cap-wrap" class="cap-wrap" style="display:none">
-      <table class="cal-table cap-table">
-        <thead>
-          <tr>
-            <th>Alumno(a)</th>
-            <th>Grupo</th>
-            <th>Asignatura</th>
-            <th>Tipo</th>
-            <th class="th-cal">Calificación</th>
-            <th class="th-obs">Observación</th>
-            <th class="th-st"></th>
-          </tr>
-        </thead>
-        <tbody id="cap-tbody"></tbody>
-      </table>
+    <!-- Alumnos adicionales (no en concentrado) -->
+    <div class="cap-section-block cap-local-section">
+      <div class="cap-section-hd">
+        <i data-lucide="user-plus"></i>
+        <span>Alumnos adicionales <small>(no están en el concentrado)</small></span>
+        <span class="cap-badge" id="cap-cnt-local">0</span>
+        <button class="cap-btn-add" id="cap-btn-add">
+          <i data-lucide="plus"></i> Agregar
+        </button>
+      </div>
+
+      <!-- Formulario inline -->
+      <div id="cap-add-form" class="cap-add-form" style="display:none">
+        <input type="text" id="new-nombre" placeholder="Nombre completo del alumno *"
+               class="cap-new-field cap-new-nombre" autocomplete="off">
+        <input type="text" id="new-grupo" list="dl-cap-grupo"
+               placeholder="Grupo *" class="cap-new-field cap-new-short" autocomplete="off">
+        <input type="text" id="new-asig" list="dl-cap-asig"
+               placeholder="Asignatura *" class="cap-new-field cap-new-asig" autocomplete="off">
+        <select id="new-tipo" class="cap-new-field cap-new-short">
+          <option value="CURSO">Curso</option>
+          <option value="EXAMEN">Examen</option>
+        </select>
+        <input type="number" id="new-cal" placeholder="Cal." min="0" max="10" step="0.5"
+               class="cap-new-field cap-new-cal">
+        <button class="cap-confirm-btn" id="cap-confirm-add">
+          <i data-lucide="check"></i> Agregar
+        </button>
+        <button class="cap-cancel-btn" id="cap-cancel-add">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <!-- Tabla local -->
+      <div id="cap-local-wrap" style="display:none">
+        <table class="cal-table cap-table">
+          <thead>
+            <tr>
+              <th>Alumno(a)</th><th>Grupo</th><th>Asignatura</th><th>Tipo</th>
+              <th class="th-cal">Calificación</th>
+              <th class="th-st"></th>
+            </tr>
+          </thead>
+          <tbody id="cap-local-tbody"></tbody>
+        </table>
+      </div>
+      <div id="cap-local-empty" class="cap-empty-inline" style="display:none">
+        Usa el botón Agregar para incluir alumnos que no están en el concentrado.
+      </div>
     </div>
 
   </div><!-- /panel-captura -->
@@ -265,6 +320,8 @@
   <p>CEB 5/4 "Profr. Rafael Ramírez" · Consulta de uso institucional · Información sujeta a validación final</p>
 </footer>
 
+<script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://unpkg.com/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 <script src="intrasemestral.js"></script>
 </body>
 </html>
