@@ -49,7 +49,7 @@ function actualizarConcentradoSubdireccion() {
       const grupo        = limpiarTexto_(fila[1]);
       const asignatura   = limpiarTexto_(fila[2]);
 
-      if (nombreAlumno !== "") {
+      if (nombreAlumno !== "" && !esEncabezado_(nombreAlumno)) {
         const clave = construirClave_(nombreAlumno, grupo, asignatura, tipoEvaluacion);
 
         // Recuperar datos previamente capturados por clave ← MEJORA
@@ -168,7 +168,29 @@ function obtenerDatosGuardados_(hoja, filaInicioDatosConcentrado) {
 }
 
 
-// ── Sin cambios respecto a la versión original ────────────────────
+// ── Detecta si un valor parece encabezado en lugar de nombre ────────
+// Cubre los casos más comunes: títulos de columna, etiquetas, números.
+function esEncabezado_(valor) {
+  const v = normalizarTexto_(valor);
+
+  // Palabras clave típicas de encabezados
+  const patronesEncabezado = [
+    "NOMBRE", "ALUMNO", "NO.", "NUM", "NUMERO",
+    "GRUPO", "ASIGNATURA", "MATERIA", "DOCENTE",
+    "CALIFICACION", "EVALUACION", "TIPO", "CLAVE",
+    "LISTA", "REGISTRO", "FOLIO", "CURP"
+  ];
+
+  if (patronesEncabezado.some(p => v.includes(p))) return true;
+
+  // Valor puramente numérico (número de lista o fila)
+  if (/^\d+$/.test(v)) return true;
+
+  // Muy corto para ser un nombre completo (menos de 4 caracteres)
+  if (v.length < 4) return true;
+
+  return false;
+}
 
 function construirClave_(nombreAlumno, grupo, asignatura, tipoEvaluacion) {
   return [
