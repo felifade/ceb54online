@@ -1321,7 +1321,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const sortedGroups = Object.keys(grouped).sort((a,b)=>String(a).localeCompare(String(b), undefined, {numeric:true}));
             
-            container.innerHTML = sortedGroups.map(gName => {
+            // Colección de alumnos en riesgo (se llena durante el render)
+            const _alumnosEnRiesgo = [];
+
+            const _gruposHTML = sortedGroups.map(gName => {
                 const eqs = grouped[gName].sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre)));
                 return `
                     <div class="grupo-section" style="border-bottom: 2px solid #f1f5f9; padding-bottom: 2rem; margin-bottom: 1rem;">
@@ -1336,25 +1339,59 @@ document.addEventListener("DOMContentLoaded", () => {
                         </div>
                         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
                             ${eqs.map(eq => {
-                                // 1. Calcular Estatus Estricto
                                 const materiasAsignadas = (data.directorio || []).filter(d => {
                                     const parciales = String(d.parcial || "").split(',').map(s => parseP(s));
                                     return cleanG(d.grupo) === cleanG(gName) && parciales.includes(parseP(pActivo));
                                 }).map(d => d.materia);
-                                
+
                                 const uniqueAsignadas = [...new Set(materiasAsignadas)];
                                 const todasEvals = data.todasEvaluaciones || data.evaluaciones || [];
                                 const evalsEqP = todasEvals.filter(ev => String(ev.equipoId) === String(eq.id) && String(ev.parcial) === String(pActivo));
                                 const materiasEvaluadas = [...new Set(evalsEqP.map(ev => ev.materia))];
-                                
+
+                                // ── CAMBIO 1: calificación acumulada por alumno en el parcial activo
+                                const calPorAlumno = {};
+                                evalsEqP.forEach(ev => {
+                                    const _a = String(ev.alumno || '').trim();
+                                    if (!_a) return;
+                                    calPorAlumno[_a] = (calPorAlumno[_a] || 0) + (ev.puntaje || 0);
+                                });
+
+                                // Total posible de las materias ya evaluadas (en puntos de ponderación)
+                                const totalPosibleEval = materiasEvaluadas
+                                    .filter(m => uniqueAsignadas.includes(m))
+                                    .reduce((acc, mat) => {
+                                        const _d = (data.directorio || []).find(dd => cleanG(dd.grupo) === cleanG(gName) && dd.materia === mat);
+                                        return acc + (_d ? getPonderacionParaParcial(_d, pActivo) : 0);
+                                    }, 0);
+
+                                // ── CAMBIO 3: semáforo basado en % del total posible evaluado
+                                const _getSem = (cal) => {
+                                    if (totalPosibleEval === 0) return { dot: '⚪', color: '#94a3b8' };
+                                    const pct = cal / totalPosibleEval;
+                                    if (pct >= 0.8) return { dot: '🟢', color: '#16a34a' };
+                                    if (pct >= 0.6) return { dot: '🟡', color: '#d97706' };
+                                    return { dot: '🔴', color: '#dc2626' };
+                                };
+
+                                // ── CAMBIO 4: recolectar alumnos en riesgo (< 60%)
+                                eq.integrantes.forEach(_alu => {
+                                    const _cal = calPorAlumno[_alu];
+                                    if (_cal !== undefined && totalPosibleEval > 0 && (_cal / totalPosibleEval) < 0.6) {
+                                        if (!_alumnosEnRiesgo.find(r => r.alumno === _alu && r.equipo === eq.nombre)) {
+                                            _alumnosEnRiesgo.push({ alumno: _alu, grupo: gName, equipo: eq.nombre, cal: _cal, totalPosible: totalPosibleEval });
+                                        }
+                                    }
+                                });
+
                                 const countAsign = uniqueAsignadas.length;
                                 const countEval = materiasEvaluadas.filter(m => uniqueAsignadas.includes(m)).length;
-                                
+
                                 let stText = "PENDIENTE";
                                 let stColor = "#92400e";
                                 let stBg = "#fef3c7";
                                 let borderColor = "#f59e0b";
-                                
+
                                 if (countEval > 0) {
                                     if (countEval < countAsign) {
                                         stText = "EN PROCESO";
@@ -1377,9 +1414,21 @@ document.addEventListener("DOMContentLoaded", () => {
                                             ${stText} ${countAsign > 0 ? `(${countEval}/${countAsign})` : ''}
                                         </span>
                                     </div>
-                                    <p style="font-size:0.8rem; color:#64748b; margin-top:0; font-style:italic; margin-bottom:12px; border-bottom:1px solid #f1f5f9; padding-bottom:8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" title="${eq.tema || 'Proyecto PEC'}">${eq.tema || 'Proyecto PEC'}</p>
-                                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                                        ${eq.integrantes.map(i => `<span style="font-size:0.75rem; background:#f8fafc; color:#475569; padding:4px 10px; border-radius:6px; border:1px solid #e2e8f0; font-weight:500;">${i}</span>`).join('')}
+                                    <p style="font-size:0.8rem; color:#64748b; margin-top:0; font-style:italic; margin-bottom:10px; border-bottom:1px solid #f1f5f9; padding-bottom:8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" title="${eq.tema || 'Proyecto PEC'}">${eq.tema || 'Proyecto PEC'}</p>
+
+                                    <!-- Integrantes con calificación acumulada P${pActivo} y semáforo -->
+                                    <div style="display:flex; flex-direction:column; gap:3px;">
+                                        ${eq.integrantes.map(i => {
+                                            const _cal = calPorAlumno[i];
+                                            const _tiene = _cal !== undefined;
+                                            const _sem = _tiene ? _getSem(_cal) : { dot: '⚪', color: '#94a3b8' };
+                                            const _pctTxt = _tiene && totalPosibleEval > 0 ? Math.round(_cal / totalPosibleEval * 100) + '% del avance' : 'Sin evaluación';
+                                            return `<div style="display:flex;align-items:center;gap:5px;padding:3px 7px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0;" title="${_pctTxt}">
+                                                <span style="font-size:.72rem;line-height:1;flex-shrink:0;">${_sem.dot}</span>
+                                                <span style="font-size:.72rem;color:#475569;flex:1;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${i}</span>
+                                                <span style="font-size:.7rem;font-weight:800;color:${_sem.color};flex-shrink:0;font-variant-numeric:tabular-nums;">${_tiene ? 'P${pActivo}:&nbsp;' + _cal.toFixed(2) : '—'}</span>
+                                            </div>`;
+                                        }).join('')}
                                     </div>
 
                                     ${uniqueAsignadas.length > 0 ? `
@@ -1404,23 +1453,26 @@ document.addEventListener("DOMContentLoaded", () => {
                                         </div>
                                     </div>` : ''}
 
+                                    <!-- Pills P1/P2/P3: muestran total de puntos evaluados, no promedio -->
                                     <div style="display:flex; gap:6px; margin-top:12px; padding-top:10px; border-top:1px dashed #e2e8f0;">
                                         ${['1', '2', '3'].map(p => {
                                             const evs = todasEvals.filter(ev => String(ev.equipoId) === String(eq.id) && String(ev.parcial) === p);
                                             if (evs.length === 0) {
-                                                return `<div style="flex:1; text-align:center; padding:4px; background:#f8fafc; color:#cbd5e1; border-radius:8px; font-size:0.7rem; font-weight:700; border:1px solid #e2e8f0; opacity:0.6;">P${p} -</div>`;
+                                                return `<div style="flex:1;text-align:center;padding:4px;background:#f8fafc;color:#cbd5e1;border-radius:8px;font-size:0.7rem;font-weight:700;border:1px solid #e2e8f0;opacity:0.6;">P${p} —</div>`;
                                             }
-                                            
-                                            const avg = (evs.reduce((acc, cur) => acc + cur.puntaje, 0) / evs.length).toFixed(1);
+                                            const _matsP = [...new Set(evs.map(ev => ev.materia))];
+                                            const _totalP = _matsP.reduce((acc, mat) => {
+                                                const _d = (data.directorio || []).find(dd => cleanG(dd.grupo) === cleanG(gName) && dd.materia === mat);
+                                                return acc + (_d ? getPonderacionParaParcial(_d, p) : 0);
+                                            }, 0);
+                                            const _isActivo = p === String(pActivo);
                                             const docs = [...new Set(evs.map(ev => ev.docente))].join(', ');
                                             const obsEscaped = evs.map(ev => (ev.observaciones || 'Sin observaciones')).join('\\n---\\n').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                                            const titleText = `Evaluado por: ${docs}\nPromedio: ${avg}\nHaz clic para ver observaciones.`;
-
                                             return `
-                                                <div onclick="window.verObservacionesPEC('${eq.nombre}', '${p}', '${obsEscaped}')" 
-                                                     title="${titleText}" 
-                                                     style="flex:1; text-align:center; padding:4px; background:#f0fdf4; color:#166534; border-radius:8px; font-size:0.7rem; font-weight:800; border:1px solid #bbf7d0; cursor:pointer; transition:all 0.2s;">
-                                                    P${p}: ${avg}
+                                                <div onclick="window.verObservacionesPEC('${eq.nombre}', '${p}', '${obsEscaped}')"
+                                                     title="P${p} · ${docs} · Total: ${_totalP.toFixed(2)} pts"
+                                                     style="flex:1;text-align:center;padding:4px;background:${_isActivo ? '#f0fdf4' : '#f8fafc'};color:${_isActivo ? '#166534' : '#475569'};border-radius:8px;font-size:0.7rem;font-weight:800;border:1px solid ${_isActivo ? '#bbf7d0' : '#e2e8f0'};cursor:pointer;transition:all 0.2s;font-variant-numeric:tabular-nums;">
+                                                    P${p}: ${_totalP.toFixed(2)}
                                                 </div>`;
                                         }).join('')}
                                     </div>
@@ -1435,7 +1487,56 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 `;
             }).join('');
-            
+
+            // ── CAMBIO 4: Panel de alumnos en riesgo (< 60% del avance evaluado) ──
+            const _riesgoHTML = _alumnosEnRiesgo.length === 0 ? '' : (() => {
+                const _sorted = [..._alumnosEnRiesgo].sort((a, b) => {
+                    const pa = a.totalPosible > 0 ? a.cal / a.totalPosible : 1;
+                    const pb = b.totalPosible > 0 ? b.cal / b.totalPosible : 1;
+                    return pa - pb;
+                });
+                return `
+                <div style="background:white;border:1.5px solid #fecaca;border-radius:16px;margin-bottom:1.5rem;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);">
+                    <div style="background:linear-gradient(135deg,#fef2f2,#fff5f5);border-bottom:1px solid #fecaca;padding:.85rem 1.1rem;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;"
+                         onclick="var b=this.nextElementSibling;var o=b.style.display!=='none';b.style.display=o?'none':'';this.querySelector('.rv-chv').textContent=o?'▸':'▾';">
+                        <span style="background:#fee2e2;color:#dc2626;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;">🔴</span>
+                        <div style="flex:1;">
+                            <div style="font-size:.82rem;font-weight:800;color:#991b1b;">Alumnos en riesgo — Parcial ${pActivo}</div>
+                            <div style="font-size:.7rem;color:#b91c1c;margin-top:1px;">${_alumnosEnRiesgo.length} alumno${_alumnosEnRiesgo.length !== 1 ? 's' : ''} con menos del 60% del avance evaluado</div>
+                        </div>
+                        <span class="rv-chv" style="color:#dc2626;font-size:1.1rem;transition:transform .2s;">▾</span>
+                    </div>
+                    <div>
+                        <table style="width:100%;border-collapse:collapse;font-size:.77rem;">
+                            <thead>
+                                <tr style="background:#fef2f2;border-bottom:1px solid #fecaca;">
+                                    <th style="padding:7px 12px;text-align:left;color:#991b1b;font-size:.63rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700;">Alumno</th>
+                                    <th style="padding:7px 12px;text-align:center;color:#991b1b;font-size:.63rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700;">Grupo</th>
+                                    <th style="padding:7px 12px;text-align:left;color:#991b1b;font-size:.63rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700;">Equipo</th>
+                                    <th style="padding:7px 12px;text-align:center;color:#991b1b;font-size:.63rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700;">Acumulado</th>
+                                    <th style="padding:7px 12px;text-align:center;color:#991b1b;font-size:.63rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700;">% Avance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${_sorted.map(r => {
+                                    const pct = r.totalPosible > 0 ? Math.round((r.cal / r.totalPosible) * 100) : 0;
+                                    const pctColor = pct < 40 ? '#dc2626' : '#d97706';
+                                    return `<tr style="border-bottom:1px solid #fef2f2;">
+                                        <td style="padding:7px 12px;font-weight:600;color:#1e293b;">${r.alumno}</td>
+                                        <td style="padding:7px 12px;text-align:center;color:#64748b;">${r.grupo}</td>
+                                        <td style="padding:7px 12px;color:#64748b;font-size:.72rem;">${r.equipo}</td>
+                                        <td style="padding:7px 12px;text-align:center;font-weight:800;color:${pctColor};font-variant-numeric:tabular-nums;">${r.cal.toFixed(2)}</td>
+                                        <td style="padding:7px 12px;text-align:center;"><span style="background:${pct < 40 ? '#fee2e2' : '#fef3c7'};color:${pctColor};padding:2px 8px;border-radius:99px;font-weight:700;font-size:.68rem;">${pct}%</span></td>
+                                    </tr>`;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>`;
+            })();
+
+            container.innerHTML = _riesgoHTML + _gruposHTML;
+
             feather.replace();
         } catch (e) {
             console.error("Error en Vista Rápida:", e);
