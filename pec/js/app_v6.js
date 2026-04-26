@@ -1426,7 +1426,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                             return `<div style="display:flex;align-items:center;gap:5px;padding:3px 7px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0;" title="${_pctTxt}">
                                                 <span style="font-size:.72rem;line-height:1;flex-shrink:0;">${_sem.dot}</span>
                                                 <span style="font-size:.72rem;color:#475569;flex:1;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${i}</span>
-                                                <span style="font-size:.7rem;font-weight:800;color:${_sem.color};flex-shrink:0;font-variant-numeric:tabular-nums;">${_tiene ? 'P${pActivo}:&nbsp;' + _cal.toFixed(2) : '—'}</span>
+                                                <span style="font-size:.7rem;font-weight:800;color:${_sem.color};flex-shrink:0;font-variant-numeric:tabular-nums;">${_tiene ? 'P' + pActivo + ':&nbsp;' + _cal.toFixed(2) : '—'}</span>
                                             </div>`;
                                         }).join('')}
                                     </div>
