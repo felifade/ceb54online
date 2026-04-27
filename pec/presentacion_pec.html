@@ -525,6 +525,22 @@
 <!-- ════════════════════════════════════════════════════════════════════════ -->
 <!-- CONTENIDO — igual que info_proyecto.html (3 panes, renderizados por JS)  -->
 <!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- Botón fijo de presentación 2° Matutino (visible solo en pestaña de 2do) -->
+<div id="enlace-2mat" style="display:flex;justify-content:center;padding:1.5rem 0 0.25rem;max-width:1200px;margin:0 auto;">
+    <a href="https://drive.google.com/file/d/10-jCXgCZY5yBlIjUOr9C5skQy73xkNHn/view?usp=share_link"
+       target="_blank" rel="noopener"
+       style="display:inline-flex;align-items:center;gap:0.55rem;padding:0.75rem 1.6rem;
+              background:#f0fdf4;color:#166534;border:1.5px solid #86efac;
+              border-radius:12px;font-size:0.9rem;font-weight:700;
+              text-decoration:none;font-family:inherit;
+              transition:background .15s,border-color .15s,box-shadow .15s;"
+       onmouseover="this.style.background='#dcfce7';this.style.borderColor='#16a34a';this.style.boxShadow='0 4px 14px rgba(22,163,74,.2)';"
+       onmouseout="this.style.background='#f0fdf4';this.style.borderColor='#86efac';this.style.boxShadow='';">
+        <i data-lucide="presentation" style="width:18px;height:18px;"></i>
+        Ver presentación — 2° Semestre Matutino
+    </a>
+</div>
+
 <div class="container">
     <div id="pane-2" class="view-pane active"></div>
     <div id="pane-4" class="view-pane"></div>
@@ -667,6 +683,8 @@ function switchSemester(sem, btn) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('pane-' + sem).classList.add('active');
     if (btn) btn.classList.add('active');
+    var enlace2 = document.getElementById('enlace-2mat');
+    if (enlace2) enlace2.style.display = sem === '2' ? 'flex' : 'none';
     lucide.createIcons();
 }
 
