@@ -1781,7 +1781,6 @@
             _cdDraft.sort((a,b) => a-b);
             const btn = document.getElementById('cd-wb-' + n);
             if (btn) btn.classList.toggle('on', _cdDraft.includes(n));
-            document.getElementById('cd-ctrl-status').textContent = '● Sin guardar';
         }
 
         async function _cdSaveActivas() {
@@ -1916,10 +1915,6 @@
             <button onclick="document.getElementById('cd-ctrl-panel').classList.remove('cd-ctrl-open')">✕</button>
         </div>
         <div class="cd-ctrl-body" id="cd-ctrl-body"><!-- generado por JS --></div>
-        <div class="cd-ctrl-footer">
-            <span id="cd-ctrl-status"></span>
-            <button class="cd-ctrl-save-btn" id="cd-ctrl-save" onclick="_cdSaveActivas()">Guardar</button>
-        </div>
     </div>
 
     <!-- Panel de notas docente (acceso por contraseña, modo standalone) -->
