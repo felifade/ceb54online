@@ -1545,8 +1545,8 @@
             14: "🌐 SEMANA 14: Tercer Parcial",
             15: "🎓 SEMANA 15: Tercer Examen Parcial",
         };
-        // Semanas publicadas por defecto (sin GAS): solo 1er y 2do Parcial
-        const _CD_LOCAL_DEFAULT = [1,2,3,4,5,6,7,8,9];
+        // Semanas publicadas por defecto (sin GAS): 1er, 2do y 3er Parcial parcial
+        const _CD_LOCAL_DEFAULT = [1,2,3,4,5,6,7,8,9,10,11];
 
         // Fechas de cada semana para detección automática de la semana actual
         const WEEK_DATES = [
@@ -1572,10 +1572,11 @@
             for (const [n, s, e] of WEEK_DATES) {
                 const start = new Date(s), end = new Date(e);
                 end.setHours(23,59,59,999);
-                if (today >= start) best = n;
-                if (today >= start && today <= end) return n;
+                if (today >= start && today <= end) return n; // dentro de la semana
+                if (today > end) { best = n; continue; }     // semana pasada
+                return n; // entre semanas: devuelve la próxima (upcoming)
             }
-            return best;
+            return best; // después del semestre
         }
 
         const DOUBLE_HOUR_WEEKS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
