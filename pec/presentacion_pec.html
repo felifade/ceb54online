@@ -278,6 +278,53 @@
 
         .hidden { display: none !important; }
 
+        /* --- SECCIÓN DE ENLACES DE PRESENTACIÓN --- */
+        .enlace-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #f1f5f9;
+        }
+        .enlace-section h4 {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .enlace-btns {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .enlace-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.55rem 1.1rem;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: transform .15s, box-shadow .15s;
+            border: 1.5px solid transparent;
+        }
+        .enlace-btn:hover { transform: translateY(-2px); }
+        .enlace-btn-escuela {
+            background: #f0fdf4;
+            color: #166534;
+            border-color: #86efac;
+        }
+        .enlace-btn-escuela:hover { background: #dcfce7; border-color: #16a34a; box-shadow: 0 4px 12px rgba(22,163,74,.2); }
+        .enlace-btn-fuera {
+            background: #eff6ff;
+            color: #1e40af;
+            border-color: #93c5fd;
+        }
+        .enlace-btn-fuera:hover { background: #dbeafe; border-color: #3b82f6; box-shadow: 0 4px 12px rgba(59,130,246,.2); }
+
         /* ══════════════════════════════════════════════════════════════════════
            ESTILOS NUEVOS — solo para Presentación PEC (mínimos, compatibles)
         ══════════════════════════════════════════════════════════════════════ */
@@ -559,6 +606,27 @@ function buildTurnoCard(sem, turno, data) {
             <p>${data.observaciones}</p>
         </div>` : '';
 
+    // Enlaces de presentación (en escuela / fuera de la escuela)
+    const enlacesHTML = (data.enlace_escuela || data.enlace_fuera) ? `
+        <div class="enlace-section">
+            <h4>
+                <i data-lucide="link" style="width:14px;height:14px;"></i>
+                Presentación del proyecto
+            </h4>
+            <div class="enlace-btns">
+                ${data.enlace_escuela ? `
+                <a href="${data.enlace_escuela}" target="_blank" rel="noopener" class="enlace-btn enlace-btn-escuela">
+                    <i data-lucide="wifi" style="width:14px;height:14px;"></i>
+                    En la escuela
+                </a>` : ''}
+                ${data.enlace_fuera ? `
+                <a href="${data.enlace_fuera}" target="_blank" rel="noopener" class="enlace-btn enlace-btn-fuera">
+                    <i data-lucide="globe" style="width:14px;height:14px;"></i>
+                    Fuera de la escuela
+                </a>` : ''}
+            </div>
+        </div>` : '';
+
     return `
         <div class="project-card">
             <div class="shift-badge ${badgeCls}">
@@ -589,6 +657,7 @@ function buildTurnoCard(sem, turno, data) {
             </div>
 
             ${obsHTML}
+            ${enlacesHTML}
         </div>`;
 }
 
@@ -639,6 +708,13 @@ function paneVacio(pane) {
 
             var mat = semData.matutino  || {};
             var ves = semData.vespertino || {};
+
+            // ── Enlaces de presentación por semestre/turno ──
+            if (sem === '2') {
+                mat.enlace_escuela = 'https://drive.google.com/file/d/10-jCXgCZY5yBlIjUOr9C5skQy73xkNHn/view?usp=share_link';
+                // mat.enlace_fuera = ''; // pendiente
+            }
+
             var tieneContenido = (mat.fecha || mat.descripcion || ves.fecha || ves.descripcion);
             if (!tieneContenido) { paneVacio(pane); return; }
 
