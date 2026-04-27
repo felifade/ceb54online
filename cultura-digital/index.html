@@ -144,7 +144,7 @@
                         <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(14)" class="menu-link" id="link-s14">🌐 Semana 14 <span class="menu-date">26 - 30 May</span></a></li>
                         <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(13)" class="menu-link" id="link-s13">🌐 Semana 13 <span class="menu-date">19 - 23 May</span></a></li>
                         <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(12)" class="menu-link" id="link-s12">🌐 Semana 12 <span class="menu-date">12 - 16 May</span></a></li>
-                        <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(11)" class="menu-link" id="link-s11">🌐 Semana 11 <span class="menu-date">05 - 09 May</span></a></li>
+                        <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(11)" class="menu-link" id="link-s11">🧱 Semana 11 <span class="menu-date">05 - 09 May</span></a></li>
                     </ul>
                 </div>
 
@@ -1148,20 +1148,298 @@
                             </table>
                         </div>
 
-                        <!-- SEMANA 11: 3er Parcial -->
+                        <!-- SEMANA 11: Programación con Bloques en App Inventor -->
                         <div class="sheet" id="sheet-s11-h1">
-                            <div class="hour-header">Semana 11: HORA 1 — Tercer Parcial</div>
-                            <div style="padding:2.5rem 1rem;text-align:center;color:#64748b;">
-                                <div style="font-size:2.5rem;margin-bottom:1rem;">🌐</div>
-                                <p style="font-size:.9rem;line-height:1.6;max-width:300px;margin:0 auto;">Contenido en preparación.<br>El maestro publicará esta semana próximamente.</p>
-                            </div>
+                            <div class="hour-header">Semana 11: HORA 1 — Programación con Bloques</div>
+                            <table class="academic-table">
+                                <tbody>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 1</span>
+                                            <p class="instruction-text">Crea una <strong>nueva pestaña</strong> en tu documento y nómbrala <strong>"Semana 11"</strong>. Agrega un ícono de <strong>LADRILLO</strong> 🧱.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-weight:700; background:#f1f5f9;">Semana 11 🧱</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 2</span>
+                                            <p class="instruction-text">Escribe como título tamaño 20, centrado y en negrita:</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div style="font-size:1.1rem; font-weight:800; text-align:center; color:var(--header-dark);">🧱 SEMANA 11: Programación con Bloques en App Inventor</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 3</span>
+                                            <div class="dictation-tag"><i data-lucide="mic"></i> Texto para dictar</div>
+                                            <p class="instruction-text">Escribe el apunte, agrega emojis a palabras clave y aplica formato en negrita.</p>
+                                        </td>
+                                        <td class="col-content no-copy">
+                                            <div class="note-box" style="line-height:1.6;">
+                                                <p>Hasta ahora diseñamos la pantalla de nuestra app 📱, pero todavía no hace nada. Para que funcione, necesitamos <strong>programarla con bloques</strong> 🧱.</p>
+                                                <p style="margin-top:0.5rem;">Los bloques son piezas visuales que encajan entre sí, como un rompecabezas 🧩. Cada bloque le da una instrucción a la app: <strong>"haz esto"</strong>, <strong>"si pasa esto, entonces…"</strong>, <strong>"muestra este texto"</strong>.</p>
+                                                <p style="margin-top:0.5rem;">Hay tres conceptos clave 💡:<br>
+                                                    📌 <strong>Evento</strong>: algo que ocurre, como tocar un botón.<br>
+                                                    ⚙️ <strong>Acción</strong>: lo que la app hace cuando ocurre el evento.<br>
+                                                    ❓ <strong>Condición</strong>: una pregunta que la app se hace antes de actuar.
+                                                </p>
+                                                <p style="margin-top:0.5rem;">Ejemplo en lenguaje cotidiano: <em>"CUANDO el usuario toque Guardar 🟢, ENTONCES mostrar la información que escribió."</em> Eso es exactamente lo que programaremos hoy 🧠.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 4</span>
+                                            <p class="instruction-text">Abre <strong>MIT App Inventor</strong>, inicia sesión con tu cuenta de Google y abre el proyecto de tu <strong>app de tareas escolares</strong>.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-size:0.85rem;">
+                                                <strong>Verifica que tu proyecto tenga estos componentes con estos nombres exactos:</strong>
+                                                <ul style="margin-top:0.5rem; list-style:none; line-height:2;">
+                                                    <li>✅ <code>TextBoxTarea</code></li>
+                                                    <li>✅ <code>TextBoxMateria</code></li>
+                                                    <li>✅ <code>TextBoxFecha</code></li>
+                                                    <li>✅ <code>BotonGuardar</code></li>
+                                                    <li>✅ <code>BotonLimpiar</code></li>
+                                                    <li>✅ <code>BotonRegresar</code></li>
+                                                    <li>✅ <code>LabelResultado</code></li>
+                                                </ul>
+                                                <p style="margin-top:0.5rem; color:#b45309; font-weight:600;">⚠️ Si algún componente tiene nombre diferente, cámbialo ahora desde las propiedades (campo "Name").</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 5</span>
+                                            <p class="instruction-text">Haz clic en el botón <strong>"Blocks"</strong> (arriba a la derecha). Verás el área de bloques en fondo oscuro.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-size:0.85rem;">
+                                                En el panel izquierdo busca <strong>BotonGuardar</strong> y arrastra el bloque:<br><br>
+                                                <code style="display:block; background:#1e293b; color:#a5f3fc; padding:.75rem 1rem; border-radius:8px; font-size:.85rem; line-height:1.8;">
+                                                    when <strong>BotonGuardar</strong>.Click<br>
+                                                    do
+                                                </code>
+                                                <p style="margin-top:.6rem;">Este bloque le dice a la app: <em>"cuando el usuario toque este botón, haz lo siguiente"</em>.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 6</span>
+                                            <p class="instruction-text">Conecta dentro del evento el bloque que mostrará un mensaje en <strong>LabelResultado</strong>.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-size:0.85rem;">
+                                                <ol style="line-height:2.2; padding-left:1.2rem;">
+                                                    <li>Panel izquierdo → <strong>LabelResultado</strong> → arrastra <code>set LabelResultado.Text to</code></li>
+                                                    <li>Conéctalo <strong>dentro</strong> del bloque <code>when BotonGuardar.Click</code></li>
+                                                    <li>Panel izquierdo → <strong>Text</strong> → arrastra el bloque de texto (comillas vacías)</li>
+                                                    <li>Escribe adentro: <strong>¡Guardado!</strong></li>
+                                                </ol>
+                                                <code style="display:block; background:#1e293b; color:#a5f3fc; padding:.75rem 1rem; border-radius:8px; font-size:.82rem; line-height:1.8; margin-top:.6rem;">
+                                                    when BotonGuardar.Click<br>
+                                                    do<br>
+                                                    &nbsp;&nbsp;set LabelResultado.Text to <strong>"¡Guardado!"</strong>
+                                                </code>
+                                                <p style="margin-top:.6rem; color:#16a34a; font-weight:700;">✅ Prueba: toca Guardar en tu app. El label debe mostrar ¡Guardado!</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr style="background:#fffbeb;">
+                                        <td class="col-instruction">
+                                            <span class="activity-num" style="color:#b45309;">📸 Evidencia HORA 1</span>
+                                            <p class="instruction-text">Inserta en tu documento las siguientes capturas de pantalla.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="border-color:#f59e0b; background:#fffbeb; font-size:0.85rem;">
+                                                <ol style="padding-left:1.2rem; line-height:2.2; margin:0;">
+                                                    <li>📸 Captura del <strong>diseño</strong> de tu app (pantalla con todos los componentes)</li>
+                                                    <li>📸 Captura de los <strong>bloques</strong> del evento BotonGuardar</li>
+                                                    <li>📸 Captura de la <strong>app funcionando</strong> (label mostrando ¡Guardado!)</li>
+                                                </ol>
+                                                <p style="margin-top:.5rem;">Debajo de cada imagen escribe una oración que explique qué muestra.</p>
+                                            </div>
+                                            <p style="margin-top:.75rem;font-size:.8rem;color:#b45309;font-weight:700;">⚠️ Sin las capturas en tu documento no se cuenta como entregado.</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-instruction" colspan="2" style="text-align:center; padding:1.1rem 1.5rem;">
+                                            <a href="https://ai2.appinventor.mit.edu/" target="_blank" rel="noopener"
+                                               style="display:inline-flex; align-items:center; gap:0.6rem;
+                                                      padding:0.75rem 1.9rem; background:#16a34a; color:#fff;
+                                                      border-radius:12px; font-size:1rem; font-weight:800;
+                                                      text-decoration:none; font-family:inherit;
+                                                      box-shadow:0 4px 14px rgba(22,163,74,.35);
+                                                      transition:transform .15s, box-shadow .15s;"
+                                               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(22,163,74,.5)';"
+                                               onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(22,163,74,.35)';">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                                                Abrir MIT App Inventor
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                         <div class="sheet" id="sheet-s11-h2">
-                            <div class="hour-header">Semana 11: HORA 2 — Tercer Parcial</div>
-                            <div style="padding:2.5rem 1rem;text-align:center;color:#64748b;">
-                                <div style="font-size:2.5rem;margin-bottom:1rem;">🌐</div>
-                                <p style="font-size:.9rem;line-height:1.6;max-width:300px;margin:0 auto;">Contenido en preparación.<br>El maestro publicará esta semana próximamente.</p>
-                            </div>
+                            <div class="hour-header">Semana 11: HORA 2 — Datos reales, validación y más botones</div>
+                            <table class="academic-table">
+                                <tbody>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 7</span>
+                                            <div class="dictation-tag"><i data-lucide="mic"></i> Texto para dictar</div>
+                                            <p class="instruction-text">Escribe el apunte con emojis y formato en negrita.</p>
+                                        </td>
+                                        <td class="col-content no-copy">
+                                            <div class="note-box" style="line-height:1.6;">
+                                                <p>En esta hora haremos que el botón Guardar muestre la información <strong>real</strong> que el alumno escribió 📝. Para eso usamos el bloque <strong>join</strong> (unir) 🔗, que toma varios textos y los combina en uno solo.</p>
+                                                <p style="margin-top:0.5rem;">También agregaremos una <strong>validación</strong> ❓: si el alumno deja algún campo vacío y toca Guardar, la app avisará con un mensaje de error. Esto se hace con el bloque <strong>if / else</strong>, que funciona como una pregunta:</p>
+                                                <p style="margin-top:0.5rem;"><em>"¿El cuadro de tarea está vacío?"</em><br>
+                                                    — Si la respuesta es <strong>sí</strong> → mostrar aviso de error 🔴<br>
+                                                    — Si la respuesta es <strong>no</strong> → mostrar los datos guardados ✅
+                                                </p>
+                                                <p style="margin-top:0.5rem;">Al final programaremos el botón <strong>Limpiar</strong> para borrar todo y el botón <strong>Regresar</strong> para volver a la pantalla anterior 🔙.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 8</span>
+                                            <p class="instruction-text">Modifica el bloque de <strong>BotonGuardar</strong>: reemplaza el texto fijo <em>"¡Guardado!"</em> por el bloque <strong>join</strong> que muestra los datos reales.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-size:0.85rem;">
+                                                <ol style="line-height:2; padding-left:1.2rem;">
+                                                    <li>Borra el bloque de texto <em>"¡Guardado!"</em> (clic derecho → Delete)</li>
+                                                    <li>Panel <strong>Text</strong> → arrastra el bloque <strong>join</strong></li>
+                                                    <li>Haz clic en ⚙️ del join y agrega hasta tener <strong>6 espacios</strong></li>
+                                                    <li>Llena los 6 espacios en orden:</li>
+                                                </ol>
+                                                <table style="width:100%; font-size:.8rem; margin-top:.5rem; border-collapse:collapse;">
+                                                    <thead><tr style="background:#e2e8f0;"><th style="padding:.3rem .5rem; text-align:left;">Espacio</th><th style="padding:.3rem .5rem; text-align:left;">Qué conectas</th></tr></thead>
+                                                    <tbody>
+                                                        <tr><td style="padding:.3rem .5rem;">1</td><td style="padding:.3rem .5rem;">Texto fijo: <code>"Tarea: "</code></td></tr>
+                                                        <tr style="background:#f8fafc;"><td style="padding:.3rem .5rem;">2</td><td style="padding:.3rem .5rem;"><code>TextBoxTarea.Text</code></td></tr>
+                                                        <tr><td style="padding:.3rem .5rem;">3</td><td style="padding:.3rem .5rem;">Texto fijo: <code>" | Materia: "</code></td></tr>
+                                                        <tr style="background:#f8fafc;"><td style="padding:.3rem .5rem;">4</td><td style="padding:.3rem .5rem;"><code>TextBoxMateria.Text</code></td></tr>
+                                                        <tr><td style="padding:.3rem .5rem;">5</td><td style="padding:.3rem .5rem;">Texto fijo: <code>" | Fecha: "</code></td></tr>
+                                                        <tr style="background:#f8fafc;"><td style="padding:.3rem .5rem;">6</td><td style="padding:.3rem .5rem;"><code>TextBoxFecha.Text</code></td></tr>
+                                                    </tbody>
+                                                </table>
+                                                <p style="margin-top:.6rem; color:#16a34a; font-weight:700;">✅ Resultado esperado: <em>Tarea: Investigación | Materia: Historia | Fecha: 05/05/2026</em></p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 9</span>
+                                            <p class="instruction-text">Agrega la <strong>validación</strong> con el bloque <strong>if / else</strong> para evitar guardar datos incompletos.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-size:0.85rem;">
+                                                <ol style="line-height:2; padding-left:1.2rem;">
+                                                    <li>Panel <strong>Control</strong> → arrastra el bloque <strong>if / then / else</strong></li>
+                                                    <li>En la condición <code>if [ ]</code>: Panel <strong>Logic</strong> → bloque <code>=</code> (igual)</li>
+                                                    <li>Lado izquierdo del <code>=</code>: <code>TextBoxTarea.Text</code></li>
+                                                    <li>Lado derecho: bloque de texto vacío <code>""</code></li>
+                                                    <li>Rama <code>then</code>: <code>set LabelResultado.Text to "⚠️ Por favor escribe una tarea."</code></li>
+                                                    <li>Rama <code>else</code>: mueve aquí el bloque <strong>join</strong> que ya armaste</li>
+                                                </ol>
+                                                <code style="display:block; background:#1e293b; color:#a5f3fc; padding:.75rem 1rem; border-radius:8px; font-size:.8rem; line-height:1.9; margin-top:.6rem;">
+                                                    when BotonGuardar.Click<br>
+                                                    do<br>
+                                                    &nbsp;&nbsp;if TextBoxTarea.Text = ""<br>
+                                                    &nbsp;&nbsp;then set LabelResultado.Text to <strong>"⚠️ Por favor escribe una tarea."</strong><br>
+                                                    &nbsp;&nbsp;else set LabelResultado.Text to join(...)
+                                                </code>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 10</span>
+                                            <p class="instruction-text">Programa el botón <strong>Limpiar</strong> para borrar todos los campos y el label.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-size:0.85rem;">
+                                                <ol style="line-height:2; padding-left:1.2rem;">
+                                                    <li>Panel izquierdo → <strong>BotonLimpiar</strong> → arrastra <code>when BotonLimpiar.Click do</code></li>
+                                                    <li>Conecta dentro los 4 bloques siguientes:</li>
+                                                </ol>
+                                                <code style="display:block; background:#1e293b; color:#a5f3fc; padding:.75rem 1rem; border-radius:8px; font-size:.8rem; line-height:1.9; margin-top:.4rem;">
+                                                    when BotonLimpiar.Click<br>
+                                                    do<br>
+                                                    &nbsp;&nbsp;set TextBoxTarea.Text to ""<br>
+                                                    &nbsp;&nbsp;set TextBoxMateria.Text to ""<br>
+                                                    &nbsp;&nbsp;set TextBoxFecha.Text to ""<br>
+                                                    &nbsp;&nbsp;set LabelResultado.Text to ""
+                                                </code>
+                                                <p style="margin-top:.6rem; color:#16a34a; font-weight:700;">✅ Prueba: escribe datos, toca Limpiar. Todo debe quedar en blanco.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 11</span>
+                                            <p class="instruction-text">Programa el botón <strong>Regresar</strong> para cerrar la pantalla actual.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-size:0.85rem;">
+                                                <ol style="line-height:2; padding-left:1.2rem;">
+                                                    <li>Panel izquierdo → <strong>BotonRegresar</strong> → arrastra <code>when BotonRegresar.Click do</code></li>
+                                                    <li>Panel <strong>Control</strong> → busca el bloque <strong>close screen</strong> y conéctalo dentro</li>
+                                                </ol>
+                                                <code style="display:block; background:#1e293b; color:#a5f3fc; padding:.75rem 1rem; border-radius:8px; font-size:.8rem; line-height:1.9; margin-top:.4rem;">
+                                                    when BotonRegresar.Click<br>
+                                                    do<br>
+                                                    &nbsp;&nbsp;close screen
+                                                </code>
+                                                <p style="margin-top:.5rem; font-size:.8rem; color:#64748b;">💡 Si tu app solo tiene una pantalla, en lugar de <em>close screen</em> usa: <code>set LabelResultado.Text to "Ya estás en la pantalla principal."</code></p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr style="background:#fffbeb;">
+                                        <td class="col-instruction">
+                                            <span class="activity-num" style="color:#b45309;">📸 Evidencia HORA 2</span>
+                                            <p class="instruction-text">Inserta en tu documento las siguientes capturas de pantalla.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="border-color:#f59e0b; background:#fffbeb; font-size:0.85rem;">
+                                                <ol style="padding-left:1.2rem; line-height:2.2; margin:0;">
+                                                    <li>📸 Bloque completo de <strong>BotonGuardar</strong> (con join y if/else)</li>
+                                                    <li>📸 Bloque de <strong>BotonLimpiar</strong></li>
+                                                    <li>📸 Bloque de <strong>BotonRegresar</strong></li>
+                                                    <li>📸 App mostrando <strong>datos reales</strong> (tarea + materia + fecha)</li>
+                                                    <li>📸 App mostrando el <strong>aviso de validación</strong> (campo vacío)</li>
+                                                </ol>
+                                                <p style="margin-top:.5rem;">Debajo de cada imagen escribe una oración que explique qué muestra.</p>
+                                            </div>
+                                            <p style="margin-top:.75rem;font-size:.8rem;color:#b45309;font-weight:700;">⚠️ Sin las capturas en tu documento no se cuenta como entregado.</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-instruction" colspan="2" style="text-align:center; padding:1.1rem 1.5rem;">
+                                            <a href="https://ai2.appinventor.mit.edu/" target="_blank" rel="noopener"
+                                               style="display:inline-flex; align-items:center; gap:0.6rem;
+                                                      padding:0.75rem 1.9rem; background:#16a34a; color:#fff;
+                                                      border-radius:12px; font-size:1rem; font-weight:800;
+                                                      text-decoration:none; font-family:inherit;
+                                                      box-shadow:0 4px 14px rgba(22,163,74,.35);
+                                                      transition:transform .15s, box-shadow .15s;"
+                                               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(22,163,74,.5)';"
+                                               onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(22,163,74,.35)';">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                                                Abrir MIT App Inventor
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
 
                         <!-- SEMANA 12: 3er Parcial -->
@@ -1261,7 +1539,7 @@
             8: "📱 SEMANA 08: Aplicaciones y Productividad",
             9: "🧠 SEMANA 09: Desarrollo de aplicaciones móviles",
             10: "📋 SEMANA 10: Segundo Examen Parcial",
-            11: "🌐 SEMANA 11: Tercer Parcial",
+            11: "🧱 SEMANA 11: Programación con Bloques",
             12: "🌐 SEMANA 12: Tercer Parcial",
             13: "🌐 SEMANA 13: Tercer Parcial",
             14: "🌐 SEMANA 14: Tercer Parcial",
