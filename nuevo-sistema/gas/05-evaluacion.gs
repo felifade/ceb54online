@@ -125,7 +125,7 @@ function getConcentrado(p) {
     Object.entries(a.materias).forEach(([m, notas]) => {
       promedios[m] = (notas.reduce((s, n) => s + n, 0) / notas.length).toFixed(1);
     });
-    return { ...a, promedios };
+    return { matricula: a.matricula, nombre: a.nombre, promedios };
   });
 
   return _ok({ grupo: p.grupo, parcial, concentrado });

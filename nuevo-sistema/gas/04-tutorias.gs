@@ -87,7 +87,7 @@ function getResumenGrupo(p) {
   // Contar sesiones por alumno
   const porAlumno = {};
   datos.forEach(d => {
-    const k = _normalizar(d.alumno || d.matricula);
+    const k = _normalizar(d.matricula);
     porAlumno[k] = (porAlumno[k] || 0) + 1;
   });
 
@@ -140,11 +140,10 @@ function guardarTutoria(body) {
 function marcarAsistencia(body) {
   if (!body.tutorias || !Array.isArray(body.tutorias)) return _err('tutorias[] requerido.');
   const hoja = _getHoja('TUTORIAS');
+  const [cab] = hoja.getRange(1, 1, 1, hoja.getLastColumn()).getValues();
   body.tutorias.forEach(t => {
-    const fila = [
-      t.matricula, t.nombre, t.grupo, t.docente, t.parcial,
-      t.fecha, t.tipo, t.observaciones, new Date(),
-    ];
+    const fila = cab.map(c => t[c] !== undefined ? t[c] : '');
+    fila[cab.indexOf('created_at')] = new Date();
     hoja.appendRow(fila);
   });
   return _ok({ mensaje: `${body.tutorias.length} registros guardados.` });

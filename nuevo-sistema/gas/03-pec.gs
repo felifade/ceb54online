@@ -152,9 +152,9 @@ function guardarCalificacionPec(body) {
 
   const datos  = hoja.getDataRange().getValues();
   const idxFil = datos.findIndex((f, i) => i > 0
-    && _normalizar(String(f[cab.indexOf('alumno')])) === _normalizar(body.alumno)
-    && _normalizar(String(f[cab.indexOf('equipo')])) === _normalizar(body.equipo)
-    && String(f[cab.indexOf('parcial')]) === String(body.parcial)
+    && _normalizar(String(f[cab.indexOf('matricula')])) === _normalizar(body.matricula)
+    && _normalizar(String(f[cab.indexOf('equipo')]))    === _normalizar(body.equipo)
+    && String(f[cab.indexOf('parcial')])                === String(body.parcial)
   );
 
   const fila = cab.map(c => body[c] !== undefined ? body[c] : '');

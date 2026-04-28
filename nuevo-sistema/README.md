@@ -147,10 +147,10 @@ En `MASTER_CEB54` → hoja `CONFIG`:
 | Módulo            | URL del Deployment                                                                                                           | Estado      |
 |-------------------|------------------------------------------------------------------------------------------------------------------------------|-------------|
 | Semanas CD        | `https://script.google.com/macros/s/AKfycbw9nLpWu79uDdEz4uPvewB7V5b_T79LzBlKr2i4mPRQ6Fna3Y9E8yvqvnebkZV9nbfQ_Q/exec`     | ✅ Activo   |
-| Académico         | (pendiente — Fase 3)                                                                                                         | ⏳ Pendiente|
-| PEC               | (pendiente — Fase 3)                                                                                                         | ⏳ Pendiente|
-| Tutorías          | (pendiente — Fase 3)                                                                                                         | ⏳ Pendiente|
-| Evaluación        | (pendiente — Fase 3)                                                                                                         | ⏳ Pendiente|
+| Académico         | `https://script.google.com/macros/s/AKfycbx2aBxxMpMQ4jYKrggRffmV8DmzuOkclYVWCRfKjUB7NhG8gitEGvs-wWoLHNP8VX6G/exec`     | ✅ Activo   |
+| PEC               | `https://script.google.com/macros/s/AKfycbw8tIW035KH4TczR57btpZVpzToDu4uxQXjUUV4uziQhhixLqjE-iMkVGnXV7Qsm2O1/exec`     | ✅ Activo   |
+| Tutorías          | `https://script.google.com/macros/s/AKfycbxZnJv1IVpcGAw0fhxKHpB7R7TpV80KgQ2-mbnC-WrRlgG6A8LCA6zSRjpMTeg9Z7BU/exec`     | ✅ Activo   |
+| Evaluación        | `https://script.google.com/macros/s/AKfycbyjanx82N_W6AdbHlsyA-SjtFHNhcMUabKcigFtdZFwGPFx-C4m0T4Z5ZIlvyJ6XdgyQQ/exec`    | ✅ Activo   |
 
 ---
 
