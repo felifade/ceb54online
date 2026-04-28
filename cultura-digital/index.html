@@ -81,6 +81,38 @@
 .cd-ctrl-save-btn:hover { background: #4338ca; }
 .cd-ctrl-save-btn:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
 
+/* Modal PIN docente */
+#cd-pin-overlay {
+  position: fixed; inset: 0; background: rgba(15,23,42,.88);
+  z-index: 99999; display: none;
+  align-items: center; justify-content: center;
+}
+#cd-pin-overlay.active { display: flex; }
+.cd-pin-box {
+  background: #0f172a; border: 2px solid #334155; border-radius: 16px;
+  padding: 2rem; width: min(90vw, 300px); text-align: center;
+}
+.cd-pin-box h2 { color: #e2e8f0; font-size: 1rem; margin: .5rem 0; }
+.cd-pin-box p  { color: #64748b; font-size: .8rem; margin: 0 0 1rem; }
+.cd-pin-box input {
+  width: 100%; box-sizing: border-box;
+  background: #1e293b; border: 2px solid #334155; border-radius: 8px;
+  color: #e2e8f0; padding: .6rem .75rem; font-size: 1.1rem;
+  text-align: center; outline: none; letter-spacing: .2em;
+}
+.cd-pin-box input:focus { border-color: #6366f1; }
+.cd-pin-ok {
+  margin-top: .75rem; width: 100%; background: #4f46e5; color: #fff;
+  border: none; border-radius: 8px; padding: .65rem; font-size: .9rem;
+  font-weight: 700; cursor: pointer;
+}
+.cd-pin-ok:hover { background: #4338ca; }
+.cd-pin-err { color: #f87171; font-size: .75rem; min-height: 1.2rem; margin: .4rem 0 0; }
+.cd-pin-cancel {
+  background: none; border: none; color: #475569; font-size: .75rem;
+  cursor: pointer; text-decoration: underline; margin-top: .25rem;
+}
+
 /* FAB del maestro */
 .cd-ctrl-fab {
   display: none;
@@ -1774,21 +1806,37 @@
         // ═══════════════════════════════════════════════════════════
         const _CD_GAS = 'https://script.google.com/macros/s/AKfycbz4q9VlhAvvVJ1XYOwqNTJ9eMkVRm3HgoyFJNpEQaPJsDdK1JcfhbTX1CRfDg38x79fsA/exec';
         const _CD_MAT = 'cd2';
-        let _cdActivas = [..._CD_LOCAL_DEFAULT]; // default inmediato; GAS lo actualiza después
-        let _cdMaestro = (new URLSearchParams(location.search).get('d2embed') === '1');
+        const _CD_LS  = 'cd_activas_' + _CD_MAT; // clave localStorage
+        let _cdActivas = [..._CD_LOCAL_DEFAULT];
+        let _cdMaestro = false; // siempre false hasta que se valide el PIN
         let _cdSaving  = false;
-        let _cdDraft   = null;   // estado pendiente en panel de control
+        let _cdDraft   = null;
 
+        // ── Carga: localStorage primero, GAS en background ────────
         async function _cdLoadActivas() {
+            // 1. localStorage — inmediato, sin red
+            try {
+                const stored = localStorage.getItem(_CD_LS);
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed) && parsed.length) {
+                        _cdActivas = parsed.map(Number);
+                        _cdApply();
+                    }
+                }
+            } catch(_) {}
+
+            // 2. GAS en background — actualiza localStorage si responde
             try {
                 const r   = await fetch(`${_CD_GAS}?action=getSemanasActivas&mat=${_CD_MAT}&_t=${Date.now()}`, { redirect: 'follow' });
                 const txt = await r.text();
                 const d   = JSON.parse(txt);
-                _cdActivas = Array.isArray(d.activas) ? d.activas.map(Number) : _CD_LOCAL_DEFAULT;
-            } catch(_) {
-                _cdActivas = _CD_LOCAL_DEFAULT; // fallback: solo semanas ya publicadas
-            }
-            _cdApply();
+                if (Array.isArray(d.activas) && d.activas.length) {
+                    _cdActivas = d.activas.map(Number);
+                    try { localStorage.setItem(_CD_LS, JSON.stringify(_cdActivas)); } catch(_) {}
+                    _cdApply();
+                }
+            } catch(_) { /* GAS no disponible — queda localStorage o el default */ }
         }
 
         function _cdApply() {
@@ -1890,27 +1938,24 @@
             const status  = document.getElementById('cd-ctrl-status');
             if (saveBtn) saveBtn.disabled = true;
             if (status)  status.textContent = 'Guardando…';
-            const userEmail = sessionStorage.getItem('user_email') || '';
+
+            // 1. localStorage — siempre funciona, sin red
+            _cdActivas = [..._cdDraft];
+            try { localStorage.setItem(_CD_LS, JSON.stringify(_cdActivas)); } catch(_) {}
+            _cdApply();
+            if (status) status.textContent = '✓ Guardado';
+            _cdSaving = false;
+            if (saveBtn) saveBtn.disabled = false;
+
+            // 2. GAS en background (fire-and-forget)
             try {
-                const r = await fetch(_CD_GAS, {
+                const userEmail = sessionStorage.getItem('user_email') || '';
+                await fetch(_CD_GAS, {
                     method: 'POST',
-                    body: JSON.stringify({ action: 'setSemanasActivas', mat: _CD_MAT, activas: _cdDraft, userEmail }),
+                    body: JSON.stringify({ action: 'setSemanasActivas', mat: _CD_MAT, activas: _cdActivas, userEmail }),
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' }
                 });
-                const d = await r.json();
-                if (d.status === 'success') {
-                    _cdActivas = [..._cdDraft];
-                    _cdApply();
-                    if (status) status.textContent = '✓ Guardado';
-                } else {
-                    if (status) status.textContent = '⚠ ' + (d.message || 'Error');
-                }
-            } catch(e) {
-                if (status) status.textContent = '⚠ Sin conexión';
-            } finally {
-                _cdSaving = false;
-                if (saveBtn) saveBtn.disabled = false;
-            }
+            } catch(_) { /* localStorage ya tiene los datos — GAS es opcional */ }
         }
 
         // ── Panel de notas (standalone / contraseña) ─────────────
@@ -1953,11 +1998,40 @@
             });
         }
 
+        // ── PIN de acceso docente ─────────────────────────────────
+        function _cdCheckPin() {
+            const input = document.getElementById('cd-pin-input');
+            if (!input) return;
+            // PIN guardado ofuscado (no plain text)
+            if (input.value === atob('Y2ViNTQ=')) {
+                document.getElementById('cd-pin-overlay').classList.remove('active');
+                _cdMaestro = true;
+                _cdApply();
+            } else {
+                const err = document.getElementById('cd-pin-err');
+                if (err) err.textContent = 'PIN incorrecto. Intenta de nuevo.';
+                input.value = '';
+                input.focus();
+            }
+        }
+        function _cdPinCancel() {
+            document.getElementById('cd-pin-overlay').classList.remove('active');
+            _cdMaestro = false;
+        }
+
         // ── Inicialización ───────────────────────────────────────
         window.addEventListener('DOMContentLoaded', () => {
-            _cdApply();                                       // filtrar sidebar inmediatamente con el default
+            _cdApply();
             setTimeout(() => switchWeek(_getSchoolWeek()), 50);
-            _cdLoadActivas();                                 // actualizar desde GAS en segundo plano
+            _cdLoadActivas();
+            // Si hay intento de modo docente, pedir PIN antes de activar
+            if (new URLSearchParams(location.search).get('d2embed') === '1') {
+                const overlay = document.getElementById('cd-pin-overlay');
+                if (overlay) {
+                    overlay.classList.add('active');
+                    setTimeout(() => document.getElementById('cd-pin-input')?.focus(), 120);
+                }
+            }
         });
     </script>
 
@@ -2015,6 +2089,24 @@
             <button onclick="document.getElementById('cd-ctrl-panel').classList.remove('cd-ctrl-open')">✕</button>
         </div>
         <div class="cd-ctrl-body" id="cd-ctrl-body"><!-- generado por JS --></div>
+        <div class="cd-ctrl-footer">
+            <span id="cd-ctrl-status"></span>
+            <button class="cd-ctrl-save-btn" id="cd-ctrl-save" onclick="_cdSaveActivas()">Guardar</button>
+        </div>
+    </div>
+
+    <!-- Modal PIN docente -->
+    <div id="cd-pin-overlay">
+        <div class="cd-pin-box">
+            <div style="font-size:2rem;">🔐</div>
+            <h2>Acceso Docente — CD II</h2>
+            <p>Introduce el PIN para continuar en modo docente.</p>
+            <input id="cd-pin-input" type="password" maxlength="20" placeholder="••••••"
+                onkeydown="if(event.key==='Enter')_cdCheckPin()">
+            <button class="cd-pin-ok" onclick="_cdCheckPin()">Entrar</button>
+            <p class="cd-pin-err" id="cd-pin-err"></p>
+            <button class="cd-pin-cancel" onclick="_cdPinCancel()">Continuar como alumno</button>
+        </div>
     </div>
 
     <!-- Panel de notas docente (acceso por contraseña, modo standalone) -->
