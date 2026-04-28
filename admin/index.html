@@ -831,6 +831,7 @@
       _admDatosHTML(nombre, email, rol),
       _admCalHTML(),
       _admQuickLinksHTML(),
+      _admSyncCardHTML(),
     ].join('');
 
     _admInitCal();
@@ -1106,6 +1107,65 @@
     return '<button class="adm-quicklink" onclick="'+action+'">'
       +'<div class="adm-quicklink-icon">'+ico+'</div>'+label+'</button>';
   }
+  var _ACAD_API = 'https://script.google.com/macros/s/AKfycbyeex2Txz_EdUyj9qvsi_DPet3KweejaP4KBOUEdj8GQg_HIK3aCkxsMWxzxhTuknh6/exec';
+
+  function _admSyncCardHTML() {
+    return '<div class="adm-card" id="adm-sync-card">'
+      +'<div class="adm-card-hdr">'
+        +'<div class="adm-card-ico purple">'
+          +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>'
+        +'</div>'
+        +'<span class="adm-card-title">Sincronización de Estructura</span>'
+      +'</div>'
+      +'<div class="adm-card-body" style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">'
+        +'<div style="flex:1;min-width:180px;font-size:0.82rem;color:#64748b;line-height:1.5;">'
+          +'Importa grupos, materias y docentes desde el Generador de Horarios al Spreadsheet del ciclo activo.'
+        +'</div>'
+        +'<div style="display:flex;flex-direction:column;gap:0.5rem;align-items:flex-end;">'
+          +'<div style="display:flex;gap:0.5rem;align-items:center;">'
+            +'<label style="font-size:0.78rem;color:#475569;">Ciclo:</label>'
+            +'<input id="adm-sync-ciclo" value="2026-2027" style="width:90px;padding:4px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:0.82rem;">'
+          +'</div>'
+          +'<button onclick="_admSyncEstructura()" id="adm-sync-btn" style="padding:7px 18px;background:#7c3aed;color:#fff;border:none;border-radius:8px;font-size:0.83rem;font-weight:600;cursor:pointer;">'
+            +'Sincronizar ahora'
+          +'</button>'
+          +'<div id="adm-sync-status" style="font-size:0.78rem;color:#64748b;min-height:18px;text-align:right;"></div>'
+        +'</div>'
+      +'</div>'
+    +'</div>';
+  }
+
+  function _admSyncEstructura() {
+    var btn    = document.getElementById('adm-sync-btn');
+    var status = document.getElementById('adm-sync-status');
+    var ciclo  = (document.getElementById('adm-sync-ciclo').value || '').trim();
+    if (!ciclo) { status.textContent = 'Ingresa un ciclo.'; status.style.color = '#ef4444'; return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Sincronizando…';
+    status.textContent = '';
+
+    fetch(_ACAD_API + '?action=importarDesdeGenerador&ciclo=' + encodeURIComponent(ciclo))
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.status === 'success') {
+          status.textContent = '✓ ' + res.filas + ' filas importadas.';
+          status.style.color = '#16a34a';
+        } else {
+          status.textContent = '✗ ' + (res.message || 'Error desconocido');
+          status.style.color = '#ef4444';
+        }
+      })
+      .catch(function() {
+        status.textContent = '✗ Error de conexión.';
+        status.style.color = '#ef4444';
+      })
+      .finally(function() {
+        btn.disabled = false;
+        btn.textContent = 'Sincronizar ahora';
+      });
+  }
+
   function _admQuickLinksHTML() {
     var s = _admSvg;
     var links = [

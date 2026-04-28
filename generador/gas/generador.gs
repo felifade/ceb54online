@@ -827,12 +827,26 @@ function _genGetEstadoEstructura_(ciclo, periodo) {
   };
 }
 
+var ACAD_API_URL_ = 'https://script.google.com/macros/s/AKfycbyeex2Txz_EdUyj9qvsi_DPet3KweejaP4KBOUEdj8GQg_HIK3aCkxsMWxzxhTuknh6/exec';
+
 function _genSaveEstadoEstructura_(ciclo, estado, periodo) {
   var cfg  = {};
   var base = (ciclo || '') + (periodo ? '_' + periodo : '');
   cfg['est_estado_' + base] = estado;
   cfg['est_fecha_'  + base] = new Date().toISOString().slice(0, 10);
   _genSaveConfig_(cfg);
+
+  // Al validar → sincronizar automáticamente con el módulo Académico
+  if (estado === 'VALIDADA') {
+    try {
+      var params = '?action=importarDesdeGenerador&ciclo=' + encodeURIComponent(ciclo || '');
+      if (periodo) params += '&periodo=' + encodeURIComponent(periodo);
+      UrlFetchApp.fetch(ACAD_API_URL_ + params, { muteHttpExceptions: true, followRedirects: true });
+    } catch (e) {
+      Logger.log('Sync académico falló: ' + e.toString());
+    }
+  }
+
   return { status: 'ok', estado: estado };
 }
 

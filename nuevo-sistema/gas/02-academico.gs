@@ -38,6 +38,7 @@ function doGet(e) {
       case 'getCalificaciones': return getCalificaciones(p);
       case 'getDashboard':    return getDashboard(p);
       case 'getCicloInfo':    return getCicloInfo();
+      case 'importarDesdeGenerador': return importarDesdeGenerador(p);
       case 'ping':            return _ok({ modulo: 'academico', version: '1.0' });
       default:                return _err('Acción no reconocida: ' + action);
     }
@@ -57,8 +58,9 @@ function doPost(e) {
     const action = (body.action || '').trim();
 
     switch (action) {
-      case 'importarEstructura': return importarEstructura(body);
-      case 'guardarCalificacion': return guardarCalificacion(body);
+      case 'importarEstructura':        return importarEstructura(body);
+      case 'importarDesdeGenerador':    return importarDesdeGenerador(body);
+      case 'guardarCalificacion':       return guardarCalificacion(body);
       default: return _err('Acción no reconocida: ' + action);
     }
   } catch (err) {
@@ -229,6 +231,64 @@ function _generarDocentes(datos) {
       new Date(),
     ]);
   });
+}
+
+// ── MIGRACIÓN DESDE GENERADOR DE HORARIOS ────────────────────────
+
+const GEN_SPREADSHEET_ID = '1HiQ84JcZg8iGk4Z5xrZXeko7OW4jGGfB845k39gmgGM';
+
+/**
+ * Lee GEN_ESTRUCTURA del Generador de Horarios y llena la hoja
+ * ESTRUCTURA del ciclo activo, luego regenera DOCENTES automáticamente.
+ *
+ * Body params (todos opcionales):
+ *   ciclo   — filtra por ciclo (ej: "2026-2027")
+ *   periodo — filtra por periodo ("A" o "B")
+ */
+function importarDesdeGenerador(body) {
+  const ciclo   = String(body.ciclo   || '').trim();
+  const periodo = String(body.periodo || '').trim();
+
+  const genSS    = SpreadsheetApp.openById(GEN_SPREADSHEET_ID);
+  const genSheet = genSS.getSheetByName('GEN_ESTRUCTURA');
+  if (!genSheet) return _err('Hoja GEN_ESTRUCTURA no encontrada en el Generador.');
+
+  const [cab, ...filas] = genSheet.getDataRange().getValues();
+  const idx = {};
+  cab.forEach((c, i) => { idx[String(c).trim()] = i; });
+
+  const requeridos = ['grupo', 'turno', 'semestre', 'uac', 'tot_horas'];
+  for (const campo of requeridos) {
+    if (idx[campo] === undefined) return _err('Columna faltante en GEN_ESTRUCTURA: ' + campo);
+  }
+
+  let registros = filas.filter(f => f[idx['grupo']]);
+
+  if (ciclo)   registros = registros.filter(r => String(r[idx['ciclo']]   || '') === ciclo);
+  if (periodo) registros = registros.filter(r => String(r[idx['periodo']] || '') === periodo);
+
+  if (!registros.length) return _err('Sin registros para los filtros indicados.');
+
+  const datos = registros.map(r => ({
+    semestre:     r[idx['semestre']],
+    grupo:        r[idx['grupo']],
+    materia:      r[idx['uac']],
+    docente:      r[idx['docente']] || '',
+    horas_semana: r[idx['tot_horas']],
+    turno:        r[idx['turno']],
+  }));
+
+  // Escribir ESTRUCTURA
+  const hoja = _getHoja('ESTRUCTURA');
+  hoja.clearContents();
+  const cols = ['semestre', 'grupo', 'materia', 'docente', 'horas_semana', 'turno'];
+  hoja.appendRow(cols);
+  datos.forEach(f => hoja.appendRow(cols.map(c => f[c] !== undefined ? f[c] : '')));
+
+  // Regenerar DOCENTES
+  _generarDocentes(datos);
+
+  return _ok({ mensaje: 'Estructura importada desde Generador.', filas: datos.length });
 }
 
 // ── Utilidad ──────────────────────────────────────────────────────
