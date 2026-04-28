@@ -140,7 +140,7 @@ En `MASTER_CEB54` → hoja `CONFIG`:
 |-------------------------|---------------------------------------------------------------------------------------------------|-------------|
 | MASTER_CEB54            | `19CtLAZajk-0Sj5wOlBGiXzViqyc_7A9U_iS001mSng8`                                                  | ✅ Creado   |
 | CEB54_CICLO_2025_2026   | `https://docs.google.com/spreadsheets/d/1zzYEW_Sh6EQ8VhwoUPN52wXH9hcW97ArMbFEWfi3VbA/edit`      | ✅ Creado   |
-| CEB54_SANDBOX           | (pendiente — Fase 2)                                                                               | ⏳ Pendiente|
+| CEB54_SANDBOX           | `https://docs.google.com/spreadsheets/d/1lrcOS03Lx4cO0k05c30ZkZOKBhz-DbCE9LGpD7TOVJI/edit`      | ✅ Creado   |
 
 ### Deployments GAS
 
