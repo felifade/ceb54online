@@ -541,6 +541,14 @@
       <div class="adm-sidebar-section">
         <div class="adm-sidebar-label">Acceso rápido</div>
 
+        <button class="adm-nav-item" id="adm-btn-pec" onclick="_admLoadPecEquipos(this)">
+          <div class="adm-nav-icon">👥</div>
+          <div class="adm-nav-text">
+            <span class="adm-nav-name">Equipos PEC</span>
+            <span class="adm-nav-sub">Asignación rápida por grupo</span>
+          </div>
+        </button>
+
         <button class="adm-nav-item" data-area="horarios" data-url="../generador/index.html" onclick="_admLoadArea(this)">
           <div class="adm-nav-icon">🗓️</div>
           <div class="adm-nav-text">
@@ -588,6 +596,41 @@
       <!-- ══ HOME ══ -->
       <div class="adm-home" id="adm-home" style="display:none;">
         <div class="adm-home-grid" id="adm-home-grid"></div>
+      </div>
+
+      <!-- ══ EQUIPOS PEC ══ -->
+      <div id="adm-pec-panel" style="display:none; flex:1; flex-direction:column; overflow-y:auto; padding:1.5rem; gap:1rem;">
+        <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+          <h2 style="font-size:1.1rem; font-weight:700; color:#1e293b; margin:0;">Asignación de Equipos PEC</h2>
+          <div style="display:flex; gap:0.5rem; align-items:center; margin-left:auto; flex-wrap:wrap;">
+            <select id="pec-grupo-sel" style="padding:6px 10px; border:1px solid #e2e8f0; border-radius:8px; font-size:0.83rem;">
+              <option value="">— Selecciona grupo —</option>
+            </select>
+            <button onclick="_pecCargar()" style="padding:6px 16px; background:#7c3aed; color:#fff; border:none; border-radius:8px; font-size:0.83rem; font-weight:600; cursor:pointer;">Cargar</button>
+          </div>
+        </div>
+
+        <!-- Barra asignación masiva -->
+        <div id="pec-bulk-bar" style="display:none; background:#f0f9ff; border:1px solid #bae6fd; border-radius:10px; padding:0.65rem 1rem; display:none; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+          <span id="pec-sel-count" style="font-size:0.83rem; color:#0369a1; font-weight:600;"></span>
+          <select id="pec-bulk-equipo" style="padding:5px 10px; border:1px solid #bae6fd; border-radius:6px; font-size:0.83rem; flex:1; min-width:160px;">
+            <option value="">— Asignar equipo —</option>
+          </select>
+          <button onclick="_pecAsignarSeleccionados()" style="padding:5px 14px; background:#0369a1; color:#fff; border:none; border-radius:6px; font-size:0.83rem; font-weight:600; cursor:pointer;">Asignar</button>
+        </div>
+
+        <!-- Tabla de alumnos -->
+        <div id="pec-table-wrap" style="background:#fff; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.07); overflow:hidden;">
+          <div id="pec-table-body" style="padding:2rem; color:#94a3b8; font-size:0.85rem; text-align:center;">
+            Selecciona un grupo y presiona Cargar.
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="display:flex; align-items:center; justify-content:flex-end; gap:1rem; padding-top:0.5rem;">
+          <span id="pec-save-status" style="font-size:0.8rem; color:#64748b;"></span>
+          <button id="pec-save-btn" onclick="_pecGuardar()" style="display:none; padding:8px 24px; background:#16a34a; color:#fff; border:none; border-radius:8px; font-size:0.85rem; font-weight:600; cursor:pointer;">Guardar cambios</button>
+        </div>
       </div>
 
       <div style="display:none; flex:1; flex-direction:column; overflow:hidden;" id="adm-area-panel">
@@ -781,14 +824,22 @@
 
   var homeEl = document.getElementById('adm-home');
 
+  var pecPanel = document.getElementById('adm-pec-panel');
+
+  function _admHideAll() {
+    homeEl.style.display    = 'none';
+    areaPanel.style.display = 'none';
+    pecPanel.style.display  = 'none';
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+  }
+
   window._admGoHome = function() {
     document.querySelectorAll('.adm-nav-item').forEach(function(el) { el.classList.remove('active'); });
     var homeBtn = document.getElementById('adm-btn-home');
     if (homeBtn) homeBtn.classList.add('active');
-    homeEl.style.display   = 'block';
-    areaPanel.style.display = 'none';
-    sidebar.classList.remove('open');
-    overlay.classList.remove('active');
+    _admHideAll();
+    homeEl.style.display = 'block';
     _admRenderHomeOnce();
   };
 
@@ -805,11 +856,191 @@
     areaPath.textContent = meta.sub  || 'Portal Administrativo · CEB 5/4';
 
     iframe.src = url;
-    homeEl.style.display    = 'none';
-    areaPanel.style.display  = 'flex';
+    _admHideAll();
+    areaPanel.style.display = 'flex';
+  };
 
-    sidebar.classList.remove('open');
-    overlay.classList.remove('active');
+  /* ── EQUIPOS PEC ──────────────────────────────────────────────── */
+  var PEC_API  = 'https://script.google.com/macros/s/AKfycbw8tIW035KH4TczR57btpZVpzToDu4uxQXjUUV4uziQhhixLqjE-iMkVGnXV7Qsm2O1/exec';
+  var _pecEquipos  = [];   // catálogo de equipos
+  var _pecAlumnos  = [];   // alumnos del grupo cargado
+  var _pecDirty    = {};   // {matricula: equipo} cambios pendientes
+
+  window._admLoadPecEquipos = function(btn) {
+    document.querySelectorAll('.adm-nav-item').forEach(function(el) { el.classList.remove('active'); });
+    btn.classList.add('active');
+    _admHideAll();
+    pecPanel.style.display = 'flex';
+    _pecInicializar();
+  };
+
+  function _pecInicializar() {
+    var grupoSel = document.getElementById('pec-grupo-sel');
+    if (grupoSel.options.length > 1) return; // ya cargado
+
+    // Cargar grupos y equipos en paralelo
+    Promise.all([
+      fetch(_ACAD_API + '?action=getGrupos').then(function(r){ return r.json(); }),
+      fetch(PEC_API   + '?action=getEquipos').then(function(r){ return r.json(); }),
+    ]).then(function(results) {
+      var rGrupos  = results[0];
+      var rEquipos = results[1];
+
+      if (rGrupos.status === 'success') {
+        (rGrupos.grupos || []).forEach(function(g) {
+          var opt = document.createElement('option');
+          opt.value = opt.textContent = g;
+          grupoSel.appendChild(opt);
+        });
+      }
+
+      if (rEquipos.status === 'success') {
+        _pecEquipos = rEquipos.equipos || [];
+        var bulkSel = document.getElementById('pec-bulk-equipo');
+        _pecEquipos.forEach(function(eq) {
+          var opt = document.createElement('option');
+          opt.value = eq.clave;
+          opt.textContent = eq.clave + ' — ' + eq.nombre_proyecto;
+          bulkSel.appendChild(opt);
+        });
+      }
+    }).catch(function() {
+      document.getElementById('pec-table-body').textContent = 'Error cargando datos. Verifica conexión.';
+    });
+  }
+
+  window._pecCargar = function() {
+    var grupo = document.getElementById('pec-grupo-sel').value;
+    if (!grupo) return;
+    _pecDirty = {};
+    document.getElementById('pec-save-btn').style.display = 'none';
+    document.getElementById('pec-save-status').textContent = '';
+
+    var wrap = document.getElementById('pec-table-body');
+    wrap.innerHTML = '<div style="padding:2rem; color:#94a3b8; text-align:center;">Cargando…</div>';
+
+    fetch(_ACAD_API + '?action=getAlumnos&grupo=' + encodeURIComponent(grupo))
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.status !== 'success' || !res.alumnos.length) {
+          wrap.innerHTML = '<div style="padding:2rem; color:#94a3b8; text-align:center;">Sin alumnos para este grupo.</div>';
+          return;
+        }
+        _pecAlumnos = res.alumnos;
+        _pecRenderTabla();
+      })
+      .catch(function() {
+        wrap.innerHTML = '<div style="padding:2rem; color:#ef4444; text-align:center;">Error de conexión.</div>';
+      });
+  };
+
+  function _pecRenderTabla() {
+    var equipoOpts = '<option value="">Sin equipo</option>'
+      + _pecEquipos.map(function(eq) {
+          return '<option value="' + eq.clave + '">' + eq.clave + ' — ' + eq.nombre_proyecto + '</option>';
+        }).join('');
+
+    var rows = _pecAlumnos.map(function(a, i) {
+      var equipoActual = _pecDirty[a.matricula] !== undefined ? _pecDirty[a.matricula] : (a.equipo || '');
+      var opts = _pecEquipos.map(function(eq) {
+        return '<option value="' + eq.clave + '"' + (equipoActual === eq.clave ? ' selected' : '') + '>'
+          + eq.clave + ' — ' + eq.nombre_proyecto + '</option>';
+      });
+      return '<tr style="border-bottom:1px solid #f1f5f9;">'
+        + '<td style="padding:8px 12px; width:36px;"><input type="checkbox" class="pec-chk" data-idx="' + i + '" onchange="_pecUpdateSel()"></td>'
+        + '<td style="padding:8px 12px; font-size:0.85rem; color:#1e293b;">' + a.nombre + '</td>'
+        + '<td style="padding:8px 12px; font-size:0.8rem; color:#64748b;">' + a.matricula + '</td>'
+        + '<td style="padding:8px 12px;">'
+          + '<select data-mat="' + a.matricula + '" onchange="_pecOnChange(this)" style="padding:4px 8px; border:1px solid #e2e8f0; border-radius:6px; font-size:0.8rem; width:100%;">'
+          + '<option value="">Sin equipo</option>' + opts.join('') + '</select>'
+        + '</td>'
+        + '</tr>';
+    }).join('');
+
+    document.getElementById('pec-table-body').innerHTML =
+      '<table style="width:100%; border-collapse:collapse;">'
+      + '<thead><tr style="background:#f8fafc; font-size:0.78rem; color:#64748b; text-transform:uppercase; letter-spacing:0.04em;">'
+        + '<th style="padding:8px 12px; text-align:left; width:36px;"><input type="checkbox" id="pec-chk-all" onchange="_pecToggleAll(this)"></th>'
+        + '<th style="padding:8px 12px; text-align:left;">Nombre</th>'
+        + '<th style="padding:8px 12px; text-align:left;">Matrícula</th>'
+        + '<th style="padding:8px 12px; text-align:left;">Equipo</th>'
+      + '</tr></thead>'
+      + '<tbody>' + rows + '</tbody>'
+      + '</table>';
+  }
+
+  window._pecOnChange = function(sel) {
+    _pecDirty[sel.dataset.mat] = sel.value;
+    document.getElementById('pec-save-btn').style.display = 'inline-block';
+  };
+
+  window._pecToggleAll = function(chkAll) {
+    document.querySelectorAll('.pec-chk').forEach(function(c) { c.checked = chkAll.checked; });
+    _pecUpdateSel();
+  };
+
+  window._pecUpdateSel = function() {
+    var n = document.querySelectorAll('.pec-chk:checked').length;
+    var bar = document.getElementById('pec-bulk-bar');
+    bar.style.display = n > 0 ? 'flex' : 'none';
+    document.getElementById('pec-sel-count').textContent = n + ' alumno' + (n !== 1 ? 's' : '') + ' seleccionado' + (n !== 1 ? 's' : '');
+  };
+
+  window._pecAsignarSeleccionados = function() {
+    var equipo = document.getElementById('pec-bulk-equipo').value;
+    if (!equipo) return;
+    document.querySelectorAll('.pec-chk:checked').forEach(function(chk) {
+      var idx = parseInt(chk.dataset.idx);
+      var mat = _pecAlumnos[idx].matricula;
+      _pecDirty[mat] = equipo;
+      var sel = document.querySelector('select[data-mat="' + mat + '"]');
+      if (sel) sel.value = equipo;
+    });
+    document.getElementById('pec-save-btn').style.display = 'inline-block';
+    // Deseleccionar
+    document.querySelectorAll('.pec-chk').forEach(function(c) { c.checked = false; });
+    document.getElementById('pec-chk-all').checked = false;
+    _pecUpdateSel();
+  };
+
+  window._pecGuardar = function() {
+    var asignaciones = Object.entries(_pecDirty).map(function(e) {
+      return { matricula: e[0], equipo: e[1] };
+    });
+    if (!asignaciones.length) return;
+
+    var btn    = document.getElementById('pec-save-btn');
+    var status = document.getElementById('pec-save-status');
+    btn.disabled = true;
+    btn.textContent = 'Guardando…';
+    status.textContent = '';
+
+    fetch(_ACAD_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      redirect: 'follow',
+      body: JSON.stringify({ action: 'asignarEquipos', asignaciones: asignaciones }),
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.status === 'success') {
+          status.textContent = '✓ ' + res.actualizados + ' alumnos guardados.';
+          status.style.color = '#16a34a';
+          _pecDirty = {};
+          btn.style.display = 'none';
+        } else {
+          status.textContent = '✗ ' + (res.message || 'Error');
+          status.style.color = '#ef4444';
+        }
+      })
+      .catch(function() {
+        status.textContent = '✗ Error de conexión.';
+        status.style.color = '#ef4444';
+      })
+      .finally(function() {
+        btn.disabled = false;
+        btn.textContent = 'Guardar cambios';
+      });
   };
 
   /* ══════════════════════════════════════════════════════

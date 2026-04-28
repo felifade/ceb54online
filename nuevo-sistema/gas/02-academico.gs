@@ -61,6 +61,7 @@ function doPost(e) {
       case 'importarEstructura':        return importarEstructura(body);
       case 'importarDesdeGenerador':    return importarDesdeGenerador(body);
       case 'guardarCalificacion':       return guardarCalificacion(body);
+      case 'asignarEquipos':            return asignarEquipos(body);
       default: return _err('Acción no reconocida: ' + action);
     }
   } catch (err) {
@@ -231,6 +232,40 @@ function _generarDocentes(datos) {
       new Date(),
     ]);
   });
+}
+
+// ── ASIGNACIÓN DE EQUIPOS PEC ─────────────────────────────────────
+
+/**
+ * Actualiza la columna `equipo` en ALUMNOS para un lote de alumnos.
+ * body.asignaciones = [{ matricula, equipo }, ...]
+ */
+function asignarEquipos(body) {
+  if (!body.asignaciones || !Array.isArray(body.asignaciones))
+    return _err('asignaciones[] requerido.');
+
+  const hoja  = _getHoja('ALUMNOS');
+  const datos = hoja.getDataRange().getValues();
+  const cab   = datos[0];
+  const idxMat = cab.indexOf('matricula');
+  const idxEq  = cab.indexOf('equipo');
+
+  if (idxEq === -1) return _err('Columna equipo no encontrada en ALUMNOS.');
+
+  const mapa = {};
+  body.asignaciones.forEach(a => { mapa[_normalizar(String(a.matricula))] = a.equipo || ''; });
+
+  let actualizados = 0;
+  datos.forEach((f, i) => {
+    if (i === 0) return;
+    const mat = _normalizar(String(f[idxMat]));
+    if (mapa[mat] !== undefined) {
+      hoja.getRange(i + 1, idxEq + 1).setValue(mapa[mat]);
+      actualizados++;
+    }
+  });
+
+  return _ok({ mensaje: `${actualizados} alumnos actualizados.`, actualizados });
 }
 
 // ── MIGRACIÓN DESDE GENERADOR DE HORARIOS ────────────────────────

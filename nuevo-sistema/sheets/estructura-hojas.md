@@ -49,9 +49,9 @@ las mismas hojas con los mismos nombres de columna.
 
 ### Hoja: ALUMNOS
 
-| matricula | nombre              | semestre | grupo | turno    | email            | status |
-|-----------|---------------------|----------|-------|----------|------------------|--------|
-| 5401001   | García Martínez Ana | 2        | 2A    | matutino | ana@dgb.edu.mx   | activo |
+| matricula | nombre              | semestre | grupo | turno    | email            | status | equipo |
+|-----------|---------------------|----------|-------|----------|------------------|--------|--------|
+| 5401001   | García Martínez Ana | 2        | 2A    | matutino | ana@dgb.edu.mx   | activo | 2m     |
 
 ### Hoja: MATERIAS
 
