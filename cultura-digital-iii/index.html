@@ -1385,13 +1385,16 @@
         _cdApply();
         setTimeout(() => switchWeek(_getSchoolWeek()), 50);
         _cdLoadActivas();
-        checkShift();
-        if (new URLSearchParams(location.search).get('d2embed') === '1') {
+        const _esMaestroUrl = new URLSearchParams(location.search).get('d2embed') === '1';
+        if (_esMaestroUrl) {
+            // Docente: mostrar PIN en lugar del selector de turno
             const overlay = document.getElementById('cd-pin-overlay');
             if (overlay) {
                 overlay.classList.add('active');
                 setTimeout(() => document.getElementById('cd-pin-input')?.focus(), 120);
             }
+        } else {
+            checkShift();
         }
     });
 </script>
