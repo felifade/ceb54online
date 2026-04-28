@@ -132,15 +132,25 @@ En `MASTER_CEB54` → hoja `CONFIG`:
 
 ---
 
-## URLs a guardar (llenar cuando se creen)
+## Referencias del sistema (IDs y URLs reales)
 
-| Módulo            | URL del Deployment GAS |
-|-------------------|------------------------|
-| Semanas CD        | (pendiente — Fase 1)   |
-| Académico         | (pendiente — Fase 3)   |
-| PEC               | (pendiente — Fase 3)   |
-| Tutorías          | (pendiente — Fase 3)   |
-| Evaluación        | (pendiente — Fase 3)   |
+### Spreadsheets
+
+| Nombre                  | ID / URL                                                                                          | Estado      |
+|-------------------------|---------------------------------------------------------------------------------------------------|-------------|
+| MASTER_CEB54            | `19CtLAZajk-0Sj5wOlBGiXzViqyc_7A9U_iS001mSng8`                                                  | ✅ Creado   |
+| CEB54_CICLO_2025_2026   | `https://docs.google.com/spreadsheets/d/1zzYEW_Sh6EQ8VhwoUPN52wXH9hcW97ArMbFEWfi3VbA/edit`      | ✅ Creado   |
+| CEB54_SANDBOX           | (pendiente — Fase 2)                                                                               | ⏳ Pendiente|
+
+### Deployments GAS
+
+| Módulo            | URL del Deployment                                                                                                           | Estado      |
+|-------------------|------------------------------------------------------------------------------------------------------------------------------|-------------|
+| Semanas CD        | `https://script.google.com/macros/s/AKfycbw9nLpWu79uDdEz4uPvewB7V5b_T79LzBlKr2i4mPRQ6Fna3Y9E8yvqvnebkZV9nbfQ_Q/exec`     | ✅ Activo   |
+| Académico         | (pendiente — Fase 3)                                                                                                         | ⏳ Pendiente|
+| PEC               | (pendiente — Fase 3)                                                                                                         | ⏳ Pendiente|
+| Tutorías          | (pendiente — Fase 3)                                                                                                         | ⏳ Pendiente|
+| Evaluación        | (pendiente — Fase 3)                                                                                                         | ⏳ Pendiente|
 
 ---
 

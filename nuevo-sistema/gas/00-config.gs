@@ -15,8 +15,8 @@
  * ─────────────────────────────────────────────────────────────────
  */
 
-// ── ID del Spreadsheet MASTER (cambiar por el ID real al crear) ──
-const MASTER_ID = 'REEMPLAZAR_CON_ID_DE_MASTER_CEB54';
+// ── ID del Spreadsheet MASTER ────────────────────────────────────
+const MASTER_ID = '19CtLAZajk-0Sj5wOlBGiXzViqyc_7A9U_iS001mSng8';
 
 // ── Cache de configuración en memoria (dura por ejecución) ───────
 let _CONFIG = null;
