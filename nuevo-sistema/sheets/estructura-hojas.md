@@ -70,11 +70,11 @@ las mismas hojas con los mismos nombres de columna.
 
 | clave | semestre | turno      | nombre_proyecto        | objetivo                  | url_minuta | url_presentacion | updated_at |
 |-------|----------|------------|------------------------|---------------------------|------------|------------------|------------|
-| 2m    | 2        | matutino   | App de Control Escolar | Digitalizar procesos CEB  | https://.. | https://..       | 2025-09-01 |
-| 2v    | 2        | vespertino | Sistema de Biblioteca  | Automatizar préstamos     | https://.. |                  | 2025-09-01 |
-| 4m    | 4        | matutino   | Portal de Tutorías     | Seguimiento académico     | https://.. |                  | 2025-09-01 |
-| 4v    | 4        | vespertino | Red Escolar Digital    | Conectividad académica    | https://.. |                  | 2025-09-01 |
-| 6     | 6        | uni        | Sistema de Egresados   | Seguimiento post-escolar  | https://.. |                  | 2025-09-01 |
+| 1m    | 1        | matutino   | App de Control Escolar | Digitalizar procesos CEB  | https://.. | https://..       | 2025-09-01 |
+| 1v    | 1        | vespertino | Sistema de Biblioteca  | Automatizar préstamos     | https://.. |                  | 2025-09-01 |
+| 3m    | 3        | matutino   | Portal de Tutorías     | Seguimiento académico     | https://.. |                  | 2025-09-01 |
+| 3v    | 3        | vespertino | Red Escolar Digital    | Conectividad académica    | https://.. |                  | 2025-09-01 |
+| 5     | 5        | uni        | Sistema de Egresados   | Seguimiento post-escolar  | https://.. |                  | 2025-09-01 |
 
 ### Hoja: PEC_MINUTAS
 

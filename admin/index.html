@@ -861,8 +861,7 @@
   };
 
   /* ── EQUIPOS PEC ──────────────────────────────────────────────── */
-  var PEC_API  = 'https://script.google.com/macros/s/AKfycbw8tIW035KH4TczR57btpZVpzToDu4uxQXjUUV4uziQhhixLqjE-iMkVGnXV7Qsm2O1/exec';
-  var _pecEquipos  = [];   // catálogo de equipos
+  var _PEC_NUM_EQUIPOS = 7;
   var _pecAlumnos  = [];   // alumnos del grupo cargado
   var _pecDirty    = {};   // {matricula: equipo} cambios pendientes
 
@@ -876,37 +875,29 @@
 
   function _pecInicializar() {
     var grupoSel = document.getElementById('pec-grupo-sel');
-    if (grupoSel.options.length > 1) return; // ya cargado
+    if (grupoSel.options.length > 1) return;
 
-    // Cargar grupos y equipos en paralelo
-    Promise.all([
-      fetch(_ACAD_API + '?action=getGrupos').then(function(r){ return r.json(); }),
-      fetch(PEC_API   + '?action=getEquipos').then(function(r){ return r.json(); }),
-    ]).then(function(results) {
-      var rGrupos  = results[0];
-      var rEquipos = results[1];
+    // Poblar bulk selector con números 1-7
+    var bulkSel = document.getElementById('pec-bulk-equipo');
+    for (var n = 1; n <= _PEC_NUM_EQUIPOS; n++) {
+      var opt = document.createElement('option');
+      opt.value = opt.textContent = n;
+      bulkSel.appendChild(opt);
+    }
 
-      if (rGrupos.status === 'success') {
-        (rGrupos.grupos || []).forEach(function(g) {
-          var opt = document.createElement('option');
-          opt.value = opt.textContent = g;
-          grupoSel.appendChild(opt);
-        });
-      }
-
-      if (rEquipos.status === 'success') {
-        _pecEquipos = rEquipos.equipos || [];
-        var bulkSel = document.getElementById('pec-bulk-equipo');
-        _pecEquipos.forEach(function(eq) {
-          var opt = document.createElement('option');
-          opt.value = eq.clave;
-          opt.textContent = eq.clave + ' — ' + eq.nombre_proyecto;
-          bulkSel.appendChild(opt);
-        });
-      }
-    }).catch(function() {
-      document.getElementById('pec-table-body').textContent = 'Error cargando datos. Verifica conexión.';
-    });
+    fetch(_ACAD_API + '?action=getGrupos')
+      .then(function(r){ return r.json(); })
+      .then(function(res) {
+        if (res.status === 'success') {
+          (res.grupos || []).forEach(function(g) {
+            var opt = document.createElement('option');
+            opt.value = opt.textContent = g;
+            grupoSel.appendChild(opt);
+          });
+        }
+      }).catch(function() {
+        document.getElementById('pec-table-body').textContent = 'Error cargando grupos. Verifica conexión.';
+      });
   }
 
   window._pecCargar = function() {
@@ -934,25 +925,24 @@
       });
   };
 
-  function _pecRenderTabla() {
-    var equipoOpts = '<option value="">Sin equipo</option>'
-      + _pecEquipos.map(function(eq) {
-          return '<option value="' + eq.clave + '">' + eq.clave + ' — ' + eq.nombre_proyecto + '</option>';
-        }).join('');
+  function _pecNumOpts(actual) {
+    var opts = '<option value="">—</option>';
+    for (var n = 1; n <= _PEC_NUM_EQUIPOS; n++) {
+      opts += '<option value="' + n + '"' + (String(actual) === String(n) ? ' selected' : '') + '>Equipo ' + n + '</option>';
+    }
+    return opts;
+  }
 
+  function _pecRenderTabla() {
     var rows = _pecAlumnos.map(function(a, i) {
       var equipoActual = _pecDirty[a.matricula] !== undefined ? _pecDirty[a.matricula] : (a.equipo || '');
-      var opts = _pecEquipos.map(function(eq) {
-        return '<option value="' + eq.clave + '"' + (equipoActual === eq.clave ? ' selected' : '') + '>'
-          + eq.clave + ' — ' + eq.nombre_proyecto + '</option>';
-      });
       return '<tr style="border-bottom:1px solid #f1f5f9;">'
         + '<td style="padding:8px 12px; width:36px;"><input type="checkbox" class="pec-chk" data-idx="' + i + '" onchange="_pecUpdateSel()"></td>'
         + '<td style="padding:8px 12px; font-size:0.85rem; color:#1e293b;">' + a.nombre + '</td>'
         + '<td style="padding:8px 12px; font-size:0.8rem; color:#64748b;">' + a.matricula + '</td>'
         + '<td style="padding:8px 12px;">'
           + '<select data-mat="' + a.matricula + '" onchange="_pecOnChange(this)" style="padding:4px 8px; border:1px solid #e2e8f0; border-radius:6px; font-size:0.8rem; width:100%;">'
-          + '<option value="">Sin equipo</option>' + opts.join('') + '</select>'
+          + _pecNumOpts(equipoActual) + '</select>'
         + '</td>'
         + '</tr>';
     }).join('');
