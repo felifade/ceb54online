@@ -74,7 +74,7 @@
           _grupos:     {},        // acumula todos los grupos que aportan alumnos
           semestre:    a.semestre,
           turno:       a.turno,
-          nombre:      'Equipo ' + subEq + (cat && cat.nombre_proyecto ? ' — ' + cat.nombre_proyecto : ''),
+          nombre:      'Equipo ' + subEq,
           urlDoc:      cat ? (cat.url_minuta || '') : '',
           integrantes: [],
           estado:      'Pendiente',
