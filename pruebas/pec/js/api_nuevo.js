@@ -70,15 +70,20 @@
           id:          id,
           clave:       claveGrupo,
           subEquipo:   subEq,
-          grupo:       'Sem.' + a.semestre + ' ' + (a.turno || '') + ' · Eq.' + subEq,
+          grupo:       a.grupo,   // grupo real del salón: "1A", "3B", etc.
+          _grupos:     {},        // acumula todos los grupos que aportan alumnos
           semestre:    a.semestre,
           turno:       a.turno,
-          nombre:      cat ? (cat.nombre_proyecto || '') : '',
+          nombre:      cat ? (cat.nombre_proyecto || '') : ('Equipo ' + subEq),
           urlDoc:      cat ? (cat.url_minuta || '') : '',
           integrantes: [],
           estado:      'Pendiente',
         };
       }
+
+      // Si el equipo tiene alumnos de varios grupos, reflejar todos
+      equiposMap[id]._grupos[a.grupo] = true;
+      equiposMap[id].grupo = Object.keys(equiposMap[id]._grupos).sort().join(' / ');
 
       equiposMap[id].integrantes.push(a.nombre || a.matricula);
 
@@ -88,7 +93,10 @@
       }
     });
 
-    var equiposMapped = Object.values(equiposMap);
+    var equiposMapped = Object.values(equiposMap).map(function (e) {
+      delete e._grupos;
+      return e;
+    });
 
     // Alumnos PEC sin equipo asignado
     var sinEquipo = alumnosPec
