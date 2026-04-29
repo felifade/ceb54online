@@ -20,56 +20,78 @@
   }
 
   // ── Override: getDashboardData ─────────────────────────────────────
-  // Reemplaza api.getDashboardData() para usar nuevo GAS + ACAD
+  // Fuente de verdad: ALUMNOS.equipo
+  // PEC_EQUIPOS solo se usa para enriquecer con nombre_proyecto y url_minuta
   window.api.getDashboardData = async function () {
     var results = await Promise.all([
-      get(PEC_API,  'getEquipos'),
-      get(PEC_API,  'getCalificaciones'),
-      get(ACAD_API, 'getAlumnos'),
-      get(ACAD_API, 'getGrupos'),
+      get(PEC_API,  'getEquipos'),        // catálogo: nombre, url (opcional)
+      get(PEC_API,  'getCalificaciones'), // califs capturadas
+      get(ACAD_API, 'getAlumnos'),        // fuente principal
     ]);
 
-    var equipos        = results[0].equipos        || [];
+    var catalogo       = results[0].equipos        || [];
     var calificaciones = results[1].calificaciones || [];
     var alumnos        = results[2].alumnos        || [];
-    var grupos         = results[3].grupos         || [];
 
-    // Calcular cuántas calificaciones tiene cada equipo en este parcial
-    var califPorEquipo = {};
+    // Solo semestres PEC: 1, 3, 5
+    var alumnosPec = alumnos.filter(function (a) {
+      return [1, 3, 5].indexOf(Number(a.semestre)) > -1;
+    });
+
+    // Grupos únicos de los alumnos PEC
+    var gruposSet = {};
+    alumnosPec.forEach(function (a) { if (a.grupo) gruposSet[a.grupo] = true; });
+    var grupos = Object.keys(gruposSet).sort();
+
+    // Lookup rápido: calificaciones por matrícula
+    var califPorMat = {};
     calificaciones.forEach(function (c) {
-      var k = norm(c.equipo);
-      califPorEquipo[k] = (califPorEquipo[k] || 0) + 1;
+      var k = norm(c.matricula);
+      if (!califPorMat[k]) califPorMat[k] = 0;
+      califPorMat[k]++;
     });
 
-    // Mapear equipos al formato que espera el dashboard actual
-    var equiposMapped = equipos.map(function (eq) {
-      var key = norm(eq.clave);
-      var tieneCalif = (califPorEquipo[key] || 0) > 0;
-      var turnoAbrev = eq.turno ? eq.turno.charAt(0).toUpperCase() + '.' : '';
+    // Construir equipos desde ALUMNOS:
+    // clave del PEC group = primer char del turno + semestre  → "1m", "3v", etc.
+    // id del sub-equipo   = clave_pec + "-" + número de equipo del alumno
+    var equiposMap = {};
+    alumnosPec.forEach(function (a) {
+      var subEq = String(a.equipo || '').trim();
+      if (!subEq || subEq === '0') return; // sin equipo asignado
 
-      // Integrantes: alumnos cuyo semestre+turno coinciden con el equipo
-      var integrantes = alumnos
-        .filter(function (a) {
-          return Number(a.semestre) === Number(eq.semestre) &&
-                 norm(a.turno) === norm(eq.turno);
-        })
-        .map(function (a) { return a.nombre || a.matricula; });
+      var turnoIni = norm(a.turno || '').charAt(0) || 'x';
+      var claveGrupo = String(a.semestre) + turnoIni;  // "1m", "3v", "5v"…
+      var id = claveGrupo + '-' + subEq;               // "1m-3", "3v-1"…
 
-      return {
-        id:          eq.clave,
-        grupo:       'Sem.' + eq.semestre + ' ' + turnoAbrev,
-        clave:       eq.clave,
-        semestre:    eq.semestre,
-        turno:       eq.turno,
-        nombre:      eq.nombre_proyecto || '',
-        estado:      tieneCalif ? 'Evaluado' : 'Pendiente',
-        integrantes: integrantes,
-        urlDoc:      eq.url_minuta || '',
-      };
+      if (!equiposMap[id]) {
+        // Enriquecer con catálogo PEC_EQUIPOS si existe
+        var cat = catalogo.find(function (e) { return norm(e.clave) === claveGrupo; });
+        equiposMap[id] = {
+          id:          id,
+          clave:       claveGrupo,
+          subEquipo:   subEq,
+          grupo:       'Sem.' + a.semestre + ' ' + (a.turno || '') + ' · Eq.' + subEq,
+          semestre:    a.semestre,
+          turno:       a.turno,
+          nombre:      cat ? (cat.nombre_proyecto || '') : '',
+          urlDoc:      cat ? (cat.url_minuta || '') : '',
+          integrantes: [],
+          estado:      'Pendiente',
+        };
+      }
+
+      equiposMap[id].integrantes.push(a.nombre || a.matricula);
+
+      // Marcar como Evaluado si el alumno tiene al menos una calificación
+      if (califPorMat[norm(a.matricula)]) {
+        equiposMap[id].estado = 'Evaluado';
+      }
     });
 
-    // Alumnos sin equipo (equipo vacío o 0)
-    var sinEquipo = alumnos
+    var equiposMapped = Object.values(equiposMap);
+
+    // Alumnos PEC sin equipo asignado
+    var sinEquipo = alumnosPec
       .filter(function (a) {
         var eq = String(a.equipo || '').trim();
         return !eq || eq === '0';
@@ -78,21 +100,20 @@
         return { alumno: a.nombre, grupo: a.grupo, matricula: a.matricula };
       });
 
-    // Avance global: calificaciones capturadas / (equipos × 7 materias aprox)
-    var totalEsperado = equipos.length * 7;
-    var avance = totalEsperado === 0 ? 0 : Math.round((calificaciones.length / totalEsperado) * 100);
-    avance = Math.min(avance, 100);
+    // Avance: equipos evaluados / total equipos
+    var evaluados = equiposMapped.filter(function (e) { return e.estado === 'Evaluado'; }).length;
+    var avance    = equiposMapped.length ? Math.round((evaluados / equiposMapped.length) * 100) : 0;
 
     return {
       totalGrupos:       grupos.length,
-      totalEquipos:      equipos.length,
+      totalEquipos:      equiposMapped.length,
       evaluaciones:      calificaciones,
       todasEvaluaciones: calificaciones,
       grupos:            grupos,
       equipos:           equiposMapped,
       avance:            avance,
-      directorio:        [],   // pendiente de migrar
-      programacion:      [],   // pendiente de migrar
+      directorio:        [],
+      programacion:      [],
       sinEquipo:         sinEquipo,
       config:            { parcialActivo: '1' },
       fechas:            {},
