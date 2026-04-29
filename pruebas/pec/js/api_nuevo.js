@@ -46,14 +46,25 @@
       var key = norm(eq.clave);
       var tieneCalif = (califPorEquipo[key] || 0) > 0;
       var turnoAbrev = eq.turno ? eq.turno.charAt(0).toUpperCase() + '.' : '';
+
+      // Integrantes: alumnos cuyo semestre+turno coinciden con el equipo
+      var integrantes = alumnos
+        .filter(function (a) {
+          return Number(a.semestre) === Number(eq.semestre) &&
+                 norm(a.turno) === norm(eq.turno);
+        })
+        .map(function (a) { return a.nombre || a.matricula; });
+
       return {
-        id:       eq.clave,
-        grupo:    'Sem.' + eq.semestre + ' ' + turnoAbrev,
-        clave:    eq.clave,
-        semestre: eq.semestre,
-        turno:    eq.turno,
-        nombre:   eq.nombre_proyecto || '',
-        estado:   tieneCalif ? 'Evaluado' : 'Pendiente',
+        id:          eq.clave,
+        grupo:       'Sem.' + eq.semestre + ' ' + turnoAbrev,
+        clave:       eq.clave,
+        semestre:    eq.semestre,
+        turno:       eq.turno,
+        nombre:      eq.nombre_proyecto || '',
+        estado:      tieneCalif ? 'Evaluado' : 'Pendiente',
+        integrantes: integrantes,
+        urlDoc:      eq.url_minuta || '',
       };
     });
 
