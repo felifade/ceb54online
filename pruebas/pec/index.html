@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <script>const APP_VERSION = "v20260418";</script>
+  <script>if(new URLSearchParams(location.search).get('d2embed')==='1')document.documentElement.classList.add('d2-embedded');</script>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión PEC — PRUEBAS | CEB 5/4</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <link rel="stylesheet" href="css/style.css?v=20260418">
+    <link rel="stylesheet" href="css/calendario.css?v=20260418">
+    <script src="js/auth.js?v=20260418"></script>
+</head>
+<body>
+    <div id="app" class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-text">PEC 5/4</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <!-- Portal Informativo PEC como Vista Principal -->
+                <a href="#" class="nav-item active" data-view="pecportal" style="background: rgba(5, 150, 105, 0.1); border-left: 3px solid #059669; margin-bottom: 0.5rem;">
+                    <i data-feather="info"></i>
+                    <span>Portal Proyectos (PEC)</span>
+                </a>
+
+                <a href="#" class="nav-item" data-view="dashboard">
+                    <i data-feather="grid"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="#" class="nav-item" data-view="rapida">
+                    <i data-feather="eye"></i>
+                    <span>Vista Rápida</span>
+                </a>
+
+                <!-- Captura: acción principal -->
+                <a href="#" class="nav-item" data-view="grupos" style="background: rgba(234, 179, 8, 0.12); border-left: 3px solid #eab308; position: relative;">
+                    <i data-feather="users"></i>
+                    <span>Captura</span>
+                </a>
+
+                <!-- Editar Capturas: sub-acción de Captura -->
+                <a href="#" class="nav-item" data-view="edicion" style="padding-left: 2.25rem; font-size: 0.88rem; opacity: 0.85; border-left: 2px solid rgba(234,179,8,0.3); margin-left: 0.5rem;">
+                    <i data-feather="edit"></i>
+                    <span>Editar capturas</span>
+                </a>
+
+                <a href="calificaciones.html" class="nav-item">
+                    <i data-feather="star"></i>
+                    <span>Calificaciones PEC</span>
+                </a>
+
+                <!-- Separador -->
+                <div style="height: 1px; background: rgba(255,255,255,0.08); margin: 0.75rem 0;"></div>
+
+                <a href="#" class="nav-item" data-view="directorio">
+                    <i data-feather="map"></i>
+                    <span>Directorio Escolar</span>
+                </a>
+
+                <a href="#" class="nav-item" data-view="auditoria">
+                    <i data-feather="shield"></i>
+                    <span>Auditoría Academia</span>
+                </a>
+
+                <a href="#" class="nav-item" onclick="logout()" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; color: #fda4af;">
+                    <i data-feather="log-out"></i>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <span style="display:inline-block;background:#F59E0B;color:#000;font-size:.65rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;padding:3px 10px;border-radius:99px;margin-bottom:8px;">PRUEBAS</span>
+                <p style="margin-top:6px;">Centro de Estudios de Bachillerato<br>CEB 5/4</p>
+                <a href="../../index.html" style="color: #67A8DB; font-weight: 600; margin-top: 15px; display: inline-block; font-size: 0.85rem;">Volver al Sitio Web Principal</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="topbar">
+                <button id="menu-toggle" class="btn-icon">
+                    <i data-feather="menu"></i>
+                </button>
+                <div class="topbar-title">
+                    <h1 id="view-title" class="page-title">Portal Proyectos (PEC)</h1>
+                </div>
+                <div class="user-info">
+                <div class="topbar-user">
+                    <div class="avatar">
+                        <i data-feather="user"></i>
+                    </div>
+                    <span id="topbar-user-name">Docente PEC</span>
+                </div>
+            </header>
+
+            <!-- Loading Overlay -->
+            <div id="loading" class="loading-overlay hidden">
+                <div class="spinner"></div>
+                <p>Procesando con Google Sheets...</p>
+            </div>
+
+            <!-- Views Container -->
+            <div id="views-container" class="views-wrapper">
+                
+                <!-- View: Portal PEC — Landing institucional -->
+                <section id="view-pecportal" class="view active">
+
+                    <style>
+                    .pec-sem-tabs { display:flex; gap:.5rem; margin-bottom:1.75rem; flex-wrap:wrap; }
+                    .pec-sem-btn {
+                        padding:.55rem 1.4rem; border-radius:10px; border:1.5px solid #e2e8f0;
+                        background:#fff; color:#475569; font-family:inherit; font-size:.9rem;
+                        font-weight:700; cursor:pointer; transition:all .18s;
+                    }
+                    .pec-sem-btn.active {
+                        background:#059669; color:#fff; border-color:#059669;
+                        box-shadow:0 3px 10px rgba(5,150,105,.28);
+                    }
+                    .pec-sem-pane { display:none; }
+                    .pec-sem-pane.active { display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:1.5rem; }
+
+                    .pec-project-card {
+                        background:#fff; border-radius:20px; padding:2rem 2rem 1.75rem;
+                        border:1px solid #e2e8f0;
+                        box-shadow:0 4px 20px rgba(0,0,0,.06);
+                        display:flex; flex-direction:column; gap:1.25rem;
+                    }
+                    .pec-turno-badge {
+                        display:inline-flex; align-items:center; gap:7px;
+                        padding:5px 14px; border-radius:20px;
+                        font-size:.72rem; font-weight:800; text-transform:uppercase;
+                        letter-spacing:.5px; width:fit-content;
+                    }
+                    .pec-turno-badge.mat { background:#fef3c7; color:#92400e; }
+                    .pec-turno-badge.ves { background:#e0f2fe; color:#075985; }
+                    .pec-turno-badge.uni { background:#f0fdf4; color:#166534; }
+
+                    .pec-project-title {
+                        font-family:'Outfit',sans-serif; font-size:1.65rem; font-weight:800;
+                        color:#0f172a; line-height:1.2; margin:0;
+                    }
+                    .pec-project-obj {
+                        font-size:.92rem; color:#475569; line-height:1.65;
+                        margin:0; padding:.9rem 1rem; background:#f8fafc;
+                        border-radius:10px; border-left:3px solid #059669;
+                    }
+                    .pec-actions { display:flex; flex-direction:column; gap:.65rem; margin-top:.25rem; }
+                    .pec-action-btn {
+                        display:inline-flex; align-items:center; gap:.55rem;
+                        padding:.65rem 1.25rem; border-radius:11px;
+                        font-size:.875rem; font-weight:700; font-family:inherit;
+                        text-decoration:none; border:1.5px solid transparent;
+                        transition:transform .15s, box-shadow .15s, background .15s;
+                        cursor:pointer;
+                    }
+                    .pec-action-btn:hover { transform:translateY(-2px); }
+                    .pec-action-btn svg { flex-shrink:0; }
+                    .pec-btn-minuta     { background:#f0f9ff; color:#0369a1; border-color:#7dd3fc; }
+                    .pec-btn-minuta:hover     { background:#e0f2fe; border-color:#0369a1; box-shadow:0 4px 12px rgba(3,105,161,.18); }
+                    .pec-btn-presentacion { background:#fdf4ff; color:#7c3aed; border-color:#c4b5fd; }
+                    .pec-btn-presentacion:hover { background:#ede9fe; border-color:#7c3aed; box-shadow:0 4px 12px rgba(124,58,237,.18); }
+                    .pec-btn-proyecto   { background:#f0fdf4; color:#166534; border-color:#86efac; }
+                    .pec-btn-proyecto:hover   { background:#dcfce7; border-color:#16a34a; box-shadow:0 4px 12px rgba(22,163,74,.18); }
+                    .pec-btn-disabled   { opacity:.4; pointer-events:none; }
+                    .pec-loading-card   { text-align:center; color:#94a3b8; padding:3rem 1rem; font-size:.9rem; font-style:italic; }
+                    </style>
+
+                    <!-- Pestañas de semestre -->
+                    <div class="pec-sem-tabs">
+                        <button class="pec-sem-btn active" onclick="pecSwitchSem('2',this)">2do Semestre</button>
+                        <button class="pec-sem-btn"        onclick="pecSwitchSem('4',this)">4to Semestre</button>
+                        <button class="pec-sem-btn"        onclick="pecSwitchSem('6',this)">6to Semestre</button>
+                    </div>
+
+                    <div id="pec-pane-sem-2" class="pec-sem-pane active"><div class="pec-loading-card">Cargando proyectos…</div></div>
+                    <div id="pec-pane-sem-4" class="pec-sem-pane"><div class="pec-loading-card">Cargando proyectos…</div></div>
+                    <div id="pec-pane-sem-6" class="pec-sem-pane"><div class="pec-loading-card">Cargando proyectos…</div></div>
+
+                </section>
+
+                <!-- View: Dashboard -->
+                <section id="view-dashboard" class="view hidden">
+                    
+                    <!-- Banner de Agenda del Ciclo -->
+                    <div style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white; border-radius: 20px; margin-bottom: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.1); overflow: hidden;">
+                        <div style="padding: 1rem 2rem; background: rgba(56, 189, 248, 0.05); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                            <h2 style="margin: 0; font-size: 0.85rem; color: #38bdf8; text-transform: uppercase; letter-spacing: 2px; font-weight: 800;">📅 Agenda del Ciclo</h2>
+                            <div style="font-size: 0.85rem; color: #94a3b8; font-weight: 600;">Parcial Activo: <span id="dash-fecha-parcial" style="color: #f8fafc;">-</span></div>
+                        </div>
+                        <div style="padding: 1.5rem 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                            <!-- Captura -->
+                            <div style="padding-right: 1.5rem; border-right: 1px solid rgba(255,255,255,0.1);">
+                                <div style="display: flex; align-items: center; gap: 8px; color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">
+                                    <i data-feather="edit-3" style="width: 14px;"></i> Captura
+                                </div>
+                                <div id="dash-fecha-captura" style="font-size: 1.4rem; font-weight: 800; color: #f8fafc;">Cargando...</div>
+                            </div>
+                            <!-- Aclaraciones -->
+                            <div style="padding-right: 1.5rem; border-right: 1px solid rgba(255,255,255,0.1);">
+                                <div style="display: flex; align-items: center; gap: 8px; color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">
+                                    <i data-feather="message-circle" style="width: 14px;"></i> Aclaraciones
+                                </div>
+                                <div id="dash-fecha-aclaracion" style="font-size: 1.4rem; font-weight: 800; color: #f8fafc;">--</div>
+                            </div>
+                            <!-- Cierre -->
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 8px; color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">
+                                    <i data-feather="lock" style="width: 14px;"></i> Cierre
+                                </div>
+                                <div id="dash-fecha-cierre" style="font-size: 1.4rem; font-weight: 800; color: #f8fafc;">--</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon"><i data-feather="hash"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-title">Total Grupos</span>
+                                <h3 class="stat-value" id="dash-grupos">-</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i data-feather="users"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-title">Equipos Activos</span>
+                                <h3 class="stat-value" id="dash-equipos">-</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i data-feather="check-circle"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-title">Evaluaciones</span>
+                                <h3 class="stat-value" id="dash-evaluaciones">-</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card highlight">
+                            <div class="stat-icon"><i data-feather="activity"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-title">Avance Global</span>
+                                <h3 class="stat-value" id="dash-avance">-</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-panels">
+                        <div class="panel">
+                            <h2>Distribución de Grupos</h2>
+                            <div id="dash-lista-grupos" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem;">
+                                <!-- Tags inyectados por JS -->
+                            </div>
+                        </div>
+                        <div class="panel">
+                            <h2>Equipos Pendientes vs Evaluados</h2>
+                            <div id="dash-avance-equipos" style="margin-top: 1rem;">
+                                <!-- ProgressBar / Info inyectada por JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel de Diagnóstico -->
+                    <div class="panel" style="margin-top: 1.5rem; border-left: 4px solid #ef4444;" id="panel-diagnostico">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h2 style="color: #ef4444; margin: 0;">⚠️ Alumnos sin Equipo Asignado</h2>
+                            <span id="badge-sin-equipo" style="background: #fee2e2; color: #b91c1c; padding: 4px 12px; border-radius: 999px; font-weight: 600; font-size: 0.85rem;">0 alumnos</span>
+                        </div>
+                        <p style="font-size: 0.85rem; color: #64748b; margin-top: -0.5rem; margin-bottom: 1rem;">Alumnos de la hoja "Alumnos" que no tienen número de equipo asignado o está en 0.</p>
+                        <div id="dash-sin-equipo" style="max-height: 200px; overflow-y: auto; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
+                            <p style="text-align: center; color: #94a3b8; font-style: italic; margin: 0;">Cargando diagnóstico...</p>
+                        </div>
+                    </div>
+
+                    <!-- Panel de Ponderaciones (ARRIBA) -->
+                    <div class="panel" style="margin-top: 1.5rem;">
+                        <h2>⚖️ Ponderaciones por Parcial</h2>
+                        <p style="font-size: 0.85rem; color: #64748b; margin-top: -0.5rem; margin-bottom: 1rem;">Distribución de puntos del PEC. El total debe sumar <strong>2 puntos</strong> por turno.</p>
+                        <div style="margin-bottom: 1rem;">
+                            <label style="font-size:0.8rem; font-weight:600; color:#64748b;">Parcial:</label>
+                            <select id="pond-parcial" class="input-control" style="width: auto; min-width: 150px;">
+                                <option value="1">Parcial 1</option>
+                                <option value="2" selected>Parcial 2</option>
+                                <option value="3">Parcial 3</option>
+                            </select>
+                        </div>
+                        <div id="pond-container">
+                            <!-- Cards inyectadas por JS -->
+                        </div>
+                    </div>
+
+                    <!-- Panel de Seguimiento Docente -->
+                    <div class="panel" style="margin-top: 1.5rem;">
+                        <h2>📋 Seguimiento de Evaluaciones por Docente</h2>
+                        <p style="font-size: 0.85rem; color: #64748b; margin-top: -0.5rem; margin-bottom: 1rem;">Muestra qué maestros ya evaluaron y cuáles faltan, por grupo y parcial.</p>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                            <div>
+                                <label style="font-size:0.8rem; font-weight:600; color:#64748b;">Parcial:</label>
+                                <select id="seg-parcial" class="input-control" style="width: auto; min-width: 150px;">
+                                    <option value="1">Parcial 1</option>
+                                    <option value="2" selected>Parcial 2</option>
+                                    <option value="3">Parcial 3</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; font-weight:600; color:#64748b;">Grupo:</label>
+                                <select id="seg-grupo" class="input-control" style="width: auto; min-width: 150px;">
+                                    <option value="">-- Todos los grupos --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="seg-tabla-container" style="overflow-x: auto;">
+                            <!-- Tabla inyectada por JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- View: Grupos -->
+                <section id="view-grupos" class="view hidden">
+                    
+                    <!-- Manual / Guía Rápida PEC -->
+                    <div style="background-color: #f0f9ff; border-left: 4px solid #0284c7; padding: 1.5rem; margin-bottom: 1.5rem; border-radius: 0 8px 8px 0; font-size: 0.9rem; color: #0c4a6e; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <h3 style="margin-top: 0; display: flex; align-items: center; gap: 8px; font-size: 1.1rem; color: #0369a1;">
+                            <i data-feather="info" style="width: 20px;"></i> Guía Rápida de Captura PEC <span style="background: #eab308; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;">v6.0 (Directorio Autónomo)</span>
+                        </h3>
+                        <p style="margin-bottom: 0.5rem;"><strong>1. Tu Grupo:</strong> Elige tu grupo asignado en el menú (Solo verás los grupos donde el directorio te tiene registrado/a).</p>
+                        <p style="margin-bottom: 0.5rem;"><strong>2. Encuentra al Equipo:</strong> Busca el equipo al que vas a calificar y presiona el botón <span style="background: #10b981; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;">Evaluar Equipo</span>.</p>
+                        <p style="margin-bottom: 0;"><strong>3. Califica:</strong> Escoge tu asignatura (si no aparece, es que no evalúas en este parcial), captura una calificación del 0 al 10 y da clic en Guardar. El sistema le replicará tu calificación a todos los integrantes.</p>
+                    </div>
+
+                    <div class="panel filters-bar">
+                        <div style="flex-grow: 1;">
+                            <label for="select-grupo">Selecciona un Grupo:</label>
+                            <select id="select-grupo" class="input-control">
+                                <option value="">-- Elige un grupo para ver el PEC --</option>
+                                <!-- Opciones inyectadas -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="equipos-container" class="equipos-grid hidden">
+                        <!-- Tarjetas de equipos inyectadas por JS -->
+                    </div>
+                </section>
+
+                <!-- Modal/View: Captura de Calificaciones -->
+                <div id="modal-captura" class="modal hidden">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2 id="modal-equipo-nombre">Evaluar Equipo</h2>
+                            <button class="btn-icon close-modal"><i data-feather="x"></i></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="info-alert">
+                                <strong>Consultar PEC:</strong> <a href="#" id="modal-equipo-link" target="_blank">Abrir Documento del Equipo <i data-feather="external-link" style="width: 14px;"></i></a>
+                            </div>
+                            
+                            <form id="form-evaluacion" class="eval-form">
+                                <input type="hidden" id="eval-equipo-id">
+                                <input type="hidden" id="eval-equipo-nombre">
+                                <input type="hidden" id="eval-grupo-id">
+                                
+                                <div class="form-group">
+                                    <label>Docente Evaluador:</label>
+                                    <input type="text" id="eval-docente" required placeholder="Ej: Profr. Juan Pérez" class="input-control border-focus">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Periodo (Parcial a evaluar):</label>
+                                    <select id="eval-parcial" required class="input-control border-focus">
+                                        <option value="1">Primer Parcial</option>
+                                        <option value="2" selected>Segundo Parcial</option>
+                                        <option value="3">Tercer Parcial</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Materia u horas a evaluar:</label>
+                                    <select id="eval-materia" required class="input-control border-focus">
+                                        <option value="">Selecciona tu materia...</option>
+                                    </select>
+                                    <div id="eval-ponderacion-hint"></div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Calificación General del Equipo (0 a 10):</label>
+                                    <input type="number" id="eval-puntaje" required min="0" max="10" step="0.1" placeholder="Ej: 8.5" class="input-control border-focus puntaje-input">
+                                </div>
+
+                                <div class="form-group">
+                                    <label style="font-size: 0.9rem; margin-bottom: 0.5rem; display: block; color: #475569;">Evaluación Individual (Modifica sólo si algún alumno tuvo desempeño diferente al resto del equipo):</label>
+                                    <div id="eval-evaluacion-individual" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
+                                        <!-- Inputs de alumnos inyectados por JS -->
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="margin-top: 1rem;">
+                                    <label>Observaciones (Desempeño general):</label>
+                                    <textarea id="eval-obs" rows="3" placeholder="Muy buen sustento teórico..." class="input-control border-focus"></textarea>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-outline close-modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-primary"><i data-feather="save"></i> Enviar a Sheets</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- View: Concentrado -->
+                <section id="view-concentrado" class="view hidden">
+                    <div class="panel">
+                        <div class="panel-header-flex">
+                            <div>
+                                <h2>Concentrado General de Calificaciones PEC</h2>
+                                <p style="font-size: 0.9rem; color: #64748b;">Visualización en tiempo real de los datos en Google Sheets.</p>
+                            </div>
+                            <button id="btn-exportar" class="btn btn-secondary"><i data-feather="download"></i> Excel / CSV</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table" id="tabla-concentrado">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha Hora</th>
+                                        <th>Parcial</th>
+                                        <th>Grupo</th>
+                                        <th>Equipo</th>
+                                        <th>Materia</th>
+                                        <th>Docente</th>
+                                        <th>Puntaje</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Filas inyectadas -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- View: Directorio -->
+                <section id="view-directorio" class="view hidden">
+                    <!-- Contenido renderizado por JS -->
+                </section>
+
+                <!-- View: Vista Rápida -->
+                <section id="view-rapida" class="view hidden">
+                    <div class="panel">
+                        <div class="panel-header-flex">
+                            <div>
+                                <h2>Vista Rápida: Grupos y Equipos</h2>
+                                <p style="font-size: 0.9rem; color: #64748b;">Estructura completa de todos los equipos registrados en el sistema PEC.</p>
+                            </div>
+                            <div id="rapida-stats" style="display:flex; gap:1rem; font-size:0.85rem; font-weight:700;">
+                                <!-- Stats globales rápidos -->
+                            </div>
+                        </div>
+                        <div id="lista-rapida-container" style="display: flex; flex-direction: column; gap: 2rem; margin-top: 1.5rem;">
+                            <!-- Lista continua de grupos inyectada por JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- View: Edición Posterior de Capturas -->
+                <section id="view-edicion" class="view hidden">
+                    <!-- Contenido renderizado por app_edicion.js -->
+                </section>
+
+                <!-- View: Auditoría Academia -->
+                <section id="view-auditoria" class="view hidden">
+                    <div class="stats-grid">
+                        <!-- Stats inyectados por JS -->
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Portal PEC: tabs de semestre + render de tarjetas -->
+    <script>
+    function pecSwitchSem(sem, btn) {
+        document.querySelectorAll('.pec-sem-pane').forEach(function(p){ p.classList.remove('active'); });
+        document.querySelectorAll('.pec-sem-btn').forEach(function(b){ b.classList.remove('active'); });
+        var pane = document.getElementById('pec-pane-sem-' + sem);
+        if (pane) pane.classList.add('active');
+        if (btn) btn.classList.add('active');
+    }
+
+    function _pecCardHtml(key, badgeCls, badgeLabel, badgeIcon, config) {
+        var nombre  = config['pec_' + key + '_nombre']  || 'Proyecto PEC';
+        var obj     = config['pec_' + key + '_objetivo'] || 'Desarrollando habilidades para el bienestar comunitario.';
+        var urlDoc  = config['pec_' + key + '_url'] || config['pec_' + key + '_documento'] || '';
+
+        var btnProyecto = urlDoc
+            ? '<a href="' + urlDoc + '" target="_blank" rel="noopener" class="pec-action-btn pec-btn-proyecto">' +
+              '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
+              'Abrir proyecto</a>'
+            : '<span class="pec-action-btn pec-btn-proyecto pec-btn-disabled">' +
+              '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
+              'Abrir proyecto</span>';
+
+        return '<div class="pec-project-card">' +
+            '<div class="pec-turno-badge ' + badgeCls + '">' + badgeIcon + ' ' + badgeLabel + '</div>' +
+            '<h2 class="pec-project-title">' + nombre + '</h2>' +
+            '<p class="pec-project-obj">' + obj + '</p>' +
+            '<div class="pec-actions">' +
+                '<a href="minutas_pec.html" target="_blank" rel="noopener" class="pec-action-btn pec-btn-minuta">' +
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
+                    'Abrir minuta de trabajo' +
+                '</a>' +
+                '<a href="presentacion_pec.html" target="_blank" rel="noopener" class="pec-action-btn pec-btn-presentacion">' +
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>' +
+                    'Presentación final' +
+                '</a>' +
+                btnProyecto +
+            '</div>' +
+        '</div>';
+    }
+
+    (async function initPecPortal() {
+        var retries = 0;
+        var pecApi = null;
+        while (retries < 30) {
+            pecApi = window.api || (typeof api !== 'undefined' ? api : null);
+            if (pecApi) break;
+            await new Promise(function(r){ setTimeout(r, 200); });
+            retries++;
+        }
+        if (!pecApi) return;
+
+        try {
+            var data   = await pecApi.getDashboardData();
+            var config = data.config || {};
+
+            var sunSvg  = '☀️';
+            var moonSvg = '🌙';
+
+            document.getElementById('pec-pane-sem-2').innerHTML =
+                _pecCardHtml('2m', 'mat', 'Matutino',   sunSvg,  config) +
+                _pecCardHtml('2v', 'ves', 'Vespertino',  moonSvg, config);
+
+            document.getElementById('pec-pane-sem-4').innerHTML =
+                _pecCardHtml('4m', 'mat', 'Matutino',   sunSvg,  config) +
+                _pecCardHtml('4v', 'ves', 'Vespertino',  moonSvg, config);
+
+            document.getElementById('pec-pane-sem-6').innerHTML =
+                _pecCardHtml('6',  'uni', 'Ambos turnos', '🌿',   config);
+
+        } catch(e) {
+            ['2','4','6'].forEach(function(s){
+                var p = document.getElementById('pec-pane-sem-' + s);
+                if (p) p.innerHTML = '<div class="pec-loading-card">No fue posible cargar los proyectos.</div>';
+            });
+        }
+    })();
+    </script>
+
+    <!-- Scripts -->
+    <script src="js/mock-data.js?v=20260418"></script>
+    <script src="js/api_v3.js?v=20260418"></script>
+    <script src="js/app_v6.js?v=20260418"></script>
+    <script src="js/app_edicion.js?v=20260418"></script>
+    <script src="js/app_auditoria.js?v=20260418"></script>
+    <script src="js/app_directorio_v2.js?v=20260418"></script>
+</body>
+</html>

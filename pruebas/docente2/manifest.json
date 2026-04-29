@@ -1,0 +1,27 @@
+{
+  "name": "Docente 2.0 — CEB 5/4",
+  "short_name": "Docente 2.0",
+  "description": "Portal docente digital del Centro de Bachillerato 5/4 Profr. Rafael Ramírez",
+  "start_url": "/docente2/",
+  "scope": "/docente2/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#4f46e5",
+  "orientation": "portrait-primary",
+  "lang": "es",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/docente2/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/docente2/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
