@@ -1,0 +1,386 @@
+/* pruebas/docente2/css/mod-tutorias.css
+   CSS del módulo Tutorías — aislado bajo #d2-mod-tutorias
+   para no interferir con el layout de Docente 2.0.
+   Reemplaza la carga global de tutorias/css/style.css.        */
+
+/* ── Variables locales (copias de --clr-* de tutorias) ──────── */
+#d2-mod-tutorias {
+  --clr-primary:       #059669;
+  --clr-primary-dark:  #065f46;
+  --clr-primary-light: #34d399;
+  --clr-secondary:     #0ea5e9;
+  --clr-bg:            #f8fafc;
+  --clr-sidebar:       #ffffff;
+  --clr-text:          #1e293b;
+  --clr-text-light:    #64748b;
+  --clr-white:         #ffffff;
+  --clr-danger:        #ef4444;
+  --clr-success:       #22c55e;
+  --shadow-sm:         0 1px 3px rgba(0,0,0,0.1);
+  --shadow-md:         0 4px 6px -1px rgba(0,0,0,0.1);
+  --radius-md:         12px;
+  --radius-lg:         16px;
+}
+
+/* ── Padding del contenedor de vistas ───────────────────────── */
+#tut-mod-inner { padding: 0 0.25rem; }
+
+/* ── Visibilidad de vistas ──────────────────────────────────── */
+#d2-mod-tutorias .view         { display: block; }
+#d2-mod-tutorias .view.hidden  { display: none !important; }
+
+/* ── Stats Grid ─────────────────────────────────────────────── */
+#d2-mod-tutorias .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+#d2-mod-tutorias .stat-card {
+  background: var(--clr-white);
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  border: 1px solid #f1f5f9;
+}
+#d2-mod-tutorias .stat-icon {
+  width: 54px; height: 54px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+#d2-mod-tutorias .stat-info .stat-value {
+  font-size: 1.5rem; font-weight: 800;
+  color: var(--clr-text); display: block;
+}
+#d2-mod-tutorias .stat-info .stat-label {
+  font-size: 0.875rem; color: var(--clr-text-light); font-weight: 500;
+}
+
+/* ── Loader global ──────────────────────────────────────────── */
+#d2-mod-tutorias .tut-global-loader {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 0.6rem; padding: 3.5rem 2rem;
+  background: white; border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  margin-bottom: 1.5rem;
+}
+#d2-mod-tutorias .tut-global-loader.hidden { display: none !important; }
+#d2-mod-tutorias .tut-loader-spinner {
+  width: 30px; height: 30px;
+  border: 3px solid #e2e8f0;
+  border-top-color: var(--clr-primary);
+  border-radius: 50%;
+  animation: tut-spin 0.75s linear infinite;
+}
+@keyframes tut-spin { to { transform: rotate(360deg); } }
+#d2-mod-tutorias .tut-loader-text { font-size: 0.95rem; font-weight: 700; color: #1e293b; margin-top: 0.25rem; }
+#d2-mod-tutorias .tut-loader-sub  { font-size: 0.78rem; color: #94a3b8; }
+
+/* ── Formulario de captura — 2 columnas ─────────────────────── */
+#d2-mod-tutorias .capture-form {
+  display: flex; flex-direction: row;
+  gap: 0.75rem; align-items: stretch;
+  max-width: none;
+}
+#d2-mod-tutorias .cap-col-left {
+  flex: 1; display: flex; flex-direction: column;
+  gap: 0.65rem; min-width: 0;
+}
+#d2-mod-tutorias .cap-col-left .form-actions { margin: 0; padding-top: 0; }
+#d2-mod-tutorias .cap-col-right {
+  flex: 1; display: flex; flex-direction: column; min-width: 0;
+}
+#d2-mod-tutorias .cap-col-right .cap-card {
+  flex: 1; display: flex; flex-direction: column;
+}
+#d2-mod-tutorias .cap-col-right .students-list {
+  flex: 1; max-height: none; min-height: 180px;
+}
+
+/* ── Tarjeta base ───────────────────────────────────────────── */
+#d2-mod-tutorias .cap-card {
+  background: white; border-radius: 16px;
+  padding: 1rem 1.2rem; margin-bottom: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border: 1px solid #f1f5f9; transition: box-shadow 0.2s;
+}
+#d2-mod-tutorias .cap-card:focus-within { box-shadow: 0 4px 20px rgba(0,0,0,0.09); }
+#d2-mod-tutorias .cap-card-head {
+  display: flex; align-items: center; gap: 0.7rem;
+  margin-bottom: 0.8rem; padding-bottom: 0.6rem;
+  border-bottom: 1px solid #f8fafc;
+}
+#d2-mod-tutorias .cap-icon {
+  width: 34px; height: 34px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+#d2-mod-tutorias .cap-title {
+  font-size: 0.87rem; font-weight: 700; color: #1e293b;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+#d2-mod-tutorias .cap-sub { font-size: 0.72rem; color: #94a3b8; margin-top: 2px; }
+
+/* ── Badge contador ─────────────────────────────────────────── */
+#d2-mod-tutorias .count-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--clr-primary); color: white;
+  font-size: 0.7rem; font-weight: 800;
+  min-width: 20px; height: 20px; padding: 0 6px;
+  border-radius: 999px;
+}
+
+/* ── Campo ──────────────────────────────────────────────────── */
+#d2-mod-tutorias .cap-field { margin-bottom: 0; }
+#d2-mod-tutorias .cap-field label {
+  display: block; font-size: 0.74rem; font-weight: 700;
+  color: #64748b; text-transform: uppercase;
+  letter-spacing: 0.04em; margin-bottom: 0.4rem;
+}
+#d2-mod-tutorias .req { color: #ef4444; }
+#d2-mod-tutorias .cap-row-2 {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;
+}
+
+/* ── Inputs, selects, textareas dentro del módulo ───────────── */
+#d2-mod-tutorias input:not([type="radio"]):not([type="checkbox"]),
+#d2-mod-tutorias select,
+#d2-mod-tutorias textarea {
+  width: 100%; padding: 0.55rem 0.8rem;
+  border: 1.5px solid #e2e8f0; border-radius: 8px;
+  font-size: 0.88rem; font-family: inherit;
+  transition: border-color 0.2s; background: white;
+  color: #1e293b; box-sizing: border-box;
+}
+#d2-mod-tutorias input:focus,
+#d2-mod-tutorias select:focus,
+#d2-mod-tutorias textarea:focus {
+  outline: none; border-color: var(--clr-primary);
+  box-shadow: 0 0 0 3px rgba(5,150,105,0.1);
+}
+
+/* ── Parcial grid ───────────────────────────────────────────── */
+#d2-mod-tutorias .parcial-grid {
+  display: flex; gap: 0.5rem;
+}
+#d2-mod-tutorias .parcial-card {
+  flex: 1; display: flex; flex-direction: row;
+  align-items: center; justify-content: flex-start;
+  padding: 0.45rem 0.75rem; border-radius: 9px;
+  border: 2px solid #e2e8f0; background: #fafafa;
+  cursor: pointer; transition: all 0.22s; gap: 0.5rem; user-select: none;
+}
+#d2-mod-tutorias .parcial-card input[type="radio"] { display: none; }
+#d2-mod-tutorias .parcial-num { font-size: 1.15rem; font-weight: 800; line-height: 1; transition: color 0.2s; }
+#d2-mod-tutorias .parcial-lbl { font-size: 0.68rem; font-weight: 600; color: #94a3b8; text-align: left; transition: color 0.2s; }
+
+#d2-mod-tutorias .parcial-card.p1 .parcial-num { color: #f59e0b; }
+#d2-mod-tutorias .parcial-card.p2 .parcial-num { color: #3b82f6; }
+#d2-mod-tutorias .parcial-card.p3 .parcial-num { color: #8b5cf6; }
+
+#d2-mod-tutorias .parcial-card.p1:has(input:checked) { border-color: #f59e0b; background: #fffbeb; box-shadow: 0 4px 16px rgba(245,158,11,0.2); }
+#d2-mod-tutorias .parcial-card.p2:has(input:checked) { border-color: #3b82f6; background: #eff6ff; box-shadow: 0 4px 16px rgba(59,130,246,0.2); }
+#d2-mod-tutorias .parcial-card.p3:has(input:checked) { border-color: #8b5cf6; background: #f5f3ff; box-shadow: 0 4px 16px rgba(139,92,246,0.2); }
+#d2-mod-tutorias .parcial-card:has(input:checked) .parcial-lbl { color: #475569; font-weight: 700; }
+#d2-mod-tutorias .parcial-card.p1:hover:not(:has(input:checked)) { border-color: #fcd34d; background: #fffdf5; }
+#d2-mod-tutorias .parcial-card.p2:hover:not(:has(input:checked)) { border-color: #93c5fd; background: #f8fbff; }
+#d2-mod-tutorias .parcial-card.p3:hover:not(:has(input:checked)) { border-color: #c4b5fd; background: #faf9ff; }
+
+/* ── Búsqueda de alumnos ─────────────────────────────────────── */
+#d2-mod-tutorias .search-bar-wrap { margin-bottom: 0.5rem; }
+#d2-mod-tutorias .search-field { position: relative; }
+#d2-mod-tutorias .search-ico {
+  position: absolute; left: 12px; top: 50%;
+  transform: translateY(-50%); width: 16px; height: 16px;
+  color: #94a3b8; pointer-events: none;
+}
+#d2-mod-tutorias .search-field input { padding-left: 2.4rem; border-radius: 12px; }
+#d2-mod-tutorias .search-field input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+
+/* ── Fila manual ─────────────────────────────────────────────── */
+#d2-mod-tutorias .manual-row {
+  display: flex; gap: 0.4rem; align-items: center;
+  margin-bottom: 0.5rem; padding: 0.35rem 0.6rem;
+  background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;
+}
+#d2-mod-tutorias .manual-ico { width: 16px; height: 16px; color: #94a3b8; flex-shrink: 0; }
+#d2-mod-tutorias .manual-row input {
+  flex: 1; background: transparent; border: none;
+  font-size: 0.82rem; padding: 0; width: auto; box-shadow: none;
+}
+#d2-mod-tutorias .manual-row input:focus { outline: none; box-shadow: none; border-color: transparent; }
+
+/* ── Botón sexo toggle ───────────────────────────────────────── */
+#d2-mod-tutorias .sexo-toggle-btn {
+  flex-shrink: 0; width: 38px; height: 34px;
+  border-radius: 8px; border: 1.5px solid;
+  font-weight: 800; font-size: 0.82rem; cursor: pointer; transition: all 0.18s;
+}
+#d2-mod-tutorias .sexo-toggle-btn.sexo-H { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+#d2-mod-tutorias .sexo-toggle-btn.sexo-H:hover { background: #2563eb; color: white; }
+#d2-mod-tutorias .sexo-toggle-btn.sexo-F { background: #fdf2f8; color: #be185d; border-color: #fbcfe8; }
+#d2-mod-tutorias .sexo-toggle-btn.sexo-F:hover { background: #be185d; color: white; }
+
+/* ── Botón añadir manual ─────────────────────────────────────── */
+#d2-mod-tutorias .btn-add-manual {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 0.45rem 0.8rem;
+  background: var(--clr-primary); color: white;
+  border: none; border-radius: 8px;
+  font-size: 0.78rem; font-weight: 700; cursor: pointer;
+  transition: background 0.2s; white-space: nowrap;
+}
+#d2-mod-tutorias .btn-add-manual:hover { background: var(--clr-primary-dark); }
+
+/* ── Botón seleccionar todos ─────────────────────────────────── */
+#d2-mod-tutorias .btn-sel-all {
+  background: none; border: 1px solid #e2e8f0;
+  color: #64748b; font-size: 0.78rem; font-weight: 600;
+  cursor: pointer; padding: 0.3rem 0.75rem;
+  border-radius: 8px; white-space: nowrap; transition: all 0.18s;
+}
+#d2-mod-tutorias .btn-sel-all:hover { background: #f1f5f9; color: #1e293b; }
+
+/* ── Lista de alumnos ───────────────────────────────────────── */
+#d2-mod-tutorias .students-list {
+  border: 1.5px solid #e2e8f0; border-radius: 14px;
+  background: #fafafa; min-height: 72px; max-height: 280px; overflow-y: auto;
+}
+#d2-mod-tutorias .students-empty {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 0.6rem; padding: 2rem;
+  color: #94a3b8; text-align: center;
+}
+#d2-mod-tutorias .students-empty p { font-size: 0.83rem; margin: 0; }
+#d2-mod-tutorias .student-item {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.65rem 1rem; border-bottom: 1px solid #f1f5f9;
+  background: white; transition: background 0.15s; cursor: pointer;
+}
+#d2-mod-tutorias .student-item:last-child  { border-bottom: none; }
+#d2-mod-tutorias .student-item:first-child { border-radius: 14px 14px 0 0; }
+#d2-mod-tutorias .student-item:only-child  { border-radius: 14px; }
+#d2-mod-tutorias .student-item.selected    { background: #f0fdf4; }
+#d2-mod-tutorias .student-item:hover:not(.selected) { background: #f8fafc; }
+#d2-mod-tutorias .student-item.selected:hover        { background: #dcfce7; }
+#d2-mod-tutorias .student-item input[type="checkbox"] {
+  width: 16px; height: 16px; accent-color: var(--clr-primary);
+  flex-shrink: 0; cursor: pointer;
+}
+#d2-mod-tutorias .student-avatar {
+  width: 34px; height: 34px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem; font-weight: 800; flex-shrink: 0;
+}
+#d2-mod-tutorias .student-info { flex: 1; display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
+#d2-mod-tutorias .student-name { font-size: 0.88rem; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#d2-mod-tutorias .student-group-badge { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #e0f2fe; color: #0369a1; flex-shrink: 0; }
+#d2-mod-tutorias .student-group-badge.manual { background: #fef9c3; color: #92400e; }
+#d2-mod-tutorias .sexo-badge { flex-shrink: 0; width: 30px; height: 26px; border-radius: 7px; border: 1.5px solid; font-weight: 800; font-size: 0.75rem; cursor: pointer; transition: all 0.15s; }
+#d2-mod-tutorias .sexo-badge.sexo-H { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+#d2-mod-tutorias .sexo-badge.sexo-H:hover { background: #2563eb; color: white; }
+#d2-mod-tutorias .sexo-badge.sexo-F { background: #fdf2f8; color: #be185d; border-color: #fbcfe8; }
+#d2-mod-tutorias .sexo-badge.sexo-F:hover { background: #be185d; color: white; }
+
+/* ── Option cards (Tipo / Modalidad) ─────────────────────────── */
+#d2-mod-tutorias .details-grid {
+  display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: flex-start;
+}
+#d2-mod-tutorias .details-grid .cap-field { flex: 1; min-width: 120px; }
+#d2-mod-tutorias .details-grid .asistencia-field { flex: 0 0 auto; }
+#d2-mod-tutorias .option-cards { display: flex; gap: 0.35rem; }
+#d2-mod-tutorias .opt-card {
+  flex: 1; display: flex; flex-direction: row; align-items: center;
+  justify-content: center; gap: 0.4rem; padding: 0.4rem 0.55rem;
+  border-radius: 9px; border: 2px solid #e2e8f0; background: #fafafa;
+  cursor: pointer; transition: all 0.2s; color: #64748b;
+  font-size: 0.78rem; font-weight: 600; user-select: none;
+}
+#d2-mod-tutorias .opt-card input[type="radio"] { display: none; }
+#d2-mod-tutorias .opt-card:hover { border-color: var(--clr-primary); color: var(--clr-primary); background: #f0fdf4; }
+#d2-mod-tutorias .opt-card:has(input:checked) {
+  border-color: var(--clr-primary);
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  color: var(--clr-primary-dark);
+  box-shadow: 0 3px 10px rgba(5,150,105,0.18);
+}
+#d2-mod-tutorias .opt-card i    { width: 14px !important; height: 14px !important; }
+#d2-mod-tutorias .opt-card span { font-weight: 700; font-size: 0.78rem; }
+
+/* ── Toggle asistencia ──────────────────────────────────────── */
+#d2-mod-tutorias .asistencia-field { grid-column: 1 / -1; }
+#d2-mod-tutorias .toggle-switch {
+  display: inline-flex; align-items: center; gap: 0.65rem;
+  cursor: pointer; margin: 0; user-select: none; flex-wrap: nowrap; white-space: nowrap;
+}
+#d2-mod-tutorias .toggle-switch input[type="checkbox"] { display: none; width: auto; }
+#d2-mod-tutorias .toggle-track {
+  width: 46px; height: 26px; background: #cbd5e1; border-radius: 999px;
+  position: relative; transition: background 0.25s;
+  flex-shrink: 0; overflow: hidden; display: inline-block;
+}
+#d2-mod-tutorias .toggle-switch input:checked ~ .toggle-track { background: var(--clr-primary); }
+#d2-mod-tutorias .toggle-thumb {
+  position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px; background: white; border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2); transition: transform 0.22s;
+}
+#d2-mod-tutorias .toggle-switch input:checked ~ .toggle-track .toggle-thumb { transform: translateX(20px); }
+#d2-mod-tutorias .toggle-label { font-size: 0.88rem; font-weight: 600; color: #475569; margin: 0; }
+
+/* ── Botón guardar ──────────────────────────────────────────── */
+#d2-mod-tutorias .form-actions { display: flex; justify-content: flex-end; margin-top: 0; }
+#d2-mod-tutorias .btn-submit {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 0.6rem; width: 100%; padding: 0.7rem 1rem;
+  background: linear-gradient(135deg, var(--clr-primary), #10b981);
+  color: white; border: none; border-radius: 12px;
+  font-size: 0.9rem; font-weight: 700; cursor: pointer;
+  transition: all 0.2s; box-shadow: 0 6px 20px rgba(5,150,105,0.3);
+  letter-spacing: 0.01em; font-family: inherit;
+}
+#d2-mod-tutorias .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(5,150,105,0.4); }
+#d2-mod-tutorias .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+/* ── Botón imprimir (reporte) ───────────────────────────────── */
+#d2-mod-tutorias .btn-primary {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  background: var(--clr-primary); color: white;
+  border: none; border-radius: 8px; font-size: 0.88rem; font-weight: 600;
+  cursor: pointer; transition: background 0.2s; font-family: inherit;
+}
+#d2-mod-tutorias .btn-primary:hover { background: var(--clr-primary-dark); }
+
+/* ── Historial — columna admin oculta ───────────────────────── */
+#d2-mod-tutorias .admin-only-col { display: none; }
+
+/* ── Utilidades ─────────────────────────────────────────────── */
+#d2-mod-tutorias .hidden { display: none !important; }
+
+/* ── Skeleton shimmer ───────────────────────────────────────── */
+#d2-mod-tutorias .stat-value.loading {
+  display: inline-block; width: 40px; height: 1em;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%; animation: tut-shimmer 1.4s infinite;
+  border-radius: 4px; vertical-align: middle;
+}
+@keyframes tut-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  #d2-mod-tutorias .capture-form { flex-direction: column; }
+  #d2-mod-tutorias .stats-grid   { grid-template-columns: 1fr 1fr; }
+  #d2-mod-tutorias .cap-row-2    { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  #d2-mod-tutorias .stats-grid { grid-template-columns: 1fr; }
+  #d2-mod-tutorias .option-cards { flex-wrap: wrap; }
+}

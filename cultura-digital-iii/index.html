@@ -1351,7 +1351,6 @@
 
     // Acordeón: solo aplica al maestro; alumnos siempre ven todo expandido
     function _cdExpandSection(num) {
-        if (!_cdMaestro) return;
         const lnk = document.getElementById('link-s' + num);
         if (!lnk) return;
         const activeSec = lnk.closest('.menu-section');
@@ -1420,9 +1419,8 @@
     });
   }
 
-  // ── Acordeón de parciales (solo maestro) ──
+  // ── Acordeón de parciales (docente y alumno) ──
   document.querySelectorAll('#cd-sidebar .menu-title').forEach(function(title) {
-    if (!_isMaestro) return;
     var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('class', 'cd-sec-chev');
     svg.setAttribute('viewBox', '0 0 24 24');
@@ -1432,11 +1430,10 @@
       title.closest('.menu-section').classList.toggle('cd-collapsed');
     });
   });
-  if (_isMaestro) {
-    document.querySelectorAll('#cd-sidebar .menu-section').forEach(function(sec) {
-      if (!sec.querySelector('.menu-link.active')) sec.classList.add('cd-collapsed');
-    });
-  }
+  // Colapsar secciones sin semana activa al cargar
+  document.querySelectorAll('#cd-sidebar .menu-section').forEach(function(sec) {
+    if (!sec.querySelector('.menu-link.active')) sec.classList.add('cd-collapsed');
+  });
 })();
 </script>
 

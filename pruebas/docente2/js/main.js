@@ -78,11 +78,10 @@
   var ESPECIAL_EMAILS = ['felifade@icloud.com', 'd.flopez54@dgb.edu.mx'];
   var _sabanasLoaded = false;
 
+  var ACAD_API = 'https://script.google.com/macros/s/AKfycbyeex2Txz_EdUyj9qvsi_DPet3KweejaP4KBOUEdj8GQg_HIK3aCkxsMWxzxhTuknh6/exec';
+
   /* ── DOM refs ────────────────────────────────────────── */
   var loginOverlay = document.getElementById('d2-login-overlay');
-  var loginForm    = document.getElementById('d2-login-form');
-  var loginError   = document.getElementById('d2-login-error');
-  var loginBtn     = document.getElementById('d2-login-btn');
   var app          = document.getElementById('d2-app');
   var sidebar      = document.getElementById('d2-sidebar');
   var mainArea     = document.querySelector('.d2-main');
@@ -94,61 +93,61 @@
   var pecSubnavCap    = document.getElementById('d2-pec-subnav-cap');
 
   /* ════════════════════════════════════════════════════════
-     LOGIN
+     LOGIN — Google Sign-In
   ════════════════════════════════════════════════════════ */
-  loginForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    var email    = document.getElementById('d2-email').value.trim().toLowerCase();
-    var password = document.getElementById('d2-password').value;
-
-    setLoginBusy(true);
+  window.handleGoogleSignIn = function(response) {
+    var loadEl = document.getElementById('d2-g-loading');
+    loadEl.style.display = 'flex';
     hideLoginError();
 
-    fetch(API_URL, {
-      method:  'POST',
-      body:    JSON.stringify({ action: 'login', email: email, password: password }),
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      redirect: 'follow'
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(result) {
-      if (result.status === 'success') {
-        var rol = result.rol || '';
-        if (rol === 'Administrativo') {
-          showLoginError('Este acceso es exclusivo para docentes. Ingresa desde el Portal Administrativo.');
-          return;
-        }
-        sessionStorage.setItem('tutorias_auth', 'true');
-        sessionStorage.setItem('user_name',  result.nombre || email);
-        sessionStorage.setItem('user_email', email);
-        sessionStorage.setItem('user_role',  rol || 'Docente');
-        sessionStorage.setItem('session_ts', Date.now());
-        showApp();
-      } else {
-        showLoginError(result.message || 'Credenciales incorrectas. Verifica e intenta de nuevo.');
-      }
-    })
-    .catch(function() {
-      showLoginError('Error de conexión con el servidor. Intenta de nuevo.');
-    })
-    .finally(function() {
-      setLoginBusy(false);
-    });
-  });
+    try {
+      var parts   = response.credential.split('.');
+      var b64     = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      var payload = JSON.parse(atob(b64));
+      var email   = (payload.email || '').toLowerCase().trim();
+      var nombre  = payload.name || '';
 
-  function setLoginBusy(busy) {
-    loginBtn.disabled = busy;
-    loginBtn.innerHTML = busy
-      ? '<div class="d2-spinner" style="width:16px;height:16px;border-width:2px;border-top-color:#fff;"></div> Verificando…'
-      : '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:17px;height:17px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Entrar al sistema';
-  }
+      if (!email) { showLoginError('No se pudo obtener el email de Google.'); loadEl.style.display = 'none'; return; }
+
+      var url = ACAD_API + '?action=loginGoogle&email=' + encodeURIComponent(email) + '&_t=' + Date.now();
+      fetch(url, { redirect: 'follow' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          loadEl.style.display = 'none';
+          if (data.status === 'success') {
+            var rol = data.rol || 'Docente';
+            if (rol === 'Administrativo') {
+              showLoginError('Este acceso es exclusivo para docentes.');
+              return;
+            }
+            sessionStorage.setItem('tutorias_auth', 'true');
+            sessionStorage.setItem('user_name',  data.nombre || nombre);
+            sessionStorage.setItem('user_email', email);
+            sessionStorage.setItem('user_role',  rol);
+            sessionStorage.setItem('session_ts', Date.now());
+            showApp();
+          } else {
+            showLoginError(data.message || 'Cuenta no autorizada en el sistema.');
+          }
+        })
+        .catch(function() {
+          loadEl.style.display = 'none';
+          showLoginError('Error de conexión. Intenta de nuevo.');
+        });
+    } catch(err) {
+      document.getElementById('d2-g-loading').style.display = 'none';
+      showLoginError('Error al procesar la respuesta de Google.');
+    }
+  };
 
   function showLoginError(msg) {
-    loginError.textContent = msg;
-    loginError.classList.add('show');
+    var el = document.getElementById('d2-login-error');
+    el.textContent = msg;
+    el.classList.add('show');
   }
   function hideLoginError() {
-    loginError.classList.remove('show');
+    var el = document.getElementById('d2-login-error');
+    el.classList.remove('show');
   }
 
   /* ════════════════════════════════════════════════════════
@@ -458,27 +457,12 @@
   };
 
   /* ════════════════════════════════════════════════════════
-     IFRAME — TUTORÍAS  (carga lazy, chrome oculto)
+     MÓDULO NATIVO — TUTORÍAS
   ════════════════════════════════════════════════════════ */
   function lazyLoadTutorias() {
-    var iframe = document.getElementById('d2-iframe-tutorias');
-    if (state.tutLoaded) return;                /* ya cargado */
-    if (iframe.src && iframe.src !== 'about:blank') return; /* en proceso */
-
-    iframe.onload = function() {
-      overrideIframeLogout(iframe);
-      state.tutLoaded = true;
-      hidePanelLoader('d2-tutorias-loading');
-
-      /* Restaurar última vista — pequeño delay para que d2SwitchView esté listo */
-      if (state.tutQueue) {
-        var _tq = state.tutQueue;
-        state.tutQueue = null;
-        setTimeout(function() { tutSwitchView(_tq); }, 80);
-      }
-    };
-
-    iframe.src = '../../tutorias/index.html?d2embed=1';
+    if (state.tutLoaded) return;
+    state.tutLoaded = true;
+    if (window.initTutorias) window.initTutorias();
   }
 
   /* ════════════════════════════════════════════════════════
@@ -522,19 +506,14 @@
      TAB SWITCHING — controla vista dentro del iframe
   ════════════════════════════════════════════════════════ */
 
-  /* Tutorías: selectores .nav-link[data-view="X"] */
+  /* Tutorías: pestañas nativas */
   document.getElementById('d2-tabs-tutorias').querySelectorAll('.d2-tab').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var view = btn.dataset.view;
       setTabActive('d2-tabs-tutorias', view);
       state.tutView = view;
-      if (state.tutLoaded) {
-        tutSwitchView(view);
-      } else {
-        state.tutQueue = view;
-        setLoaderSub('d2-tutorias-loading-sub', TUT_VIEW_LABELS[view] || view);
-        lazyLoadTutorias();
-      }
+      lazyLoadTutorias();   /* idempotente: solo init si es la primera vez */
+      tutSwitchView(view);
     });
   });
 
@@ -637,13 +616,8 @@
     });
   }
 
-  /* postMessage funciona tanto en file:// como en http://:
-     el iframe recibe el mensaje en su listener 'message' */
   function tutSwitchView(view) {
-    var iframe = document.getElementById('d2-iframe-tutorias');
-    if (iframe && iframe.contentWindow) {
-      iframe.contentWindow.postMessage({ type: 'd2SwitchView', view: view }, '*');
-    }
+    if (window.tutoriasShowView) window.tutoriasShowView(view);
   }
 
   function pecSwitchView(view) {

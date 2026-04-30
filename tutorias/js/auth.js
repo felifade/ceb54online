@@ -16,15 +16,13 @@
         sessionStorage.removeItem('session_ts');
     }
 
-    if (!window.location.pathname.includes('login.html')) {
-        if (!authRecord || !userEmail || expired) {
-            clearSession();
-            window.location.href = 'login.html';
-        }
+    if (!authRecord || !userEmail || expired) {
+        clearSession();
+        window.location.href = '../pruebas/docente2/index.html';
     }
 
     window.logout = function() {
         clearSession();
-        window.location.href = 'login.html';
+        window.location.href = '../pruebas/docente2/index.html';
     };
 })();
