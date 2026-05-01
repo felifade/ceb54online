@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Bloques — Join con datos reales</title>
+<style>
+html, body { height: 100%; margin: 0; padding: 0; box-sizing: border-box; }
+* { box-sizing: border-box; }
+body {
+  background: #1c1d26;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  padding: 1.2rem 1.4rem;
+  overflow: auto;
+  color: #e2e8f0;
+}
+
+.guide-title {
+  font-size: .72rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  margin-bottom: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.guide-title::before {
+  content: '';
+  display: inline-block;
+  width: 10px; height: 10px;
+  background: #ffab19;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.workspace {
+  background: #272831;
+  border-radius: 12px;
+  padding: 1.2rem 1.4rem;
+  border: 1px solid #383944;
+}
+
+/* ── Bloque evento ── */
+.blk-event {
+  background: #ffab19;
+  color: #1a1a00;
+  border: 2px solid #c47d00;
+  border-radius: 8px 8px 0 0;
+  font-size: .75rem;
+  font-weight: 700;
+}
+.blk-header {
+  padding: .4rem .9rem;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  flex-wrap: wrap;
+}
+.blk-keyword { font-style: italic; opacity: .7; font-size: .7rem; }
+.blk-component {
+  background: rgba(0,0,0,.18);
+  border-radius: 5px;
+  padding: .12rem .5rem;
+}
+.blk-dot { opacity: .5; }
+.blk-do {
+  background: rgba(0,0,0,.15);
+  padding: .3rem .75rem;
+  font-size: .64rem;
+  font-style: italic;
+  border-top: 1px solid rgba(0,0,0,.2);
+}
+.blk-body {
+  background: #1c1d26;
+  border: 2px solid #c47d00;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  padding: .8rem 1rem;
+}
+
+/* ── Bloque setter ── */
+.blk-setter-row {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: .35rem;
+  background: #4a7d4a;
+  border: 2px solid #306030;
+  border-radius: 6px;
+  padding: .4rem .7rem;
+  font-size: .73rem;
+  font-weight: 700;
+  color: #fff;
+}
+.blk-setter-row .blk-component { background: rgba(0,0,0,.25); }
+.blk-setter-to { font-style: italic; font-size: .66rem; opacity: .8; align-self: center; }
+
+/* ── Bloque JOIN ── */
+.blk-join-wrap {
+  display: flex;
+  flex-direction: column;
+  background: #a835a8;
+  border: 2px solid #7a1a7a;
+  border-radius: 6px;
+  overflow: hidden;
+  font-size: .72rem;
+  font-weight: 700;
+  color: #fff;
+  flex: 1;
+  min-width: 180px;
+}
+.blk-join-header {
+  padding: .35rem .7rem .2rem;
+  font-size: .75rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  background: rgba(0,0,0,.15);
+  border-bottom: 1px solid rgba(255,255,255,.15);
+}
+.join-gear {
+  font-size: .8rem;
+  opacity: .8;
+}
+.blk-join-slots {
+  display: flex;
+  flex-direction: column;
+  gap: .28rem;
+  padding: .55rem .75rem;
+}
+.slot {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+}
+.slot-num {
+  font-size: .6rem;
+  color: rgba(255,255,255,.45);
+  width: 14px;
+  text-align: right;
+  flex-shrink: 0;
+  font-style: italic;
+}
+/* Texto fijo (magenta oscuro) */
+.blk-text-fixed {
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: 5px;
+  padding: .2rem .5rem;
+  font-size: .7rem;
+  color: #fce7f3;
+}
+.blk-text-quote { opacity: .55; font-size: .8rem; }
+
+/* Getter de propiedad (verde) */
+.blk-getter {
+  background: #4a7d4a;
+  border: 1px solid #306030;
+  border-radius: 5px;
+  padding: .2rem .5rem;
+  font-size: .68rem;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+}
+.blk-getter .blk-component { background: rgba(0,0,0,.25); padding: .08rem .35rem; }
+
+/* ── Resultado esperado ── */
+.result-box {
+  margin-top: 1rem;
+  background: #0f2a1a;
+  border: 1.5px solid #166534;
+  border-radius: 8px;
+  padding: .6rem .9rem;
+}
+.result-label {
+  font-size: .62rem;
+  color: #4ade80;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  margin-bottom: .3rem;
+}
+.result-value {
+  font-size: .75rem;
+  color: #a5f3fc;
+  font-family: 'Courier New', monospace;
+  background: rgba(165,243,252,.05);
+  padding: .35rem .6rem;
+  border-radius: 5px;
+  border: 1px solid #164e63;
+  line-height: 1.6;
+}
+.result-value .field { color: #fde68a; }
+
+/* ── Leyenda ── */
+.legend {
+  margin-top: .9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem .85rem;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: .63rem;
+  color: #94a3b8;
+}
+.legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+/* tooltip */
+.has-tip { position: relative; cursor: help; }
+.has-tip::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 5px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0f172a;
+  color: #e2e8f0;
+  font-size: .63rem;
+  font-weight: 400;
+  font-style: normal;
+  white-space: nowrap;
+  padding: .28rem .55rem;
+  border-radius: 5px;
+  border: 1px solid #334155;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s;
+  z-index: 10;
+  max-width: 240px;
+  white-space: normal;
+  text-align: center;
+}
+.has-tip:hover::after { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="guide-title">Guía de Bloques — Hora 2: Join con datos reales</div>
+
+<div class="workspace">
+
+  <!-- Evento -->
+  <div class="blk-event">
+    <div class="blk-header has-tip" data-tip="El mismo evento del botón Guardar — ahora mostrará datos reales">
+      <span class="blk-keyword">cuando</span>
+      <span class="blk-component">BotonGuardar</span>
+      <span class="blk-dot">·</span>
+      <span style="font-weight:900;">Click</span>
+    </div>
+    <div class="blk-do">ejecutar</div>
+    <div class="blk-body">
+
+      <!-- Setter -->
+      <div class="blk-setter-row has-tip" data-tip="Setter: cambia el texto de LabelResultado — ahora con join en vez de texto fijo">
+        <span class="blk-keyword" style="font-size:.66rem;">establecer</span>
+        <span class="blk-component">LabelResultado</span>
+        <span class="blk-dot">·</span>
+        <span>Texto</span>
+        <span style="font-size:.65rem;background:rgba(0,0,0,.25);border-radius:3px;padding:.05rem .25rem;">▾</span>
+        <span class="blk-setter-to">como</span>
+
+        <!-- JOIN anidado -->
+        <div class="blk-join-wrap has-tip" style="cursor:help;" data-tip="Join: une 6 partes en una sola cadena de texto">
+          <div class="blk-join-header">
+            <span class="join-gear">⚙️</span>
+            join
+          </div>
+          <div class="blk-join-slots">
+
+            <div class="slot">
+              <span class="slot-num">1</span>
+              <span class="blk-text-fixed has-tip" data-tip="Texto fijo: etiqueta que antecede al nombre de la tarea">
+                <span class="blk-text-quote">"</span>Tarea: <span class="blk-text-quote">"</span>
+              </span>
+            </div>
+
+            <div class="slot">
+              <span class="slot-num">2</span>
+              <span class="blk-getter has-tip" data-tip="Getter: toma lo que el alumno escribió en el TextBox de Tarea">
+                <span class="blk-component">TextBoxTarea</span>
+                <span class="blk-dot" style="color:rgba(255,255,255,.4);">·</span>
+                <span>Texto</span>
+              </span>
+            </div>
+
+            <div class="slot">
+              <span class="slot-num">3</span>
+              <span class="blk-text-fixed has-tip" data-tip="Separador visual entre campos">
+                <span class="blk-text-quote">"</span> | Materia: <span class="blk-text-quote">"</span>
+              </span>
+            </div>
+
+            <div class="slot">
+              <span class="slot-num">4</span>
+              <span class="blk-getter has-tip" data-tip="Getter: toma lo que el alumno escribió en el TextBox de Materia">
+                <span class="blk-component">TextBoxMateria</span>
+                <span class="blk-dot" style="color:rgba(255,255,255,.4);">·</span>
+                <span>Texto</span>
+              </span>
+            </div>
+
+            <div class="slot">
+              <span class="slot-num">5</span>
+              <span class="blk-text-fixed has-tip" data-tip="Separador visual entre campos">
+                <span class="blk-text-quote">"</span> | Fecha: <span class="blk-text-quote">"</span>
+              </span>
+            </div>
+
+            <div class="slot">
+              <span class="slot-num">6</span>
+              <span class="blk-getter has-tip" data-tip="Getter: toma lo que el alumno escribió en el TextBox de Fecha">
+                <span class="blk-component">TextBoxFecha</span>
+                <span class="blk-dot" style="color:rgba(255,255,255,.4);">·</span>
+                <span>Texto</span>
+              </span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Resultado esperado -->
+  <div class="result-box">
+    <div class="result-label">✅ Resultado en pantalla</div>
+    <div class="result-value">
+      Tarea: <span class="field">Investigación</span> | Materia: <span class="field">Historia</span> | Fecha: <span class="field">12/05/2026</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- Leyenda -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#ffab19;"></div> Evento</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#4a7d4a;"></div> Setter / Getter</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#a835a8;"></div> Join / Texto fijo</div>
+  <div class="legend-item" style="color:#64748b;">💡 Pasa el cursor sobre los bloques para más info</div>
+</div>
+
+</body>
+</html>

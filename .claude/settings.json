@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"/Users/felipelopezsalazar/Downloads/CEB/Web Nuevo/ceb54online/cultura-digital/assets/visuales/semana-09\")",
+      "Bash(mkdir -p \"/Users/felipelopezsalazar/Downloads/CEB/Web Nuevo/ceb54online/cultura-digital-iii/assets/visuales\")",
+      "Bash(open \"/Users/felipelopezsalazar/Downloads/CEB/Web Nuevo/ceb54online/cultura-digital/assets/visuales/semana-11/bloques-guardar.html\")",
+      "Bash(open \"/Users/felipelopezsalazar/Downloads/CEB/Web Nuevo/ceb54online/cultura-digital/assets/visuales/semana-11/bloques-join.html\")",
+      "Bash(open \"/Users/felipelopezsalazar/Downloads/CEB/Web Nuevo/ceb54online/cultura-digital/index.html\")",
+      "Bash(python3 -m http.server 8090)",
+      "Bash(open \"http://localhost:8090/cultura-digital/index.html\")",
+      "Bash(open \"http://localhost:8090/cultura-digital/index.html?d2embed=1&s=11\")",
+      "Bash(open \"http://localhost:8090/cultura-digital-iii/assets/visuales/semana-11/calendario-eventos.html\")",
+      "Bash(open \"http://localhost:8090/cultura-digital-iii/index.html?d2embed=1&s=11\")"
+    ]
+  }
+}

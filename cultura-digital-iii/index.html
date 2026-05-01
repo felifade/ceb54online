@@ -90,6 +90,44 @@
 .menu-link { padding: .38rem .7rem; font-size: .82rem; }
 .menu-item { margin-bottom: .08rem; }
 .menu-section { margin-bottom: .7rem; }
+
+/* ── Recursos visuales HTML embebidos ── */
+.cd-visual-embed {
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 1rem 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,.09);
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  position: relative;
+}
+.cd-visual-embed iframe {
+  width: 100%;
+  border: none;
+  display: block;
+}
+.cd-visual-embed-caption {
+  padding: .35rem .75rem;
+  font-size: .7rem;
+  color: #64748b;
+  background: #f1f5f9;
+  border-top: 1px solid #e2e8f0;
+  text-align: center;
+}
+.cd-visual-embed-error {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: .5rem;
+  padding: 2rem 1rem;
+  color: #94a3b8;
+  font-size: .8rem;
+  text-align: center;
+  background: #f8fafc;
+  min-height: 120px;
+}
+.cd-visual-embed-error svg { opacity: .4; }
 </style>
 <body oncontextmenu="return false" onselectstart="return false" oncopy="return false" oncut="return false" onpaste="return false">
 
@@ -917,6 +955,25 @@
                                     </td>
                                 </tr>
 
+                                <!-- Visual: ejemplo de calendario con 5 eventos -->
+                                <tr>
+                                    <td class="col-instruction" colspan="2" style="padding:.6rem 1rem 0;">
+                                        <div class="cd-visual-embed" id="ve-cd3-s11">
+                                            <div class="cd-visual-embed-error" id="ve-cd3-s11-err">
+                                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
+                                                Recurso visual no disponible
+                                            </div>
+                                            <iframe src="assets/visuales/semana-11/calendario-eventos.html"
+                                                    height="390"
+                                                    title="Ejemplo: calendario con 5 eventos"
+                                                    loading="lazy"
+                                                    onload="(function(f,e){try{if(!f.contentDocument||!f.contentDocument.body||f.contentDocument.body.innerHTML.trim()===''){f.style.display='none';e.style.display='flex';}}catch(x){f.style.display='none';e.style.display='flex';}})(this,document.getElementById('ve-cd3-s11-err'))"
+                                                    onerror="(function(f,e){f.style.display='none';e.style.display='flex';})(this,document.getElementById('ve-cd3-s11-err'))"></iframe>
+                                            <div class="cd-visual-embed-caption">📅 Ejemplo de calendario con los 5 tipos de evento — pasa el cursor sobre cada uno para ver los campos requeridos</div>
+                                        </div>
+                                    </td>
+                                </tr>
+
                                 <!-- Evidencia única -->
                                 <tr style="background:#fffbeb;">
                                     <td class="col-instruction">
@@ -1367,6 +1424,10 @@
             document.getElementById('cd-pin-overlay').classList.remove('active');
             _cdMaestro = true;
             _cdApply();
+            // Navegar a ?s=XX si está en la URL, si no a la semana escolar actual
+            var sParam = parseInt(new URLSearchParams(location.search).get('s'));
+            var destino = (sParam >= 1 && sParam <= 15) ? sParam : _getSchoolWeek();
+            setTimeout(function() { switchWeek(destino); }, 200);
         } else {
             const err = document.getElementById('cd-pin-err');
             if (err) err.textContent = 'PIN incorrecto. Intenta de nuevo.';

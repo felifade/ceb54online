@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Google Calendar — Organización Escolar</title>
+<style>
+html, body { height: 100%; margin: 0; padding: 0; box-sizing: border-box; }
+* { box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: #f1f3f4;
+  padding: .8rem 1rem 1rem;
+  overflow: auto;
+  color: #202124;
+}
+
+/* ── Header tipo Google Calendar ── */
+.cal-header {
+  background: #fff;
+  border-radius: 10px 10px 0 0;
+  border: 1px solid #dadce0;
+  border-bottom: none;
+  padding: .55rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+.cal-logo {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .82rem;
+  font-weight: 600;
+  color: #5f6368;
+}
+.cal-logo-icon {
+  width: 26px; height: 26px;
+  background: #1a73e8;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: .75rem; font-weight: 900;
+}
+.cal-month {
+  font-size: .85rem;
+  font-weight: 600;
+  color: #3c4043;
+  margin-right: auto;
+}
+.cal-view-tag {
+  font-size: .65rem;
+  background: #e8f0fe;
+  color: #1a73e8;
+  border-radius: 12px;
+  padding: .2rem .55rem;
+  font-weight: 700;
+}
+
+/* ── Grid de días ── */
+.cal-grid {
+  background: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 0 0 10px 10px;
+  overflow: hidden;
+}
+.day-labels {
+  display: grid;
+  grid-template-columns: 52px repeat(5, 1fr);
+  border-bottom: 1px solid #dadce0;
+}
+.time-gutter { /* placeholder para la columna de horas */ }
+.day-label {
+  padding: .35rem .3rem;
+  text-align: center;
+  border-left: 1px solid #dadce0;
+}
+.day-label .day-name {
+  font-size: .63rem;
+  font-weight: 600;
+  color: #70757a;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.day-label .day-num {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #3c4043;
+  line-height: 1.1;
+}
+.day-label.today .day-num {
+  background: #1a73e8;
+  color: #fff;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto;
+}
+
+/* ── Filas de horas ── */
+.time-grid {
+  display: grid;
+  grid-template-columns: 52px repeat(5, 1fr);
+  position: relative;
+}
+.time-slot {
+  height: 52px;
+  border-bottom: 1px solid #f1f3f4;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 2px;
+  position: relative;
+}
+.time-label {
+  font-size: .6rem;
+  color: #70757a;
+  padding-right: .4rem;
+  text-align: right;
+  padding-top: 1px;
+  font-weight: 500;
+}
+.day-col {
+  border-left: 1px solid #dadce0;
+  height: 52px;
+  position: relative;
+}
+
+/* ── Eventos ── */
+.event {
+  position: absolute;
+  left: 3px; right: 3px;
+  border-radius: 5px;
+  padding: .2rem .4rem;
+  font-size: .65rem;
+  font-weight: 600;
+  line-height: 1.35;
+  cursor: pointer;
+  z-index: 2;
+  transition: filter .12s, transform .12s;
+  overflow: hidden;
+}
+.event:hover {
+  filter: brightness(.92);
+  transform: scale(1.02);
+  z-index: 10;
+}
+.event-icon { font-size: .7rem; margin-right: .15rem; }
+.event-time { font-size: .58rem; font-weight: 500; opacity: .8; display: block; }
+
+/* Colores eventos */
+.ev-blue   { background: #c2d7f7; color: #1a1a6e; border-left: 3px solid #1a73e8; }
+.ev-green  { background: #c6f0d9; color: #0a5f2a; border-left: 3px solid #34a853; }
+.ev-teal   { background: #b2e8f5; color: #0a3d4f; border-left: 3px solid #039be5; }
+.ev-purple { background: #e4cff5; color: #4a0a7a; border-left: 3px solid #8e24aa; }
+.ev-amber  { background: #feebc4; color: #7c4700; border-left: 3px solid #f9ab00; }
+
+/* ── Tooltip de detalle ── */
+.event-tip {
+  display: none;
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  width: 200px;
+  background: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.15);
+  padding: .65rem .8rem;
+  font-size: .68rem;
+  color: #202124;
+  z-index: 20;
+  line-height: 1.7;
+  font-weight: 400;
+}
+.event-tip strong { font-weight: 700; display: block; font-size: .73rem; margin-bottom: .3rem; }
+.event-tip .tip-row { display: flex; align-items: flex-start; gap: .35rem; margin-bottom: .15rem; }
+.event-tip .tip-icon { flex-shrink: 0; opacity: .65; }
+.event:hover .event-tip { display: block; }
+
+/* ── Leyenda ── */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem .75rem;
+  margin-top: .65rem;
+  padding: 0 .2rem;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: .64rem;
+  color: #5f6368;
+}
+.legend-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.guide-tip {
+  font-size: .62rem;
+  color: #70757a;
+  text-align: center;
+  margin-top: .45rem;
+  font-style: italic;
+}
+</style>
+</head>
+<body>
+
+<!-- Cabecera -->
+<div class="cal-header">
+  <div class="cal-logo">
+    <div class="cal-logo-icon">📅</div>
+    <span>Google Calendar</span>
+  </div>
+  <span class="cal-month">Mayo 2026</span>
+  <span class="cal-view-tag">Vista semanal</span>
+</div>
+
+<!-- Grid del calendario -->
+<div class="cal-grid">
+
+  <!-- Etiquetas de días -->
+  <div class="day-labels">
+    <div class="time-gutter"></div>
+    <div class="day-label"><div class="day-name">Lun</div><div class="day-num">4</div></div>
+    <div class="day-label today"><div class="day-name">Mar</div><div class="day-num">5</div></div>
+    <div class="day-label"><div class="day-name">Mié</div><div class="day-num">6</div></div>
+    <div class="day-label"><div class="day-name">Jue</div><div class="day-num">7</div></div>
+    <div class="day-label"><div class="day-name">Vie</div><div class="day-num">8</div></div>
+  </div>
+
+  <!-- Filas de tiempo -->
+  <div class="time-grid">
+
+    <!-- 7:00 -->
+    <div class="time-slot time-label">7 AM</div>
+    <div class="day-col" style="position:relative;">
+      <!-- Evento: Personal (Lunes 7am) -->
+      <div class="event ev-purple" style="top:4px; height:44px;">
+        <span class="event-icon">👤</span>Personal
+        <span class="event-time">7:00 – 7:45</span>
+        <div class="event-tip">
+          <strong>👤 Ejercicio matutino</strong>
+          <div class="tip-row"><span class="tip-icon">🕐</span> Lunes 7:00 – 7:45 am</div>
+          <div class="tip-row"><span class="tip-icon">📝</span> Rutina de ejercicio antes de clases</div>
+          <div class="tip-row"><span class="tip-icon">🔔</span> Recordatorio: 15 min antes</div>
+        </div>
+      </div>
+    </div>
+    <div class="day-col"></div>
+    <div class="day-col"></div>
+    <div class="day-col"></div>
+    <div class="day-col"></div>
+
+    <!-- 8:00 -->
+    <div class="time-slot time-label">8 AM</div>
+    <div class="day-col"></div>
+    <div class="day-col" style="position:relative;">
+      <!-- Evento: Clase (Martes 8am) -->
+      <div class="event ev-teal" style="top:4px; height:44px;">
+        <span class="event-icon">🏫</span>Clase CD III
+        <span class="event-time">8:00 – 8:50</span>
+        <div class="event-tip">
+          <strong>🏫 Clase: Cultura Digital III</strong>
+          <div class="tip-row"><span class="tip-icon">🕐</span> Martes 8:00 – 8:50 am</div>
+          <div class="tip-row"><span class="tip-icon">📝</span> Llevar computadora o tablet</div>
+          <div class="tip-row"><span class="tip-icon">🔔</span> Recordatorio: 10 min antes</div>
+        </div>
+      </div>
+    </div>
+    <div class="day-col"></div>
+    <div class="day-col"></div>
+    <div class="day-col"></div>
+
+    <!-- 10:00 -->
+    <div class="time-slot time-label">10 AM</div>
+    <div class="day-col"></div>
+    <div class="day-col"></div>
+    <div class="day-col" style="position:relative;">
+      <!-- Evento: Estudio (Miércoles 10am) -->
+      <div class="event ev-green" style="top:4px; height:44px;">
+        <span class="event-icon">🧠</span>Estudio
+        <span class="event-time">10:00 – 11:00</span>
+        <div class="event-tip">
+          <strong>🧠 Estudio: Repaso CD III</strong>
+          <div class="tip-row"><span class="tip-icon">🕐</span> Miércoles 10:00 – 11:00 am</div>
+          <div class="tip-row"><span class="tip-icon">📝</span> Repasar apuntes de semana 11</div>
+          <div class="tip-row"><span class="tip-icon">🔔</span> Recordatorio: 30 min antes</div>
+        </div>
+      </div>
+    </div>
+    <div class="day-col"></div>
+    <div class="day-col"></div>
+
+    <!-- 3:00 PM -->
+    <div class="time-slot time-label">3 PM</div>
+    <div class="day-col"></div>
+    <div class="day-col"></div>
+    <div class="day-col"></div>
+    <div class="day-col" style="position:relative;">
+      <!-- Evento: Tarea (Jueves 3pm) -->
+      <div class="event ev-blue" style="top:4px; height:44px;">
+        <span class="event-icon">📚</span>Tarea
+        <span class="event-time">3:00 – 4:30</span>
+        <div class="event-tip">
+          <strong>📚 Tarea: Matemáticas</strong>
+          <div class="tip-row"><span class="tip-icon">🕐</span> Jueves 3:00 – 4:30 pm</div>
+          <div class="tip-row"><span class="tip-icon">📝</span> Ejercicios pp. 34–36 del libro</div>
+          <div class="tip-row"><span class="tip-icon">🔔</span> Recordatorio: 1 hora antes</div>
+        </div>
+      </div>
+    </div>
+    <div class="day-col"></div>
+
+    <!-- 5:00 PM -->
+    <div class="time-slot time-label">5 PM</div>
+    <div class="day-col"></div>
+    <div class="day-col"></div>
+    <div class="day-col"></div>
+    <div class="day-col"></div>
+    <div class="day-col" style="position:relative;">
+      <!-- Evento: Descanso (Viernes 5pm) -->
+      <div class="event ev-amber" style="top:4px; height:44px;">
+        <span class="event-icon">😴</span>Descanso
+        <span class="event-time">5:00 – 6:30</span>
+        <div class="event-tip" style="left:auto;right:0;">
+          <strong>😴 Tiempo libre / Descanso</strong>
+          <div class="tip-row"><span class="tip-icon">🕐</span> Viernes 5:00 – 6:30 pm</div>
+          <div class="tip-row"><span class="tip-icon">📝</span> Sin pantallas — relax o deporte</div>
+          <div class="tip-row"><span class="tip-icon">🔔</span> Recordatorio: 15 min antes</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- time-grid -->
+</div><!-- cal-grid -->
+
+<!-- Leyenda -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#1a73e8;"></div> Tarea</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#34a853;"></div> Estudio</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#039be5;"></div> Clase</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#8e24aa;"></div> Personal</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f9ab00;"></div> Descanso</div>
+</div>
+<p class="guide-tip">💡 Pasa el cursor sobre cada evento para ver los campos requeridos: título, hora, descripción y recordatorio</p>
+
+</body>
+</html>
