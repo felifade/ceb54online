@@ -10,7 +10,11 @@
       "Bash(open \"http://localhost:8090/cultura-digital/index.html\")",
       "Bash(open \"http://localhost:8090/cultura-digital/index.html?d2embed=1&s=11\")",
       "Bash(open \"http://localhost:8090/cultura-digital-iii/assets/visuales/semana-11/calendario-eventos.html\")",
-      "Bash(open \"http://localhost:8090/cultura-digital-iii/index.html?d2embed=1&s=11\")"
+      "Bash(open \"http://localhost:8090/cultura-digital-iii/index.html?d2embed=1&s=11\")",
+      "Bash(lsof -ti:8090)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:8090/cultura-digital/assets/visuales/semana-11/bloques-guardar.html\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:8090/cultura-digital/assets/visuales/semana-09/interfaz-registro-tareas.html\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:8090/cultura-digital-iii/assets/visuales/semana-11/calendario-eventos.html\")"
     ]
   }
 }
