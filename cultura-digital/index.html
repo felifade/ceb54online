@@ -1778,7 +1778,7 @@
             15: "🎓 SEMANA 15: Tercer Examen Parcial",
         };
         // Semanas publicadas por defecto (sin GAS)
-        const _CD_LOCAL_DEFAULT = [1,2,3,4,5,6,7,8,9,10];
+        const _CD_LOCAL_DEFAULT = [1,2,3,4,5,6,7,8,9,10,11];
 
         // Fechas de cada semana para detección automática de la semana actual
         const WEEK_DATES = [
@@ -1920,7 +1920,8 @@
                 if (stored) {
                     const parsed = JSON.parse(stored);
                     if (Array.isArray(parsed) && parsed.length) {
-                        _cdActivas = parsed.map(Number);
+                        const _merged = Array.from(new Set([..._CD_LOCAL_DEFAULT, ...parsed.map(Number)])).sort((a,b)=>a-b);
+                        _cdActivas = _merged;
                         _cdApply();
                     }
                 }
@@ -1932,7 +1933,8 @@
                 const txt = await r.text();
                 const d   = JSON.parse(txt);
                 if (Array.isArray(d.activas) && d.activas.length) {
-                    _cdActivas = d.activas.map(Number);
+                    const _merged = Array.from(new Set([..._CD_LOCAL_DEFAULT, ...d.activas.map(Number)])).sort((a,b)=>a-b);
+                    _cdActivas = _merged;
                     try { localStorage.setItem(_CD_LS, JSON.stringify(_cdActivas)); } catch(_) {}
                     _cdApply();
                 }
