@@ -309,7 +309,48 @@ h1, h2, h3, .font-outfit {
     position: absolute;
     top: 0;
     width: 100%;
-    transition: all 0.2s ease;
+    transition: opacity 0.12s ease;
+}
+
+/* Overlay de carga durante cambio de semana */
+.sheet-loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.88);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+    z-index: 50;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 0.8rem;
+    border-radius: 4px 20px 20px 4px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.1s ease;
+}
+.sheet-loading-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+.sheet-loading-overlay .sheet-spinner {
+    width: 38px;
+    height: 38px;
+    border: 3px solid #e2e8f0;
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: sheet-loading-spin 0.7s linear infinite;
+}
+.sheet-loading-overlay .sheet-loading-label {
+    color: #475569;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    font-family: 'Outfit', sans-serif;
+}
+@keyframes sheet-loading-spin {
+    to { transform: rotate(360deg); }
 }
 
 .back-to-portal {

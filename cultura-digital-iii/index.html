@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <script>const APP_VERSION = "v20260428";</script>
+  <script>const APP_VERSION = "v20260507";</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cultura Digital III | CEB 5/4</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@0.511.0"></script>
-    <link rel="stylesheet" href="css/style.css?v=20260418">
+    <link rel="stylesheet" href="css/style.css?v=20260507">
 </head>
 <script>
 (function(){
@@ -206,7 +206,13 @@
 
         <div class="notebook-perspective">
             <div class="notebook-page" id="notebook-page">
-                
+
+                <!-- Overlay de carga durante cambio de semana -->
+                <div class="sheet-loading-overlay" id="sheet-loading-overlay" aria-hidden="true">
+                    <div class="sheet-spinner"></div>
+                    <div class="sheet-loading-label">Cargando semana…</div>
+                </div>
+
                 <div class="sheet-container" id="sheets-container">
                     
                     <!-- SEMANA 01 -->
@@ -1156,11 +1162,14 @@
         const lkSh2 = document.getElementById('sheet-locked');
         if (lkSh2) { lkSh2.classList.remove('active'); lkSh2.style.display = 'none'; }
 
-        // Animación de flip
-        page.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-        page.style.transformOrigin = 'left center';
-        page.style.transform = 'rotateY(-15deg) scale(0.95)';
-        page.style.boxShadow = '-20px 20px 50px rgba(0,0,0,0.2)';
+        // Mostrar overlay de carga (cubre la transición y evita superposición visual)
+        const loader = document.getElementById('sheet-loading-overlay');
+        if (loader) loader.classList.add('active');
+
+        // Limpiar restos de la animación de flip antigua si quedaron en estilos inline
+        page.style.transform = '';
+        page.style.boxShadow = '';
+        page.style.transition = '';
 
         setTimeout(() => {
             mainTitle.innerHTML = WEEK_TITLES[num] || `SEMANA ${num}`;
@@ -1169,11 +1178,14 @@
             if (lkSh3) { lkSh3.classList.remove('active'); lkSh3.style.display = 'none'; }
             const sheet = document.getElementById('sheet-s' + num);
             if (sheet) sheet.classList.add('active');
-            page.style.transform = 'rotateY(0deg) scale(1)';
-            page.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)';
             lucide.createIcons();
             _cdUpdateBanner(num);
-        }, 300);
+
+            // Quitar overlay después de que el nuevo sheet termine su fade-in
+            setTimeout(() => {
+                if (loader) loader.classList.remove('active');
+            }, 130);
+        }, 90);
     }
 
     // --- LÓGICA DE TURNOS ---
