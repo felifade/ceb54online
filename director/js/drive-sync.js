@@ -18,10 +18,11 @@ const SCOPE = "https://www.googleapis.com/auth/drive.appdata";
 const CLIENT_ID_LS_KEY = "dir-google-client-id";
 const TOKEN_LS_KEY     = "dir-google-token";
 
-// Client ID por defecto (lo dejamos en blanco — el usuario lo configura
-// en el modal de "Conectar Drive" la primera vez, o lo hardcodeamos
-// más adelante cuando el usuario nos pase el suyo).
-const DEFAULT_CLIENT_ID = "";
+// Client ID del proyecto "Consultor Director" (Google Cloud Console).
+// NO es secreto — está protegido por dominios autorizados (ceb54.online +
+// localhost:8095). El usuario puede sobreescribirlo desde el modal de
+// configuración si quiere usar un proyecto propio.
+const DEFAULT_CLIENT_ID = "1007502920131-h8e75nfn39p1b9vc7geambt6f6comrgs.apps.googleusercontent.com";
 
 class DriveSync {
   constructor() {
