@@ -48,7 +48,8 @@ REGLAS:
 4. Las primeras sesiones: bases legales (CPEUM, LGE). Luego MCCEMS. Luego protocolos. Reserva los últimos 2-3 días para repaso integrador + simulacros.
 5. Cada sesión tiene: tema, fuentes a leer (con páginas si pertinente), 2-3 puntos clave que debe dominar, 1 ejercicio práctico (caso o pregunta).
 
-FORMATO DE SALIDA — DEVUELVE SOLO JSON VÁLIDO, SIN MARKDOWN:
+FORMATO DE SALIDA — DEVUELVE SOLO JSON VÁLIDO, SIN MARKDOWN ni texto adicional.
+NO uses fences \`\`\`json. NO uses comillas tipográficas. Escapa comillas internas con \\". Sin trailing commas.
 
 {
   "summary": "Resumen del plan en 1-2 frases",
@@ -170,9 +171,34 @@ async function callAnthropic(system, userText, onProgress) {
 }
 
 function extractJson(s) {
-  const a = s.indexOf("{"), b = s.lastIndexOf("}");
-  if (a === -1 || b === -1) throw new Error("Sin JSON en la respuesta");
-  return JSON.parse(s.slice(a, b + 1));
+  // Quitar fences markdown
+  let cleaned = s.replace(/```(?:json)?\s*/gi, "").replace(/```\s*$/g, "").trim();
+  // Encontrar { inicial y cerrar balanceado respetando strings
+  const start = cleaned.indexOf("{");
+  if (start === -1) throw new Error("Sin JSON en la respuesta");
+  let depth = 0, inString = false, escape = false, end = -1;
+  for (let i = start; i < cleaned.length; i++) {
+    const c = cleaned[i];
+    if (escape) { escape = false; continue; }
+    if (c === "\\") { escape = true; continue; }
+    if (c === '"')  { inString = !inString; continue; }
+    if (inString) continue;
+    if (c === "{") depth++;
+    else if (c === "}") { depth--; if (depth === 0) { end = i; break; } }
+  }
+  if (end === -1) {
+    cleaned += "}".repeat(Math.max(0, depth));
+    end = cleaned.length - 1;
+  }
+  let candidate = cleaned.slice(start, end + 1)
+    .replace(/,(\s*[\]}])/g, "$1")
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'");
+  try {
+    return JSON.parse(candidate);
+  } catch (e) {
+    throw new Error(`${e.message}\n\nInicio: ${candidate.slice(0,200)}…\nFinal: …${candidate.slice(-200)}`);
+  }
 }
 
 // === Render principal ===

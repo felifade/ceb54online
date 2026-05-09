@@ -77,7 +77,9 @@ REGLAS:
 6. La explicación de la respuesta correcta debe ser 1-2 frases y CITAR la fuente exacta.
 7. Si el contexto no alcanza para hacer una buena pregunta, reduce el número total y avisa en "warning".
 
-FORMATO DE SALIDA — DEVUELVE SOLO JSON VÁLIDO, SIN MARKDOWN NI EXPLICACIONES FUERA DEL JSON:
+FORMATO DE SALIDA — DEVUELVE SOLO JSON VÁLIDO, SIN MARKDOWN NI EXPLICACIONES FUERA DEL JSON.
+NO uses fences \`\`\`json. NO añadas texto antes ni después. NO uses comillas tipográficas (“ ”).
+Las cadenas DEBEN escapar comillas internas con \\". Sin trailing commas. JSON puro.
 
 {
   "questions": [
@@ -173,7 +175,7 @@ async function callAnthropic({ system, userText, onDelta }) {
 
   const body = {
     model,
-    max_tokens: 4096,
+    max_tokens: 8192,  // suficiente para 15 preguntas con casos prácticos largos
     system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
     messages: [{ role: "user", content: [{ type: "text", text: userText }] }],
     stream: true,
@@ -223,12 +225,49 @@ async function callAnthropic({ system, userText, onDelta }) {
 }
 
 function extractJson(s) {
-  // Encuentra el primer { y el último } que cierran un objeto válido
-  const a = s.indexOf("{");
-  const b = s.lastIndexOf("}");
-  if (a === -1 || b === -1) throw new Error("Respuesta sin JSON");
-  const candidate = s.slice(a, b + 1);
-  return JSON.parse(candidate);
+  // 1) Quitar fences de código markdown si los hay (```json ... ```)
+  let cleaned = s.replace(/```(?:json)?\s*/gi, "").replace(/```\s*$/g, "").trim();
+
+  // 2) Encontrar el primer { y luego cerrar de forma balanceada
+  //    (respetando strings, escapes y nesting). Esto evita que un
+  //    "}" dentro de un string termine el parseo prematuramente.
+  const start = cleaned.indexOf("{");
+  if (start === -1) throw new Error("Respuesta sin JSON");
+  let depth = 0, inString = false, escape = false, end = -1;
+  for (let i = start; i < cleaned.length; i++) {
+    const c = cleaned[i];
+    if (escape) { escape = false; continue; }
+    if (c === "\\") { escape = true; continue; }
+    if (c === '"')  { inString = !inString; continue; }
+    if (inString) continue;
+    if (c === "{") depth++;
+    else if (c === "}") {
+      depth--;
+      if (depth === 0) { end = i; break; }
+    }
+  }
+  if (end === -1) {
+    // JSON truncado (probablemente max_tokens) — intentar cerrar a la fuerza
+    // contando cuántos } faltan. Si Claude estaba a media pregunta, fallará igual.
+    cleaned += "}".repeat(depth) + "]".repeat(0);
+    end = cleaned.length - 1;
+  }
+  let candidate = cleaned.slice(start, end + 1);
+
+  // 3) Reparaciones comunes
+  candidate = candidate
+    .replace(/,(\s*[\]}])/g, "$1")          // trailing commas
+    .replace(/[“”]/g, '"')        // comillas curvas
+    .replace(/[‘’]/g, "'");
+
+  try {
+    return JSON.parse(candidate);
+  } catch (e) {
+    // Mostrar primeras líneas del candidato para depurar
+    const head = candidate.slice(0, 200);
+    const tail = candidate.slice(-200);
+    throw new Error(`${e.message}\n\nInicio del JSON:\n${head}…\n\nFinal:\n…${tail}`);
+  }
 }
 
 // === Render: configurador inicial ===
