@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Google Drive — Estructura de carpetas por materia</title>
+<style>
+html, body { height: 100%; margin: 0; padding: 0; box-sizing: border-box; }
+* { box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: #f6f8fc;
+  padding: .8rem 1rem 1rem;
+  overflow: auto;
+  color: #202124;
+}
+
+/* ── Header tipo Google Drive ── */
+.drive-header {
+  background: #fff;
+  border-radius: 10px 10px 0 0;
+  border: 1px solid #dadce0;
+  border-bottom: none;
+  padding: .55rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+.drive-logo-icon {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+}
+.drive-logo-icon svg { width: 26px; height: 26px; }
+.drive-title {
+  font-size: .85rem;
+  font-weight: 600;
+  color: #3c4043;
+  margin-right: auto;
+}
+.drive-search {
+  flex: 0 1 280px;
+  background: #f1f3f4;
+  border-radius: 8px;
+  padding: .35rem .7rem;
+  font-size: .72rem;
+  color: #80868b;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+/* ── Cuerpo: panel izq (árbol) + panel der (contenido) ── */
+.drive-body {
+  display: grid;
+  grid-template-columns: 230px 1fr;
+  border: 1px solid #dadce0;
+  border-top: 1px solid #e0e0e0;
+  border-radius: 0 0 10px 10px;
+  background: #fff;
+  min-height: 350px;
+}
+
+.drive-sidebar {
+  border-right: 1px solid #e8eaed;
+  padding: .8rem .5rem;
+  background: #f6f8fc;
+}
+.btn-new {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  background: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 16px;
+  padding: .4rem .8rem;
+  font-size: .72rem;
+  font-weight: 700;
+  color: #3c4043;
+  margin-bottom: .8rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,.05);
+}
+.btn-new::before {
+  content: '+';
+  font-size: 1rem;
+  font-weight: 900;
+  color: #1a73e8;
+  line-height: 1;
+}
+
+.tree { font-size: .78rem; }
+.tree-item {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .35rem .55rem;
+  border-radius: 6px;
+  color: #3c4043;
+  cursor: default;
+  user-select: none;
+}
+.tree-item.active {
+  background: #c2e7ff;
+  color: #001d35;
+  font-weight: 700;
+}
+.tree-item .arrow { width: 10px; color: #5f6368; font-size: .7rem; }
+.tree-item .ico { font-size: .9rem; }
+.tree-children { margin-left: .9rem; }
+
+/* ── Panel derecho: contenido de carpeta ── */
+.drive-main {
+  padding: .9rem 1.1rem;
+}
+.crumb {
+  font-size: .9rem;
+  font-weight: 700;
+  color: #202124;
+  margin-bottom: .8rem;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+}
+.crumb .crumb-step { color: #5f6368; font-weight: 500; }
+.crumb .crumb-sep { color: #80868b; }
+
+.section-label {
+  font-size: .68rem;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: #5f6368;
+  font-weight: 700;
+  margin: .4rem 0 .5rem 0;
+}
+
+.folder-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: .55rem;
+}
+.folder-card {
+  background: #f6f8fc;
+  border: 1px solid #e0e3e7;
+  border-radius: 10px;
+  padding: .65rem .8rem;
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  font-size: .8rem;
+  font-weight: 600;
+  color: #202124;
+  position: relative;
+  cursor: help;
+  transition: all .2s ease;
+}
+.folder-card:hover {
+  background: #e8f0fe;
+  border-color: #1a73e8;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(26,115,232,.18);
+}
+.folder-card .folder-ico {
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+.folder-card.example {
+  background: #fef7e0;
+  border-color: #fbbc04;
+  border-style: dashed;
+}
+.folder-card.example .folder-ico {
+  color: #b06000;
+}
+.folder-card.example::after {
+  content: 'Ejemplo';
+  position: absolute;
+  top: -8px;
+  right: 6px;
+  background: #fbbc04;
+  color: #5e3700;
+  font-size: .58rem;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-weight: 800;
+  letter-spacing: .3px;
+}
+
+/* Tooltip personalizado */
+.folder-card .tip {
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #202124;
+  color: #fff;
+  font-size: .68rem;
+  font-weight: 500;
+  padding: .35rem .6rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s;
+  z-index: 10;
+  letter-spacing: .2px;
+}
+.folder-card .tip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #202124;
+}
+.folder-card:hover .tip { opacity: 1; }
+
+.add-hint {
+  margin-top: .75rem;
+  background: #e8f0fe;
+  border: 1px dashed #1a73e8;
+  color: #174ea6;
+  font-size: .72rem;
+  font-weight: 600;
+  padding: .55rem .75rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  line-height: 1.4;
+}
+.add-hint::before {
+  content: '➕';
+  font-size: .85rem;
+}
+</style>
+</head>
+<body>
+
+<div class="drive-header">
+  <div class="drive-logo-icon">
+    <svg viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
+      <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+      <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/>
+      <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
+      <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
+      <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
+      <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+    </svg>
+  </div>
+  <div class="drive-title">Drive</div>
+  <div class="drive-search">🔍 Buscar en Drive</div>
+</div>
+
+<div class="drive-body">
+
+  <!-- Sidebar / árbol -->
+  <aside class="drive-sidebar">
+    <div class="btn-new">Nuevo</div>
+    <div class="tree">
+      <div class="tree-item">
+        <span class="arrow">▼</span>
+        <span class="ico">💾</span>
+        <span>Mi unidad</span>
+      </div>
+      <div class="tree-children">
+        <div class="tree-item active">
+          <span class="arrow">▼</span>
+          <span class="ico">📚</span>
+          <span>Materias 3er Sem…</span>
+        </div>
+        <div class="tree-children">
+          <div class="tree-item"><span class="arrow"></span><span class="ico">☁️</span><span>Cultura Digital III</span></div>
+          <div class="tree-item"><span class="arrow"></span><span class="ico">📁</span><span>Otras materias…</span></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Panel principal -->
+  <main class="drive-main">
+    <div class="crumb">
+      <span class="crumb-step">Mi unidad</span>
+      <span class="crumb-sep">›</span>
+      <span>📚 Materias 3er Semestre – [Tu Nombre]</span>
+    </div>
+
+    <div class="section-label">Carpetas</div>
+
+    <div class="folder-grid">
+
+      <div class="folder-card example">
+        <span class="folder-ico">☁️</span>
+        <span>Cultura Digital III</span>
+        <span class="tip">Aquí van todos tus trabajos de esta materia</span>
+      </div>
+
+      <div class="folder-card">
+        <span class="folder-ico">📁</span>
+        <span>Matemáticas III</span>
+        <span class="tip">Apuntes, tareas y exámenes</span>
+      </div>
+
+      <div class="folder-card">
+        <span class="folder-ico">📁</span>
+        <span>Inglés III</span>
+        <span class="tip">Vocabulario, ejercicios, audios</span>
+      </div>
+
+      <div class="folder-card">
+        <span class="folder-ico">📁</span>
+        <span>Lengua y Comunicación III</span>
+        <span class="tip">Redacciones y lecturas</span>
+      </div>
+
+      <div class="folder-card">
+        <span class="folder-ico">📁</span>
+        <span>Química II</span>
+        <span class="tip">Reportes y reacciones</span>
+      </div>
+
+      <div class="folder-card">
+        <span class="folder-ico">📁</span>
+        <span>Tu siguiente materia…</span>
+        <span class="tip">Agrega TODAS las materias que cursas</span>
+      </div>
+
+    </div>
+
+    <div class="add-hint">
+      Crea una carpeta por cada materia que estás cursando este semestre. La de <strong>Cultura Digital III</strong> es solo el ejemplo — tú agrega <strong>todas las demás</strong>.
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>
