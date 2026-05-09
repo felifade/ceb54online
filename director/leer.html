@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 
-  <link rel="stylesheet" href="css/director.css?v=6">
+  <link rel="stylesheet" href="css/director.css?v=7">
 </head>
 <body>
 
@@ -37,6 +37,7 @@
         <button class="icon-btn" id="btn-font-down" title="Fuente más chica" aria-label="A-">A−</button>
         <span class="font-pill" id="font-pill">18px</span>
         <button class="icon-btn" id="btn-font-up" title="Fuente más grande" aria-label="A+">A+</button>
+        <button class="icon-btn" id="btn-summary" title="Resumir esta página con IA" aria-label="Resumir">🪄</button>
         <button class="icon-btn" id="btn-theme" title="Cambiar modo (claro/sepia/oscuro)" aria-label="Tema">☀️</button>
         <a class="icon-btn" id="btn-pdf" title="Ver el PDF original" aria-label="PDF">PDF</a>
       </div>
@@ -57,7 +58,7 @@
     </main>
   </div>
 
-  <script type="module" src="js/leer.js?v=1"></script>
+  <script type="module" src="js/leer.js?v=2"></script>
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));

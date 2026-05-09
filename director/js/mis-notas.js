@@ -259,7 +259,72 @@ function renderAll() {
   renderBookmarks();
   renderNotes();
   renderProgress();
+  renderFlashcards();
   renderStats();
+}
+
+function renderFlashcards() {
+  const target = document.getElementById("flashcards-summary");
+  if (!target) return;
+  const all = storage.getFlashcards();
+  const due = storage.getDueFlashcards();
+  const total = all.length;
+
+  if (total === 0) {
+    target.innerHTML = `
+      <div class="empty-state">
+        <p>📇 Aún no tienes flashcards.</p>
+        <p style="font-size:0.85rem;color:var(--muted)">
+          Subraya texto en el lector y usa el botón <strong>→ FC</strong> para crearlas con IA.
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  // Próximo repaso (el más pronto)
+  const nextDue = all.reduce((m, c) => Math.min(m, c.due || Infinity), Infinity);
+  const nextDt = isFinite(nextDue) ? new Date(nextDue) : null;
+
+  // Agrupar por documento
+  const byDoc = {};
+  all.forEach(c => {
+    const id = c.doc;
+    if (!byDoc[id]) byDoc[id] = { total: 0, due: 0, abbr: DOCS_BY_ID[id]?.abbr || `Doc${id}`, title: DOCS_BY_ID[id]?.short || DOCS_BY_ID[id]?.title || "" };
+    byDoc[id].total++;
+    if ((c.due || 0) <= Date.now()) byDoc[id].due++;
+  });
+
+  target.innerHTML = `
+    <div class="fc-summary-box">
+      <div class="fc-summary-row">
+        <div class="fc-summary-stat">
+          <strong>${total}</strong>
+          <span>flashcards</span>
+        </div>
+        <div class="fc-summary-stat fc-summary-due ${due.length > 0 ? "is-active" : ""}">
+          <strong>${due.length}</strong>
+          <span>${due.length === 1 ? "pendiente" : "pendientes"}</span>
+        </div>
+        ${nextDt && due.length === 0 ? `
+        <div class="fc-summary-stat fc-summary-next">
+          <strong>${nextDt.toLocaleDateString("es-MX", { day: "numeric", month: "short" })}</strong>
+          <span>próximo repaso</span>
+        </div>` : ""}
+        <a href="repaso.html" class="dir-btn-primary fc-summary-cta">
+          ${due.length > 0 ? `▶ Repasar ${due.length}` : "Ver todas"}
+        </a>
+      </div>
+      <div class="fc-summary-docs">
+        ${Object.entries(byDoc).map(([id, info]) => `
+          <div class="fc-summary-doc">
+            <strong>${escapeHtml(info.abbr)}</strong>
+            <span>${info.total} card${info.total !== 1 ? "s" : ""}${info.due > 0 ? ` · <em style="color:#d4af37">${info.due} pend.</em>` : ""}</span>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
 }
 
 function renderStats() {
@@ -267,9 +332,11 @@ function renderStats() {
   const totalNotes = storage.getAllNotes().length;
   const totalProgress = Object.keys(storage.getAllProgress()).length;
   const totalSim = storage.getSimulacros().length;
+  const totalFC = storage.getFlashcards().length;
   $("#stats").innerHTML = `
     <div class="stat-block"><strong>${totalBM}</strong><span>Marcadores</span></div>
     <div class="stat-block"><strong>${totalNotes}</strong><span>Notas</span></div>
+    <div class="stat-block"><strong>${totalFC}</strong><span>Flashcards</span></div>
     <div class="stat-block"><strong>${totalProgress}</strong><span>Documentos abiertos</span></div>
     <div class="stat-block"><strong>${totalSim}</strong><span>Simulacros</span></div>
   `;
