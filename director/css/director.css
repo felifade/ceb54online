@@ -1854,3 +1854,353 @@ body[data-theme="dark"] .ibk-sel-menu { background: #2a2a2f; border-color: #3a3a
   .font-pill { display: none; }
   #btn-pdf { font-size: 0.7rem; }
 }
+
+/* =============================================================
+   Simulacros (simulacro.html)
+   ============================================================= */
+
+.btn-lg { padding: 0.95rem 1.4rem; font-size: 1rem; border-radius: var(--r-lg); }
+.spinner-big { padding: 2rem 0; display: flex; justify-content: center; }
+.spinner-big .spinner { width: 32px; height: 32px; border-width: 3px; }
+.muted { color: var(--ink-3); }
+
+/* Configurador */
+.sim-config {
+  max-width: 640px;
+  margin: 0 auto;
+  padding-top: 1rem;
+}
+.sim-form {
+  background: var(--bg-elev);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  box-shadow: var(--shadow-1);
+}
+.sim-form label {
+  display: block;
+  margin-bottom: 1.1rem;
+}
+.sim-form label > span {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--ink-2);
+  margin-bottom: 0.4rem;
+}
+.sim-form select {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+  background: var(--bg);
+  font-size: 0.95rem;
+  color: var(--ink);
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.sim-form select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+.sim-form .btn-lg {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+.sim-form .hint {
+  margin-top: 0.7rem;
+  font-size: 0.78rem;
+  color: var(--ink-3);
+}
+
+/* Histórico */
+.sim-history {
+  margin-top: 2.5rem;
+}
+.sim-history h2 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 1.15rem;
+  margin: 0 0 1rem;
+  letter-spacing: -0.005em;
+}
+.sim-history-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.6rem;
+}
+.sim-history-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.7rem 0.95rem;
+  background: var(--bg-elev);
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+}
+.sim-hi-score {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.sim-hi-meta { flex: 1; min-width: 0; }
+.sim-hi-meta strong { display: block; font-size: 0.88rem; color: var(--ink); }
+.sim-hi-meta span { display: block; font-size: 0.74rem; color: var(--ink-3); }
+.sim-hi-pct {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  background: var(--bg-soft);
+  color: var(--ink-3);
+}
+.sim-hi-pct[style*="--p:"][style*="100%"],
+.sim-history-item:has(.sim-hi-score:first-letter) .sim-hi-pct { /* heuristic styling kept simple */ }
+
+/* Loading */
+.sim-loading, .sim-error {
+  max-width: 520px;
+  margin: 3rem auto;
+  text-align: center;
+  background: var(--bg-elev);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  padding: 2.5rem 1.5rem;
+}
+.sim-loading h2 {
+  font-family: var(--serif);
+  font-weight: 500;
+  margin: 0 0 0.5rem;
+}
+.sim-error {
+  border-left: 4px solid var(--danger);
+  text-align: left;
+}
+.sim-error h2 { color: var(--danger); margin: 0 0 0.5rem; font-family: var(--serif); }
+
+/* Quiz */
+.sim-quiz {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.sim-quiz-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.4rem;
+}
+.sim-progress {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.sim-progress-bar {
+  height: 6px;
+  background: var(--bg-soft);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+.sim-progress-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 9999px;
+  transition: width .25s ease;
+}
+.sim-progress-label {
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.sim-question {
+  background: var(--bg-elev);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  padding: 1.8rem 1.6rem;
+  box-shadow: var(--shadow-1);
+}
+.sim-kind {
+  display: inline-block;
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.85rem;
+}
+.sim-source-hint {
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--gold);
+  margin-left: 0.4rem;
+}
+.sim-question h2 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 1.15rem;
+  line-height: 1.45;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  margin: 0 0 1.5rem;
+}
+.sim-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.sim-option {
+  text-align: left;
+  padding: 0.85rem 1.1rem;
+  background: var(--bg);
+  border: 1.5px solid var(--rule);
+  border-radius: var(--r);
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all .12s;
+}
+.sim-option:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+.sim-option:disabled { cursor: default; opacity: 0.85; }
+.sim-option.correct {
+  border-color: var(--success);
+  background: #e9f3ec;
+  color: var(--success);
+  font-weight: 500;
+}
+.sim-option.incorrect {
+  border-color: var(--danger);
+  background: #fef2f2;
+  color: var(--danger);
+  text-decoration: line-through;
+}
+
+.sim-feedback {
+  margin-top: 1.2rem;
+  padding: 1rem 1.1rem;
+  border-radius: var(--r);
+  border-left: 4px solid var(--rule);
+}
+.sim-feedback.ok   { border-left-color: var(--success); background: #e9f3ec; }
+.sim-feedback.fail { border-left-color: var(--danger);  background: #fef2f2; }
+.sim-feedback strong { display: block; font-size: 1rem; margin-bottom: 0.5rem; }
+.sim-feedback.ok strong   { color: var(--success); }
+.sim-feedback.fail strong { color: var(--danger); }
+.sim-feedback p { margin: 0 0 0.5rem; line-height: 1.55; color: var(--ink-2); font-size: 0.92rem; }
+.sim-source-link a {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  color: var(--primary);
+  text-decoration: none;
+  background: var(--primary-soft);
+  padding: 0.2rem 0.55rem;
+  border-radius: 5px;
+  margin-top: 0.3rem;
+}
+.sim-source-link a:hover { background: var(--primary); color: white; }
+
+.sim-actions {
+  margin-top: 1.2rem;
+  text-align: right;
+}
+
+/* Resultados */
+.sim-results {
+  max-width: 760px;
+  margin: 0 auto;
+}
+.sim-score-card {
+  text-align: center;
+  background: var(--bg-elev);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-xl);
+  padding: 2rem 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-1);
+}
+.sim-score-pct {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: clamp(3rem, 9vw, 4.5rem);
+  line-height: 1;
+  margin-bottom: 0.4rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.sim-score-frac { font-size: 1.05rem; color: var(--ink-2); margin-bottom: 0.4rem; }
+.sim-score-meta { font-size: 0.85rem; color: var(--ink-3); }
+.sim-pct-good .sim-score-pct { color: var(--success); }
+.sim-pct-mid  .sim-score-pct { color: var(--gold); }
+.sim-pct-low  .sim-score-pct { color: var(--danger); }
+
+.sim-results-h {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 1.2rem;
+  margin: 0 0 1rem;
+  letter-spacing: -0.005em;
+}
+
+.sim-review {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin-bottom: 1.8rem;
+}
+.sim-review-item {
+  background: var(--bg-elev);
+  border: 1px solid var(--rule);
+  border-left: 4px solid var(--rule-2);
+  border-radius: var(--r);
+  padding: 0.95rem 1.1rem;
+}
+.sim-review-item.ok   { border-left-color: var(--success); }
+.sim-review-item.fail { border-left-color: var(--danger); }
+.sim-review-item header {
+  display: flex; align-items: center; gap: 0.6rem;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: var(--ink-3);
+  margin-bottom: 0.5rem;
+}
+.sim-review-item.ok header   { color: var(--success); font-weight: 500; }
+.sim-review-item.fail header { color: var(--danger);  font-weight: 500; }
+.sim-review-stem { font-size: 0.92rem; line-height: 1.5; color: var(--ink); margin: 0 0 0.6rem; }
+.sim-review-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  padding: 0.7rem 0.85rem;
+  background: var(--bg);
+  border-radius: var(--r-sm);
+}
+.sim-review-detail .bad  { color: var(--danger); }
+.sim-review-detail .good { color: var(--success); }
+.sim-review-detail .muted { font-style: italic; margin-top: 0.3rem; }
+
+.sim-results-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .sim-question { padding: 1.3rem 1rem; }
+  .sim-question h2 { font-size: 1.05rem; }
+  .sim-option { padding: 0.75rem 0.9rem; font-size: 0.9rem; }
+  .sim-form { padding: 1.1rem; }
+}
