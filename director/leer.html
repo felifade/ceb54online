@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#fbfaf6">
+  <title>Lector iBook · Consultor Director</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="../assets/logo.png">
+  <link rel="apple-touch-icon" href="../assets/logo.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+
+  <link rel="stylesheet" href="css/director.css?v=4">
+</head>
+<body>
+
+  <header class="dir-header ibk-header">
+    <div class="dir-header-inner">
+      <a href="index.html" class="dir-brand">
+        <img src="../assets/logo.png" alt="" onerror="this.style.display='none'">
+        <span>Consultor <span class="brand-mark">Director</span></span>
+      </a>
+
+      <div class="ibk-header-doc">
+        <span class="doc-abbr-large" id="doc-abbr">--</span>
+        <span class="ibk-doc-title" id="doc-title">Cargando…</span>
+        <span class="ibk-page-pill" id="current-page">1 / 1</span>
+      </div>
+
+      <div class="ibk-toolbar">
+        <button class="icon-btn" id="btn-toc-toggle" title="Tabla de contenidos" aria-label="TOC">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        </button>
+        <button class="icon-btn" id="btn-font-down" title="Fuente más chica" aria-label="A-">A−</button>
+        <span class="font-pill" id="font-pill">18px</span>
+        <button class="icon-btn" id="btn-font-up" title="Fuente más grande" aria-label="A+">A+</button>
+        <button class="icon-btn" id="btn-theme" title="Cambiar modo (claro/sepia/oscuro)" aria-label="Tema">☀️</button>
+        <a class="icon-btn" id="btn-pdf" title="Ver el PDF original" aria-label="PDF">PDF</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="ibk-shell">
+    <aside class="ibk-toc-aside" id="toc-aside">
+      <div class="ibk-toc-head">
+        <h3>Contenido</h3>
+        <button id="btn-toc-close" class="icon-btn">×</button>
+      </div>
+      <ul class="ibk-toc" id="toc-list"></ul>
+    </aside>
+
+    <main class="ibk-main" id="leer-main">
+      <p class="muted" style="text-align:center;padding:3rem"><span class="spinner"></span> Cargando…</p>
+    </main>
+  </div>
+
+  <script type="module" src="js/leer.js?v=1"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
+    }
+    document.getElementById("btn-toc-close")?.addEventListener("click", () => {
+      document.getElementById("toc-aside").classList.remove("open");
+    });
+  </script>
+</body>
+</html>
