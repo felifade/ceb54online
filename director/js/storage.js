@@ -12,7 +12,7 @@
 // DriveBackend cuando el usuario conecta su Google Drive.
 // Si Drive está activo, los cambios locales se sincronizan con debounce.
 
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 const STORAGE_KEY = "dir-mi-estudio";
 
 // === Estructura por defecto ===
@@ -26,6 +26,8 @@ function emptyData() {
     progress: {},    // {docId: {lastPage, lastReadAt, completedPages: [...]}}
     simulacros: [],  // [{id, date, topic, score, total, questions: [...]}]
     plan: null,      // {createdAt, target, days, sessions: [...]}
+    summaries: {},   // {docId: {page: {text, generatedAt}}}
+    flashcards: {},  // {docId: [{id, page, front, back, sourceText, sourceHighlightId?, createdAt, interval, ease, due, reviews}]}
     settings: {
       reader: { fontSize: 18, theme: "light", lineHeight: 1.6 },
     },
@@ -94,6 +96,12 @@ function migrate(data) {
     // Migración inicial — completar campos que falten
     const fresh = emptyData();
     return { ...fresh, ...data, schema: SCHEMA_VERSION };
+  }
+  // v1 → v2: agregar summaries y flashcards si no existen
+  if (data.schema < 2) {
+    if (!data.summaries) data.summaries = {};
+    if (!data.flashcards) data.flashcards = {};
+    data.schema = 2;
   }
   return data;
 }
@@ -282,6 +290,104 @@ class Storage {
       this._emit("plan");
       this._scheduleSave();
     }
+  }
+
+  // === RESÚMENES IA (caché por página) ===
+  saveSummary(doc, page, text) {
+    if (!this.data.summaries) this.data.summaries = {};
+    if (!this.data.summaries[doc]) this.data.summaries[doc] = {};
+    this.data.summaries[doc][page] = { text, generatedAt: Date.now() };
+    this._emit("summary", { doc, page });
+    this._scheduleSave();
+  }
+
+  getSummary(doc, page) {
+    return this.data?.summaries?.[doc]?.[page] || null;
+  }
+
+  removeSummary(doc, page) {
+    if (this.data?.summaries?.[doc]?.[page]) {
+      delete this.data.summaries[doc][page];
+      this._emit("summary", { doc, page });
+      this._scheduleSave();
+    }
+  }
+
+  // === FLASHCARDS (con repaso espaciado SM-2 simplificado) ===
+  addFlashcard(doc, card) {
+    if (!this.data.flashcards) this.data.flashcards = {};
+    if (!this.data.flashcards[doc]) this.data.flashcards[doc] = [];
+    const fc = {
+      id: cryptoRandomId(),
+      doc,
+      page: card.page || 0,
+      front: (card.front || "").trim(),
+      back: (card.back || "").trim(),
+      sourceText: (card.sourceText || "").trim(),
+      sourceHighlightId: card.sourceHighlightId || null,
+      createdAt: Date.now(),
+      // Repaso espaciado
+      interval: 1,                                // días hasta próximo repaso
+      ease: 2.5,                                  // factor de facilidad (SM-2)
+      due: Date.now() + 24 * 3600 * 1000,         // primera vez: mañana
+      reviews: 0,
+      lastReviewAt: null,
+    };
+    this.data.flashcards[doc].push(fc);
+    this._emit("flashcard", { doc, action: "add" });
+    this._scheduleSave();
+    return fc;
+  }
+
+  getFlashcards(doc) {
+    if (!this.data.flashcards) return [];
+    if (doc != null) return this.data.flashcards[doc] || [];
+    return Object.entries(this.data.flashcards)
+      .flatMap(([d, cards]) => cards.map(c => ({ ...c, doc: parseInt(d, 10) })));
+  }
+
+  // Tarjetas con due <= ahora (listas para repasar)
+  getDueFlashcards() {
+    const now = Date.now();
+    return this.getFlashcards().filter(c => (c.due || 0) <= now);
+  }
+
+  updateFlashcardReview(doc, id, quality) {
+    // quality: 0=Difícil, 1=Bien, 2=Fácil, 3=Perfecto
+    if (!this.data.flashcards?.[doc]) return;
+    const card = this.data.flashcards[doc].find(c => c.id === id);
+    if (!card) return;
+    if (quality === 0) {
+      card.interval = 1;
+      card.ease = Math.max(1.3, (card.ease || 2.5) - 0.2);
+    } else {
+      const baseInterval = card.reviews === 0 ? 1 : (card.interval || 1);
+      card.interval = Math.max(1, Math.round(baseInterval * (card.ease || 2.5)));
+      if (quality >= 2) card.ease = (card.ease || 2.5) + 0.15;
+    }
+    card.due = Date.now() + card.interval * 24 * 3600 * 1000;
+    card.reviews = (card.reviews || 0) + 1;
+    card.lastReviewAt = Date.now();
+    this._emit("flashcard", { doc, action: "review", id });
+    this._scheduleSave();
+    return card;
+  }
+
+  removeFlashcard(doc, id) {
+    if (!this.data.flashcards?.[doc]) return;
+    this.data.flashcards[doc] = this.data.flashcards[doc].filter(c => c.id !== id);
+    this._emit("flashcard", { doc, action: "remove", id });
+    this._scheduleSave();
+  }
+
+  updateFlashcard(doc, id, patch) {
+    if (!this.data.flashcards?.[doc]) return;
+    const card = this.data.flashcards[doc].find(c => c.id === id);
+    if (!card) return;
+    Object.assign(card, patch);
+    this._emit("flashcard", { doc, action: "update", id });
+    this._scheduleSave();
+    return card;
   }
 
   // === SETTINGS ===

@@ -5,6 +5,7 @@
 import { loadCatalog, escapeHtml } from "./app.js";
 import { storage } from "./storage.js";
 import { bookmarkButton } from "./bookmark.js";
+import { askClaude, hasApiKey, extractJson } from "./ai.js";
 
 const $  = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
@@ -12,6 +13,7 @@ const $$ = sel => Array.from(document.querySelectorAll(sel));
 let CATALOG = null;
 let DOC = null;
 let DOC_PAGES = null; // { doc, pages: [{page, text}, ...] }
+let _currentPage = 1;
 
 function getParams() {
   const u = new URL(location.href);
@@ -199,6 +201,7 @@ function setupCurrentPageObserver() {
         const p = parseInt(entry.target.dataset.page, 10);
         if (p !== currentPage) {
           currentPage = p;
+          _currentPage = p;
           // Update TOC active
           $$(".toc-link").forEach(a => a.classList.toggle("active",
             parseInt(a.dataset.page, 10) === p));
@@ -227,6 +230,8 @@ function setupHighlightMenu() {
     <button data-color="green"  title="Subrayar verde"   style="background:#c8e6c9">A</button>
     <button data-color="blue"   title="Subrayar azul"    style="background:#bbdefb">A</button>
     <button data-color="pink"   title="Subrayar rosa"    style="background:#f8bbd0">A</button>
+    <span class="ibk-sel-sep"></span>
+    <button data-action="flashcard" class="ibk-sel-fc" title="Crear flashcard a partir de la selección">→ FC</button>
   `;
   document.body.appendChild(menu);
 
@@ -247,7 +252,7 @@ function setupHighlightMenu() {
     }, 10);
   });
 
-  menu.addEventListener("click", (e) => {
+  menu.addEventListener("click", async (e) => {
     const btn = e.target.closest("button");
     if (!btn) return;
     const sel = window.getSelection();
@@ -257,6 +262,16 @@ function setupHighlightMenu() {
     const pageEl = range.startContainer.parentElement?.closest(".reader-page");
     if (!pageEl) return;
     const page = parseInt(pageEl.dataset.page, 10);
+
+    if (btn.dataset.action === "flashcard") {
+      // Crear flashcard a partir de la selección (sin subrayar)
+      sel.removeAllRanges();
+      menu.style.display = "none";
+      await createFlashcardFromText(txt, page, null);
+      return;
+    }
+
+    // Subrayar normal
     storage.addHighlight(DOC.id, { page, text: txt, color: btn.dataset.color });
     sel.removeAllRanges();
     menu.style.display = "none";
@@ -264,6 +279,245 @@ function setupHighlightMenu() {
   });
 
   document.addEventListener("scroll", () => { menu.style.display = "none"; }, { passive: true });
+}
+
+// === RESUMEN IA por página ===
+let _summaryBusy = false;
+
+async function generateSummary(page) {
+  if (_summaryBusy) return;
+  if (!hasApiKey()) {
+    alert("Falta tu API key. Ve a Consultor IA y configúrala primero.");
+    return;
+  }
+  const cached = storage.getSummary(DOC.id, page);
+  if (cached) {
+    showSummaryPanel(page, cached.text, cached.generatedAt);
+    return;
+  }
+  const pageData = DOC_PAGES.pages.find(p => p.page === page);
+  if (!pageData || !pageData.text || pageData.text.trim().length < 50) {
+    alert("Esta página no tiene texto suficiente para resumir.");
+    return;
+  }
+
+  _summaryBusy = true;
+  showSummaryPanel(page, "", null, /*loading=*/true);
+
+  const system = `Eres "Consultor Director", asistente jurídico-pedagógico especializado en el examen de promoción a director de bachillerato (SEP). Tu tarea: producir resúmenes claros, breves y útiles para estudiar.
+
+Formato obligatorio:
+- 4 a 6 viñetas con guion (-)
+- Máximo 100 palabras totales
+- Cada viñeta: una idea concreta. Conserva términos técnicos.
+- Resalta artículos/numerales/obligaciones clave con **negrita**.
+- Si hay obligaciones, jerarquías o sanciones, hazlas explícitas.
+- Sin introducción ni cierre. Sin "En resumen…". Solo viñetas.`;
+
+  const userText = `Resume esta página de **${DOC.abbr}** — ${DOC.short || DOC.title}, página ${page}.
+
+---
+${pageData.text.trim()}
+---`;
+
+  try {
+    const { text } = await askClaude({ system, userText, maxTokens: 400 });
+    storage.saveSummary(DOC.id, page, text);
+    showSummaryPanel(page, text, Date.now());
+  } catch (e) {
+    showSummaryPanel(page, `⚠️ Error: ${escapeHtml(e.message)}`, null);
+  } finally {
+    _summaryBusy = false;
+  }
+}
+
+function showSummaryPanel(page, text, ts, loading = false) {
+  const pageEl = document.getElementById(`page-${page}`);
+  if (!pageEl) return;
+  let panel = pageEl.querySelector(`.ibk-summary-panel`);
+  if (!panel) {
+    panel = document.createElement("div");
+    panel.className = "ibk-summary-panel";
+    // Insertar después del header (antes del .ibk-text)
+    const headEl = pageEl.querySelector(".ibk-page-head");
+    if (headEl) headEl.after(panel);
+    else pageEl.prepend(panel);
+  }
+  if (loading) {
+    panel.innerHTML = `
+      <div class="ibk-sum-head">🪄 Resumen IA — página ${page}</div>
+      <div class="ibk-sum-loading"><span class="spinner"></span> Generando resumen…</div>
+    `;
+    return;
+  }
+  const tsLine = ts
+    ? `<span class="ibk-sum-ts">${new Date(ts).toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" })}</span>`
+    : "";
+  panel.innerHTML = `
+    <div class="ibk-sum-head">
+      🪄 Resumen IA — página ${page}
+      ${tsLine}
+      <button class="ibk-sum-action" data-act="regen" title="Regenerar">↻</button>
+      <button class="ibk-sum-action" data-act="close" title="Cerrar">×</button>
+    </div>
+    <div class="ibk-sum-body">${markdownLite(text)}</div>
+  `;
+  panel.querySelector('[data-act="regen"]')?.addEventListener("click", () => {
+    storage.removeSummary(DOC.id, page);
+    generateSummary(page);
+  });
+  panel.querySelector('[data-act="close"]')?.addEventListener("click", () => {
+    panel.remove();
+  });
+}
+
+// Renderiza **negrita** y - viñetas como HTML mínimo seguro.
+function markdownLite(s) {
+  if (!s) return "";
+  const escaped = escapeHtml(s);
+  // Convertir líneas que empiezan con - en lista
+  const lines = escaped.split(/\r?\n/);
+  const out = [];
+  let inList = false;
+  for (const line of lines) {
+    const m = line.match(/^[\s]*[-•]\s+(.+)$/);
+    if (m) {
+      if (!inList) { out.push("<ul>"); inList = true; }
+      out.push(`<li>${boldify(m[1])}</li>`);
+    } else {
+      if (inList) { out.push("</ul>"); inList = false; }
+      if (line.trim()) out.push(`<p>${boldify(line)}</p>`);
+    }
+  }
+  if (inList) out.push("</ul>");
+  return out.join("");
+}
+function boldify(s) {
+  return s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+}
+
+// === Flashcard desde selección ===
+async function createFlashcardFromText(text, page, sourceHighlightId) {
+  if (!hasApiKey()) {
+    alert("Falta tu API key. Ve a Consultor IA y configúrala primero.");
+    return;
+  }
+  // Modal de loading
+  const modal = openFlashcardModal({ loading: true });
+
+  const system = `Generas flashcards estilo Anki para estudiar el examen de promoción a director (SEP, bachillerato general).
+
+Reglas:
+- 1 flashcard por entrada.
+- "front": pregunta clara y específica que sirva para evaluar memoria activa. Máx 18 palabras. SIN respuesta dentro.
+- "back": respuesta breve y precisa. Máx 35 palabras. Conserva términos técnicos. Si aplica cita el artículo/numeral.
+- Devuelve EXACTAMENTE un objeto JSON: {"front": "...", "back": "..."}.
+- Sin markdown, sin texto fuera del JSON, sin comentarios.`;
+
+  const userText = `Genera 1 flashcard a partir de este texto subrayado del documento ${DOC.abbr} (${DOC.short || DOC.title}), página ${page}.
+
+Texto:
+"""
+${text}
+"""
+
+Devuelve solo el JSON.`;
+
+  try {
+    const { text: raw } = await askClaude({ system, userText, maxTokens: 400 });
+    const parsed = extractJson(raw);
+    if (!parsed || !parsed.front || !parsed.back) {
+      throw new Error("No pude generar la flashcard. Intenta con un texto más claro.");
+    }
+    openFlashcardModal({
+      front: parsed.front,
+      back: parsed.back,
+      page,
+      sourceText: text,
+      sourceHighlightId,
+      modal,
+    });
+  } catch (e) {
+    modal.querySelector(".fc-modal-body").innerHTML = `<p style="color:var(--danger)">⚠️ ${escapeHtml(e.message)}</p>`;
+  }
+}
+
+function openFlashcardModal(opts) {
+  let modal = document.querySelector(".fc-modal-overlay");
+  if (modal) modal.remove();
+  modal = document.createElement("div");
+  modal.className = "fc-modal-overlay";
+  modal.innerHTML = `
+    <div class="fc-modal">
+      <div class="fc-modal-head">
+        <span>📇 Nueva flashcard</span>
+        <button class="fc-modal-close" aria-label="Cerrar">×</button>
+      </div>
+      <div class="fc-modal-body">
+        ${opts.loading
+          ? `<div class="ibk-sum-loading"><span class="spinner"></span> Generando con IA…</div>`
+          : flashcardForm(opts)
+        }
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.querySelector(".fc-modal-close").onclick = () => modal.remove();
+  modal.addEventListener("click", (e) => { if (e.target === modal) modal.remove(); });
+
+  if (!opts.loading) bindFlashcardForm(modal, opts);
+  return modal;
+}
+
+function flashcardForm(opts) {
+  return `
+    <label class="fc-field">
+      <span>Pregunta (front)</span>
+      <textarea class="fc-front" rows="2">${escapeHtml(opts.front || "")}</textarea>
+    </label>
+    <label class="fc-field">
+      <span>Respuesta (back)</span>
+      <textarea class="fc-back" rows="3">${escapeHtml(opts.back || "")}</textarea>
+    </label>
+    <details class="fc-source">
+      <summary>Fuente: ${DOC.abbr} p.${opts.page} — texto original</summary>
+      <p class="fc-src-text">${escapeHtml(opts.sourceText || "")}</p>
+    </details>
+    <div class="fc-modal-actions">
+      <button class="dir-btn-secondary" data-act="cancel">Cancelar</button>
+      <button class="dir-btn-primary" data-act="save">Guardar flashcard</button>
+    </div>
+  `;
+}
+
+function bindFlashcardForm(modal, opts) {
+  modal.querySelector('[data-act="cancel"]').onclick = () => modal.remove();
+  modal.querySelector('[data-act="save"]').onclick = () => {
+    const front = modal.querySelector(".fc-front").value.trim();
+    const back  = modal.querySelector(".fc-back").value.trim();
+    if (!front || !back) {
+      alert("Completa pregunta y respuesta.");
+      return;
+    }
+    storage.addFlashcard(DOC.id, {
+      page: opts.page,
+      front,
+      back,
+      sourceText: opts.sourceText,
+      sourceHighlightId: opts.sourceHighlightId || null,
+    });
+    modal.remove();
+    showToast("📇 Flashcard guardada — repásala en Mi Estudio → Repaso");
+  };
+}
+
+function showToast(msg) {
+  const t = document.createElement("div");
+  t.className = "ibk-toast";
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.classList.add("show"), 10);
+  setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 300); }, 3500);
 }
 
 function applyHighlights() {
@@ -348,6 +602,24 @@ function setupToolbar() {
 
   // Volver al PDF
   $("#btn-pdf").href = `lector.html?id=${DOC.id}`;
+
+  // Resumen IA de la página actual
+  $("#btn-summary").onclick = () => {
+    const page = _currentPage || parseInt($("#current-page").textContent.split("/")[0], 10) || 1;
+    // Si ya hay panel abierto en esta página, hacer scroll a él
+    const existing = document.querySelector(`#page-${page} .ibk-summary-panel`);
+    if (existing) { existing.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+    generateSummary(page);
+  };
+
+  // Renderizar resúmenes ya guardados al cargar una página visible (lazy)
+  setTimeout(() => {
+    document.querySelectorAll(".reader-page").forEach(pageEl => {
+      const p = parseInt(pageEl.dataset.page, 10);
+      const cached = storage.getSummary(DOC.id, p);
+      if (cached) showSummaryPanel(p, cached.text, cached.generatedAt);
+    });
+  }, 100);
 }
 
 function applyTheme(theme) {
