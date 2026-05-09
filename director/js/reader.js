@@ -1,5 +1,7 @@
 // Lector de documento — recibe ?id=N&page=P y muestra metadatos + iframe a Drive
 import { loadCatalog, ICONS, escapeHtml } from "./app.js";
+import { storage } from "./storage.js";
+import { bookmarkButton } from "./bookmark.js";
 
 const $ = sel => document.querySelector(sel);
 
@@ -53,12 +55,16 @@ function render(catalog, params) {
     </dl>
 
     <div class="reader-actions">
+      <a class="btn" href="leer.html?id=${doc.id}${params.page > 1 ? `&page=${params.page}` : ""}">
+        📖 Leer texto (modo iBook)
+      </a>
       <a class="btn btn-primary" href="buscar.html?q=&doc=${doc.id}">
-        Buscar en este documento
+        🔍 Buscar en este documento
       </a>
       ${doc.drive_id ? `<a class="btn" target="_blank" rel="noopener" href="https://drive.google.com/file/d/${doc.drive_id}/view">
         Abrir en Drive ↗
       </a>` : ""}
+      <div id="bookmark-slot"></div>
     </div>
 
     ${doc.tags?.length ? `<p style="margin-top:1.2rem;font-size:0.78rem;color:var(--ink-3)">
@@ -93,8 +99,17 @@ function renderHeader() {
 
 async function init() {
   try {
+    await storage.init();
     const catalog = await loadCatalog();
-    render(catalog, getParams());
+    const params = getParams();
+    render(catalog, params);
+    // Insertar el botón de marcador en el slot
+    const slot = $("#bookmark-slot");
+    if (slot && params.id) {
+      slot.appendChild(bookmarkButton({ doc: params.id, page: params.page, label: "Guardar" }));
+    }
+    // Marcar progreso de lectura (se quedó aquí)
+    storage.setProgress(params.id, params.page);
   } catch (e) {
     console.error(e);
     $("#reader-aside").innerHTML = `<p style="color:var(--danger)">Error: ${e.message}</p>`;

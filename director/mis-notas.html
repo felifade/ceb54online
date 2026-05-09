@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#fbfaf6">
+  <title>Mi Estudio · Consultor Director</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="../assets/logo.png">
+  <link rel="apple-touch-icon" href="../assets/logo.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+
+  <link rel="stylesheet" href="css/director.css?v=3">
+</head>
+<body>
+
+  <header class="dir-header">
+    <div class="dir-header-inner">
+      <a href="index.html" class="dir-brand">
+        <img src="../assets/logo.png" alt="" onerror="this.style.display='none'">
+        <span>Consultor <span class="brand-mark">Director</span></span>
+      </a>
+      <div class="dir-header-search"></div>
+      <nav class="dir-header-nav">
+        <a href="index.html">Catálogo</a>
+        <a href="buscar.html">Buscar</a>
+        <a href="consultor.html">Consultor IA</a>
+        <a href="mis-notas.html" class="active">Mi Estudio</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="dir-main">
+    <div class="page-head">
+      <h1 class="page-title">Mi Estudio</h1>
+      <p class="page-sub">Tus marcadores, notas, progreso de lectura y simulacros — sincronizados entre dispositivos.</p>
+    </div>
+
+    <!-- Stats arriba -->
+    <div class="stats-row" id="stats"></div>
+
+    <!-- Sync bar -->
+    <div class="sync-bar" id="sync-bar"></div>
+    <div id="info-banner" class="info-banner" style="display:none"></div>
+
+    <!-- Marcadores -->
+    <section class="study-section">
+      <header class="study-section-head">
+        <h2>⭐ Marcadores</h2>
+        <span class="hint-text">Páginas que guardaste</span>
+      </header>
+      <div id="bookmarks-list"></div>
+    </section>
+
+    <!-- Progreso de lectura -->
+    <section class="study-section">
+      <header class="study-section-head">
+        <h2>📖 Documentos abiertos</h2>
+        <span class="hint-text">Continúa donde te quedaste</span>
+      </header>
+      <div id="progress-list" class="progress-grid"></div>
+    </section>
+
+    <!-- Notas -->
+    <section class="study-section">
+      <header class="study-section-head">
+        <h2>📝 Notas personales</h2>
+        <span class="hint-text">Lo que has anotado en el lector</span>
+      </header>
+      <div id="notes-list" class="notes-grid"></div>
+    </section>
+  </main>
+
+  <footer class="dir-footer">
+    Mi Estudio · Tus datos viven en tu Drive (cuando está conectado) o en este dispositivo.
+  </footer>
+
+  <div id="modal-root"></div>
+
+  <script type="module" src="js/mis-notas.js?v=1"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
+    }
+  </script>
+</body>
+</html>
