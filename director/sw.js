@@ -2,7 +2,7 @@
 // Cache-first para assets estáticos + network-first para JSON (catalog/index)
 // Permite consultar offline tras la primera visita.
 
-const VERSION = "v9";
+const VERSION = "v10";
 const CACHE_STATIC = `cd-static-${VERSION}`;
 const CACHE_DATA = `cd-data-${VERSION}`;
 
@@ -16,12 +16,12 @@ const STATIC_ASSETS = [
   "./mis-notas.html",
   "./simulacro.html",
   "./estudiar.html",
-  "./css/director.css?v=6",
+  "./css/director.css?v=7",
   "./js/app.js?v=1",
   "./js/search.js?v=1",
   "./js/reader.js?v=1",
-  "./js/leer.js?v=1",
-  "./js/chat.js?v=2",
+  "./js/leer.js?v=2",
+  "./js/chat.js?v=3",
   "./js/simulacro.js?v=2",
   "./js/estudiar.js?v=2",
   "./js/storage.js?v=1",
