@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#fbfaf6">
-  <title>Simulacros · Consultor Director</title>
+  <title>Plan de estudio · Consultor Director</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" href="../assets/logo.png">
   <link rel="apple-touch-icon" href="../assets/logo.png">
@@ -28,20 +28,22 @@
         <a href="index.html">Catálogo</a>
         <a href="buscar.html">Buscar</a>
         <a href="consultor.html">Consultor IA</a>
-        <a href="simulacro.html" class="active">Simulacros</a>
-        <a href="estudiar.html">Plan</a>
+        <a href="simulacro.html">Simulacros</a>
+        <a href="estudiar.html" class="active">Plan</a>
         <a href="mis-notas.html">Mi Estudio</a>
       </nav>
     </div>
   </header>
 
   <main class="dir-main">
-    <div id="sim-shell">
+    <div id="estudiar-shell">
       <p class="muted" style="text-align:center;padding:3rem"><span class="spinner"></span> Cargando…</p>
     </div>
   </main>
 
-  <script type="module" src="js/simulacro.js?v=1"></script>
+  <div id="modal-root"></div>
+
+  <script type="module" src="js/estudiar.js?v=1"></script>
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
