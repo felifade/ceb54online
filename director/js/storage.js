@@ -26,6 +26,7 @@ function emptyData() {
     progress: {},    // {docId: {lastPage, lastReadAt, completedPages: [...]}}
     simulacros: [],  // [{id, date, topic, score, total, questions: [...]}]
     plan: null,      // {createdAt, target, days, sessions: [...]}
+    summaries: {},   // {docId: {text (markdown), updatedAt}}
     settings: {
       reader: { fontSize: 18, theme: "light", lineHeight: 1.6 },
     },
@@ -282,6 +283,31 @@ class Storage {
       this._emit("plan");
       this._scheduleSave();
     }
+  }
+
+  // === RESÚMENES PERSONALES (uno por documento, en Markdown) ===
+  getSummary(doc) {
+    return this.data?.summaries?.[doc]?.text || "";
+  }
+
+  setSummary(doc, text) {
+    if (!this.data.summaries) this.data.summaries = {};
+    if (!text || !text.trim()) {
+      delete this.data.summaries[doc];
+    } else {
+      this.data.summaries[doc] = { text: text.trim(), updatedAt: Date.now() };
+    }
+    this._emit("summary", { doc });
+    this._scheduleSave();
+  }
+
+  hasSummary(doc) {
+    return !!this.data?.summaries?.[doc]?.text;
+  }
+
+  getAllSummaries() {
+    return Object.entries(this.data?.summaries || {})
+      .map(([doc, s]) => ({ doc: parseInt(doc, 10), text: s.text, updatedAt: s.updatedAt }));
   }
 
   // === SETTINGS ===

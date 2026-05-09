@@ -2,6 +2,8 @@
 import { loadCatalog, ICONS, escapeHtml } from "./app.js";
 import { storage } from "./storage.js";
 import { bookmarkButton } from "./bookmark.js";
+import { renderMarkdown } from "./markdown.js";
+import { openSummaryEditor } from "./summary-editor.js";
 
 const $ = sel => document.querySelector(sel);
 
@@ -67,10 +69,15 @@ function render(catalog, params) {
       <div id="bookmark-slot"></div>
     </div>
 
+    <div id="my-summary-slot" style="margin-top:1.2rem"></div>
+
     ${doc.tags?.length ? `<p style="margin-top:1.2rem;font-size:0.78rem;color:var(--ink-3)">
       ${doc.tags.map(t => `<span style="display:inline-block;background:var(--bg-elev);border:1px solid var(--rule);padding:2px 8px;border-radius:9999px;margin:2px 3px 0 0">#${escapeHtml(t)}</span>`).join("")}
     </p>` : ""}
   `;
+
+  // Banner de "Mi resumen"
+  renderSummarySlot(doc);
 
   // Frame del PDF
   const frame = $("#reader-frame");
@@ -88,6 +95,36 @@ function render(catalog, params) {
         </div>
       </div>`;
   }
+}
+
+function renderSummarySlot(doc) {
+  const slot = $("#my-summary-slot");
+  if (!slot) return;
+  const text = storage.getSummary(doc.id);
+  if (!text) {
+    slot.innerHTML = `
+      <div class="my-summary empty">
+        <div class="my-summary-head">
+          <h3 style="font-size:0.95rem">Mi resumen</h3>
+          <button class="btn btn-sm btn-primary" id="rdr-sum-edit">✏️ Crear</button>
+        </div>
+        <div class="my-summary-body" style="font-size:0.85rem">
+          Escribe tu propio resumen del documento.
+        </div>
+      </div>`;
+  } else {
+    slot.innerHTML = `
+      <div class="my-summary">
+        <div class="my-summary-head">
+          <h3 style="font-size:0.95rem">Mi resumen</h3>
+          <button class="btn btn-sm" id="rdr-sum-edit">✏️ Editar</button>
+        </div>
+        <div class="my-summary-body" style="font-size:0.88rem">${renderMarkdown(text)}</div>
+      </div>`;
+  }
+  document.getElementById("rdr-sum-edit").onclick = () => {
+    openSummaryEditor({ doc, onClose: () => renderSummarySlot(doc) });
+  };
 }
 
 // Header dinámico (mismo que el resto del sitio)

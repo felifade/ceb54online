@@ -5,6 +5,8 @@
 import { loadCatalog, escapeHtml } from "./app.js";
 import { storage } from "./storage.js";
 import { bookmarkButton } from "./bookmark.js";
+import { renderMarkdown } from "./markdown.js";
+import { openSummaryEditor } from "./summary-editor.js";
 
 const $  = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
@@ -113,10 +115,60 @@ function renderPage(pageNumber) {
 }
 
 // === Render del lector completo ===
+// Banner del resumen personal del documento (arriba de todas las páginas)
+function renderSummaryBanner() {
+  const text = storage.getSummary(DOC.id);
+  if (!text) {
+    return `
+      <section class="my-summary empty" id="my-summary-banner">
+        <div class="my-summary-head">
+          <h3>Mi resumen — aún sin escribir</h3>
+          <div class="my-summary-actions">
+            <button class="btn btn-sm btn-primary" id="btn-summary-edit">✏️ Crear resumen</button>
+          </div>
+        </div>
+        <div class="my-summary-body">
+          Escribe tu propio resumen del documento para estudiar a partir de él, con el texto completo siempre disponible debajo como referencia.
+        </div>
+      </section>`;
+  }
+  return `
+    <section class="my-summary" id="my-summary-banner">
+      <div class="my-summary-head">
+        <h3>Mi resumen</h3>
+        <div class="my-summary-actions">
+          <button class="btn btn-sm" id="btn-summary-edit">✏️ Editar</button>
+        </div>
+      </div>
+      <div class="my-summary-body">${renderMarkdown(text)}</div>
+    </section>`;
+}
+
+function wireSummaryBanner() {
+  const btn = $("#btn-summary-edit");
+  if (!btn) return;
+  btn.onclick = () => {
+    openSummaryEditor({
+      doc: DOC,
+      onClose: () => {
+        // Re-render el banner solo (no toda la página)
+        const banner = $("#my-summary-banner");
+        if (banner) {
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = renderSummaryBanner();
+          banner.replaceWith(wrapper.firstElementChild);
+          wireSummaryBanner();
+        }
+      },
+    });
+  };
+}
+
 function renderReader(startPage) {
   const main = $("#leer-main");
   // Render de TODAS las páginas seguidas (scroll continuo, como un libro)
-  main.innerHTML = DOC_PAGES.pages.map(p => renderPage(p.page)).join("");
+  main.innerHTML = renderSummaryBanner() + DOC_PAGES.pages.map(p => renderPage(p.page)).join("");
+  wireSummaryBanner();
 
   // Insertar botones de marcador en cada página
   DOC_PAGES.pages.forEach(p => {

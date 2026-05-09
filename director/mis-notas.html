@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 
-  <link rel="stylesheet" href="css/director.css?v=7">
+  <link rel="stylesheet" href="css/director.css?v=8">
 </head>
 <body>
 
@@ -47,6 +47,15 @@
     <!-- Sync bar -->
     <div class="sync-bar" id="sync-bar"></div>
     <div id="info-banner" class="info-banner" style="display:none"></div>
+
+    <!-- Mis resúmenes -->
+    <section class="study-section">
+      <header class="study-section-head">
+        <h2>📝 Mis resúmenes</h2>
+        <span class="hint-text">Tu propia síntesis por documento (Markdown)</span>
+      </header>
+      <div id="summaries-list"></div>
+    </section>
 
     <!-- Marcadores -->
     <section class="study-section">
@@ -82,7 +91,7 @@
 
   <div id="modal-root"></div>
 
-  <script type="module" src="js/mis-notas.js?v=1"></script>
+  <script type="module" src="js/mis-notas.js?v=2"></script>
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
