@@ -1,7 +1,9 @@
-// Búsqueda full-text con MiniSearch — 1,187 páginas indexadas en cliente.
+// Búsqueda full-text con MiniSearch — 1,219 páginas indexadas en cliente.
 // MiniSearch se carga desde esm.sh (8KB gzip).
 import MiniSearch from "https://esm.sh/minisearch@7.1.2";
 import { loadCatalog, ICONS, escapeHtml } from "./app.js";
+import { storage } from "./storage.js";
+import { bookmarkButton } from "./bookmark.js";
 
 const $ = sel => document.querySelector(sel);
 
@@ -135,21 +137,30 @@ function renderResults(query, opts = {}) {
     const cat = CATALOG.categories[h.category] || {};
     const snippet = makeSnippet(RECORDS_BY_ID[h.id] || "", queryTerms);
     return `
-      <a class="result"
-         href="lector.html?id=${h.doc}&page=${h.page}"
-         style="--cat-color:${cat.color || "#1e3a5f"}">
-        <div class="result-head">
-          <span class="doc-abbr" style="color:${cat.color};background:${cat.tint}">${escapeHtml(h.abbr)}</span>
-          <span class="arrow">›</span>
-          <span class="pg">página ${h.page}</span>
-          <span class="arrow">·</span>
-          <span>${escapeHtml(cat.short || h.category)}</span>
-        </div>
-        <h3 class="result-title">${escapeHtml(h.title)}</h3>
-        <p class="result-snippet">${snippet}</p>
-      </a>
+      <div class="result-wrap" style="--cat-color:${cat.color || "#1e3a5f"}">
+        <a class="result"
+           href="lector.html?id=${h.doc}&page=${h.page}">
+          <div class="result-head">
+            <span class="doc-abbr" style="color:${cat.color};background:${cat.tint}">${escapeHtml(h.abbr)}</span>
+            <span class="arrow">›</span>
+            <span class="pg">página ${h.page}</span>
+            <span class="arrow">·</span>
+            <span>${escapeHtml(cat.short || h.category)}</span>
+          </div>
+          <h3 class="result-title">${escapeHtml(h.title)}</h3>
+          <p class="result-snippet">${snippet}</p>
+        </a>
+        <div class="result-actions" data-doc="${h.doc}" data-page="${h.page}"></div>
+      </div>
     `;
   }).join("");
+
+  // Inyectar botón de marcador en cada resultado
+  root.querySelectorAll(".result-actions").forEach(slot => {
+    const doc = parseInt(slot.dataset.doc, 10);
+    const page = parseInt(slot.dataset.page, 10);
+    slot.appendChild(bookmarkButton({ doc, page, size: "sm" }));
+  });
 
   $("#summary").innerHTML = `
     <strong>${hits.length}</strong> ${hits.length === 1 ? "resultado" : "resultados"}
@@ -201,7 +212,7 @@ async function init() {
   $("#summary").innerHTML = `<span class="spinner"></span> Cargando índice…`;
 
   try {
-    await buildIndex();
+    await Promise.all([buildIndex(), storage.init()]);
 
     // Si hay filtro de doc específico, mostrar contexto
     if (docFilter) {
