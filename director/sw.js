@@ -1,0 +1,68 @@
+// Service Worker — Consultor Director
+// Cache-first para assets estáticos + network-first para JSON (catalog/index)
+// Permite consultar offline tras la primera visita.
+
+const VERSION = "v1";
+const CACHE_STATIC = `cd-static-${VERSION}`;
+const CACHE_DATA = `cd-data-${VERSION}`;
+
+const STATIC_ASSETS = [
+  "./",
+  "./index.html",
+  "./buscar.html",
+  "./lector.html",
+  "./css/director.css?v=1",
+  "./js/app.js?v=1",
+  "./js/search.js?v=1",
+  "./js/reader.js?v=1",
+  "./manifest.json",
+];
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE_STATIC).then((c) => c.addAll(STATIC_ASSETS))
+      .then(() => self.skipWaiting())
+      .catch(() => {})
+  );
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter(k => !k.endsWith(VERSION)).map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener("fetch", (event) => {
+  const req = event.request;
+  if (req.method !== "GET") return;
+  const url = new URL(req.url);
+
+  // No interferir con Drive / fonts / esm.sh — que vayan a la red.
+  if (url.origin !== location.origin) return;
+
+  // Datos JSON (catalog + search-index): network-first con fallback a caché
+  if (url.pathname.endsWith(".json")) {
+    event.respondWith(
+      fetch(req).then((res) => {
+        const clone = res.clone();
+        caches.open(CACHE_DATA).then((c) => c.put(req, clone)).catch(()=>{});
+        return res;
+      }).catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  // Assets estáticos: cache-first
+  event.respondWith(
+    caches.match(req).then((hit) => hit || fetch(req).then((res) => {
+      if (res.ok && (url.pathname.endsWith(".css") || url.pathname.endsWith(".js") ||
+                     url.pathname.endsWith(".html"))) {
+        const clone = res.clone();
+        caches.open(CACHE_STATIC).then((c) => c.put(req, clone)).catch(()=>{});
+      }
+      return res;
+    }).catch(() => caches.match("./index.html")))
+  );
+});
