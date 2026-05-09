@@ -106,8 +106,41 @@ python3 -m http.server 8095 --directory ../
 - `Esc` lo desenfoca
 - En el lector: `?id=N&page=P` salta a la página
 
+## Consultor IA (Fase 2)
+
+`consultor.html` — chat con Claude que hace **RAG** sobre las 16 fuentes y responde citando artículo + página clickeables.
+
+**Cómo activarlo:**
+1. Crea una API key en https://console.anthropic.com/settings/keys
+2. Mete $5-10 USD de crédito (te dura semanas con Haiku)
+3. Abre `/director/consultor.html` → click en ⚙️ → pega la key
+4. Listo. La key se guarda en `localStorage` (solo en tu navegador)
+
+**Modelos disponibles:**
+- `Haiku 4.5` (default) — rápido, ~$0.005 por consulta
+- `Sonnet 4.6` — más razonado, ~6× más caro
+
+**Funciones:**
+- Streaming de respuestas (ves el texto aparecer)
+- Citas clickeables: `[LGRA p.45]` → abre el lector en la página exacta
+- Multimodal: pega capturas con `Cmd+V` o sube imágenes (max 5 MB)
+- Conversación persistente (localStorage, últimos 50 mensajes)
+- Botón "↻ Regenerar" si la respuesta no convenció
+- Detener generación a media respuesta
+
+**Estrategia RAG:**
+- Cada consulta busca con MiniSearch las **10 páginas más relevantes** del corpus
+- Se inyectan al inicio del último mensaje del usuario (≤ 1800 chars/página)
+- Sistema-prompt con instrucciones + abreviaturas, marcado con `cache_control: ephemeral`
+  para reducir costo en conversaciones largas
+
+**Privacidad y seguridad:**
+- API key vive solo en el navegador del usuario (riesgo: si alguien tiene acceso físico al
+  dispositivo, puede leerla con DevTools). Para uso compartido, migrar a Cloudflare Worker.
+- La conversación nunca se envía a otro servidor que no sea `api.anthropic.com`
+
 ## Roadmap
 
 - **Fase 1 ✅** — Sitio navegable, búsqueda full-text, lector PDF embebido, PWA
-- **Fase 2** — Chat con IA (RAG sobre las 16 fuentes, citas con artículo y página)
-- **Fase 3** — Notas personales, marcadores, modo "consultor formal"
+- **Fase 2 ✅** — Chat con IA (RAG sobre las 16 fuentes, citas clickeables, multimodal)
+- **Fase 3** — Notas personales, marcadores, modo "consultor formal", migración a CF Worker
