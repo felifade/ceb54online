@@ -382,7 +382,10 @@ function loadHistory() {
   try {
     const raw = localStorage.getItem(STORAGE_HIST);
     if (!raw) return;
-    state.messages = JSON.parse(raw) || [];
+    const parsed = JSON.parse(raw) || [];
+    // La API solo acepta "user" o "assistant" — descartar cualquier otro role
+    // (p.ej. "error" persistido por una versión anterior con bug).
+    state.messages = parsed.filter(m => m.role === "user" || m.role === "assistant");
   } catch {}
 }
 
@@ -600,13 +603,15 @@ async function sendMessage() {
       asstBody.innerHTML = formatText(asstMsg.content);
     } else {
       console.error(err);
-      asstMsg.content = `**Error al consultar a Claude:** ${err.message}`;
-      asstMsg.role = "error";
-      asstMsg.streaming = false;
-      asstBody.innerHTML = formatText(asstMsg.content);
+      // Quitar el mensaje fallido del historial (la API no acepta role:"error",
+      // y dejarlo rompería los siguientes turns).
+      const idx = state.messages.indexOf(asstMsg);
+      if (idx !== -1) state.messages.splice(idx, 1);
+      // Mostrar el error como burbuja transitoria fuera del state.messages
       asstWrap.classList.remove("msg-assistant");
       asstWrap.classList.add("msg-error");
       asstWrap.querySelector(".msg-avatar").textContent = "!";
+      asstBody.innerHTML = formatText(`**Error al consultar a Claude:** ${err.message}\n\n*Tip: revisa la API key y los créditos en la configuración (⚙️). Tu mensaje sigue en el historial — puedes volver a enviarlo.*`);
     }
     saveHistory();
   } finally {
@@ -617,8 +622,11 @@ async function sendMessage() {
 }
 
 function buildAnthropicMessagesFromState(lastUserText, retrieved) {
-  // El último mensaje (user que acabamos de empujar) le inyectamos contexto RAG
-  const all = state.messages.slice(0, -1).map(m => ({ role: m.role, content: m.content }));
+  // El último mensaje (user que acabamos de empujar) le inyectamos contexto RAG.
+  // Filtramos cualquier role inválido como defensa.
+  const all = state.messages.slice(0, -1)
+    .filter(m => m.role === "user" || m.role === "assistant")
+    .map(m => ({ role: m.role, content: m.content }));
 
   const lastMsg = state.messages[state.messages.length - 1];
   const newContent = [];
