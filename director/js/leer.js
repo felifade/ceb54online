@@ -217,7 +217,7 @@ function setupCurrentPageObserver() {
   $$(".reader-page").forEach(el => obs.observe(el));
 }
 
-// === Subrayados con selección de texto ===
+// === Subrayados con selección de texto (cross-platform: mouse + touch + iOS) ===
 function setupHighlightMenu() {
   const menu = document.createElement("div");
   menu.className = "ibk-sel-menu";
@@ -230,40 +230,88 @@ function setupHighlightMenu() {
   `;
   document.body.appendChild(menu);
 
-  document.addEventListener("mouseup", () => {
-    setTimeout(() => {
-      const sel = window.getSelection();
-      if (!sel || sel.isCollapsed) { menu.style.display = "none"; return; }
-      const txt = sel.toString().trim();
-      if (txt.length < 3) { menu.style.display = "none"; return; }
-      // Verificar que la selección esté dentro de una página del lector
-      const range = sel.getRangeAt(0);
-      const pageEl = range.startContainer.parentElement?.closest(".reader-page");
-      if (!pageEl) { menu.style.display = "none"; return; }
-      const rect = range.getBoundingClientRect();
-      menu.style.display = "flex";
-      menu.style.left = `${Math.max(8, rect.left + rect.width / 2 - menu.offsetWidth / 2)}px`;
-      menu.style.top = `${Math.max(8, rect.top - menu.offsetHeight - 8 + window.scrollY)}px`;
-    }, 10);
-  });
+  // Estado: última selección válida capturada (para sobrevivir a que iOS
+  // muestre/oculte su menú nativo y a veces colapse la selección al tocar
+  // nuestro menú)
+  let lastSelection = null;
 
-  menu.addEventListener("click", (e) => {
-    const btn = e.target.closest("button");
-    if (!btn) return;
+  function captureSelection() {
     const sel = window.getSelection();
-    if (!sel || sel.isCollapsed) return;
+    if (!sel || sel.isCollapsed) return null;
     const txt = sel.toString().trim();
+    if (txt.length < 3) return null;
     const range = sel.getRangeAt(0);
     const pageEl = range.startContainer.parentElement?.closest(".reader-page");
-    if (!pageEl) return;
+    if (!pageEl) return null;
     const page = parseInt(pageEl.dataset.page, 10);
-    storage.addHighlight(DOC.id, { page, text: txt, color: btn.dataset.color });
-    sel.removeAllRanges();
+    return { txt, page, rect: range.getBoundingClientRect() };
+  }
+
+  function showMenuFor(captured) {
+    if (!captured) { menu.style.display = "none"; return; }
+    lastSelection = captured;
+    // Posicionar el menú: arriba de la selección si hay espacio, abajo si no
+    menu.style.display = "flex";
+    // Forzar layout para tener offsetWidth correcto
+    const mw = menu.offsetWidth || 160;
+    const mh = menu.offsetHeight || 40;
+    const r = captured.rect;
+    let left = r.left + r.width / 2 - mw / 2;
+    left = Math.max(8, Math.min(window.innerWidth - mw - 8, left));
+    let top;
+    if (r.top > mh + 16) {
+      top = r.top - mh - 8 + window.scrollY;
+    } else {
+      // No hay espacio arriba — pongo abajo de la selección
+      top = r.bottom + 8 + window.scrollY;
+    }
+    menu.style.left = `${left}px`;
+    menu.style.top  = `${top}px`;
+  }
+
+  // En iOS, "mouseup" no se dispara con dedos. Usamos selectionchange
+  // (que sí se dispara) + un debounce para esperar a que termine la selección.
+  let selTimer;
+  document.addEventListener("selectionchange", () => {
+    clearTimeout(selTimer);
+    selTimer = setTimeout(() => {
+      const captured = captureSelection();
+      showMenuFor(captured);
+    }, 250); // 250 ms tras último cambio = selección estabilizada
+  });
+
+  // Mouse y touch como respaldo en escritorio
+  document.addEventListener("mouseup", () => {
+    setTimeout(() => showMenuFor(captureSelection()), 10);
+  });
+  document.addEventListener("touchend", () => {
+    setTimeout(() => showMenuFor(captureSelection()), 50);
+  }, { passive: true });
+
+  // En iOS hay que usar pointerdown porque touch quita la selección al
+  // tocar el menú. Capturamos antes de que el browser desemita la selección.
+  menu.addEventListener("pointerdown", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    e.preventDefault(); // evita que iOS colapse la selección
+    e.stopPropagation();
+    const captured = lastSelection || captureSelection();
+    if (!captured) return;
+    storage.addHighlight(DOC.id, { page: captured.page, text: captured.txt, color: btn.dataset.color });
+    window.getSelection()?.removeAllRanges();
+    lastSelection = null;
     menu.style.display = "none";
     applyHighlights();
   });
 
-  document.addEventListener("scroll", () => { menu.style.display = "none"; }, { passive: true });
+  // Ocultar al hacer scroll (la posición ya no será correcta)
+  let lastScroll = window.scrollY;
+  document.addEventListener("scroll", () => {
+    if (Math.abs(window.scrollY - lastScroll) > 30) {
+      menu.style.display = "none";
+      lastScroll = window.scrollY;
+    }
+  }, { passive: true });
 }
 
 function applyHighlights() {

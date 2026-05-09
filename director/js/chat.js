@@ -365,7 +365,16 @@ function renderHistory() {
 
 function scrollToBottom() {
   const stream = $("#chat-stream");
-  stream.scrollTop = stream.scrollHeight;
+  if (!stream) return;
+  // iOS Safari a veces calcula scrollHeight antes del layout — RAF dobla
+  // la espera para que el DOM nuevo ya esté medido.
+  const doScroll = () => {
+    stream.scrollTop = stream.scrollHeight;
+    // Por si el contenedor más exterior también necesita scrollear
+    const last = stream.lastElementChild;
+    if (last) last.scrollIntoView({ block: "end", behavior: "instant" });
+  };
+  requestAnimationFrame(() => { doScroll(); requestAnimationFrame(doScroll); });
 }
 
 // === Persistencia ===

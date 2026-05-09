@@ -2541,3 +2541,80 @@ body[data-theme="dark"] .ibk-sel-menu { background: #2a2a2f; border-color: #3a3a
   .plan-session-head h3 { font-size: 0.92rem; }
   .quick-block { padding: 1.1rem; }
 }
+
+/* =============================================================
+   Bottom navigation — SOLO iPhone (max-width 600px). NO afecta iPad.
+   ============================================================= */
+
+.bottom-nav { display: none; }
+
+@media (max-width: 600px) {
+  .bottom-nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(251, 250, 246, 0.96);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    border-top: 1px solid var(--rule);
+    padding: 0.4rem 0.3rem;
+    padding-bottom: calc(0.4rem + env(safe-area-inset-bottom, 0));
+    z-index: 50;
+  }
+  .bottom-nav a {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 0.4rem 0.2rem;
+    color: var(--ink-3);
+    text-decoration: none;
+    font-size: 0.62rem;
+    font-weight: 500;
+    line-height: 1;
+    border-radius: 8px;
+    transition: color .12s, background .12s;
+  }
+  .bottom-nav a:hover { background: var(--bg-soft); }
+  .bottom-nav a.active { color: var(--primary); }
+  .bottom-nav a svg {
+    width: 22px;
+    height: 22px;
+    margin-bottom: 1px;
+  }
+
+  /* Ocultar nav-links del header (los reemplaza el bottom-nav) */
+  .dir-header-nav { display: none !important; }
+
+  /* Espacio para que el contenido no quede tapado por el bottom nav */
+  body, .dir-main, .search-shell, .chat-shell, .ibk-main, .reader-shell,
+  .dir-footer {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0)) !important;
+  }
+  .dir-footer { padding-bottom: calc(2rem + 72px + env(safe-area-inset-bottom, 0)) !important; }
+
+  /* El chat composer también queda arriba del bottom nav */
+  .chat-composer {
+    position: sticky;
+    bottom: calc(60px + env(safe-area-inset-bottom, 0));
+  }
+
+  /* En el lector PDF y el iBook, ajustar para que el frame quede arriba del nav */
+  .reader-frame { height: calc(70vh - 60px); }
+}
+
+/* Modo oscuro del bottom nav */
+@media (max-width: 600px) {
+  body[data-theme="dark"] .bottom-nav {
+    background: rgba(26, 26, 29, 0.92);
+    border-top-color: #34343a;
+  }
+  body[data-theme="sepia"] .bottom-nav {
+    background: rgba(244, 236, 216, 0.96);
+    border-top-color: #d8c9a8;
+  }
+}
