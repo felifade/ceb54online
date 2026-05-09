@@ -1,0 +1,22 @@
+# Drive IDs · Consultor Director
+# Una línea por documento. Acepta el ID directo o la URL completa de Drive.
+# Ejecuta `python3 scripts/connect-drive.py` para sincronizar al catálogo.
+# Actualizado 2026-05-09 desde la carpeta:
+# https://drive.google.com/drive/folders/13rP_4WYufLatcCWe7C92JjadfAX_DTj7
+
+1=1ZCASyt754ZMyPDFwc1hz5tL2P7ReRC7F    # Ley Gral. de Responsabilidades Administrativas
+2=1r2q70yWy2r24QJZRUQaOaCw9cRlNmlq1    # Constitución Política de los EUM
+3=1hWihsMHit05Y7E_fXa8PW8wtyheR3KvP    # Ley General de Educación
+4=1-SjGvu3M_5T4G4eIo1pxpihqkTZ7LLjv    # Ley Gral. de Derechos de NNA
+5=1CJ5wYrgfjQibut_AqU1RmfnRWYlcphG7    # Ley Gral. Acceso de las Mujeres a una Vida Libre de Violencias
+6=1tj21l5K4msG-v7uHfqaQUkKA6jatVo1m    # Curso-Taller 1: Acceso al conocimiento
+7=17ETQlycyj7Oyv-vL0YA_mykWIwu9pyEM    # Protocolo de Convivencia Armónica (escaneado)
+8=1uwqvWMBgLA0zAawm5VeBjOOPWQ4mc3I9    # Lineamientos Mejora Continua 2024
+9=12DGy1KvDRl-daGW2FPofkavxC1wTu3J8    # Acuerdo 21/08/25 — MCCEMS (DOF)
+10=1eVWUnnfg22yDzVWL2CBUdwHpzoE7zves    # Protocolo Revisión de Útiles
+11=1AA9moXfviAqu3C60fu9IORXPd89YIMnv    # Protocolos de Seguridad de Plantel
+12=1Qu2NYOMJNc4x6OrX2Ky1qTqDEsxp9JYS    # Curso-Taller 2: Recursos sociocognitivos
+13=1EFrlSyHpp4RluuuH5GV2VtGz0TEs9Ylp    # Código de Conducta SEP (Acuerdo 04/07/23)
+14=1Dj-T6upm7tvrlbn3K7LbJZ52BfNwV8SH    # Modelo Educativo 2025 (MCCEMS)
+15=1QSiV_4pOQOuvBK63NFASTRaIEE8b9txv    # Programa Aula, Escuela y Comunidad (PAEC)
+16=1rb5D4DSiRy2v5KMya3lfWthzHeYvc4Cg    # Declaratoria Cero Tolerancia
