@@ -1,13 +1,13 @@
 // Parser Markdown → HTML minimalista, sin dependencias.
 // Soporta lo necesario para resúmenes de estudio:
 //   # H1, ## H2, ### H3
-//   **negrita**, *cursiva*, `código`
+//   **negrita**, *cursiva*, __subrayado__, `código`
 //   - lista no ordenada (también • y *)
 //   1. lista ordenada
 //   > cita
 //   [texto](url)
 //   ---  (regla horizontal)
-//   ==texto==          → marca amarilla (subrayador)
+//   ==texto==          → marca amarilla (subrayador de color)
 //   =={green}texto==   → marca verde (también blue, pink)
 //   párrafos separados por línea en blanco
 //
@@ -93,6 +93,8 @@ function inline(s) {
   });
   // Negritas **…**
   html = html.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
+  // Subrayado __…__ (custom, no es Markdown estándar pero útil para estudio)
+  html = html.replace(/__([^_\n]+)__/g, "<u>$1</u>");
   // Cursivas *…* (que no sean parte de **)
   html = html.replace(/(?<![*\w])\*([^*\n]+)\*(?![*\w])/g, "<em>$1</em>");
   return html;

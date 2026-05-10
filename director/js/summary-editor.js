@@ -40,9 +40,10 @@ export function openSummaryEditor({ doc, onClose }) {
         </header>
 
         <div class="summary-editor-toolbar">
-          <button data-md="bold"   title="Negrita (Cmd/Ctrl+B)"><b>B</b></button>
-          <button data-md="italic" title="Cursiva (Cmd/Ctrl+I)"><i>I</i></button>
-          <button data-md="h2"     title="Encabezado">H</button>
+          <button data-md="bold"      title="Negrita"><b>B</b></button>
+          <button data-md="italic"    title="Cursiva"><i>I</i></button>
+          <button data-md="underline" title="Subrayado"><u>U</u></button>
+          <button data-md="h2"        title="Encabezado">H</button>
           <button data-md="ul"     title="Lista">• Lista</button>
           <button data-md="ol"     title="Lista numerada">1. Lista</button>
           <button data-md="quote"  title="Cita">❝</button>
@@ -159,9 +160,10 @@ function applyMarkdownAction(ta, action) {
   let blockMode = false;
 
   switch (action) {
-    case "bold":   prefix = "**"; suffix = "**"; placeholder = sel || "negrita"; break;
-    case "italic": prefix = "*";  suffix = "*";  placeholder = sel || "cursiva"; break;
-    case "code":   prefix = "`";  suffix = "`";  placeholder = sel || "código"; break;
+    case "bold":      prefix = "**"; suffix = "**"; placeholder = sel || "negrita"; break;
+    case "italic":    prefix = "*";  suffix = "*";  placeholder = sel || "cursiva"; break;
+    case "underline": prefix = "__"; suffix = "__"; placeholder = sel || "subrayado"; break;
+    case "code":      prefix = "`";  suffix = "`";  placeholder = sel || "código"; break;
     case "h2":     prefix = "## ";    blockMode = true; placeholder = sel || "Encabezado"; break;
     case "quote":  prefix = "> ";     blockMode = true; placeholder = sel || "Cita"; break;
     case "ul":     prefix = "- ";     blockMode = true; placeholder = sel || "Elemento"; break;

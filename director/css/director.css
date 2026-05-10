@@ -3515,3 +3515,47 @@ body[data-theme="dark"] .my-summary-body mark.hl-pink   { background: #5a253c; c
   user-select: text;
   -webkit-touch-callout: default; /* permitir el menú nativo de iOS también */
 }
+
+/* Botones de formato (B/I/U) en el menú flotante del resumen */
+.ibk-sel-menu .ibk-sel-fmt {
+  background: var(--bg-elev) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--rule);
+  width: 28px;
+  font-family: var(--serif);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+.ibk-sel-menu .ibk-sel-fmt:hover {
+  background: var(--bg-soft) !important;
+  border-color: var(--rule-2);
+}
+.ibk-sel-menu .ibk-sel-fmt b { font-weight: 700; }
+.ibk-sel-menu .ibk-sel-fmt i { font-style: italic; }
+.ibk-sel-menu .ibk-sel-fmt u { text-decoration: underline; }
+
+/* Separador entre formato y colores */
+.ibk-sel-menu .ibk-sel-sep {
+  width: 1px;
+  height: 22px;
+  background: var(--rule-2);
+  margin: 0 2px;
+  align-self: center;
+  flex-shrink: 0;
+}
+
+/* En modo oscuro */
+body[data-theme="dark"] .ibk-sel-menu .ibk-sel-fmt {
+  background: #2a2a2f !important;
+  color: #e9e7e1 !important;
+  border-color: #3a3a40;
+}
+
+/* El menú con muchos botones: permitir wrap en pantallas chicas */
+@media (max-width: 380px) {
+  .ibk-sel-menu {
+    flex-wrap: wrap;
+    max-width: 280px;
+    justify-content: center;
+  }
+}

@@ -8,6 +8,10 @@
 import { storage } from "./storage.js";
 
 const MENU_HTML = `
+  <button data-format="bold"      title="Negrita"   class="ibk-sel-fmt"><b>B</b></button>
+  <button data-format="italic"    title="Cursiva"   class="ibk-sel-fmt"><i>I</i></button>
+  <button data-format="underline" title="Subrayado" class="ibk-sel-fmt"><u>U</u></button>
+  <span class="ibk-sel-sep"></span>
   <button data-color="yellow" title="Marcar amarillo" style="background:#fff3a0">A</button>
   <button data-color="green"  title="Marcar verde"   style="background:#c8e6c9">A</button>
   <button data-color="blue"   title="Marcar azul"    style="background:#bbdefb">A</button>
@@ -97,8 +101,14 @@ export function setupSummaryMarker({ container, doc, onChange }) {
     if (btn.dataset.action === "off") {
       newMd = removeMarkAroundSelection(md, captured.text);
       if (!newMd) {
-        // Sin cambios — no hay marca que quitar en la selección
         flashMessage(menu, "Sin marca");
+        return;
+      }
+    } else if (btn.dataset.format) {
+      // Toggle de formato (negrita, cursiva, subrayado)
+      newMd = toggleFormat(md, captured.text, btn.dataset.format);
+      if (!newMd) {
+        flashMessage(menu, "No se ubicó");
         return;
       }
     } else {
@@ -179,6 +189,66 @@ export function applyMarkToSelection(markdown, selectionText, color) {
 }
 
 /**
+ * Aplica o quita un formato (bold/italic/underline) a la selección.
+ * Si la selección ya está envuelta en ese formato → desenvuelve (toggle off).
+ * Si no → envuelve.
+ *
+ * Wrappers:
+ *   bold      → **texto**
+ *   italic    → *texto*
+ *   underline → __texto__   (custom; HTML <u>)
+ */
+export function toggleFormat(markdown, selectionText, format) {
+  if (!selectionText || !markdown) return null;
+  const W = {
+    bold:      { open: "**", close: "**" },
+    italic:    { open: "*",  close: "*"  },
+    underline: { open: "__", close: "__" },
+  }[format];
+  if (!W) return null;
+
+  const wrap = (s) => W.open + s + W.close;
+
+  // 1) Match exacto + verificar si ya está envuelto inmediatamente alrededor
+  const idx = markdown.indexOf(selectionText);
+  if (idx !== -1) {
+    const before = markdown.slice(Math.max(0, idx - W.open.length), idx);
+    const after  = markdown.slice(idx + selectionText.length, idx + selectionText.length + W.close.length);
+    if (before === W.open && after === W.close) {
+      // Toggle OFF: quitar los marcadores que rodean
+      return markdown.slice(0, idx - W.open.length)
+        + selectionText
+        + markdown.slice(idx + selectionText.length + W.close.length);
+    }
+    // Wrappear normal
+    return markdown.slice(0, idx) + wrap(selectionText) + markdown.slice(idx + selectionText.length);
+  }
+
+  // 2) ¿La selección incluye ya los marcadores? (ej. "**texto**" seleccionado)
+  const wrapped = wrap(selectionText);
+  const wIdx = markdown.indexOf(wrapped);
+  if (wIdx !== -1) {
+    return markdown.slice(0, wIdx) + selectionText + markdown.slice(wIdx + wrapped.length);
+  }
+
+  // 3) Match tolerante (selección a través de formateadores)
+  const result = findInCleanMarkdown(markdown, selectionText);
+  if (!result) return null;
+  const { startPos, endPos } = result;
+
+  // Verificar si en el markdown original ya está envuelto
+  const before = markdown.slice(Math.max(0, startPos - W.open.length), startPos);
+  const after  = markdown.slice(endPos, endPos + W.close.length);
+  if (before === W.open && after === W.close) {
+    return markdown.slice(0, startPos - W.open.length)
+      + markdown.slice(startPos, endPos)
+      + markdown.slice(endPos + W.close.length);
+  }
+
+  return markdown.slice(0, startPos) + wrap(markdown.slice(startPos, endPos)) + markdown.slice(endPos);
+}
+
+/**
  * Quita la marca que contiene la selección (o la primera marca cuyo contenido
  * coincida total/parcialmente con la selección).
  * Devuelve null si no había marca que quitar.
@@ -231,6 +301,9 @@ function findInCleanMarkdown(markdown, target) {
 
     // ** (negritas)
     if (c === "*" && markdown[i + 1] === "*") { i += 2; continue; }
+
+    // __ (subrayado custom)
+    if (c === "_" && markdown[i + 1] === "_") { i += 2; continue; }
 
     // ==(?:{color})? subrayador
     if (c === "=" && markdown[i + 1] === "=") {
