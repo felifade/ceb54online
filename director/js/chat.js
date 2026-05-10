@@ -18,11 +18,11 @@ const MODELS = {
 };
 const DEFAULT_MODEL = "claude-haiku-4-5-20251001";
 
-// Cuántas páginas recuperar para el contexto RAG
-const RAG_TOP_K = 10;
+// Top-K base del RAG (la función retrieveContext lo sube a 14 para preguntas largas).
+const RAG_TOP_K = 8;
 
 // Mensaje de sistema con instrucciones y abreviaturas
-const SYSTEM_PROMPT = `Eres "Consultor Director", asistente jurídico-pedagógico especializado en el examen de promoción a director del CEB 5/4 (Centro de Estudios de Bachillerato, SEP). Tu propósito es ayudar al usuario a estudiar y, una vez en funciones, asesorarlo en la toma de decisiones directiva con base en las 16 fuentes oficiales que tiene catalogadas.
+const SYSTEM_PROMPT = `Eres "Consultor Director", asistente jurídico-pedagógico especializado en el examen de promoción a director del CEB 5/4 (Centro de Estudios de Bachillerato, SEP). Tu propósito es ayudar al usuario a estudiar y, una vez en funciones, asesorarlo en la toma de decisiones directiva con base en las 16 fuentes oficiales catalogadas.
 
 LAS 16 FUENTES (abreviatura · documento):
 • CPEUM — Constitución Política de los Estados Unidos Mexicanos
@@ -42,15 +42,67 @@ LAS 16 FUENTES (abreviatura · documento):
 • DCT — Declaratoria Cero Tolerancia
 • LPMC-24 — Lineamientos para la Planeación de la Mejora Continua 2024
 
-REGLAS DE RESPUESTA:
-1. Responde SIEMPRE en español, tono profesional, directo y claro.
-2. CITA las fuentes con formato exacto: \`[ABBR p.PÁGINA]\` — ejemplo: [LGRA p.45], [CPEUM p.12]. Sin paréntesis ni comillas. Una cita por afirmación.
-3. Sólo afirma lo que esté en el CONTEXTO RECUPERADO. Si la información no está, di "No encuentro esto en las fuentes catalogadas" y sugiere reformular.
-4. NO inventes artículos, páginas, ni abreviaturas distintas a las 16 anteriores.
-5. Para preguntas tipo simulador (4 opciones A/B/C/D): identifica la opción correcta, explica brevemente por qué cada una es correcta o incorrecta, y cita la fuente que lo respalda.
-6. Si te muestran una captura/imagen del simulador, lee la pregunta y todas las opciones antes de responder.
-7. Sé conciso. Listas y negritas cuando ayuden a estudiar. Evita rodeos.
-8. Cuando proceda, termina con una "Implicación práctica para el director" en una frase.`;
+═══════════════════════════════════════════════════════
+REGLAS DE RESPUESTA (no son sugerencias, son obligaciones):
+
+1. **CITA OBLIGATORIA EN CADA AFIRMACIÓN sustantiva**: usa exactamente \`[ABBR p.PÁGINA]\` con la abreviatura tal como aparece arriba (sin paréntesis, sin comillas). Una cita por hecho. Ejemplo: "El interés superior de la niñez es principio rector [LGDNNA p.5]".
+
+2. **NUNCA INVENTES**: si el CONTEXTO RECUPERADO no contiene la información que pides, di literalmente: *"No encuentro esto en las fuentes catalogadas. Reformula con: [sugerencia concreta]"*. NO inventes artículos, páginas ni datos. NO uses abreviaturas distintas a las 16 listadas.
+
+3. **CITA TEXTUAL cuando aplique**: si el contexto contiene una frase exacta y breve que responde, CÍTALA literal entre comillas, así: *"según el artículo X: «texto literal» [ABBR p.N]"*. Sólo en frases cortas (≤25 palabras).
+
+4. **EVITA LO GENÉRICO**: NO digas frases como "es importante considerar", "se debe garantizar", "es fundamental que…" sin ANCLARLAS a una fuente específica con cita. Si no tienes cita, no afirmes.
+
+5. **ESTRUCTURA POR DEFECTO** para preguntas conceptuales (3 partes, sin encabezados):
+   - Definición/respuesta directa en 1-2 frases con cita.
+   - Fundamento(s) específicos (artículo, fracción, capítulo) con cita por cada uno.
+   - "Implicación práctica para el director:" en una sola frase final.
+
+6. **SIMULADOR (4 opciones A/B/C/D)**: identifica la correcta, explica en una línea por qué CADA opción es correcta o incorrecta, y cita la fuente que respalda la correcta. Sin rodeos.
+
+7. **CASOS PRÁCTICOS** (ej. "qué hago si…"): responde con
+   - Marco normativo aplicable (con cita).
+   - Pasos concretos en orden (1, 2, 3…).
+   - Riesgo si se omite (con cita).
+
+8. **CAPTURAS DEL SIMULADOR** (imágenes pegadas): lee la pregunta completa Y las 4 opciones antes de responder. Si la imagen no es legible, di *"No alcanzo a leer las opciones. ¿Puedes pegarla más grande?"*.
+
+9. **PREGUNTAS VAGAS o sin contexto suficiente**: NO inventes una respuesta genérica. Pide aclaración con UNA pregunta concreta. Ejemplo de pregunta vaga: "háblame de la educación" → tu respuesta: *"¿Sobre qué aspecto? ¿Marco constitucional (art. 3 CPEUM), obligaciones del Estado (LGE), o responsabilidades del director (LGRA)?"*.
+
+10. **CONCISIÓN**: máximo 6 párrafos cortos. Listas con guiones. Negritas SOLO en términos clave (no decorativas). Sin saludos, sin "claro, te explico".
+═══════════════════════════════════════════════════════
+
+EJEMPLOS DE BUENA RESPUESTA:
+
+Pregunta del usuario: "¿Qué es el interés superior del menor?"
+Respuesta correcta:
+El interés superior de niñas, niños y adolescentes es el principio rector que obliga a toda autoridad a anteponer su bienestar y derechos en cualquier decisión que les afecte [LGDNNA p.5]. Tiene fundamento constitucional en el artículo 4 párrafo noveno [CPEUM p.10] y el artículo 3 fracción II inciso e) en materia educativa [CPEUM p.7].
+
+Para el director implica que cada acuerdo, sanción o protocolo debe demostrar cómo protege ese interés —no basta con invocarlo retóricamente.
+
+**Implicación práctica para el director:** funda toda decisión que afecte al estudiantado citando el artículo aplicable; tu acta no es válida si no demuestra el análisis del interés superior.
+
+═══════════════════════════════════════════════════════
+
+Pregunta del usuario: "El director recibe un reporte de violencia entre estudiantes. ¿Qué hace?"
+Respuesta correcta:
+**Marco normativo aplicable:**
+- Protocolo para la Convivencia Armónica del Estudiantado [PCAE p.8].
+- Declaratoria Cero Tolerancia [DCT p.3].
+- Obligación de reportar como servidor público [LGRA p.18].
+
+**Pasos:**
+1. **Atender de inmediato** y separar a las personas involucradas para evitar escalamiento [PCAE p.12].
+2. **Garantizar contención y atención** psicoemocional inicial; canalizar con orientación o área correspondiente [PCAE p.15].
+3. **Notificar a las familias** dentro del mismo día por escrito con acuse [PCAE p.18].
+4. **Levantar acta circunstanciada** firmada por testigos y partes [PCAE p.20].
+5. **Reportar a la autoridad superior** (Subdirección de EMS) en el plazo establecido [PCAE p.22].
+6. Si hay indicios de delito (lesiones, abuso, acoso): **dar vista a Ministerio Público** y al sistema de protección de NNA [LGDNNA p.30].
+
+**Riesgo si se omite:** falta administrativa grave por omisión de denuncia [LGRA p.45], además de responsabilidad por violación al derecho a la educación libre de violencia [LGAMVLV p.12].
+
+**Implicación práctica para el director:** documenta TODO en acta el mismo día — la diligencia procesal te protege tanto a ti como al estudiantado.
+═══════════════════════════════════════════════════════`;
 
 // === Estado global ===
 const state = {
@@ -92,21 +144,63 @@ async function buildIndex() {
   idx.records.forEach(r => { state.recordsById[r.id] = r.text; });
 }
 
+// Lista de abreviaturas válidas para detectar menciones explícitas en la query.
+const ABBR_RE = /\b(CPEUM|LGE|LGRA|LGDNNA|LGAMVLV|MCCEMS-25|AC-21\/08\/25|PAEC|CT-1|CT-2|PCAE|PRUE|PSP|AC-04\/07\/23|DCT|LPMC-24)\b/gi;
+
 // === RAG: buscar páginas relevantes para la query ===
-function retrieveContext(query, k = RAG_TOP_K) {
-  // Si el query es muy corto, expandir con últimos mensajes para tener contexto
+// Mejoras vs versión anterior:
+//   - Detecta abreviaturas mencionadas en la query y BOOSTEA ese documento
+//   - Detecta "artículo N" / "fracción N" y los agrega como términos
+//   - Top-K dinámico: 8 base, 14 si query > 80 chars (preguntas complejas)
+//   - Hereda contexto del último turno si la query es de seguimiento
+function retrieveContext(query, k = null) {
   let q = query.trim();
-  if (q.length < 8 && state.messages.length > 0) {
+
+  // Si la query es muy corta, expandir con últimos mensajes
+  if (q.length < 12 && state.messages.length > 0) {
     const recent = state.messages.slice(-2).map(m => textOf(m.content)).join(" ");
-    q = (recent + " " + q).slice(-200);
+    q = (recent + " " + q).slice(-300);
   }
+
+  // Detectar abreviaturas mencionadas explícitamente
+  const abbrMatches = Array.from(new Set((q.match(ABBR_RE) || []).map(s => s.toUpperCase())));
+
+  // Detectar referencias a artículo/fracción y replicarlas para boostear
+  const articleRefs = (q.match(/\b(art[íi]culo|fracci[óo]n|cap[íi]tulo|inciso)\s+[IVXLCDM0-9]+/gi) || []).join(" ");
+  const expandedQ = articleRefs ? `${q} ${articleRefs} ${articleRefs}` : q; // duplica para boost
+
+  // Top-K dinámico
+  const topK = k || (q.length > 80 ? 14 : 8);
+
+  // Búsqueda principal
   let hits = [];
-  try { hits = state.ms.search(q); } catch { hits = []; }
-  // Si no hay hits, intentar con cada palabra por separado (OR)
+  try { hits = state.ms.search(expandedQ); } catch { hits = []; }
   if (hits.length === 0) {
     try { hits = state.ms.search(q, { combineWith: "OR" }); } catch {}
   }
-  return hits.slice(0, k).map(h => ({
+
+  // Reranking: si el usuario mencionó abreviaturas, sus páginas suben hasta el principio
+  if (abbrMatches.length > 0) {
+    hits = hits.map(h => ({
+      ...h,
+      _boost: abbrMatches.includes(h.abbr) ? h.score * 2 + 100 : h.score,
+    })).sort((a, b) => b._boost - a._boost);
+
+    // Asegurar que al menos 4 páginas del doc mencionado estén presentes
+    for (const abbr of abbrMatches) {
+      const fromAbbr = hits.filter(h => h.abbr === abbr).slice(0, 4);
+      if (fromAbbr.length < 4) {
+        // Búsqueda dirigida por abbr
+        const extra = state.ms.search(abbr + " " + q.replace(ABBR_RE, ""));
+        const more = extra.filter(h => h.abbr === abbr).slice(0, 4);
+        // Mezclar sin duplicar
+        const ids = new Set(hits.map(h => h.id));
+        more.forEach(h => { if (!ids.has(h.id)) hits.push(h); });
+      }
+    }
+  }
+
+  return hits.slice(0, topK).map(h => ({
     abbr: h.abbr,
     doc: h.doc,
     title: h.title,
@@ -630,32 +724,42 @@ async function sendMessage() {
   }
 }
 
+// Cuántos turnos previos enviar a la API (no afecta lo que ves en pantalla,
+// solo lo que paga). El resto del histórico queda en localStorage para tu
+// consulta visual, pero ya no se reenvía a Claude en cada turno.
+const MAX_API_HISTORY_TURNS = 6;
+
 function buildAnthropicMessagesFromState(lastUserText, retrieved) {
-  // El último mensaje (user que acabamos de empujar) le inyectamos contexto RAG.
-  // Filtramos cualquier role inválido como defensa.
-  const all = state.messages.slice(0, -1)
+  // 1. Filtrar y limpiar (sólo user/assistant válidos, sin contar el último user)
+  const fullPrev = state.messages.slice(0, -1)
     .filter(m => m.role === "user" || m.role === "assistant")
     .map(m => ({ role: m.role, content: m.content }));
 
+  // 2. Recortar a los últimos N turnos (1 turno = user + assistant = 2 messages).
+  //    Esto evita inflar el costo en conversaciones largas — Claude sigue viendo
+  //    el contexto reciente, sin pagar por todo el histórico.
+  const trimmed = fullPrev.slice(-(MAX_API_HISTORY_TURNS * 2));
+
   const lastMsg = state.messages[state.messages.length - 1];
   const newContent = [];
-  // Imágenes del último mensaje primero
+  // Imágenes del último mensaje primero (Claude funciona mejor con imagen antes del texto)
   for (const b of lastMsg.content) {
     if (b.type === "image") newContent.push(b);
   }
-  // Construir bloque de contexto + texto
+  // Bloque de contexto RAG: chunks más grandes (2400 chars) para tener artículos completos
   const contextBlock = retrieved.length === 0 ? "" :
-    "CONTEXTO RECUPERADO (fragmentos relevantes de las 16 fuentes oficiales):\n\n" +
+    `CONTEXTO RECUPERADO (${retrieved.length} fragmentos de las 16 fuentes oficiales más relevantes a tu pregunta. ` +
+    `USA ÚNICAMENTE esta información para fundamentar tu respuesta. NO inventes datos fuera de aquí):\n\n` +
     retrieved.map(r =>
-      `[${r.abbr} p.${r.page}] (${r.title})\n${r.text.slice(0, 1800)}`
+      `[${r.abbr} p.${r.page}] (${r.title})\n${r.text.slice(0, 2400)}`
     ).join("\n\n---\n\n") +
     "\n\n=========================\n\n";
   newContent.push({
     type: "text",
     text: contextBlock + "PREGUNTA DEL USUARIO:\n" + lastUserText,
   });
-  all.push({ role: "user", content: newContent });
-  return all;
+  trimmed.push({ role: "user", content: newContent });
+  return trimmed;
 }
 
 function toggleSendBtn(streaming) {
