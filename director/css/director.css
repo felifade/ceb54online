@@ -2969,3 +2969,64 @@ body[data-theme="dark"] .my-summary-body code { background: rgba(255,255,255,0.0
   color: var(--ink-3);
   margin-top: auto;
 }
+
+/* =============================================================
+   Botones de subrayado en el editor de resumen
+   ============================================================= */
+
+.summary-editor-toolbar .se-tb-sep {
+  width: 1px;
+  height: 22px;
+  background: var(--rule-2);
+  margin: 0 6px;
+  flex-shrink: 0;
+}
+.summary-editor-toolbar .se-mark {
+  font-weight: 700;
+  font-family: var(--serif);
+  font-size: 0.95rem;
+  color: #15181d;
+  border: 1px solid rgba(0,0,0,0.08);
+  padding: 0.35rem 0.55rem;
+  min-width: 30px;
+  border-radius: 5px;
+}
+.summary-editor-toolbar .se-mark:hover {
+  transform: scale(1.05);
+  border-color: rgba(0,0,0,0.18);
+}
+.summary-editor-toolbar .se-mark-yellow { background: #fff3a0; }
+.summary-editor-toolbar .se-mark-green  { background: #c8e6c9; }
+.summary-editor-toolbar .se-mark-blue   { background: #bbdefb; }
+.summary-editor-toolbar .se-mark-pink   { background: #f8bbd0; }
+.summary-editor-toolbar .se-mark-off {
+  font-size: 1rem;
+  color: var(--ink-2);
+  padding: 0.35rem 0.55rem;
+}
+.summary-editor-toolbar .se-mark-off:hover {
+  background: #fef2f2;
+  color: var(--danger);
+  border-color: rgba(139, 40, 40, 0.2);
+}
+
+/* Asegurar que los <mark> en el preview y el banner del resumen se vean bien */
+.summary-preview mark.hl-yellow,
+.my-summary-body mark.hl-yellow { background: #fff3a0; color: #2d2700; padding: 1px 3px; border-radius: 3px; }
+.summary-preview mark.hl-green,
+.my-summary-body mark.hl-green  { background: #c8e6c9; color: #1c3a1f; padding: 1px 3px; border-radius: 3px; }
+.summary-preview mark.hl-blue,
+.my-summary-body mark.hl-blue   { background: #bbdefb; color: #0d2a4f; padding: 1px 3px; border-radius: 3px; }
+.summary-preview mark.hl-pink,
+.my-summary-body mark.hl-pink   { background: #f8bbd0; color: #4a1132; padding: 1px 3px; border-radius: 3px; }
+
+/* En modo oscuro/sepia del lector, ajustar los marks dentro del banner */
+body[data-theme="dark"] .my-summary-body mark.hl-yellow { background: #6b5e1c; color: #fff8c4; }
+body[data-theme="dark"] .my-summary-body mark.hl-green  { background: #2b4f2e; color: #c8e6c9; }
+body[data-theme="dark"] .my-summary-body mark.hl-blue   { background: #1d3a64; color: #bbdefb; }
+body[data-theme="dark"] .my-summary-body mark.hl-pink   { background: #5a253c; color: #f8bbd0; }
+
+/* Mobile: botones un poco más compactos */
+@media (max-width: 600px) {
+  .summary-editor-toolbar .se-mark { min-width: 26px; padding: 0.3rem 0.45rem; font-size: 0.88rem; }
+}
