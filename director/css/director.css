@@ -3495,3 +3495,23 @@ body[data-theme="dark"] .my-summary-body mark.hl-pink   { background: #5a253c; c
 @media (max-width: 600px) {
   .summary-editor-toolbar .se-mark { min-width: 26px; padding: 0.3rem 0.45rem; font-size: 0.88rem; }
 }
+
+/* Botón "quitar marca" en el menú flotante */
+.ibk-sel-menu .ibk-sel-off {
+  background: var(--bg-elev) !important;
+  color: var(--ink-2) !important;
+  font-weight: 700;
+  border: 1px solid var(--rule);
+}
+.ibk-sel-menu .ibk-sel-off:hover {
+  background: #fef2f2 !important;
+  color: var(--danger) !important;
+  border-color: rgba(139, 40, 40, 0.2);
+}
+
+/* Sutil hint de que el banner del resumen es seleccionable para subrayar */
+.my-summary-body {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default; /* permitir el menú nativo de iOS también */
+}

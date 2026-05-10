@@ -4,6 +4,7 @@ import { storage } from "./storage.js";
 import { bookmarkButton } from "./bookmark.js";
 import { renderMarkdown } from "./markdown.js";
 import { openSummaryEditor } from "./summary-editor.js";
+import { setupSummaryMarker } from "./summary-marker.js";
 
 const $ = sel => document.querySelector(sel);
 
@@ -125,6 +126,18 @@ function renderSummarySlot(doc) {
   document.getElementById("rdr-sum-edit").onclick = () => {
     openSummaryEditor({ doc, onClose: () => renderSummarySlot(doc) });
   };
+  // Activar selección con dedo / Apple Pencil para marcar de colores
+  // directamente sobre el resumen renderizado.
+  if (text) {
+    const body = slot.querySelector(".my-summary-body");
+    if (body) {
+      setupSummaryMarker({
+        container: body,
+        doc,
+        onChange: () => renderSummarySlot(doc),
+      });
+    }
+  }
 }
 
 // Header dinámico (mismo que el resto del sitio)

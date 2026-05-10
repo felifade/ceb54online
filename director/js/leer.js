@@ -8,6 +8,7 @@ import { bookmarkButton } from "./bookmark.js";
 import { askClaude, hasApiKey, extractJson } from "./ai.js";
 import { renderMarkdown } from "./markdown.js";
 import { openSummaryEditor } from "./summary-editor.js";
+import { setupSummaryMarker } from "./summary-marker.js";
 
 const $  = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
@@ -148,22 +149,36 @@ function renderSummaryBanner() {
 
 function wireSummaryBanner() {
   const btn = $("#btn-summary-edit");
-  if (!btn) return;
-  btn.onclick = () => {
-    openSummaryEditor({
+  if (btn) {
+    btn.onclick = () => {
+      openSummaryEditor({
+        doc: DOC,
+        onClose: refreshSummaryBanner,
+      });
+    };
+  }
+
+  // Activar selección con dedo / Apple Pencil para marcar de colores
+  // directamente en el resumen renderizado (sin entrar al editor).
+  // Solo si el resumen tiene contenido (no en el estado vacío).
+  const body = document.querySelector("#my-summary-banner .my-summary-body");
+  const hasContent = $("#my-summary-banner") && !$("#my-summary-banner").classList.contains("empty");
+  if (body && hasContent) {
+    setupSummaryMarker({
+      container: body,
       doc: DOC,
-      onClose: () => {
-        // Re-render el banner solo (no toda la página)
-        const banner = $("#my-summary-banner");
-        if (banner) {
-          const wrapper = document.createElement("div");
-          wrapper.innerHTML = renderSummaryBanner();
-          banner.replaceWith(wrapper.firstElementChild);
-          wireSummaryBanner();
-        }
-      },
+      onChange: refreshSummaryBanner,
     });
-  };
+  }
+}
+
+function refreshSummaryBanner() {
+  const banner = $("#my-summary-banner");
+  if (!banner) return;
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = renderSummaryBanner();
+  banner.replaceWith(wrapper.firstElementChild);
+  wireSummaryBanner();
 }
 
 function renderReader(startPage) {
