@@ -40,14 +40,20 @@ export function openSummaryEditor({ doc, onClose }) {
         </header>
 
         <div class="summary-editor-toolbar">
-          <button data-md="bold"   title="Negrita (selecciona texto y dale)"><b>B</b></button>
-          <button data-md="italic" title="Cursiva"><i>I</i></button>
+          <button data-md="bold"   title="Negrita (Cmd/Ctrl+B)"><b>B</b></button>
+          <button data-md="italic" title="Cursiva (Cmd/Ctrl+I)"><i>I</i></button>
           <button data-md="h2"     title="Encabezado">H</button>
           <button data-md="ul"     title="Lista">• Lista</button>
           <button data-md="ol"     title="Lista numerada">1. Lista</button>
           <button data-md="quote"  title="Cita">❝</button>
           <button data-md="code"   title="Código">&lt;/&gt;</button>
           <button data-md="link"   title="Enlace">🔗</button>
+          <span class="se-tb-sep"></span>
+          <button data-md="mark-yellow" class="se-mark se-mark-yellow" title="Marcar amarillo">A</button>
+          <button data-md="mark-green"  class="se-mark se-mark-green"  title="Marcar verde">A</button>
+          <button data-md="mark-blue"   class="se-mark se-mark-blue"   title="Marcar azul">A</button>
+          <button data-md="mark-pink"   class="se-mark se-mark-pink"   title="Marcar rosa">A</button>
+          <button data-md="mark-off"    class="se-mark-off"            title="Quitar marca de la selección">⌫</button>
           <span class="se-spacer"></span>
           <button id="se-toggle-preview" title="Alternar vista" class="se-toggle">Editor / Preview</button>
         </div>
@@ -167,6 +173,21 @@ function applyMarkdownAction(ta, action) {
       ta.focus();
       const newPos = before.length + 1 + (sel || "texto").length;
       ta.setSelectionRange(start + 1, newPos);
+      return;
+    }
+    // Marcas de color (subrayador) — sintaxis: ==texto== o =={color}texto==
+    case "mark-yellow": prefix = "==";         suffix = "=="; placeholder = sel || "texto"; break;
+    case "mark-green":  prefix = "=={green}";  suffix = "=="; placeholder = sel || "texto"; break;
+    case "mark-blue":   prefix = "=={blue}";   suffix = "=="; placeholder = sel || "texto"; break;
+    case "mark-pink":   prefix = "=={pink}";   suffix = "=="; placeholder = sel || "texto"; break;
+    // Quitar marcas: limpia los ==…== dentro de la selección
+    case "mark-off": {
+      if (!sel) return; // necesita selección
+      const cleaned = sel.replace(/==(?:\{(?:yellow|green|blue|pink)\})?([^=\n]+?)==/g, "$1");
+      if (cleaned === sel) return; // no había marcas que quitar
+      ta.value = before + cleaned + after;
+      ta.focus();
+      ta.setSelectionRange(start, start + cleaned.length);
       return;
     }
   }

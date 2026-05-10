@@ -7,6 +7,8 @@
 //   > cita
 //   [texto](url)
 //   ---  (regla horizontal)
+//   ==texto==          → marca amarilla (subrayador)
+//   =={green}texto==   → marca verde (también blue, pink)
 //   párrafos separados por línea en blanco
 //
 // Escapa HTML primero para evitar inyección.
@@ -74,6 +76,12 @@ function inlineMulti(s) {
 
 function inline(s) {
   let html = escapeHtml(s);
+  // Marcas de color tipo subrayador: ==texto== (amarillo) o =={color}texto==
+  // Soporta yellow, green, blue, pink. Solo monolínea para no afectar bloques.
+  html = html.replace(
+    /==(?:\{(yellow|green|blue|pink)\})?([^=\n]+?)==/g,
+    (_, color, text) => `<mark class="hl-${color || "yellow"}">${text}</mark>`
+  );
   // Código `…` (procesar primero para que ** dentro no afecte)
   html = html.replace(/`([^`\n]+)`/g, "<code>$1</code>");
   // Enlaces [texto](url) — solo http(s) y rutas relativas
