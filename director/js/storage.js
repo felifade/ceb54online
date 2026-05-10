@@ -26,8 +26,9 @@ function emptyData() {
     progress: {},    // {docId: {lastPage, lastReadAt, completedPages: [...]}}
     simulacros: [],  // [{id, date, topic, score, total, questions: [...]}]
     plan: null,      // {createdAt, target, days, sessions: [...]}
-    summaries: {},   // {docId: {page: {text, generatedAt}}}
+    summaries: {},   // {docId: {page: {text, generatedAt}}}  — resúmenes IA por página
     flashcards: {},  // {docId: [{id, page, front, back, sourceText, sourceHighlightId?, createdAt, interval, ease, due, reviews}]}
+    myResumes: {},   // {docId: {text (markdown), updatedAt}}  — resúmenes manuales del usuario por documento
     settings: {
       reader: { fontSize: 18, theme: "light", lineHeight: 1.6 },
     },
@@ -292,7 +293,7 @@ class Storage {
     }
   }
 
-  // === RESÚMENES IA (caché por página) ===
+  // === RESÚMENES IA (caché por página, generados automáticamente) ===
   saveSummary(doc, page, text) {
     if (!this.data.summaries) this.data.summaries = {};
     if (!this.data.summaries[doc]) this.data.summaries[doc] = {};
@@ -311,6 +312,33 @@ class Storage {
       this._emit("summary", { doc, page });
       this._scheduleSave();
     }
+  }
+
+  // === RESÚMENES MANUALES DEL USUARIO (uno por documento, en Markdown) ===
+  // Diferentes de los resúmenes IA: el usuario escribe SU PROPIO resumen
+  // del documento completo para estudiar. Persistente entre dispositivos.
+  getMyResume(doc) {
+    return this.data?.myResumes?.[doc]?.text || "";
+  }
+
+  setMyResume(doc, text) {
+    if (!this.data.myResumes) this.data.myResumes = {};
+    if (!text || !text.trim()) {
+      delete this.data.myResumes[doc];
+    } else {
+      this.data.myResumes[doc] = { text: text.trim(), updatedAt: Date.now() };
+    }
+    this._emit("myResume", { doc });
+    this._scheduleSave();
+  }
+
+  hasMyResume(doc) {
+    return !!this.data?.myResumes?.[doc]?.text;
+  }
+
+  getAllMyResumes() {
+    return Object.entries(this.data?.myResumes || {})
+      .map(([doc, s]) => ({ doc: parseInt(doc, 10), text: s.text, updatedAt: s.updatedAt }));
   }
 
   // === FLASHCARDS (con repaso espaciado SM-2 simplificado) ===

@@ -3,6 +3,8 @@
 import { loadCatalog, escapeHtml } from "./app.js";
 import { storage, LocalBackend, DriveBackend } from "./storage.js";
 import { driveSync } from "./drive-sync.js";
+import { renderMarkdown } from "./markdown.js";
+import { openSummaryEditor } from "./summary-editor.js";
 
 const $ = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
@@ -255,11 +257,89 @@ function formatDate(ts) {
   return d.toLocaleDateString("es-MX", { day: "numeric", month: "short" });
 }
 
+// === Render de resúmenes personales ===
+function renderSummaries() {
+  const root = $("#summaries-list");
+  if (!root) return;
+  const all = storage.getAllMyResumes();
+
+  // Cabecera con botón "+ Nuevo"
+  const allDocsBtn = `
+    <details class="add-summary-picker" style="margin-bottom:0.85rem">
+      <summary class="btn btn-sm">+ Escribir resumen de un documento</summary>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.4rem;margin-top:0.7rem">
+        ${CATALOG.documents.map(d => {
+          const has = storage.hasMyResume(d.id);
+          const cat = CATALOG.categories[d.category];
+          return `<button class="dir-chip" data-pick-doc="${d.id}" style="text-align:left">
+            <span class="doc-abbr" style="color:${cat.color};background:${cat.tint};font-size:0.7rem">${d.abbr}</span>
+            ${has ? "✓" : ""} ${escapeHtml(d.short || d.title)}
+          </button>`;
+        }).join("")}
+      </div>
+    </details>
+  `;
+
+  if (all.length === 0) {
+    root.innerHTML = allDocsBtn + `<p class="empty-state">Aún no tienes resúmenes. Escribe el tuyo desde el lector iBook (📖) o desde el botón de arriba.</p>`;
+    wireSummaryPickers();
+    return;
+  }
+
+  // Ordenar por updatedAt desc
+  const sorted = [...all].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  root.innerHTML = allDocsBtn + `
+    <div class="summaries-grid">
+      ${sorted.map(s => {
+        const doc = DOCS_BY_ID[s.doc];
+        if (!doc) return "";
+        const cat = CATALOG.categories[doc.category];
+        // Preview: primer párrafo del resumen, sin marks de markdown
+        const preview = s.text.replace(/^#{1,6}\s+/gm, "").replace(/[*_`>]/g, "").slice(0, 200);
+        return `
+          <a class="sumcard" href="leer.html?id=${s.doc}" style="--cat-color:${cat.color}">
+            <div class="sumcard-head">
+              <span class="doc-abbr" style="color:${cat.color};background:${cat.tint}">${doc.abbr}</span>
+              <strong>${escapeHtml(doc.short || doc.title)}</strong>
+            </div>
+            <p class="sumcard-preview">${escapeHtml(preview)}${s.text.length > 200 ? "…" : ""}</p>
+            <div class="sumcard-foot">
+              <span>${formatDate(s.updatedAt)}</span>
+              <button class="btn btn-sm sumcard-edit" data-doc="${s.doc}" type="button">✏️ Editar</button>
+            </div>
+          </a>
+        `;
+      }).join("")}
+    </div>
+  `;
+
+  // Click en "Editar" → editor (sin disparar el href de la <a>)
+  root.querySelectorAll(".sumcard-edit").forEach(b => {
+    b.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const doc = DOCS_BY_ID[parseInt(b.dataset.doc, 10)];
+      if (doc) openSummaryEditor({ doc, onClose: renderAll });
+    };
+  });
+  wireSummaryPickers();
+}
+
+function wireSummaryPickers() {
+  document.querySelectorAll("[data-pick-doc]").forEach(btn => {
+    btn.onclick = () => {
+      const doc = DOCS_BY_ID[parseInt(btn.dataset.pickDoc, 10)];
+      if (doc) openSummaryEditor({ doc, onClose: renderAll });
+    };
+  });
+}
+
 function renderAll() {
   renderBookmarks();
   renderNotes();
   renderProgress();
   renderFlashcards();
+  renderSummaries();
   renderStats();
 }
 
@@ -333,11 +413,13 @@ function renderStats() {
   const totalProgress = Object.keys(storage.getAllProgress()).length;
   const totalSim = storage.getSimulacros().length;
   const totalFC = storage.getFlashcards().length;
+  const totalMyResumes = storage.getAllMyResumes().length;
   $("#stats").innerHTML = `
+    <div class="stat-block"><strong>${totalMyResumes}</strong><span>Mis resúmenes</span></div>
     <div class="stat-block"><strong>${totalBM}</strong><span>Marcadores</span></div>
     <div class="stat-block"><strong>${totalNotes}</strong><span>Notas</span></div>
     <div class="stat-block"><strong>${totalFC}</strong><span>Flashcards</span></div>
-    <div class="stat-block"><strong>${totalProgress}</strong><span>Documentos abiertos</span></div>
+    <div class="stat-block"><strong>${totalProgress}</strong><span>Docs abiertos</span></div>
     <div class="stat-block"><strong>${totalSim}</strong><span>Simulacros</span></div>
   `;
 }
