@@ -68,6 +68,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
     }
 
+    // ════════════════════════════════════════════════════════════════
+    // 🛠 TEMPORAL — Opinión Estudiantil oculta para docentes (NO admin).
+    // Mientras se revisa el formato/criterios de la encuesta.
+    // Para reactivar: cambiar HIDE_ENCUESTA_FOR_NON_ADMIN a false (o eliminar
+    // este bloque y los 2 puntos marcados con "TEMPORAL ↑" más abajo).
+    // ════════════════════════════════════════════════════════════════
+    const HIDE_ENCUESTA_FOR_NON_ADMIN = true;
+
     function renderEncuesta() {
         const history = allData.feedbackHistory || [];
         const userEmail = sessionStorage.getItem('user_email');
@@ -76,6 +84,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const mainView = document.getElementById('view-encuesta');
         if (mainView.classList.contains('hidden')) return;
+
+        // === TEMPORAL ↑ ===
+        if (HIDE_ENCUESTA_FOR_NON_ADMIN && !isAdmin) {
+            mainView.innerHTML = `
+              <div style="padding:3rem 1.5rem; text-align:center; color:#475569; background:#fff7ed; border:1px solid #fed7aa; border-radius:12px; max-width:560px; margin:2rem auto;">
+                <div style="font-size:2.6rem; margin-bottom:0.6rem">🛠️</div>
+                <h2 style="font-family:'Outfit', sans-serif; color:#9a3412; margin:0 0 0.5rem">Temporalmente oculta</h2>
+                <p style="line-height:1.6; margin:0">Esta sección está pausada mientras se revisa el formato de retroalimentación estudiantil. Volverá a estar disponible próximamente.</p>
+                <p style="margin-top:1.2rem; font-size:0.8rem; color:#9a3412;">Si necesitas ver resultados, contacta a Dirección.</p>
+              </div>`;
+            return;
+        }
+        // === FIN TEMPORAL ===
 
         // 1. Mostrar modo local si no hay sesión
         if (!userEmail && !userName) {
@@ -271,10 +292,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (userEmail && !isAdmin) {
                 // Filtramos todas las tutorías para que solo se procesen las de este docente
-                allData.tutorias = (allData.tutorias || []).filter(t => 
+                allData.tutorias = (allData.tutorias || []).filter(t =>
                     String(t.docenteEmail || "").toLowerCase().trim() === userEmail.toLowerCase().trim()
                 );
             }
+
+            // === TEMPORAL ↑ — Ocultar enlace "Opinión Estudiantil" para no-admin ===
+            if (HIDE_ENCUESTA_FOR_NON_ADMIN && !isAdmin) {
+                document.querySelectorAll('.nav-link[data-view="encuesta"]').forEach(el => {
+                    const item = el.closest('.nav-item') || el;
+                    item.style.display = 'none';
+                });
+            }
+            // === FIN TEMPORAL ===
 
             // --- CRUCE DE DATOS: Asignar Nombres Reales a los Correos de los Docentes ---
             const directorio = allData.directorio || [];
