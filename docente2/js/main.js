@@ -78,6 +78,25 @@
   var ESPECIAL_EMAILS = ['felifade@icloud.com', 'd.flopez54@dgb.edu.mx'];
   var _sabanasLoaded = false;
 
+  /* ════════════════════════════════════════════════════════
+     🛠 TEMPORAL — Ocultar tab "Opinión estudiantil" para docentes.
+     Mientras se revisa el formato de retroalimentación.
+     Para reactivar: cambiar a false (o eliminar applyEncuestaTabVisibility).
+  ════════════════════════════════════════════════════════ */
+  var HIDE_ENCUESTA_FOR_NON_ADMIN = true;
+
+  function applyEncuestaTabVisibility() {
+    if (!HIDE_ENCUESTA_FOR_NON_ADMIN) return;
+    var email = (sessionStorage.getItem('user_email') || '').toLowerCase().trim();
+    var role  = (sessionStorage.getItem('user_role')  || '').toLowerCase();
+    var isEspecial = ESPECIAL_EMAILS.indexOf(email) !== -1
+                     || role.indexOf('admin') !== -1
+                     || role.indexOf('direct') !== -1;
+    if (isEspecial) return; // admin/dirección sí lo ven
+    var tab = document.querySelector('#d2-tabs-tutorias .d2-tab[data-view="encuesta"]');
+    if (tab) tab.style.display = 'none';
+  }
+
   /* ── DOM refs ────────────────────────────────────────── */
   var loginOverlay = document.getElementById('d2-login-overlay');
   var loginForm    = document.getElementById('d2-login-form');
@@ -184,6 +203,7 @@
     populateSidebarUser();
     populateMaterias();
     setupEspecial();
+    applyEncuestaTabVisibility(); // TEMPORAL — ver bloque arriba
     activateMod('info');
     if (typeof d2RenderInfo === 'function') d2RenderInfo();
   }
