@@ -3,6 +3,15 @@
  * Calificaciones PEC + Cuestionario de evaluación
  */
 
+// ════════════════════════════════════════════════════════════════
+// 🛠 TEMPORAL — Ocultar "Evaluación a docentes/directivos" para alumnos
+// (por precaución mientras se revisa el formato).
+// La encuesta PEC se mantiene activa según config del backend.
+// Para reactivar: cambiar a false (o eliminar este bloque y los usos
+//                 marcados con "TEMPORAL ↑" más abajo).
+// ════════════════════════════════════════════════════════════════
+const HIDE_EVAL_DOCENTES_FOR_STUDENTS = true;
+
 // ── PREGUNTAS DEL CUESTIONARIO ──────────────────────────────────────
 const PREGUNTAS_ALU = [
   { id:"q1",  texto:"¿Tu tutor/asesor te orientó adecuadamente durante el desarrollo del proyecto?" },
@@ -149,12 +158,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       const secDoc = document.getElementById("section-evaluacion-docentes");
       const secDir = document.getElementById("section-evaluacion-directivos");
       const secPec = document.getElementById("section-pec-encuesta");
-      if (secDoc) secDoc.style.display = cfg.eval_docentes_activa ? 'block' : 'none';
-      if (secDir) secDir.style.display = cfg.eval_docentes_activa ? 'block' : 'none';
+      // TEMPORAL ↑ — fuerza ocultar evaluación a docentes/directivos
+      const showDocDir = !HIDE_EVAL_DOCENTES_FOR_STUDENTS && cfg.eval_docentes_activa;
+      if (secDoc) secDoc.style.display = showDocDir ? 'block' : 'none';
+      if (secDir) secDir.style.display = showDocDir ? 'block' : 'none';
       if (secPec) secPec.style.display = cfg.eval_pec_activa      ? 'block' : 'none';
 
       // Refresh parcial de evaluaciones con mini-spinner inline
-      if (cfg.eval_docentes_activa) {
+      if (showDocDir) {
         _evalMiniSpinner("eval-loading-status",      true);
         _evalMiniSpinner("eval-dir-loading-status",  true);
         // Refrescar en paralelo
@@ -189,8 +200,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         const secDir = document.getElementById("section-evaluacion-directivos");
         const secPec = document.getElementById("section-pec-encuesta");
 
+        // TEMPORAL ↑ — fuerza ocultar evaluación a docentes/directivos
+        const showDocDir = !HIDE_EVAL_DOCENTES_FOR_STUDENTS && cfg.eval_docentes_activa;
         if (secDoc) {
-          if (cfg.eval_docentes_activa) {
+          if (showDocDir) {
             secDoc.style.display = 'block';
             renderEvalDocenteStatus(usuario.nombre, usuario.grupo);
           } else {
@@ -198,7 +211,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           }
         }
         if (secDir) {
-          if (cfg.eval_docentes_activa) {
+          if (showDocDir) {
             secDir.style.display = 'block';
             renderEvalDirectivosStatus(usuario.nombre, usuario.grupo);
           } else {
