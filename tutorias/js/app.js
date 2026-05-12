@@ -75,12 +75,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     // este bloque y los 2 puntos marcados con "TEMPORAL ↑" más abajo).
     // ════════════════════════════════════════════════════════════════
     const HIDE_ENCUESTA_FOR_NON_ADMIN = true;
+    // Emails con acceso siempre permitido (además del flag isAdmin del backend).
+    // El backend solo reconoce literalmente "admin@ceb54.online"; aquí extendemos.
+    const ENCUESTA_ADMIN_EMAILS = [
+      'admin@ceb54.online',
+      'felifade@icloud.com',
+      'd.flopez54@dgb.edu.mx'
+    ];
+    function _isEncuestaAdmin() {
+      if (allData && allData.isAdmin === true) return true;
+      const e = (sessionStorage.getItem('user_email') || '').toLowerCase().trim();
+      const r = (sessionStorage.getItem('user_role')  || '').toLowerCase();
+      if (ENCUESTA_ADMIN_EMAILS.indexOf(e) !== -1) return true;
+      if (r.indexOf('admin') !== -1 || r.indexOf('direct') !== -1) return true;
+      return false;
+    }
 
     function renderEncuesta() {
         const history = allData.feedbackHistory || [];
         const userEmail = sessionStorage.getItem('user_email');
         const userName = sessionStorage.getItem('user_name');
-        const isAdmin = allData.isAdmin === true;
+        const isAdmin = _isEncuestaAdmin();  // ⬅ usa detección extendida
 
         const mainView = document.getElementById('view-encuesta');
         if (mainView.classList.contains('hidden')) return;
@@ -298,7 +313,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             // === TEMPORAL ↑ — Ocultar enlace "Opinión Estudiantil" para no-admin ===
-            if (HIDE_ENCUESTA_FOR_NON_ADMIN && !isAdmin) {
+            if (HIDE_ENCUESTA_FOR_NON_ADMIN && !_isEncuestaAdmin()) {
                 document.querySelectorAll('.nav-link[data-view="encuesta"]').forEach(el => {
                     const item = el.closest('.nav-item') || el;
                     item.style.display = 'none';
