@@ -75,7 +75,7 @@
   };
 
   /* Emails autorizados para herramientas especiales (CURP + portal docente) */
-  var ESPECIAL_EMAILS = ['felifade@icloud.com', 'd.flopez54@dgb.edu.mx'];
+  var ESPECIAL_EMAILS = ['felifade@icloud.com', 'd.flopez54@dgb.edu.mx', 'admin@ceb54.online'];
   var _sabanasLoaded = false;
 
   /* ════════════════════════════════════════════════════════
