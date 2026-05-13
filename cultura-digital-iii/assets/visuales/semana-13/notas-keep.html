@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Google Keep — Notas, listas y recordatorios</title>
+<style>
+html, body { height: 100%; margin: 0; padding: 0; box-sizing: border-box; }
+* { box-sizing: border-box; }
+body {
+  font-family: 'Roboto','Segoe UI', system-ui, -apple-system, sans-serif;
+  background: #fafafa;
+  padding: .8rem 1rem 1rem;
+  color: #202124;
+}
+
+/* ── Header tipo Keep ── */
+.keep-header {
+  background: #fff;
+  border-radius: 10px 10px 0 0;
+  border: 1px solid #dadce0;
+  border-bottom: none;
+  padding: .55rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+.keep-logo-icon {
+  width: 30px; height: 30px;
+  background: #fbbc04;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  font-weight: 900;
+  position: relative;
+}
+.keep-logo-icon::before {
+  content: '';
+  position: absolute;
+  top: -3px; left: 50%;
+  width: 4px; height: 8px;
+  background: #fff;
+  border-radius: 0 0 1px 1px;
+  transform: translateX(-50%);
+}
+.keep-logo-icon::after {
+  content: '';
+  width: 16px; height: 2px;
+  background: #fff;
+  border-radius: 2px;
+  box-shadow: 0 4px 0 #fff, 0 8px 0 #fff;
+  margin-top: 2px;
+}
+.keep-title {
+  font-size: .92rem;
+  font-weight: 600;
+  color: #5f6368;
+  margin-right: auto;
+  letter-spacing: 0.3px;
+}
+.keep-toolbar {
+  display: flex;
+  gap: .4rem;
+  align-items: center;
+  font-size: .8rem;
+  color: #5f6368;
+}
+.keep-tool-pill {
+  background: #f1f3f4;
+  border-radius: 999px;
+  padding: .25rem .65rem;
+  font-size: .72rem;
+}
+
+/* ── Cuerpo: sidebar + grid ── */
+.keep-body {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  border: 1px solid #dadce0;
+  border-top: 1px solid #e0e0e0;
+  border-radius: 0 0 10px 10px;
+  background: #fff;
+  min-height: 480px;
+}
+
+.keep-sidebar {
+  border-right: 1px solid #e8eaed;
+  padding: 0.9rem 0;
+  background: #fff;
+}
+.sb-item {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  padding: .55rem 1.1rem .55rem 1.4rem;
+  font-size: .85rem;
+  color: #3c4043;
+  border-right: 3px solid transparent;
+  cursor: default;
+  user-select: none;
+}
+.sb-item.active {
+  background: #feefc3;
+  color: #202124;
+  font-weight: 600;
+  border-right-color: #fbbc04;
+}
+.sb-item .sb-ico { width: 18px; text-align: center; }
+.sb-section { padding: .4rem 1.4rem .25rem; font-size: .65rem; text-transform: uppercase; color: #80868b; letter-spacing: .5px; font-weight: 700; margin-top: .6rem; }
+
+/* ── Grid de notas ── */
+.keep-main {
+  padding: 1.1rem 1.2rem;
+}
+.search-row {
+  background: #f1f3f4;
+  border-radius: 8px;
+  padding: .55rem 1rem;
+  color: #80868b;
+  font-size: .82rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.section-label {
+  font-size: .65rem;
+  color: #5f6368;
+  font-weight: 700;
+  letter-spacing: .5px;
+  margin: .2rem 0 .65rem;
+  text-transform: uppercase;
+}
+
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 0.7rem;
+}
+.note {
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.10);
+  padding: 0.7rem 0.85rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  position: relative;
+  cursor: help;
+  transition: box-shadow .2s, transform .2s;
+  min-height: 130px;
+}
+.note:hover {
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  transform: translateY(-1px);
+}
+.note-title {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: #202124;
+  letter-spacing: .1px;
+}
+.note-body {
+  font-size: 0.78rem;
+  color: #3c4043;
+  line-height: 1.45;
+  flex: 1;
+}
+.note-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.3rem;
+}
+.note-chip {
+  font-size: 0.66rem;
+  background: rgba(0,0,0,0.07);
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  color: #3c4043;
+  font-weight: 500;
+}
+.note-chip.reminder {
+  background: rgba(26,115,232,0.12);
+  color: #174ea6;
+  font-weight: 600;
+}
+
+/* Colores estilo Keep oficiales */
+.note.yellow  { background: #fff8c4; }
+.note.green   { background: #ccff90; }
+.note.blue    { background: #aecbfa; }
+.note.pink    { background: #f6aea9; }
+.note.orange  { background: #fbbc04; }
+.note.purple  { background: #d7aefb; }
+.note.gray    { background: #e8eaed; }
+
+/* Lista con checks */
+.todo-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+.todo-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.todo-list li::before {
+  content: '';
+  width: 13px; height: 13px;
+  border: 1.5px solid #5f6368;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.todo-list li.done {
+  text-decoration: line-through;
+  color: #80868b;
+}
+.todo-list li.done::before {
+  background: #5f6368;
+  border-color: #5f6368;
+}
+
+/* Tooltip */
+.note .tip {
+  position: absolute;
+  bottom: 105%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #202124;
+  color: #fff;
+  font-size: .67rem;
+  font-weight: 500;
+  padding: .35rem .65rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s;
+  z-index: 10;
+  letter-spacing: .2px;
+  max-width: 220px;
+  white-space: normal;
+  text-align: center;
+}
+.note:hover .tip { opacity: 1; }
+
+.add-hint {
+  margin-top: 1rem;
+  background: #fef7e0;
+  border: 1px dashed #fbbc04;
+  color: #92400e;
+  font-size: .76rem;
+  font-weight: 600;
+  padding: .6rem .8rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  line-height: 1.45;
+}
+</style>
+</head>
+<body>
+
+<div class="keep-header">
+  <div class="keep-logo-icon"></div>
+  <div class="keep-title">Keep</div>
+  <div class="keep-toolbar">
+    <span class="keep-tool-pill">🔔 Recordatorios</span>
+    <span class="keep-tool-pill">🏷️ Etiquetas</span>
+  </div>
+</div>
+
+<div class="keep-body">
+
+  <!-- Sidebar -->
+  <aside class="keep-sidebar">
+    <div class="sb-item active"><span class="sb-ico">💡</span><span>Notas</span></div>
+    <div class="sb-item"><span class="sb-ico">🔔</span><span>Recordatorios</span></div>
+    <div class="sb-section">Etiquetas</div>
+    <div class="sb-item"><span class="sb-ico">📚</span><span>Escuela</span></div>
+    <div class="sb-item"><span class="sb-ico">✅</span><span>Tareas</span></div>
+    <div class="sb-item"><span class="sb-ico">💭</span><span>Ideas</span></div>
+    <div class="sb-section">Más</div>
+    <div class="sb-item"><span class="sb-ico">🗄️</span><span>Archivo</span></div>
+  </aside>
+
+  <!-- Grid de notas -->
+  <main class="keep-main">
+
+    <div class="search-row">
+      🔍 Buscar en notas…
+    </div>
+
+    <div class="section-label">Notas</div>
+
+    <div class="notes-grid">
+
+      <!-- Nota 1: texto simple -->
+      <div class="note yellow">
+        <div class="note-title">Apuntes Semana 13</div>
+        <div class="note-body">
+          Keep me permite escribir ideas rápidas sin abrir un documento. Sirve para apuntes cortos durante la clase.
+        </div>
+        <div class="note-meta">
+          <span class="note-chip">📚 Escuela</span>
+        </div>
+        <span class="tip">Nota de texto — rápida y sincronizada con todos mis dispositivos</span>
+      </div>
+
+      <!-- Nota 2: lista con checks -->
+      <div class="note green">
+        <div class="note-title">Pendientes esta semana</div>
+        <ul class="todo-list">
+          <li class="done">Subir tarea de Mate</li>
+          <li class="done">Repasar inglés</li>
+          <li>Terminar reflexión PEC</li>
+          <li>Estudiar para el examen</li>
+          <li>Limpiar mi Drive</li>
+        </ul>
+        <div class="note-meta">
+          <span class="note-chip">✅ Tareas</span>
+        </div>
+        <span class="tip">Lista con casillas — marca lo que vas terminando</span>
+      </div>
+
+      <!-- Nota 3: con recordatorio -->
+      <div class="note blue">
+        <div class="note-title">Examen de Cultura Digital III</div>
+        <div class="note-body">
+          Repasar Calendar, Drive y Docs antes del examen.
+        </div>
+        <div class="note-meta">
+          <span class="note-chip reminder">🔔 Lun 19 May · 8:00 AM</span>
+          <span class="note-chip">📚 Escuela</span>
+        </div>
+        <span class="tip">Recordatorio activo — aparecerá también en mi Google Calendar</span>
+      </div>
+
+      <!-- Nota 4: idea suelta -->
+      <div class="note pink">
+        <div class="note-title">Idea para mi proyecto</div>
+        <div class="note-body">
+          ¿Y si usamos Forms para que los compañeros opinen sobre el plan?
+        </div>
+        <div class="note-meta">
+          <span class="note-chip">💭 Ideas</span>
+        </div>
+        <span class="tip">Nota corta — perfecta para ideas que llegan en cualquier momento</span>
+      </div>
+
+      <!-- Nota 5: cita inspiradora -->
+      <div class="note purple">
+        <div class="note-title">Frase del día</div>
+        <div class="note-body">
+          "No es que no tengas tiempo… es que no siempre sabes cómo organizarlo." 💭
+        </div>
+        <span class="tip">Nota libre — para guardar frases, links o pensamientos</span>
+      </div>
+
+      <!-- Nota 6: ejemplo de "tu nueva nota" -->
+      <div class="note gray" style="border: 2px dashed #80868b; background: #fff;">
+        <div class="note-title" style="color:#5f6368">+ Crea tu propia nota aquí</div>
+        <div class="note-body" style="color:#80868b; font-style: italic;">
+          Texto, lista o foto — tú decides.
+        </div>
+        <span class="tip">Botón "+ Nueva nota" en la barra superior</span>
+      </div>
+
+    </div>
+
+    <div class="add-hint">
+      💡 Tu meta hoy: crear <strong>3 notas distintas</strong> (texto + lista + recordatorio) con al menos <strong>2 etiquetas</strong> (📚 Escuela, ✅ Tareas, 💭 Ideas).
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>
