@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <script>const APP_VERSION = "v20260514";</script>
+  <script>const APP_VERSION = "v20260514b";</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cultura Digital III | CEB 5/4</title>
@@ -1392,7 +1392,10 @@
         15: "🎓 SEMANA 15: Tercer Examen Parcial",
     };
     // Semanas publicadas por defecto (sin GAS): solo 1er y 2do Parcial
-    const _CD_LOCAL_DEFAULT = [1,2,3,4,5,6,7,8,9,10,11,12,13];
+    // Piso mínimo: semanas SIEMPRE publicadas (fallback si GAS falla).
+    // ⚠️ NO agregar aquí semanas nuevas: se publican manualmente desde el
+    // panel de maestro. Solo poner aquí semanas ya consolidadas del pasado.
+    const _CD_LOCAL_DEFAULT = [1,2,3,4,5,6,7,8,9,10,11,12];
 
     // Fechas de cada semana para detección automática de la semana actual
     const WEEK_DATES = [
