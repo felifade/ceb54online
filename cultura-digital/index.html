@@ -2,7 +2,7 @@
 <html lang="es">
 
 <head>
-  <script>const APP_VERSION = "v20260514";</script>
+  <script>const APP_VERSION = "v20260515";</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cultura Digital II | CEB 5/4</title>
@@ -11,6 +11,11 @@
         rel="stylesheet">
     <script src="https://unpkg.com/lucide@0.511.0"></script>
     <link rel="stylesheet" href="css/style.css?v=20260509">
+    <!-- PWA: cuaderno offline -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="../assets/logo.png">
+    <link rel="apple-touch-icon" href="../assets/logo.png">
+    <meta name="theme-color" content="#059669">
 </head>
 
 <script>
@@ -2731,6 +2736,14 @@
             <div class="tp-note"><strong>Protección:</strong> La clase .no-copy está activa en todos los dictados.</div>
         </div>
     </div>
+    <!-- PWA: registrar Service Worker para uso offline -->
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("sw.js").catch(() => {});
+        });
+      }
+    </script>
 </body>
 
 </html>
