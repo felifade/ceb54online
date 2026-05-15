@@ -1,13 +1,18 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <script>const APP_VERSION = "v20260514b";</script>
+  <script>const APP_VERSION = "v20260515";</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cultura Digital III | CEB 5/4</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@0.511.0"></script>
     <link rel="stylesheet" href="css/style.css?v=20260507">
+    <!-- PWA: cuaderno offline -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="../assets/logo.png">
+    <link rel="apple-touch-icon" href="../assets/logo.png">
+    <meta name="theme-color" content="#1a73e8">
 </head>
 <script>
 (function(){
@@ -1867,6 +1872,15 @@
         <p style="font-size:.7rem; color:#94a3b8; text-align:center; margin-top:1rem;">Solo visible para: Dr. Felipe López Salazar</p>
     </div>
 </div>
+
+<!-- PWA: registrar Service Worker para uso offline -->
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
+</script>
 
 </body>
 </html>
