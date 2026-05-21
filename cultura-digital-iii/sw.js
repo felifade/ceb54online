@@ -2,7 +2,7 @@
 // Cache-first para todo lo del cuaderno (HTML, CSS, visuales).
 // Tras la primera visita online, el cuaderno funciona sin conexión.
 
-const VERSION = "v20260515";
+const VERSION = "v20260521";
 const CACHE_STATIC = `cd3-static-${VERSION}`;
 
 const STATIC_ASSETS = [
