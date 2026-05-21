@@ -2,7 +2,7 @@
 <html lang="es">
 
 <head>
-  <script>const APP_VERSION = "v20260515";</script>
+  <script>const APP_VERSION = "v20260521";</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cultura Digital II | CEB 5/4</title>
@@ -216,7 +216,7 @@
                     <div class="menu-title"><i data-lucide="graduation-cap"></i> 3er Parcial</div>
                     <ul class="menu-list">
                         <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(15)" class="menu-link" id="link-s15">🎓 Semana 15 <span class="menu-date">02 - 06 Jun</span></a></li>
-                        <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(14)" class="menu-link" id="link-s14">🌐 Semana 14 <span class="menu-date">26 - 30 May</span></a></li>
+                        <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(14)" class="menu-link" id="link-s14">✅ Semana 14 <span class="menu-date">26 - 30 May</span></a></li>
                         <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(13)" class="menu-link" id="link-s13">🎨 Semana 13 <span class="menu-date">19 - 23 May</span></a></li>
                         <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(12)" class="menu-link" id="link-s12">🔐 Semana 12 <span class="menu-date">12 - 16 May</span></a></li>
                         <li class="menu-item"><a href="javascript:void(0)" onclick="switchWeek(11)" class="menu-link" id="link-s11">🧱 Semana 11 <span class="menu-date">05 - 09 May</span></a></li>
@@ -2046,173 +2046,191 @@
                         </div>
 
                         <!-- SEMANA 14: Botones y Validación -->
+                        <!-- ═══════════════════════════════════════════════════════════
+                             SEMANA 14 — HORA 1: Validación + tareas en líneas separadas
+                        ═══════════════════════════════════════════════════════════ -->
                         <div class="sheet" id="sheet-s14-h1">
-                            <div class="hour-header">Semana 14: HORA 1 — Botones Limpiar y Regresar</div>
+                            <div class="hour-header">Semana 14: HORA 1 — Validación con if/else + tareas en líneas separadas</div>
                             <table class="academic-table">
                                 <tbody>
+
+                                    <!-- Actividad 1: pestaña -->
                                     <tr>
                                         <td class="col-instruction">
                                             <span class="activity-num">Actividad 1</span>
-                                            <p class="instruction-text">Abre tu documento y crea una <strong>nueva pestaña</strong> llamada <strong>"Semana 14"</strong> con ícono de <strong>GLOBO</strong> 🌐.</p>
+                                            <p class="instruction-text">Abre tu documento y crea una <strong>nueva pestaña</strong> llamada <strong>"Semana 14"</strong> con ícono de <strong>VERIFICACIÓN</strong> ✅.</p>
                                         </td>
                                         <td class="col-content">
-                                            <div class="note-box" style="font-weight:700; background:#f1f5f9;">Semana 14 🌐</div>
+                                            <div class="note-box" style="font-weight:700; background:#dcfce7; border-color:#16a34a;">Semana 14 ✅</div>
                                         </td>
                                     </tr>
+
+                                    <!-- Actividad 2: título -->
                                     <tr>
                                         <td class="col-instruction">
                                             <span class="activity-num">Actividad 2</span>
-                                            <p class="instruction-text">Escribe como título tamaño 20, centrado y en negrita:</p>
+                                            <p class="instruction-text">Escribe como título <strong>tamaño 20, centrado y en negrita</strong>:</p>
                                         </td>
                                         <td class="col-content">
-                                            <div style="font-size:1.1rem; font-weight:800; text-align:center; color:var(--header-dark);">🌐 SEMANA 14: Botones y Validación en App Inventor</div>
+                                            <div style="font-size:1.05rem; font-weight:800; text-align:center; color:#14532d; background:#dcfce7; border:2px solid #16a34a; border-radius:10px; padding:12px 16px;">✅ SEMANA 14: Validación y pulido de la app</div>
                                         </td>
                                     </tr>
-                                    <tr>
+
+                                    <!-- Actividad 3: DICTADO -->
+                                    <tr style="background:#dcfce7;">
                                         <td class="col-instruction">
-                                            <span class="activity-num">Actividad 3</span>
-                                            <p class="instruction-text">Abre <strong>MIT App Inventor</strong> y ve a la vista de <strong>Blocks</strong>. Programa el botón <strong>Limpiar</strong> para borrar todos los campos y el label de resultado.</p>
+                                            <span class="activity-num" style="background:#16a34a;color:#fff;">📢 DICTADO</span>
+                                            <p class="instruction-text">Escribe el siguiente apunte en tu documento. El maestro lo leerá en voz alta.</p>
                                         </td>
-                                        <td class="col-content">
-                                            <div class="note-box" style="font-size:0.85rem;">
-                                                <ol style="line-height:2; padding-left:1.2rem;">
-                                                    <li>Panel izquierdo → <strong>BotonLimpiar</strong> → arrastra <code>when BotonLimpiar.Click do</code></li>
-                                                    <li>Conecta dentro los 4 bloques (uno por campo):</li>
-                                                </ol>
-                                                <code style="display:block; background:#1e293b; color:#a5f3fc; padding:.75rem 1rem; border-radius:8px; font-size:.8rem; line-height:1.9; margin-top:.4rem;">
-                                                    when BotonLimpiar.Click<br>
-                                                    do<br>
-                                                    &nbsp;&nbsp;set TextBoxTarea.Text to ""<br>
-                                                    &nbsp;&nbsp;set TextBoxMateria.Text to ""<br>
-                                                    &nbsp;&nbsp;set TextBoxFecha.Text to ""<br>
-                                                    &nbsp;&nbsp;set LabelResultado.Text to ""
-                                                </code>
-                                                <p style="margin-top:.6rem; color:#16a34a; font-weight:700;">✅ Prueba: escribe datos, toca Limpiar. Todo debe quedar en blanco.</p>
+                                        <td class="col-content no-copy">
+                                            <div class="note-box" style="border-color:#16a34a; background:#f0fdf4; line-height:1.7;">
+                                                <p style="margin:0 0 .6rem 0;">Una <strong>validación</strong> es una pregunta que la app se hace antes de actuar: <em>"¿los datos están completos?"</em> ❓</p>
+                                                <p style="margin:0 0 .6rem 0;">En programación esto se hace con el bloque <code style="background:#1e293b;color:#a5f3fc;padding:.1rem .35rem;border-radius:4px;">if / then / else</code> 🔀. Es una decisión con dos caminos: si la condición es verdadera se hace una cosa; si es falsa, se hace otra.</p>
+                                                <p style="margin:0 0 .6rem 0; padding:.55rem .75rem; background:#fef9c3; border-left:3px solid #d97706; border-radius:6px;">
+                                                    <strong>Ejemplo:</strong> <em>"¿Algún campo está vacío?"</em><br>
+                                                    🔴 Sí → mostrar aviso "Faltan datos"<br>
+                                                    🟢 No → guardar la tarea
+                                                </p>
+                                                <p style="margin:0 0 .6rem 0;">También mejoraremos cómo se muestran los datos: hasta ahora aparecen <strong>en una sola línea</strong> usando <code>join</code>. Vamos a separar cada dato en <strong>su propia línea</strong> usando <strong>saltos de línea</strong> dentro del bloque de texto.</p>
+                                                <p style="margin:0; font-style:italic; color:#14532d;">💡 Una app que valida sus datos es una app <strong>profesional y confiable</strong>.</p>
                                             </div>
                                         </td>
                                     </tr>
+
+                                    <!-- Actividad 4: Bloque if/else preparativo -->
                                     <tr>
                                         <td class="col-instruction">
                                             <span class="activity-num">Actividad 4</span>
-                                            <p class="instruction-text">Programa el botón <strong>Regresar</strong> para cerrar la pantalla actual.</p>
+                                            <p class="instruction-text">Abre tu proyecto en App Inventor → entra a <strong>Screen2</strong> → modo <strong>Blocks</strong>. Vas a <strong>reemplazar</strong> el bloque actual de BotonGuardar.</p>
                                         </td>
                                         <td class="col-content">
                                             <div class="note-box" style="font-size:0.85rem;">
-                                                <ol style="line-height:2; padding-left:1.2rem;">
-                                                    <li>Panel izquierdo → <strong>BotonRegresar</strong> → arrastra <code>when BotonRegresar.Click do</code></li>
-                                                    <li>Panel <strong>Control</strong> → bloque <strong>close screen</strong> → conéctalo dentro</li>
+                                                <ol style="padding-left:1.2rem; line-height:2; margin:0;">
+                                                    <li>Localiza el bloque actual <code>when BotonGuardar.Click</code> con su <code>join</code></li>
+                                                    <li>Panel <strong>Control</strong> (bloques amarillos) → arrastra el bloque <strong><code>if / then</code></strong> al área de trabajo</li>
+                                                    <li>Toca el ⚙️ azul del bloque if → aparece un panel pequeño</li>
+                                                    <li>Arrastra el sub-bloque <strong>else</strong> dentro de la "ranura" superior derecha → el if se convierte en <code>if / then / else</code></li>
+                                                    <li>Cierra el panel (clic fuera)</li>
                                                 </ol>
-                                                <code style="display:block; background:#1e293b; color:#a5f3fc; padding:.75rem 1rem; border-radius:8px; font-size:.8rem; line-height:1.9; margin-top:.4rem;">
-                                                    when BotonRegresar.Click<br>
-                                                    do<br>
-                                                    &nbsp;&nbsp;close screen
-                                                </code>
-                                                <p style="margin-top:.5rem; font-size:.8rem; color:#64748b;">💡 Si tu app solo tiene una pantalla usa: <code>set LabelResultado.Text to "Ya estás en la pantalla principal."</code></p>
+                                                <p style="margin:.5rem 0 0 0; font-size:.78rem; color:#64748b;">💡 Si tu bloque if solo tiene <em>then</em>, no funcionará la validación. Necesitas las DOS ramas (then + else).</p>
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr style="background:#fffbeb;">
-                                        <td class="col-instruction">
-                                            <span class="activity-num" style="color:#b45309;">📸 Evidencia HORA 1</span>
-                                            <p class="instruction-text">Inserta en tu documento las siguientes capturas de pantalla.</p>
-                                        </td>
-                                        <td class="col-content">
-                                            <div class="note-box" style="border-color:#f59e0b; background:#fffbeb; font-size:0.85rem;">
-                                                <ol style="padding-left:1.2rem; line-height:2.2; margin:0;">
-                                                    <li>📸 Bloque de <strong>BotonLimpiar</strong></li>
-                                                    <li>📸 Bloque de <strong>BotonRegresar</strong></li>
-                                                    <li>📸 App con <strong>campos llenos</strong> antes de limpiar</li>
-                                                    <li>📸 App con <strong>campos vacíos</strong> después de tocar Limpiar</li>
-                                                </ol>
-                                                <p style="margin-top:.5rem;">Debajo de cada imagen escribe una oración que explique qué muestra.</p>
-                                            </div>
-                                            <p style="margin-top:.75rem;font-size:.8rem;color:#b45309;font-weight:700;">⚠️ Sin las capturas en tu documento no se cuenta como entregado.</p>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="col-instruction" colspan="2" style="text-align:center; padding:1.1rem 1.5rem;">
-                                            <a href="https://ai2.appinventor.mit.edu/" target="_blank" rel="noopener"
-                                               style="display:inline-flex; align-items:center; gap:0.6rem;
-                                                      padding:0.75rem 1.9rem; background:#16a34a; color:#fff;
-                                                      border-radius:12px; font-size:1rem; font-weight:800;
-                                                      text-decoration:none; font-family:inherit;
-                                                      box-shadow:0 4px 14px rgba(22,163,74,.35);
-                                                      transition:transform .15s, box-shadow .15s;"
-                                               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(22,163,74,.5)';"
-                                               onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(22,163,74,.35)';">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-                                                Abrir MIT App Inventor
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="sheet" id="sheet-s14-h2">
-                            <div class="hour-header">Semana 14: HORA 2 — Validación de campos con if / else</div>
-                            <table class="academic-table">
-                                <tbody>
+
+                                    <!-- Actividad 5: Condición -->
                                     <tr>
                                         <td class="col-instruction">
                                             <span class="activity-num">Actividad 5</span>
-                                            <div class="dictation-tag"><i data-lucide="mic"></i> Texto para dictar</div>
-                                            <p class="instruction-text">Escribe el apunte con emojis y formato en negrita.</p>
-                                        </td>
-                                        <td class="col-content no-copy">
-                                            <div class="note-box" style="line-height:1.6;">
-                                                <p>Nuestra app ya muestra los datos reales, pero tiene un problema: si el alumno toca Guardar sin escribir nada, el resultado queda vacío o incompleto. Para evitarlo usamos una <strong>validación</strong> ❓.</p>
-                                                <p style="margin-top:0.5rem;">Una validación es una <strong>condición</strong>: una pregunta que la app se hace antes de actuar. En bloques se hace con <strong>if / else</strong> 🔀:</p>
-                                                <p style="margin-top:0.5rem; padding:.5rem .75rem; background:#fef3c7; border-radius:8px; border-left:3px solid #f59e0b;">
-                                                    <em>"¿El cuadro de tarea está vacío?"</em><br>
-                                                    — Si la respuesta es <strong>sí</strong> → mostrar aviso de error 🔴<br>
-                                                    — Si la respuesta es <strong>no</strong> → guardar los datos normalmente ✅
-                                                </p>
-                                                <p style="margin-top:0.5rem;">Esto hace que la app sea más <strong>inteligente</strong> y profesional 🧠. Un programa que revisa sus propios datos antes de procesarlos es un programa bien diseñado.</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="col-instruction">
-                                            <span class="activity-num">Actividad 6</span>
-                                            <p class="instruction-text">Abre <strong>MIT App Inventor</strong> y ve a la vista de <strong>Blocks</strong>. Agrega la <strong>validación</strong> con el bloque <strong>if / else</strong> al evento de BotonGuardar.</p>
+                                            <p class="instruction-text">Arma la <strong>condición</strong>: ¿algún campo está vacío?</p>
                                         </td>
                                         <td class="col-content">
                                             <div class="note-box" style="font-size:0.85rem;">
-                                                <ol style="line-height:2; padding-left:1.2rem;">
-                                                    <li>Panel <strong>Control</strong> → arrastra el bloque <strong>if / then / else</strong> (usa el ⚙️ si solo aparece <em>if / then</em>)</li>
-                                                    <li>En la condición <code>if [ ]</code>: Panel <strong>Logic</strong> → bloque comparador <code>=</code></li>
-                                                    <li>Lado izquierdo: <code>TextBoxTarea.Text</code></li>
-                                                    <li>Lado derecho: bloque de texto vacío <code>""</code></li>
-                                                    <li>Rama <code>then</code>: <code>set LabelResultado.Text to "⚠️ Por favor escribe una tarea."</code></li>
-                                                    <li>Rama <code>else</code>: mueve aquí el bloque <strong>join</strong> que ya tenías</li>
+                                                <p style="margin:0 0 .55rem 0;">Necesitas combinar 3 preguntas con el operador <strong>or</strong> (cualquiera vacía = falta dato):</p>
+                                                <ol style="padding-left:1.2rem; line-height:1.9; margin:0; font-size:.82rem;">
+                                                    <li>Panel <strong>Logic</strong> (verde) → arrastra el bloque <code>or</code></li>
+                                                    <li>Toca el ⚙️ del <code>or</code> → arrastra una tercera ranura para tener 3 huecos</li>
+                                                    <li>Para cada hueco usa el bloque comparador <code>=</code> (panel Logic)</li>
+                                                    <li>Lado izquierdo: <code>TextBoxTarea.Text</code> / <code>TextBoxMateria.Text</code> / <code>TextBoxFecha.Text</code></li>
+                                                    <li>Lado derecho: bloque de texto vacío <code>" "</code> (panel Text, déjalo sin nada)</li>
                                                 </ol>
-                                                <code style="display:block; background:#1e293b; color:#a5f3fc; padding:.75rem 1rem; border-radius:8px; font-size:.8rem; line-height:1.9; margin-top:.6rem;">
-                                                    when BotonGuardar.Click<br>
-                                                    do<br>
-                                                    &nbsp;&nbsp;if TextBoxTarea.Text = ""<br>
-                                                    &nbsp;&nbsp;then set LabelResultado.Text to <strong>"⚠️ Por favor escribe una tarea."</strong><br>
-                                                    &nbsp;&nbsp;else set LabelResultado.Text to join(...)
+                                                <code style="display:block; background:#1e293b; color:#a5f3fc; padding:.85rem 1rem; border-radius:8px; font-size:.78rem; line-height:1.9; margin-top:.55rem; font-family:'JetBrains Mono', monospace;">
+                                                    or<br>
+                                                    &nbsp;&nbsp;TextBoxTarea.Text&nbsp;&nbsp;&nbsp;=&nbsp;<span style="color:#fde68a;">" "</span><br>
+                                                    &nbsp;&nbsp;TextBoxMateria.Text&nbsp;=&nbsp;<span style="color:#fde68a;">" "</span><br>
+                                                    &nbsp;&nbsp;TextBoxFecha.Text&nbsp;&nbsp;&nbsp;=&nbsp;<span style="color:#fde68a;">" "</span>
                                                 </code>
+                                                <p style="margin:.55rem 0 0 0; font-size:.78rem; color:#92400e;">📌 Encajа este bloque <code>or</code> completo en la ranura <code>if [ ]</code>.</p>
                                             </div>
                                         </td>
                                     </tr>
+
+                                    <!-- Actividad 6: Rama THEN (aviso) -->
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 6</span>
+                                            <p class="instruction-text">En la rama <code>then</code> (cuando hay campos vacíos) muestra un aviso ROJO:</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-size:0.85rem;">
+                                                <code style="display:block; background:#1e293b; color:#a5f3fc; padding:.85rem 1rem; border-radius:8px; font-size:.8rem; line-height:1.9; font-family:'JetBrains Mono', monospace;">
+                                                    then<br>
+                                                    &nbsp;&nbsp;set <strong>LabelResultado</strong>.Text&nbsp;to&nbsp;<span style="color:#fde68a;">"⚠️ Faltan datos por capturar"</span><br>
+                                                    &nbsp;&nbsp;set <strong>LabelResultado</strong>.TextColor&nbsp;to&nbsp;<span style="color:#fca5a5;">[ROJO]</span>
+                                                </code>
+                                                <p style="margin:.55rem 0 0 0; font-size:.78rem;">📌 El color <strong>ROJO</strong> sale del panel <strong>Colors</strong> (cuadritos de colores).</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Actividad 7: Rama ELSE con saltos de línea -->
+                                    <tr style="background:#dcfce7;">
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 7</span>
+                                            <p class="instruction-text">En la rama <code>else</code> (cuando todo está bien) muestra la tarea con <strong>cada dato en su propia línea</strong>:</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="border-color:#16a34a; background:#f0fdf4; font-size:0.85rem;">
+                                                <p style="margin:0 0 .55rem 0; padding:.5rem .7rem; background:#fef9c3; border-left:3px solid #d97706; border-radius:6px; font-size:.78rem;">🧠 <strong>Truco clave:</strong> en App Inventor, para hacer un salto de línea dentro de un bloque de texto, haz <strong>clic dentro del bloque</strong> y presiona <strong>Enter</strong>. El bloque crecerá hacia abajo. ¡Es un salto de línea real!</p>
+                                                <p style="margin:0 0 .4rem 0;">El bloque <code>join</code> seguirá uniendo los textos, pero ahora con saltos. Cada etiqueta empieza en una línea nueva:</p>
+                                                <code style="display:block; background:#1e293b; color:#a5f3fc; padding:.85rem 1rem; border-radius:8px; font-size:.78rem; line-height:1.9; font-family:'JetBrains Mono', monospace;">
+                                                    else<br>
+                                                    &nbsp;&nbsp;set <strong>LabelResultado</strong>.Text to<br>
+                                                    &nbsp;&nbsp;&nbsp;&nbsp;join<br>
+                                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#fde68a;">"📚 Tarea: "</span><br>
+                                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TextBoxTarea.Text<br>
+                                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#fde68a;">"↵🏫 Materia: "</span> &nbsp;&nbsp;&larr; este texto empieza con Enter<br>
+                                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TextBoxMateria.Text<br>
+                                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#fde68a;">"↵📅 Fecha: "</span> &nbsp;&nbsp;&larr; igual: empieza con Enter<br>
+                                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TextBoxFecha.Text<br>
+                                                    &nbsp;&nbsp;set <strong>LabelResultado</strong>.TextColor&nbsp;to&nbsp;<span style="color:#86efac;">[VERDE OSCURO]</span>
+                                                </code>
+                                                <p style="margin:.55rem 0 0 0; font-size:.78rem;">📌 El símbolo <strong>↵</strong> aquí significa "presiona Enter dentro del bloque de texto justo antes del emoji". El bloque debe quedar de 2 líneas en el editor.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Actividad 8: Probar -->
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 8</span>
+                                            <p class="instruction-text">Prueba la validación en tu celular con <strong>MIT AI2 Companion</strong>:</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-size:0.85rem;">
+                                                <ol style="padding-left:1.2rem; line-height:2; margin:0;">
+                                                    <li><strong>Prueba 1 (vacío):</strong> sin escribir nada, toca <strong>Guardar</strong> → debe aparecer <span style="color:#dc2626; font-weight:700;">"⚠️ Faltan datos por capturar"</span> en rojo</li>
+                                                    <li><strong>Prueba 2 (completo):</strong> llena los 3 campos, toca <strong>Guardar</strong> → debe aparecer la tarea en <span style="color:#16a34a; font-weight:700;">verde</span> y con cada dato en SU PROPIA LÍNEA:
+                                                        <div style="margin-top:.4rem; padding:.55rem .7rem; background:#f0fdf4; border:1px solid #86efac; border-radius:6px; font-family:'JetBrains Mono', monospace; font-size:.78rem; line-height:1.7;">
+                                                            📚 Tarea: Investigación del agua<br>
+                                                            🏫 Materia: Biología<br>
+                                                            📅 Fecha: 26/05/2026
+                                                        </div>
+                                                    </li>
+                                                    <li><strong>Prueba 3 (parcial):</strong> llena solo 2 campos y toca Guardar → debe seguir saliendo el aviso ⚠️ (uno está vacío, OR captura eso)</li>
+                                                </ol>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Actividad 9: Capturas H1 -->
                                     <tr style="background:#fffbeb;">
                                         <td class="col-instruction">
-                                            <span class="activity-num" style="color:#b45309;">📸 Evidencia HORA 2</span>
-                                            <p class="instruction-text">Inserta en tu documento las siguientes capturas de pantalla.</p>
+                                            <span class="activity-num" style="color:#b45309;">📸 Evidencia HORA 1</span>
+                                            <p class="instruction-text">Pega en tu documento (pestaña Semana 14 ✅):</p>
                                         </td>
                                         <td class="col-content">
                                             <div class="note-box" style="border-color:#f59e0b; background:#fffbeb; font-size:0.85rem;">
-                                                <ol style="padding-left:1.2rem; line-height:2.2; margin:0;">
-                                                    <li>📸 Bloque completo de <strong>BotonGuardar</strong> con el if / else visible</li>
-                                                    <li>📸 App mostrando el <strong>aviso de error</strong> al tocar Guardar sin escribir nada</li>
-                                                    <li>📸 App mostrando los <strong>datos correctos</strong> al llenar los campos y tocar Guardar</li>
+                                                <ol style="padding-left:1.2rem; line-height:2; margin:0;">
+                                                    <li>📸 Bloque completo de <strong>BotonGuardar</strong> mostrando el <strong>if/else con or</strong></li>
+                                                    <li>📸 App en el celular mostrando el <strong>aviso rojo</strong> al tocar Guardar sin datos</li>
+                                                    <li>📸 App en el celular mostrando la tarea en <strong>verde y en 3 líneas separadas</strong></li>
                                                 </ol>
-                                                <p style="margin-top:.5rem;">Debajo de cada imagen escribe una oración que explique qué muestra.</p>
                                             </div>
-                                            <p style="margin-top:.75rem;font-size:.8rem;color:#b45309;font-weight:700;">⚠️ Sin las capturas en tu documento no se cuenta como entregado.</p>
+                                            <p style="margin-top:.75rem; font-size:.8rem; color:#b45309; font-weight:700;">⚠️ Sin las capturas en tu documento no se cuenta como entregado.</p>
                                         </td>
                                     </tr>
+
+                                    <!-- Botón App Inventor -->
                                     <tr>
                                         <td class="col-instruction" colspan="2" style="text-align:center; padding:1.1rem 1.5rem;">
                                             <a href="https://ai2.appinventor.mit.edu/" target="_blank" rel="noopener"
@@ -2229,6 +2247,239 @@
                                             </a>
                                         </td>
                                     </tr>
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- ═══════════════════════════════════════════════════════════
+                             SEMANA 14 — HORA 2: Screen3 "Ayuda" con imágenes obligatorias
+                        ═══════════════════════════════════════════════════════════ -->
+                        <div class="sheet" id="sheet-s14-h2">
+                            <div class="hour-header">Semana 14: HORA 2 — Pantalla de Ayuda con imágenes 📖</div>
+                            <table class="academic-table">
+                                <tbody>
+
+                                    <!-- Subtítulo H2 -->
+                                    <tr>
+                                        <td class="col-instruction" colspan="2" style="padding:1rem 1.5rem 0;">
+                                            <p style="font-size:.9rem; margin:0; color:#475569;">Sigue en la <strong>misma pestaña "Semana 14" ✅</strong> de tu documento. Agrega un subtítulo:</p>
+                                            <div style="font-size:1rem; font-weight:800; text-align:center; color:#1e293b; background:#ede9fe; border:2px solid #7c3aed; border-radius:10px; padding:10px 14px; margin-top:.5rem;">📖 HORA 2: Crear Screen3 — pantalla de Ayuda</div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- DICTADO H2 -->
+                                    <tr style="background:#ede9fe;">
+                                        <td class="col-instruction">
+                                            <span class="activity-num" style="background:#7c3aed;color:#fff;">📢 DICTADO</span>
+                                            <p class="instruction-text">Escribe el apunte. Tu maestro lo dictará.</p>
+                                        </td>
+                                        <td class="col-content no-copy">
+                                            <div class="note-box" style="border-color:#7c3aed; background:#f5f3ff; line-height:1.7;">
+                                                <p style="margin:0 0 .6rem 0;">Una app profesional incluye una <strong>pantalla de Ayuda</strong> 📖. Sirve para que cualquier persona, aunque sea la primera vez que usa la app, entienda <strong>qué hacer paso a paso</strong>.</p>
+                                                <p style="margin:0 0 .6rem 0;">Las buenas pantallas de ayuda usan <strong>imágenes</strong> para explicar mejor — una imagen comunica más rápido que solo texto. Tú vas a crear una pantalla Screen3 con <strong>4 pasos numerados</strong>, cada uno con su imagen.</p>
+                                                <p style="margin:0 0 .6rem 0;">Las imágenes pueden ser <strong>capturas de tu propia app</strong> (más significativo) o <strong>iconos descargados de internet</strong> (más rápido). Tú decides.</p>
+                                                <p style="margin:0; padding:.55rem .75rem; background:#fef9c3; border-left:3px solid #d97706; border-radius:6px;">💡 Esta pantalla cierra el ciclo de la app: <strong>diseño → programación → validación → instrucciones para el usuario.</strong></p>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Actividad 1: Conseguir imágenes -->
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 1</span>
+                                            <p class="instruction-text"><strong>Consigue 4 imágenes</strong>, una por cada paso de tu Ayuda. Elige <strong>una</strong> de estas dos vías (o mezcla):</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="border-color:#7c3aed; background:#f5f3ff; font-size:0.85rem;">
+                                                <div style="display:grid; grid-template-columns:1fr; gap:.6rem;">
+                                                    <div style="background:#fff; border:1.5px solid #c4b5fd; border-radius:8px; padding:.6rem .8rem;">
+                                                        <p style="margin:0 0 .35rem 0; font-weight:800; color:#5b21b6;">📸 Vía A — Capturas de TU app</p>
+                                                        <p style="margin:0; font-size:.78rem;">Conecta tu Companion, toma screenshots de:<br>
+                                                            (1) Screen1 portada · (2) Screen2 con campos vacíos · (3) Screen2 con datos llenos · (4) Resultado guardado en verde</p>
+                                                    </div>
+                                                    <div style="background:#fff; border:1.5px solid #c4b5fd; border-radius:8px; padding:.6rem .8rem;">
+                                                        <p style="margin:0 0 .35rem 0; font-weight:800; color:#5b21b6;">🌐 Vía B — Iconos descargados</p>
+                                                        <p style="margin:0; font-size:.78rem;">Busca en <strong>flaticon.com</strong> o <strong>iconfinder.com</strong> 4 íconos PNG (formulario, lápiz, guardar 💾, limpiar 🧹). Descárgalos con licencia gratuita.</p>
+                                                    </div>
+                                                </div>
+                                                <p style="margin:.6rem 0 0 0; font-size:.78rem; color:#92400e;">📌 Guarda las 4 imágenes en una carpeta fácil de encontrar (Descargas o Escritorio).</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Actividad 2: Crear Screen3 -->
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 2</span>
+                                            <p class="instruction-text">En App Inventor, <strong>crea Screen3</strong>:</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-size:0.85rem;">
+                                                <ol style="padding-left:1.2rem; line-height:2; margin:0;">
+                                                    <li>Menú superior de App Inventor → <strong>Add Screen…</strong></li>
+                                                    <li>Nombre: <strong>Screen3</strong> → Add</li>
+                                                    <li>Propiedades de Screen3:
+                                                        <ul style="padding-left:1rem; line-height:1.8; margin:.2rem 0 0;">
+                                                            <li><code>Title</code> → <strong>Ayuda</strong></li>
+                                                            <li><code>BackgroundColor</code> → blanco o azul claro</li>
+                                                            <li><code>AlignHorizontal</code> → Center</li>
+                                                            <li><code>Scrollable</code> → ✅ activado (importante para que se desplace)</li>
+                                                        </ul>
+                                                    </li>
+                                                </ol>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Actividad 3: Subir imágenes -->
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 3</span>
+                                            <p class="instruction-text">Sube tus 4 imágenes al proyecto:</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-size:0.85rem;">
+                                                <ol style="padding-left:1.2rem; line-height:2; margin:0;">
+                                                    <li>Panel derecho → sección <strong>Media</strong> (abajo)</li>
+                                                    <li>Botón <strong>Upload File…</strong> → selecciona la primera imagen → OK</li>
+                                                    <li>Repite para las 4 imágenes</li>
+                                                    <li>Al final verás en Media: <code>paso1.png</code>, <code>paso2.png</code>, <code>paso3.png</code>, <code>paso4.png</code> (o los nombres que les pusiste)</li>
+                                                </ol>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Actividad 4: Diseñar Screen3 -->
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 4</span>
+                                            <p class="instruction-text">Diseña el contenido de Screen3 con esta estructura:</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-size:0.85rem;">
+                                                <p style="margin:0 0 .55rem 0;">Arrastra desde el panel <strong>Layout</strong> y <strong>User Interface</strong>:</p>
+                                                <ol style="padding-left:1.2rem; line-height:1.9; margin:0; font-size:.82rem;">
+                                                    <li><strong>Label</strong> en la parte de arriba → texto: <strong>"📖 Cómo usar la app"</strong> · FontSize 22 · FontBold ✅ · TextAlignment Center</li>
+                                                    <li>Por cada paso (repite 4 veces):
+                                                        <ul style="padding-left:1rem; line-height:1.7; margin:.2rem 0 0;">
+                                                            <li>Una <strong>HorizontalArrangement</strong> (Width=Fill parent, AlignVertical=Center)</li>
+                                                            <li>Dentro: <strong>Image</strong> (Width=80px, Height=80px, Picture=paso1.png/paso2.png/…)</li>
+                                                            <li>Junto: <strong>Label</strong> con el texto del paso (FontSize 14, Width=Fill parent)</li>
+                                                        </ul>
+                                                    </li>
+                                                    <li>Al final: <strong>Button</strong> → Text=<strong>"⬅️ Volver"</strong> · Width=Fill parent · BackgroundColor gris claro · Name=<strong>BotonVolver</strong></li>
+                                                </ol>
+                                                <p style="margin:.55rem 0 0 0; font-size:.78rem;">📝 Textos sugeridos para los 4 Labels:</p>
+                                                <ol style="padding-left:1.2rem; line-height:1.8; margin:.2rem 0 0; font-size:.78rem;">
+                                                    <li>Abre la app y entra al formulario</li>
+                                                    <li>Llena los 3 campos (tarea, materia, fecha)</li>
+                                                    <li>Toca el botón Guardar 💾</li>
+                                                    <li>Si te equivocas, usa Limpiar 🧹 y vuelve a empezar</li>
+                                                </ol>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Actividad 5: Programar Volver -->
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 5</span>
+                                            <p class="instruction-text">En Screen3 → <strong>Blocks</strong>. Programa el botón Volver:</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-size:0.85rem;">
+                                                <code style="display:block; background:#1e293b; color:#a5f3fc; padding:.85rem 1rem; border-radius:8px; font-size:.82rem; line-height:1.9; font-family:'JetBrains Mono', monospace;">
+                                                    when <strong>BotonVolver</strong>.Click<br>
+                                                    do<br>
+                                                    &nbsp;&nbsp;close screen
+                                                </code>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Actividad 6: Botón Ayuda en Screen1 -->
+                                    <tr style="background:#ede9fe;">
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 6</span>
+                                            <p class="instruction-text">Regresa a <strong>Screen1</strong> (la portada). Agrega un nuevo botón que abra Screen3:</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="border-color:#7c3aed; background:#f5f3ff; font-size:0.85rem;">
+                                                <p style="margin:0 0 .5rem 0; font-weight:700;">En Designer:</p>
+                                                <ol style="padding-left:1.2rem; line-height:1.9; margin:0;">
+                                                    <li>Arrastra un nuevo <strong>Button</strong> a Screen1</li>
+                                                    <li>Renómbralo: <strong>BotonAyuda</strong></li>
+                                                    <li>Propiedades: Text=<strong>"📖 Ayuda"</strong> · BackgroundColor morado · Width=Fill parent · Height=50 pixels</li>
+                                                </ol>
+                                                <p style="margin:.6rem 0 .35rem 0; font-weight:700;">En Blocks de Screen1:</p>
+                                                <code style="display:block; background:#1e293b; color:#a5f3fc; padding:.75rem 1rem; border-radius:8px; font-size:.8rem; line-height:1.9; font-family:'JetBrains Mono', monospace;">
+                                                    when <strong>BotonAyuda</strong>.Click<br>
+                                                    do<br>
+                                                    &nbsp;&nbsp;open another screen&nbsp;&nbsp;screenName&nbsp;→&nbsp;<span style="color:#fde68a;">"Screen3"</span>
+                                                </code>
+                                                <p style="margin:.55rem 0 0 0; font-size:.78rem;">📌 El bloque <code>open another screen</code> está en el panel <strong>Control</strong>. El nombre <code>"Screen3"</code> debe ir entre comillas (bloque de texto del panel Text).</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Actividad 7: Probar navegación -->
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 7</span>
+                                            <p class="instruction-text">Prueba el ciclo completo en tu celular:</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-size:0.85rem;">
+                                                <ol style="padding-left:1.2rem; line-height:2; margin:0;">
+                                                    <li>Abre la app — apareces en Screen1</li>
+                                                    <li>Toca <strong>📖 Ayuda</strong> → debe abrir Screen3</li>
+                                                    <li>Verifica que se vean los 4 pasos con sus imágenes</li>
+                                                    <li>Hace scroll para ver todos los pasos</li>
+                                                    <li>Toca <strong>⬅️ Volver</strong> → debe regresar a Screen1</li>
+                                                </ol>
+                                                <p style="margin:.5rem 0 0; color:#16a34a; font-weight:700;">✅ Si la navegación funciona en ambos sentidos, ¡tu app tiene 3 pantallas conectadas! 🎉</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Evidencia Semana 14 -->
+                                    <tr style="background:#fffbeb;">
+                                        <td class="col-instruction">
+                                            <span class="activity-num" style="color:#b45309;">📸 Evidencia HORA 2</span>
+                                            <p class="instruction-text">Pega en tu documento (pestaña Semana 14 ✅):</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="border-color:#f59e0b; background:#fffbeb; font-size:0.85rem;">
+                                                <ol style="padding-left:1.2rem; line-height:2; margin:0;">
+                                                    <li>📸 <strong>Designer de Screen3</strong> mostrando las 4 imágenes + sus labels + botón Volver</li>
+                                                    <li>📸 Bloques del <strong>BotonVolver</strong></li>
+                                                    <li>📸 Bloques del <strong>BotonAyuda</strong> (en Screen1)</li>
+                                                    <li>📸 Foto/captura de tu celular mostrando la <strong>pantalla de Ayuda funcionando</strong></li>
+                                                </ol>
+                                            </div>
+                                            <p style="margin-top:.75rem; font-size:.8rem; color:#b45309; font-weight:700;">⚠️ Sin las capturas en tu documento no se cuenta como entregado.</p>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Botón App Inventor -->
+                                    <tr>
+                                        <td class="col-instruction" colspan="2" style="text-align:center; padding:1.1rem 1.5rem;">
+                                            <a href="https://ai2.appinventor.mit.edu/" target="_blank" rel="noopener"
+                                               style="display:inline-flex; align-items:center; gap:0.6rem;
+                                                      padding:0.75rem 1.9rem; background:#16a34a; color:#fff;
+                                                      border-radius:12px; font-size:1rem; font-weight:800;
+                                                      text-decoration:none; font-family:inherit;
+                                                      box-shadow:0 4px 14px rgba(22,163,74,.35);
+                                                      transition:transform .15s, box-shadow .15s;"
+                                               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(22,163,74,.5)';"
+                                               onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(22,163,74,.35)';">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                                                Abrir MIT App Inventor
+                                            </a>
+                                        </td>
+                                    </tr>
+
                                 </tbody>
                             </table>
                         </div>
@@ -2285,7 +2536,7 @@
             11: "🧱 SEMANA 11: Programación con Bloques",
             12: "🔐 SEMANA 12: Join y Pruebas en App Inventor",
             13: "🎨 SEMANA 13: Botón Limpiar, Regresar y mejoras visuales",
-            14: "🌐 SEMANA 14: Botones y Validación",
+            14: "✅ SEMANA 14: Validación con if/else y Pantalla de Ayuda",
             15: "🎓 SEMANA 15: Tercer Examen Parcial",
         };
         // Semanas publicadas por defecto (sin GAS)
