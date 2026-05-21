@@ -4,7 +4,7 @@
 // La integración con docente2 (iframe) y los videos de Drive siguen
 // requiriendo red — esos van a otro origen y el SW no los toca.
 
-const VERSION = "v20260515";
+const VERSION = "v20260521";
 const CACHE_STATIC = `cd2-static-${VERSION}`;
 
 const STATIC_ASSETS = [
