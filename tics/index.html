@@ -479,7 +479,11 @@ section{position:relative;z-index:1;}
 .term-prompt-symbol{font-family:var(--font-code);color:var(--cyan);font-size:0.85rem;flex-shrink:0;}
 .term-input{flex:1;background:transparent;border:none;outline:none;font-family:var(--font-code);font-size:0.85rem;color:var(--white);caret-color:var(--cyan);}
 .term-hint{font-family:var(--font-code);font-size:0.6rem;color:var(--gray);text-align:center;padding:0.5rem;background:#080814;}
-[data-theme="light"] .term-body,[data-theme="light"] .term-bar,[data-theme="light"] .term-input-row,[data-theme="light"] .term-hint{background:#0d0d2a;}
+[data-theme="light"] .term-body,[data-theme="light"] .term-input-row{background:var(--dark2); border-color:rgba(0, 85, 204, 0.15);}
+[data-theme="light"] .term-bar{background:var(--dark); border-bottom-color:rgba(0, 85, 204, 0.15);}
+[data-theme="light"] .term-hint{background:var(--dark); color:var(--gray2); border-top-color:rgba(0, 85, 204, 0.15);}
+[data-theme="light"] .term-input{color:var(--white); caret-color:var(--cyan);}
+[data-theme="light"] .term-line.out{color:var(--gray2);}
 
 /* ── QR SECTION ── */
 #qr-section{padding:7rem 0;background:var(--dark);border-top:1px solid rgba(0,212,255,0.08);text-align:center;}
@@ -583,12 +587,12 @@ footer p{font-family:var(--font-code);font-size:0.65rem;color:var(--gray);letter
         <div class="qr-corner tl"></div><div class="qr-corner tr"></div>
         <div class="qr-corner bl"></div><div class="qr-corner br"></div>
         <div class="qr-canvas-wrap">
-          <img id="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https://felifade.github.io/Portal-CONALEP/ceb54/capacitacion/&bgcolor=0d0d22&color=00d4ff&margin=1" width="220" height="220" alt="QR TIC CEB 5/4" style="border-radius:6px;display:block;">
+          <img id="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https://ceb54.online/tics/&bgcolor=0d0d22&color=00d4ff&margin=1" width="220" height="220" alt="QR TIC CEB 5/4" style="border-radius:6px;display:block;">
           <div class="qr-scan-line"></div>
         </div>
       </div>
       <div class="qr-label">APUNTA TU CÁMARA AQUÍ</div>
-      <div class="qr-url"><span>felifade.github.io/Portal-CONALEP/<br><span style="color:var(--cyan)">ceb54/capacitacion/</span></span></div>
+      <div class="qr-url"><span>ceb54.online/<br><span style="color:var(--cyan)">tics/</span></span></div>
       <div class="qr-actions">
         <button class="qr-btn primary" onclick="compartir()">📤 Compartir</button>
         <button class="qr-btn secondary" onclick="copiarLink()">📋 Copiar enlace</button>
