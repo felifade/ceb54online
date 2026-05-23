@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TIC Antigravity — CEB 5/4</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<style>
+:root {
+  --ag-bg: #030305;
+  --ag-dark: #070712;
+  --ag-panel: rgba(15, 15, 30, 0.6);
+  --ag-border: rgba(0, 212, 255, 0.2);
+  --ag-cyan: #00d4ff;
+  --ag-cyan-glow: rgba(0, 212, 255, 0.5);
+  --ag-purple: #7b2fff;
+  --ag-pink: #ff006e;
+  --ag-text: #e0e0ff;
+  --ag-muted: #8080a0;
+  --font-title: 'Orbitron', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-code: 'JetBrains Mono', monospace;
+}
+
+[data-theme="light"] {
+  --ag-bg: #f0f2f5;
+  --ag-dark: #e4e6eb;
+  --ag-panel: rgba(255, 255, 255, 0.8);
+  --ag-border: rgba(0, 85, 204, 0.2);
+  --ag-cyan: #0055cc;
+  --ag-cyan-glow: rgba(0, 85, 204, 0.3);
+  --ag-text: #1a1a24;
+  --ag-muted: #5a5a70;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--ag-bg); color: var(--ag-text); font-family: var(--font-body);
+  overflow-x: hidden; transition: background 0.4s, color 0.4s;
+}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--ag-dark); }
+::-webkit-scrollbar-thumb { background: var(--ag-cyan); border-radius: 3px; }
+
+/* ── HUD BACKGROUND ── */
+#hud-bg {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: 
+    radial-gradient(circle at 15% 50%, rgba(0, 212, 255, 0.05), transparent 40%),
+    radial-gradient(circle at 85% 30%, rgba(123, 47, 255, 0.05), transparent 40%);
+}
+.grid-overlay {
+  position: fixed; inset: 0; z-index: -1; opacity: 0.15;
+  background-image: linear-gradient(var(--ag-border) 1px, transparent 1px), linear-gradient(90deg, var(--ag-border) 1px, transparent 1px);
+  background-size: 40px 40px; pointer-events: none;
+}
+
+/* ── NAV HUD ── */
+nav {
+  position: fixed; top: 0; width: 100%; padding: 1.5rem 3rem; display: flex;
+  justify-content: space-between; align-items: center; z-index: 100;
+  background: linear-gradient(180deg, var(--ag-bg), transparent);
+}
+.nav-logo { font-family: var(--font-title); font-weight: 900; font-size: 1.5rem; letter-spacing: 2px; }
+.nav-logo span { color: var(--ag-cyan); text-shadow: 0 0 10px var(--ag-cyan-glow); }
+.nav-links { display: flex; gap: 2rem; list-style: none; }
+.nav-links a { font-family: var(--font-code); font-size: 0.8rem; color: var(--ag-text); text-decoration: none; transition: color 0.3s; }
+.nav-links a:hover { color: var(--ag-cyan); }
+
+/* ── HERO CINEMÁTICO ── */
+.hero {
+  min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+  align-items: center; text-align: center; position: relative; padding: 0 2rem;
+}
+.hero-title {
+  font-family: var(--font-title); font-size: clamp(3rem, 8vw, 6rem); font-weight: 900;
+  line-height: 1.1; margin-bottom: 1.5rem; animation: float 6s ease-in-out infinite;
+}
+.hero-title .glow {
+  background: linear-gradient(135deg, var(--ag-cyan), var(--ag-purple));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+}
+.hero-sub {
+  font-size: 1.2rem; color: var(--ag-muted); max-width: 600px; line-height: 1.6;
+  margin-bottom: 3rem;
+}
+.btn-cyber {
+  font-family: var(--font-title); font-size: 0.9rem; letter-spacing: 2px;
+  padding: 1rem 2.5rem; background: transparent; color: var(--ag-cyan);
+  border: 1px solid var(--ag-cyan); border-radius: 4px; cursor: pointer;
+  position: relative; overflow: hidden; transition: all 0.3s; text-decoration: none;
+}
+.btn-cyber:hover {
+  background: var(--ag-cyan); color: var(--ag-bg); box-shadow: 0 0 25px var(--ag-cyan-glow);
+}
+
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+
+/* ── HUD SECTIONS ── */
+.section { padding: 8rem 2rem; max-width: 1200px; margin: 0 auto; }
+.section-header { text-align: center; margin-bottom: 4rem; }
+.section-tag { font-family: var(--font-code); font-size: 0.8rem; color: var(--ag-purple); letter-spacing: 3px; }
+.section-title { font-family: var(--font-title); font-size: 3rem; margin-top: 0.5rem; }
+
+/* ── DASHBOARD / SKILLS ── */
+.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+.hud-panel {
+  background: var(--ag-panel); backdrop-filter: blur(10px); border: 1px solid var(--ag-border);
+  border-radius: 12px; padding: 2rem; transition: transform 0.3s, box-shadow 0.3s;
+}
+.hud-panel:hover {
+  transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0, 212, 255, 0.15);
+  border-color: var(--ag-cyan);
+}
+.hud-icon { font-size: 2.5rem; color: var(--ag-cyan); margin-bottom: 1.5rem; }
+.hud-panel h3 { font-family: var(--font-title); font-size: 1.2rem; margin-bottom: 1rem; }
+.hud-panel p { color: var(--ag-muted); line-height: 1.6; font-size: 0.95rem; }
+
+/* ── SKILL TREE (MATERIAS) ── */
+.skill-tree { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem; }
+.skill-node {
+  background: var(--ag-dark); border-left: 3px solid var(--ag-cyan); padding: 1.5rem;
+  border-radius: 0 8px 8px 0; display: flex; align-items: center; gap: 1rem;
+}
+.skill-lvl { font-family: var(--font-code); font-size: 0.7rem; color: var(--ag-purple); }
+.skill-name { font-weight: 600; }
+
+/* ── SHOWCASE / MOCKUPS ── */
+.showcase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; }
+.showcase-item {
+  position: relative; height: 250px; border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--ag-border); background: #000;
+}
+.showcase-item img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; transition: opacity 0.5s; }
+.showcase-item:hover img { opacity: 0.9; }
+.showcase-overlay {
+  position: absolute; bottom: 0; left: 0; right: 0; padding: 1.5rem;
+  background: linear-gradient(transparent, rgba(0,0,0,0.9));
+}
+.showcase-title { font-family: var(--font-title); color: #fff; font-size: 1.1rem; }
+
+/* ── TERMINAL HACKER ── */
+.terminal-container {
+  background: #05050a; border: 1px solid var(--ag-cyan); border-radius: 8px;
+  max-width: 800px; margin: 0 auto; overflow: hidden; box-shadow: 0 0 30px var(--ag-cyan-glow);
+}
+.term-header { background: #0a0a14; padding: 0.8rem; display: flex; gap: 0.5rem; border-bottom: 1px solid var(--ag-border); }
+.term-btn { width: 12px; height: 12px; border-radius: 50%; background: #333; }
+.term-btn.r { background: #ff5f56; } .term-btn.y { background: #ffbd2e; } .term-btn.g { background: #27c93f; }
+.term-body { padding: 1.5rem; font-family: var(--font-code); font-size: 0.9rem; color: #00ff66; min-height: 250px; }
+.term-input-line { display: flex; gap: 0.5rem; margin-top: 1rem; }
+.term-input { background: transparent; border: none; color: #fff; font-family: var(--font-code); font-size: 0.9rem; flex: 1; outline: none; }
+
+/* ── CARRERAS Y FUTURO ── */
+.career-row {
+  display: flex; justify-content: space-between; padding: 1rem;
+  border-bottom: 1px solid var(--ag-border); align-items: center;
+}
+.career-row:hover { background: rgba(0, 212, 255, 0.05); }
+.c-name { font-weight: 600; font-size: 1.1rem; }
+.c-salary { font-family: var(--font-code); color: var(--ag-cyan); }
+
+/* ── THEME TOGGLE ── */
+.theme-switch {
+  position: fixed; bottom: 2rem; right: 2rem; width: 50px; height: 50px;
+  border-radius: 50%; background: var(--ag-panel); border: 1px solid var(--ag-border);
+  display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+</style>
+</head>
+<body>
+
+<div id="hud-bg"></div>
+<div class="grid-overlay"></div>
+
+<nav>
+  <div class="nav-logo">TIC <span>CEB 5/4</span></div>
+  <ul class="nav-links">
+    <li><a href="#materias">Materias</a></li>
+    <li><a href="#showcase">Creaciones</a></li>
+    <li><a href="#terminal">Sistema</a></li>
+  </ul>
+</nav>
+
+<section class="hero">
+  <h1 class="hero-title">El futuro no se usa.<br><span class="glow">Se programa.</span></h1>
+  <p class="hero-sub">Bienvenido a la capacitación donde dejas de ser un espectador y te conviertes en el arquitecto del mundo digital. TIC, CEB 5/4.</p>
+  <a href="#materias" class="btn-cyber">INICIAR SECUENCIA</a>
+</section>
+
+<section id="materias" class="section">
+  <div class="section-header">
+    <span class="section-tag">// SKILL TREE</span>
+    <h2 class="section-title">Materias Reales</h2>
+  </div>
+  <div class="skill-tree">
+    <div class="skill-node"><div class="skill-info"><div class="skill-lvl">LVL 5</div><div class="skill-name">Programación</div></div></div>
+    <div class="skill-node"><div class="skill-info"><div class="skill-lvl">LVL 4</div><div class="skill-name">Páginas Web</div></div></div>
+    <div class="skill-node"><div class="skill-info"><div class="skill-lvl">LVL 4</div><div class="skill-name">Diseño Digital</div></div></div>
+    <div class="skill-node"><div class="skill-info"><div class="skill-lvl">LVL 3</div><div class="skill-name">Redes y Mantenimiento</div></div></div>
+    <div class="skill-node"><div class="skill-info"><div class="skill-lvl">LVL 3</div><div class="skill-name">Hoja de Cálculo</div></div></div>
+    <div class="skill-node"><div class="skill-info"><div class="skill-lvl">LVL 3</div><div class="skill-name">Sistemas de Información</div></div></div>
+    <div class="skill-node"><div class="skill-info"><div class="skill-lvl">LVL 2</div><div class="skill-name">Comunidades Virtuales</div></div></div>
+  </div>
+</section>
+
+<section id="showcase" class="section">
+  <div class="section-header">
+    <span class="section-tag">// OUTPUT</span>
+    <h2 class="section-title">Galería de Creaciones</h2>
+  </div>
+  <div class="showcase-grid">
+    <div class="showcase-item">
+      <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600" alt="Videojuego">
+      <div class="showcase-overlay"><div class="showcase-title">Videojuegos 2D & 3D</div></div>
+    </div>
+    <div class="showcase-item">
+      <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600" alt="Apps Móviles">
+      <div class="showcase-overlay"><div class="showcase-title">Apps Móviles Modernas</div></div>
+    </div>
+    <div class="showcase-item">
+      <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600" alt="Web">
+      <div class="showcase-overlay"><div class="showcase-title">Páginas Web Dinámicas</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="terminal" class="section">
+  <div class="section-header">
+    <span class="section-tag">// MÓDULO HACKER</span>
+    <h2 class="section-title">Mensajes Secretos</h2>
+  </div>
+  <div class="terminal-container">
+    <div class="term-header">
+      <div class="term-btn r"></div><div class="term-btn y"></div><div class="term-btn g"></div>
+    </div>
+    <div class="term-body" id="term-body">
+      <div>> Sistema Operativo Antigravity v1.0</div>
+      <div>> Cargando base de datos de confesiones...</div>
+      <div style="color: var(--ag-cyan);">> Escribe /secret [tu mensaje] para encriptar un secreto.</div>
+    </div>
+    <div class="term-input-line" style="padding: 0 1.5rem 1.5rem;">
+      <span style="color: var(--ag-cyan);">root@ceb54:~#</span>
+      <input type="text" class="term-input" id="term-input" autocomplete="off" spellcheck="false" placeholder="_">
+    </div>
+  </div>
+</section>
+
+<section id="futuro" class="section">
+  <div class="section-header">
+    <span class="section-tag">// PROYECCIÓN</span>
+    <h2 class="section-title">Tu Futuro Digital</h2>
+  </div>
+  <div class="hud-panel">
+    <div class="career-row"><span class="c-name">Desarrollador Web Full Stack</span><span class="c-salary">$40k - $80k MXN/mes</span></div>
+    <div class="career-row"><span class="c-name">Arquitecto de Inteligencia Artificial</span><span class="c-salary">$60k - $120k MXN/mes</span></div>
+    <div class="career-row"><span class="c-name">Diseñador UX/UI Senior</span><span class="c-salary">$35k - $70k MXN/mes</span></div>
+    <div class="career-row"><span class="c-name">Especialista en Ciberseguridad</span><span class="c-salary">$45k - $90k MXN/mes</span></div>
+  </div>
+</section>
+
+<div class="theme-switch" onclick="document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'">
+  <i class="fas fa-adjust" style="color: var(--ag-cyan);"></i>
+</div>
+
+<script>
+  const termInput = document.getElementById('term-input');
+  const termBody = document.getElementById('term-body');
+  
+  termInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      const val = this.value;
+      this.value = '';
+      
+      const echo = document.createElement('div');
+      echo.style.color = '#fff';
+      echo.innerText = 'root@ceb54:~# ' + val;
+      termBody.appendChild(echo);
+      
+      if (val.startsWith('/secret ')) {
+        const msg = val.replace('/secret ', '');
+        const encrypted = btoa(msg).slice(0, 15) + '...[ENCRIPTADO]';
+        const res = document.createElement('div');
+        res.style.color = 'var(--ag-pink)';
+        res.innerText = '> Secreto encriptado: ' + encrypted;
+        termBody.appendChild(res);
+      } else {
+        const res = document.createElement('div');
+        res.style.color = '#ffbd2e';
+        res.innerText = "> Comando no reconocido. Prueba con /secret";
+        termBody.appendChild(res);
+      }
+    }
+  });
+</script>
+
+</body>
+</html>
