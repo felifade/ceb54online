@@ -1270,12 +1270,16 @@ const termInput=document.getElementById('term-input');
 const CMD={
   help:{lines:[
     {t:'cyan',v:'Comandos disponibles:'},
-    {t:'out',v:'  help     → esta lista'},
-    {t:'out',v:'  careers  → carreras y salarios'},
-    {t:'out',v:'  skills   → habilidades que aprenderás'},
-    {t:'out',v:'  enroll   → cómo elegir TIC'},
-    {t:'out',v:'  matrix   → 👀'},
-    {t:'out',v:'  secret   → easter egg'},
+    {t:'out',v:'  help         → esta lista'},
+    {t:'out',v:'  careers      → carreras y salarios'},
+    {t:'out',v:'  skills       → habilidades que aprenderás'},
+    {t:'out',v:'  enroll       → cómo elegir TIC'},
+    {t:'out',v:'  matrix       → 👀'},
+    {t:'out',v:'  secret       → ver secreto de la capacitación'},
+    {t:'warn',v:'  ── NUEVOS COMANDOS CLASIFICADOS ──'},
+    {t:'cyan',v:'  secret <msg> → encripta y guarda un secreto local'},
+    {t:'cyan',v:'  secrets      → lista y desencripta tus secretos guardados'},
+    {t:'cyan',v:'  clearsecrets → borra el registro de secretos locales'},
   ]},
   careers:{lines:[
     {t:'cyan',v:'── CARRERAS EN TECNOLOGÍA ──'},
@@ -1363,16 +1367,31 @@ function termPrint(lines,i=0){
 if(termInput){
   termInput.addEventListener('keydown',e=>{
     if(e.key!=='Enter')return;
-    const val=termInput.value.trim().toLowerCase();
+    const val=termInput.value.trim();
     termInput.value='';
+    
     const echo=document.createElement('div');
-    echo.className='term-line prompt';echo.textContent=val;
+    echo.className='term-line prompt';
+    echo.textContent=val;
     termBody.appendChild(echo);
-    if(CMD[val])termPrint(CMD[val].lines);
-    else{
+    
+    // Parsear comando y argumentos
+    const parts = val.split(' ');
+    const cmd = parts[0].toLowerCase();
+    const arg = parts.slice(1).join(' ');
+    
+    if (cmd === 'secret' && arg !== '') {
+      handleSecretCommand(arg);
+    } else if (cmd === 'secrets') {
+      handleSecretsListCommand();
+    } else if (cmd === 'clearsecrets') {
+      handleClearSecretsCommand();
+    } else if(CMD[cmd]) {
+      termPrint(CMD[cmd].lines);
+    } else {
       const err=document.createElement('div');
       err.className='term-line err';
-      err.textContent=`Comando '${val}' no encontrado. Escribe 'help'.`;
+      err.textContent=`Comando '${cmd}' no encontrado. Escribe 'help'.`;
       termBody.appendChild(err);
     }
     termBody.scrollTop=termBody.scrollHeight;
