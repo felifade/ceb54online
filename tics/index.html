@@ -573,35 +573,6 @@ footer p{font-family:var(--font-code);font-size:0.65rem;color:var(--gray);letter
   </div>
   <div class="scroll-indicator"><span>SCROLL</span><div class="scroll-arrow"></div></div>
 </section>
-
-<!-- QR — ACCESO MÓVIL -->
-<section id="qr-hero" style="padding:4rem 0 5rem;background:var(--dark);border-bottom:1px solid rgba(0,212,255,0.08);text-align:center;">
-  <div class="section-inner">
-    <div class="qr-inner">
-      <div>
-        <span class="section-tag" style="display:block;text-align:center;margin-bottom:0.6rem;">// ÁBRELO EN TU CELULAR</span>
-        <h2 style="font-family:var(--font-tech);font-size:clamp(1.4rem,3vw,2rem);font-weight:700;margin-bottom:0.5rem;">Escanea y llévate el sitio<br><span style="color:var(--cyan)">a donde quieras.</span></h2>
-        <p style="font-family:var(--font-body);color:var(--gray2);font-size:0.95rem;margin-bottom:1.8rem;">Sin descargas. Sin apps. Solo tu cámara.</p>
-      </div>
-      <div class="qr-box">
-        <div class="qr-corner tl"></div><div class="qr-corner tr"></div>
-        <div class="qr-corner bl"></div><div class="qr-corner br"></div>
-        <div class="qr-canvas-wrap">
-          <img id="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https://ceb54.online/tics/&bgcolor=0d0d22&color=00d4ff&margin=1" width="220" height="220" alt="QR TIC CEB 5/4" style="border-radius:6px;display:block;">
-          <div class="qr-scan-line"></div>
-        </div>
-      </div>
-      <div class="qr-label">APUNTA TU CÁMARA AQUÍ</div>
-      <div class="qr-url"><span>ceb54.online/<br><span style="color:var(--cyan)">tics/</span></span></div>
-      <div class="qr-actions">
-        <button class="qr-btn primary" onclick="compartir()">📤 Compartir</button>
-        <button class="qr-btn secondary" onclick="copiarLink()">📋 Copiar enlace</button>
-      </div>
-      <div class="qr-copied" id="qr-copied">✓ ENLACE COPIADO</div>
-    </div>
-  </div>
-</section>
-
 <section id="que-es">
   <div class="section-inner">
     <div class="que-es-grid">
@@ -1155,6 +1126,34 @@ footer p{font-family:var(--font-code);font-size:0.65rem;color:var(--gray);letter
     <span class="docente-label reveal">CAPACITACIÓN PRESENTADA POR</span>
     <div class="docente-nombre reveal reveal-delay-1">Felipe López Salazar</div>
     <p class="docente-cargo reveal reveal-delay-2">Docente · TIC · CEB 5/4 "Profr. Rafael Ramírez"</p>
+  </div>
+</section>
+
+<!-- QR — ACCESO MÓVIL (MOVIDO AL FINAL) -->
+<section id="qr-bottom" style="padding:5rem 0;background:var(--dark);border-top:1px solid rgba(0,212,255,0.08);border-bottom:1px solid rgba(0,212,255,0.08);text-align:center;">
+  <div class="section-inner">
+    <div class="qr-inner">
+      <div>
+        <span class="section-tag" style="display:block;text-align:center;margin-bottom:0.6rem;">// ÁBRELO EN TU CELULAR</span>
+        <h2 style="font-family:var(--font-tech);font-size:clamp(1.4rem,3vw,2rem);font-weight:700;margin-bottom:0.5rem;">Escanea y llévate el sitio<br><span style="color:var(--cyan)">a donde quieras.</span></h2>
+        <p style="font-family:var(--font-body);color:var(--gray2);font-size:0.95rem;margin-bottom:1.8rem;">Sin descargas. Sin apps. Solo tu cámara.</p>
+      </div>
+      <div class="qr-box">
+        <div class="qr-corner tl"></div><div class="qr-corner tr"></div>
+        <div class="qr-corner bl"></div><div class="qr-corner br"></div>
+        <div class="qr-canvas-wrap">
+          <img id="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https://ceb54.online/tics/&bgcolor=0d0d22&color=00d4ff&margin=1" width="220" height="220" alt="QR TIC CEB 5/4" style="border-radius:6px;display:block;">
+          <div class="qr-scan-line"></div>
+        </div>
+      </div>
+      <div class="qr-label">APUNTA TU CÁMARA AQUÍ</div>
+      <div class="qr-url"><span>ceb54.online/<br><span style="color:var(--cyan)">tics/</span></span></div>
+      <div class="qr-actions">
+        <button class="qr-btn primary" onclick="compartir()">📤 Compartir</button>
+        <button class="qr-btn secondary" onclick="copiarLink()">📋 Copiar enlace</button>
+      </div>
+      <div class="qr-copied" id="qr-copied">✓ ENLACE COPIADO</div>
+    </div>
   </div>
 </section>
 
