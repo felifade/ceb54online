@@ -1472,9 +1472,119 @@ function copiarLink(){
     let txt='';
     for(let j=0;j<20;j++)txt+=chars[Math.floor(Math.random()*chars.length)]+'\n';
     col.textContent=txt;
-    rain.appendChild(col);
   }
 })();
+
+// Lógica de encriptación de base64 simple con carácteres especiales de cyber-glitch
+function encryptMessage(msg) {
+  return btoa(unescape(encodeURIComponent(msg)));
+}
+
+function decryptMessage(cipher) {
+  try {
+    return decodeURIComponent(escape(atob(cipher)));
+  } catch(e) {
+    return "[CORRUPTED DATA]";
+  }
+}
+
+function handleSecretCommand(arg) {
+  if (!arg || arg.trim() === '') {
+    termPrint([
+      {t:'err', v:'ERROR: El comando requiere un mensaje secreto.'},
+      {t:'warn', v:'Uso: secret <mensaje sobre la capacitación>'},
+      {t:'out', v:'Ejemplo: secret Me encanta programar en las clases de Felipe'}
+    ]);
+    return;
+  }
+
+  const rawMsg = arg.trim();
+  const encrypted = encryptMessage(rawMsg);
+  const dateStr = new Date().toLocaleString();
+
+  // Guardar en localStorage
+  let currentSecrets = JSON.parse(localStorage.getItem('tic_secrets') || '[]');
+  currentSecrets.push({ id: Date.now(), msg: encrypted, date: dateStr });
+  localStorage.setItem('tic_secrets', JSON.stringify(currentSecrets));
+
+  // Animación hacker en consola
+  termPrint([
+    {t:'warn', v:'Cargando codificador cuántico...'},
+    {t:'cyan', v:'Codificando: ' + rawMsg.slice(0, 15) + (rawMsg.length > 15 ? '...' : '')},
+    {t:'cyan', v:'Cifrado Hash: ' + encrypted.slice(0, 12) + '...'},
+    {t:'success', v:'[OK] Secreto encriptado y persistido en el chip local con éxito.'}
+  ]);
+}
+
+function handleSecretsListCommand() {
+  const secrets = JSON.parse(localStorage.getItem('tic_secrets') || '[]');
+  if (secrets.length === 0) {
+    termPrint([
+      {t:'warn', v:'El chip de memoria está vacío.'},
+      {t:'out', v:'No hay secretos locales registrados todavía.'},
+      {t:'cyan', v:'Crea uno escribiendo: secret <tu mensaje>'}
+    ]);
+    return;
+  }
+
+  termPrint([
+    {t:'cyan', v:'── LISTA DE ARCHIVOS CLASIFICADOS (LOCAL) ──'},
+    {t:'warn', v:'Desencriptando base de datos cuántica en tiempo real...'}
+  ]);
+
+  secrets.forEach((s, idx) => {
+    setTimeout(() => {
+      const decrypted = decryptMessage(s.msg);
+      
+      // Crear elementos de desencriptación progresiva
+      const container = document.createElement('div');
+      container.className = 'term-line out';
+      
+      const prefix = document.createElement('span');
+      prefix.style.color = 'var(--cyan)';
+      prefix.textContent = `[Archivo ${idx + 1}] (${s.date}) Cifrado: ${s.msg.slice(0, 8)}... → `;
+      container.appendChild(prefix);
+      
+      const textSpan = document.createElement('span');
+      textSpan.style.color = '#ff9900';
+      textSpan.textContent = '[DECRYPTING...]';
+      container.appendChild(textSpan);
+      
+      termBody.appendChild(container);
+      termBody.scrollTop = termBody.scrollHeight;
+      
+      // Efecto visual de desencriptado secuencial de carácteres
+      let iter = 0;
+      const glitchChars = '!@#$%^&*()_+{}[]|:<>?;';
+      const finalWord = decrypted;
+      
+      const interval = setInterval(() => {
+        if (iter >= 5) {
+          textSpan.textContent = finalWord;
+          textSpan.style.color = '#27c93f';
+          clearInterval(interval);
+        } else {
+          let temp = "";
+          for(let k=0; k < finalWord.length; k++) {
+            temp += glitchChars[Math.floor(Math.random() * glitchChars.length)];
+          }
+          textSpan.textContent = temp.slice(0, 12) + '...';
+          iter++;
+        }
+      }, 120);
+      
+    }, idx * 600);
+  });
+}
+
+function handleClearSecretsCommand() {
+  localStorage.removeItem('tic_secrets');
+  termPrint([
+    {t:'err', v:'[DANGER] Iniciando protocolo de borrado absoluto...'},
+    {t:'warn', v:'Borrando registros del chip de memoria local...'},
+    {t:'success', v:'[OK] Memoria purgada. Todos los secretos locales han sido eliminados.'}
+  ]);
+}
 </script>
 </body>
 </html>
