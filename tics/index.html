@@ -479,12 +479,19 @@ section{position:relative;z-index:1;}
 .term-prompt-symbol{font-family:var(--font-code);color:var(--cyan);font-size:0.85rem;flex-shrink:0;}
 .term-input{flex:1;background:transparent;border:none;outline:none;font-family:var(--font-code);font-size:0.85rem;color:var(--white);caret-color:var(--cyan);}
 .term-hint{font-family:var(--font-code);font-size:0.6rem;color:var(--gray);text-align:center;padding:0.5rem;background:#080814;}
-[data-theme="light"] .term-body,[data-theme="light"] .term-input-row{background:var(--dark2); border-color:rgba(0, 85, 204, 0.15);}
-[data-theme="light"] .term-input{color:var(--black);}
-[data-theme="light"] .term-bar{background:var(--dark); border-bottom-color:rgba(0, 85, 204, 0.15);}
-[data-theme="light"] .term-hint{background:var(--dark); color:var(--gray2); border-top-color:rgba(0, 85, 204, 0.15);}
-[data-theme="light"] .term-input{color:var(--black); caret-color:var(--cyan);}
-[data-theme="light"] .term-line.out{color:var(--gray2);}
+[data-theme="light"] .term-body,[data-theme="light"] .term-input-row{background:#f0f2ff;border-color:rgba(0,85,204,0.15);}
+[data-theme="light"] .term-bar{background:#dde1f5;border-bottom-color:rgba(0,85,204,0.15);}
+[data-theme="light"] .term-hint{background:#dde1f5;color:var(--gray2);border-top-color:rgba(0,85,204,0.15);}
+[data-theme="light"] .term-input{color:#06061e;caret-color:var(--cyan);}
+[data-theme="light"] .term-line{color:#1a1a3e;}
+[data-theme="light"] .term-line.out{color:#4a4a70;}
+[data-theme="light"] .term-line.prompt::before{color:var(--cyan);}
+[data-theme="light"] .term-line.success{color:#0a7a22;}
+[data-theme="light"] .term-line.warn{color:#8a6000;}
+[data-theme="light"] .term-line.cyan{color:var(--cyan);}
+[data-theme="light"] .term-line.purple{color:var(--purple);}
+[data-theme="light"] .term-line.err{color:var(--pink);}
+[data-theme="light"] .term-prompt-symbol{color:var(--cyan);}
 
 /* ── QR SECTION ── */
 #qr-section{padding:7rem 0;background:var(--dark);border-top:1px solid rgba(0,212,255,0.08);text-align:center;}
