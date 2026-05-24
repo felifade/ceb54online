@@ -560,6 +560,32 @@ nav { display: none !important; } /* Hide nav inside book or overlay it */
 .book-controls { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; gap: 10px; }
 .book-btn { background: var(--dark2); border: 1px solid var(--cyan); color: var(--cyan); padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-family: var(--font-code); font-size: 0.8rem; }
 .book-btn:hover { background: var(--cyan); color: #000; }
+
+/* ═══════════════════════════════════════════════════════════
+   ESCUDOS contra stPageFlip — interactividad de inputs/scroll
+   ═══════════════════════════════════════════════════════════
+   stPageFlip secuestra mousedown/touchstart en todo el .page para
+   detectar gesto de pasar página. Eso bloquea inputs y scroll interno.
+   La siguiente CSS + el JS de stopPropagation más abajo resuelven:
+*/
+.term-input-row,
+.term-input,
+.term-body {
+  pointer-events: auto !important;
+  touch-action: manipulation;
+}
+.term-input {
+  user-select: text;
+  -webkit-user-select: text;
+  caret-color: var(--cyan);
+}
+.page-content,
+.term-body {
+  overscroll-behavior: contain;     /* el scroll interno no se filtra al gesto del libro */
+  -webkit-overflow-scrolling: touch;
+}
+/* La hoja del libro recibe pointer-events normales — solo aislamos los hijos críticos */
+.page * { -webkit-tap-highlight-color: transparent; }
 </style>
 </head>
 <body>
@@ -1667,12 +1693,57 @@ document.addEventListener('DOMContentLoaded', function() {
         maxHeight: 800,
         maxShadowOpacity: 0.5,
         showCover: true,
-        mobileScrollSupport: false,
-        useMouseEvents: true
+        mobileScrollSupport: true,  // permite scroll interno en mobile
+        useMouseEvents: true,
+        swipeDistance: 50,          // requiere swipe claro, no clicks aislados
+        clickEventForward: false    // no convertir todo click en intento de flip
     });
 
     // load pages
     pageFlip.loadFromHTML(document.querySelectorAll('.page'));
+
+    // ═══════════════════════════════════════════════════════════
+    // ESCUDOS de eventos — los aplicamos DESPUÉS de loadFromHTML
+    // porque PageFlip clona las páginas al renderlas en el libro.
+    // Usamos delegación + captura para alcanzar las copias clonadas.
+    // ═══════════════════════════════════════════════════════════
+    const STOP = e => e.stopPropagation();
+    const SELECTORS_ISOLATE = [
+      '.term-input-row',
+      '.term-input',
+      '.term-body',
+      '.page-content'   // protege scroll interno de cualquier hoja larga
+    ];
+    const EVENTS_INTERACTIVE = ['mousedown','touchstart','pointerdown','click','dblclick','keydown'];
+    const EVENTS_SCROLL = ['wheel','touchmove'];
+
+    function shieldEvents(root) {
+      SELECTORS_ISOLATE.forEach(sel => {
+        root.querySelectorAll(sel).forEach(el => {
+          EVENTS_INTERACTIVE.forEach(ev => el.addEventListener(ev, STOP, true));
+        });
+      });
+      // El scroll interno necesita scroll events independientes del libro
+      ['.term-body','.page-content'].forEach(sel => {
+        root.querySelectorAll(sel).forEach(el => {
+          EVENTS_SCROLL.forEach(ev => el.addEventListener(ev, e => {
+            // Solo bloqueamos el evento al libro si HAY scroll real interno
+            const canScroll = el.scrollHeight > el.clientHeight;
+            if (canScroll) e.stopPropagation();
+          }, { passive: true, capture: true }));
+        });
+      });
+    }
+    // Aplicar a las páginas dentro del libro (las que stPageFlip clonó)
+    shieldEvents(bookEl);
+    // Re-aplicar cuando el libro re-renderiza (por si flipea)
+    pageFlip.on('flip', () => shieldEvents(bookEl));
+
+    // Foco automático cuando entras a la página de la terminal
+    pageFlip.on('flip', () => {
+      const visibleInput = bookEl.querySelector('.page:not([style*="hidden"]) .term-input');
+      // No forzamos foco — solo aseguramos que el input clickable funcione
+    });
 
     document.getElementById('btn-prev').addEventListener('click', () => {
         pageFlip.flipPrev();
