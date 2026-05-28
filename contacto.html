@@ -9,6 +9,47 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=20260418">
+    <style>
+      .nav-acceso-wrap { position: relative; }
+      .nav-acceso-btn {
+        display: inline-flex; align-items: center; gap: 0.4rem;
+        padding: 0.45rem 1.1rem;
+        background: linear-gradient(135deg, #3884C0, #7c3aed);
+        color: white !important;
+        border-radius: 9999px;
+        font-weight: 700; font-size: 0.9rem;
+        border: none; cursor: pointer;
+        font-family: 'Outfit', sans-serif;
+        transition: opacity 0.2s, transform 0.15s;
+        white-space: nowrap; line-height: 1.4;
+      }
+      .nav-acceso-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+      .nav-acceso-btn .chevron { width: 14px; height: 14px; transition: transform 0.2s; flex-shrink: 0; }
+      .nav-acceso-wrap.open .chevron { transform: rotate(180deg); }
+      .nav-acceso-panel {
+        display: none; position: absolute; top: calc(100% + 10px); right: 0;
+        background: white; border-radius: 16px;
+        box-shadow: 0 16px 40px rgba(0,0,0,0.14), 0 4px 12px rgba(0,0,0,0.08);
+        border: 1px solid #e2e8f0; width: 230px; overflow: hidden; z-index: 200;
+        animation: dropDown 0.18s ease;
+      }
+      @keyframes dropDown { from { opacity:0; transform: translateY(-6px); } to { opacity:1; transform: translateY(0); } }
+      .nav-acceso-wrap.open .nav-acceso-panel { display: block; }
+      .nav-acceso-item {
+        display: flex; align-items: center; gap: 0.875rem;
+        padding: 0.875rem 1.1rem; text-decoration: none; color: #1e293b;
+        transition: background 0.15s; border-bottom: 1px solid #f8fafc;
+      }
+      .nav-acceso-item:last-child { border-bottom: none; }
+      .nav-acceso-item:hover { background: #f8fafc; }
+      .nav-acceso-item-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+      .nav-acceso-item-icon.green  { background: #d1fae5; }
+      .nav-acceso-item-icon.blue   { background: #dbeafe; }
+      .nav-acceso-item-icon.purple { background: #ede9fe; }
+      .nav-acceso-item-name { font-weight: 700; font-size: 0.9rem; display: block; }
+      .nav-acceso-item-sub  { font-size: 0.74rem; color: #94a3b8; margin-top: 1px; }
+      @media (max-width: 768px) { .nav-acceso-wrap { order: -1; } .nav-acceso-panel { right: auto; left: 0; width: 220px; } }
+    </style>
 </head>
 <body>
     <header class="navbar inner-nav" id="navbar">
@@ -24,7 +65,26 @@
                 <a href="nosotros.html" class="nav-link">Nosotros</a>
                 <a href="historia.html" class="nav-link">Historia</a>
                 <a href="oferta-educativa.html" class="nav-link">Oferta</a>
-                <a href="acceso.html" class="nav-link" style="background: linear-gradient(135deg,#3884C0,#7c3aed); color:white; padding: 0.4rem 1rem; border-radius:9999px; font-weight:700;">Comunidad</a>
+                <div class="nav-acceso-wrap" id="nav-acceso-wrap">
+                  <button class="nav-acceso-btn" id="nav-acceso-btn" onclick="_toggleAcceso(event)">
+                    Acceso
+                    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  <div class="nav-acceso-panel" id="nav-acceso-panel">
+                    <a href="portal/index.html" class="nav-acceso-item">
+                      <div class="nav-acceso-item-icon green">🎒</div>
+                      <div><span class="nav-acceso-item-name">Alumnos</span><span class="nav-acceso-item-sub">Portal de calificaciones</span></div>
+                    </a>
+                    <a href="docente2/index.html" class="nav-acceso-item">
+                      <div class="nav-acceso-item-icon blue">👨‍🏫</div>
+                      <div><span class="nav-acceso-item-name">Docentes</span><span class="nav-acceso-item-sub">Portal docente 2.0</span></div>
+                    </a>
+                    <a href="admin/index.html" class="nav-acceso-item">
+                      <div class="nav-acceso-item-icon purple">🏛️</div>
+                      <div><span class="nav-acceso-item-name">Administrativos</span><span class="nav-acceso-item-sub">Portal administrativo</span></div>
+                    </a>
+                  </div>
+                </div>
                 <a href="admisiones.html" class="nav-link btn-ingreso">Nuevo Ingreso</a>
                 <a href="contacto.html" class="nav-link active-link btn-contacto">Contacto</a>
             </nav>
@@ -112,6 +172,10 @@
             </div>
         </div>
     </footer>
+    <script>
+      function _toggleAcceso(e) { e.stopPropagation(); document.getElementById('nav-acceso-wrap').classList.toggle('open'); }
+      document.addEventListener('click', function() { document.getElementById('nav-acceso-wrap').classList.remove('open'); });
+    </script>
     <script src="script.js?v=20260418"></script>
 </body>
 </html>
