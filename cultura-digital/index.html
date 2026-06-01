@@ -2484,20 +2484,378 @@
                             </table>
                         </div>
 
-                                                <!-- SEMANA 15: 3er Examen Parcial -->
+                                                <!-- SEMANA 15 HORA 1: Pulido final — vibración + nombre -->
                         <div class="sheet" id="sheet-s15-h1">
-                            <div class="hour-header">Semana 15: HORA 1 — Tercer Examen Parcial</div>
-                            <div style="padding:2.5rem 1rem;text-align:center;color:#64748b;">
-                                <div style="font-size:2.5rem;margin-bottom:1rem;">🎓</div>
-                                <p style="font-size:.9rem;line-height:1.6;max-width:300px;margin:0 auto;">Contenido en preparación.<br>El maestro publicará esta semana próximamente.</p>
-                            </div>
+                            <div class="hour-header">Semana 15: HORA 1 — Pulido final de la app 📳👤</div>
+                            <table class="academic-table">
+                                <tbody>
+
+                                    <!-- Actividad 1: pestaña -->
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 1</span>
+                                            <p class="instruction-text">Abre tu documento y crea una <strong>nueva pestaña</strong> llamada <strong>"Semana 15"</strong> con ícono de <strong>ESTRELLA</strong> ⭐.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-weight:700; background:#fef9c3; border-color:#d97706;">Semana 15 ⭐</div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Actividad 2: título -->
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 2</span>
+                                            <p class="instruction-text">Escribe como título <strong>tamaño 20, centrado y en negrita</strong>:</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div style="font-size:1.05rem; font-weight:800; text-align:center; color:#92400e; background:#fef9c3; border:2px solid #d97706; border-radius:10px; padding:12px 16px;">⭐ SEMANA 15: Pulido final de la app</div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- DICTADO -->
+                                    <tr style="background:#fef9c3;">
+                                        <td class="col-instruction">
+                                            <span class="activity-num" style="background:#d97706;color:#fff;">📢 DICTADO</span>
+                                            <p class="instruction-text">Escribe el siguiente apunte en tu documento.</p>
+                                        </td>
+                                        <td class="col-content no-copy">
+                                            <div class="note-box" style="border-color:#d97706; background:#fffbeb; line-height:1.7;">
+                                                <p style="margin:0 0 .6rem 0;">Cuando una app responde con <strong>vibración</strong> o <strong>sonido</strong>, le da al usuario una señal clara de que algo pasó. A esto se le llama <strong>retroalimentación háptica</strong> 📳.</p>
+                                                <p style="margin:0 0 .6rem 0;">También podemos hacer nuestra app más personal: pedirle al usuario su <strong>nombre</strong> desde la primera pantalla y mostrarlo en un saludo. Esto hace que la app se sienta <strong>hecha para ellos</strong> 👤.</p>
+                                                <p style="margin:0; font-style:italic; color:#92400e;">💡 Estos dos detalles pequeños marcan la diferencia entre una app básica y una app <strong>pulida y profesional</strong>.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- ── PARTE A: VIBRACIÓN ── -->
+                                    <tr>
+                                        <td class="col-instruction" colspan="2" style="padding:.75rem 1.5rem 0;">
+                                            <div style="font-size:.95rem; font-weight:800; color:#7c3aed; background:#ede9fe; border:2px solid #7c3aed; border-radius:10px; padding:10px 14px; text-align:center;">📳 PARTE A — Vibración al guardar</div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Actividad 3: agregar componente -->
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 3</span>
+                                            <p class="instruction-text">Abre tu proyecto en App Inventor → entra a <strong>Screen2</strong> → modo <strong>Designer</strong>. Agrega el componente <code>Vibration</code>.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-size:0.85rem;">
+                                                <ol style="padding-left:1.2rem; line-height:2; margin:0;">
+                                                    <li>En el panel <strong>Palette</strong> (izquierda) busca la sección <strong>Media</strong></li>
+                                                    <li>Arrastra el componente <strong>Vibration</strong> al diseño → aparecerá abajo como componente no visible</li>
+                                                    <li>Se llama automáticamente <code>Vibration1</code> — déjalo con ese nombre</li>
+                                                </ol>
+                                                <p style="margin:.5rem 0 0 0; font-size:.78rem; color:#64748b;">📌 Los componentes no visibles como <code>Vibration1</code> aparecen en una zona gris debajo del diseño del teléfono.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Actividad 4: bloque vibración -->
+                                    <tr style="background:#f5f3ff;">
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 4</span>
+                                            <p class="instruction-text">Ve a modo <strong>Blocks</strong> y agrega la vibración dentro del bloque <code>else</code> de <strong>BotonGuardar</strong> (cuando los datos están completos).</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="border-color:#7c3aed; background:#faf5ff; font-size:0.85rem;">
+                                                <p style="margin:0 0 .5rem 0;">Dentro de la rama <code>else</code>, <strong>antes</strong> del bloque <code>set LabelResultado.Text</code>, agrega:</p>
+                                                <code style="display:block; background:#1e293b; color:#a5f3fc; padding:.85rem 1rem; border-radius:8px; font-size:.8rem; line-height:1.9; font-family:'JetBrains Mono', monospace;">
+                                                    call <strong>Vibration1</strong>.Vibrate<br>
+                                                    &nbsp;&nbsp;millisecs: <span style="color:#fde68a;">300</span>
+                                                </code>
+                                                <p style="margin:.5rem 0 0 0; font-size:.78rem; color:#64748b;">📌 <strong>300</strong> milisegundos = 0.3 segundos. Es suficiente para sentirlo sin ser molesto. Puedes probar con 200 o 500 si quieres.</p>
+                                                <p style="margin:.4rem 0 0 0; font-size:.78rem; padding:.45rem .7rem; background:#fef3c7; border-left:3px solid #d97706; border-radius:6px;">🧠 Este bloque va en el <strong>else</strong> (cuando sí hay datos). No queremos que la app vibre cuando el usuario olvidó llenar algo.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- ── PARTE B: NOMBRE ── -->
+                                    <tr>
+                                        <td class="col-instruction" colspan="2" style="padding:.75rem 1.5rem 0;">
+                                            <div style="font-size:.95rem; font-weight:800; color:#0369a1; background:#e0f2fe; border:2px solid #0369a1; border-radius:10px; padding:10px 14px; text-align:center;">👤 PARTE B — Saludo personalizado en Screen1</div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Actividad 5: diseño Screen1 -->
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 5</span>
+                                            <p class="instruction-text">Ve a <strong>Screen1</strong> en modo <strong>Designer</strong>. Agrega dos componentes nuevos.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-size:0.85rem;">
+                                                <p style="margin:0 0 .5rem 0;">En el panel <strong>Palette → User Interface</strong> arrastra:</p>
+                                                <ol style="padding-left:1.2rem; line-height:2; margin:0;">
+                                                    <li><strong>TextBox</strong> → en Properties ponle:
+                                                        <ul style="padding-left:1rem; font-size:.78rem; line-height:1.8;">
+                                                            <li><code>Hint:</code> <em>Escribe tu nombre…</em></li>
+                                                            <li><code>Name:</code> <code>TextBoxNombre</code></li>
+                                                        </ul>
+                                                    </li>
+                                                    <li><strong>Label</strong> → en Properties ponle:
+                                                        <ul style="padding-left:1rem; font-size:.78rem; line-height:1.8;">
+                                                            <li><code>Text:</code> déjalo vacío</li>
+                                                            <li><code>Name:</code> <code>LabelSaludo</code></li>
+                                                            <li><code>FontSize:</code> 16 / <code>FontBold:</code> ✅</li>
+                                                        </ul>
+                                                    </li>
+                                                </ol>
+                                                <p style="margin:.5rem 0 0 0; font-size:.78rem; color:#64748b;">📌 Coloca el TextBox y el Label <strong>arriba del botón</strong> que ya tenías para ir a Screen2.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Actividad 6: bloque saludo -->
+                                    <tr style="background:#e0f2fe;">
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 6</span>
+                                            <p class="instruction-text">En <strong>Screen1 → modo Blocks</strong>, programa el saludo cuando el usuario escriba su nombre.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="border-color:#0369a1; background:#f0f9ff; font-size:0.85rem;">
+                                                <p style="margin:0 0 .5rem 0;">Usa el evento <code>TextBoxNombre.AfterTextChanged</code> (se dispara cada vez que el usuario escribe una letra):</p>
+                                                <code style="display:block; background:#1e293b; color:#a5f3fc; padding:.85rem 1rem; border-radius:8px; font-size:.78rem; line-height:1.9; font-family:'JetBrains Mono', monospace;">
+                                                    when <strong>TextBoxNombre</strong>.AfterTextChanged<br>
+                                                    &nbsp;&nbsp;set <strong>LabelSaludo</strong>.Text to<br>
+                                                    &nbsp;&nbsp;&nbsp;&nbsp;join<br>
+                                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#fde68a;">"👋 Hola, "</span><br>
+                                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TextBoxNombre.Text<br>
+                                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#fde68a;">" 😊"</span>
+                                                </code>
+                                                <p style="margin:.55rem 0 0 0; font-size:.78rem; padding:.45rem .7rem; background:#fef3c7; border-left:3px solid #d97706; border-radius:6px;">🧠 El evento <code>AfterTextChanged</code> está en el panel de <strong>TextBoxNombre</strong> dentro de Blocks. El saludo aparece <strong>en tiempo real</strong> mientras el usuario escribe.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Actividad 7: prueba -->
+                                    <tr>
+                                        <td class="col-instruction">
+                                            <span class="activity-num">Actividad 7</span>
+                                            <p class="instruction-text">Prueba ambas mejoras en tu celular con <strong>MIT AI2 Companion</strong>:</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="font-size:0.85rem;">
+                                                <ol style="padding-left:1.2rem; line-height:2; margin:0;">
+                                                    <li><strong>Screen1:</strong> escribe tu nombre en el TextBox → debe aparecer <em>"👋 Hola, [tu nombre] 😊"</em> de inmediato</li>
+                                                    <li><strong>Screen2:</strong> llena los 3 campos y toca Guardar → debes sentir una <strong>vibración corta</strong> al guardar correctamente</li>
+                                                    <li><strong>Screen2:</strong> deja un campo vacío y toca Guardar → <strong>no debe vibrar</strong>, solo aparece el aviso rojo</li>
+                                                </ol>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Evidencia H1 -->
+                                    <tr style="background:#fffbeb;">
+                                        <td class="col-instruction">
+                                            <span class="activity-num" style="color:#b45309;">📸 Evidencia HORA 1</span>
+                                            <p class="instruction-text">Pega en tu documento (pestaña Semana 15 ⭐):</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="border-color:#f59e0b; background:#fffbeb; font-size:0.85rem;">
+                                                <ol style="padding-left:1.2rem; line-height:2; margin:0;">
+                                                    <li>📸 Screen1 en el celular mostrando el <strong>saludo personalizado</strong> con tu nombre</li>
+                                                    <li>📸 Bloque <code>when TextBoxNombre.AfterTextChanged</code> en App Inventor</li>
+                                                    <li>📸 Bloque <code>when BotonGuardar.Click</code> completo con la <strong>vibración dentro del else</strong></li>
+                                                </ol>
+                                            </div>
+                                            <p style="margin-top:.75rem; font-size:.8rem; color:#b45309; font-weight:700;">⚠️ Sin las capturas en tu documento no se cuenta como entregado.</p>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Botón App Inventor -->
+                                    <tr>
+                                        <td class="col-instruction" colspan="2" style="text-align:center; padding:1.1rem 1.5rem;">
+                                            <a href="https://ai2.appinventor.mit.edu/" target="_blank" rel="noopener"
+                                               style="display:inline-flex; align-items:center; gap:0.6rem;
+                                                      padding:0.75rem 1.9rem; background:#7c3aed; color:#fff;
+                                                      border-radius:12px; font-size:1rem; font-weight:800;
+                                                      text-decoration:none; font-family:inherit;
+                                                      box-shadow:0 4px 14px rgba(124,58,237,.35);
+                                                      transition:transform .15s, box-shadow .15s;"
+                                               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(124,58,237,.5)';"
+                                               onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(124,58,237,.35)';">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                                                Abrir MIT App Inventor
+                                            </a>
+                                        </td>
+                                    </tr>
+
+                                </tbody>
+                            </table>
                         </div>
+
+                        <!-- ═══════════════════════════════════════════════════════════
+                             SEMANA 15 — HORA 2: Revisión + Instalación APK / IPA
+                        ═══════════════════════════════════════════════════════════ -->
                         <div class="sheet" id="sheet-s15-h2">
-                            <div class="hour-header">Semana 15: HORA 2 — Tercer Examen Parcial</div>
-                            <div style="padding:2.5rem 1rem;text-align:center;color:#64748b;">
-                                <div style="font-size:2.5rem;margin-bottom:1rem;">🎓</div>
-                                <p style="font-size:.9rem;line-height:1.6;max-width:300px;margin:0 auto;">Contenido en preparación.<br>El maestro publicará esta semana próximamente.</p>
-                            </div>
+                            <div class="hour-header">Semana 15: HORA 2 — Instalación y revisión final 📲</div>
+                            <table class="academic-table">
+                                <tbody>
+
+                                    <!-- Subtítulo -->
+                                    <tr>
+                                        <td class="col-instruction" colspan="2" style="padding:1rem 1.5rem 0;">
+                                            <div style="font-size:1rem; font-weight:800; text-align:center; color:#1e293b; background:#f1f5f9; border:2px solid #475569; border-radius:10px; padding:10px 14px; margin-top:.5rem;">📲 HORA 2: Instala tu app en tu teléfono — al terminar, llévala al maestro</div>
+                                            <p style="font-size:.85rem; margin:.75rem 0 0; color:#475569; line-height:1.6;">Sigue los pasos para <strong>instalar tu app directamente</strong> en tu celular sin necesitar AI2 Companion. Al final de la hora el maestro revisará tu app en vivo.</p>
+                                        </td>
+                                    </tr>
+
+                                    <!-- ── INSTALACIÓN APK ── -->
+                                    <tr>
+                                        <td class="col-instruction" colspan="2" style="padding:.75rem 1.5rem 0;">
+                                            <div style="font-size:.95rem; font-weight:800; color:#16a34a; background:#f0fdf4; border:2px solid #16a34a; border-radius:10px; padding:10px 14px; text-align:center;">🤖 Instalar en Android — archivo APK</div>
+                                        </td>
+                                    </tr>
+
+                                    <tr style="background:#f0fdf4;">
+                                        <td class="col-instruction">
+                                            <span class="activity-num" style="background:#16a34a;color:#fff;">Android</span>
+                                            <p class="instruction-text">Descarga e instala tu app como archivo <strong>.apk</strong> en cualquier celular Android.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="border-color:#16a34a; background:#f0fdf4; font-size:0.85rem;">
+                                                <p style="margin:0 0 .5rem; font-weight:700; color:#14532d;">Paso 1 — Generar el APK en App Inventor:</p>
+                                                <ol style="padding-left:1.2rem; line-height:2; margin:0 0 .75rem;">
+                                                    <li>En App Inventor, menú <strong>Build</strong> → <strong>Android App (.apk)</strong></li>
+                                                    <li>Espera que compile (aprox. 1–2 minutos) → aparece un <strong>código QR</strong></li>
+                                                    <li>Con tu celular Android escanea el código QR → se descarga el archivo <code>.apk</code></li>
+                                                </ol>
+                                                <p style="margin:0 0 .5rem; font-weight:700; color:#14532d;">Paso 2 — Permitir instalación de fuentes desconocidas:</p>
+                                                <ol style="padding-left:1.2rem; line-height:2; margin:0 0 .75rem;">
+                                                    <li>Al abrir el archivo, Android pedirá permiso → toca <strong>"Configuración"</strong></li>
+                                                    <li>Activa <strong>"Permitir de esta fuente"</strong> (o "Instalar apps desconocidas")</li>
+                                                    <li>Regresa atrás → toca <strong>"Instalar"</strong></li>
+                                                </ol>
+                                                <div style="padding:.6rem .8rem; background:#dcfce7; border-left:3px solid #16a34a; border-radius:6px; font-size:.78rem;">
+                                                    ✅ Listo — tu app aparecerá en el menú de aplicaciones como cualquier otra app de Android.
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- ── iPhone / iPad ── -->
+                                    <tr>
+                                        <td class="col-instruction" colspan="2" style="padding:.75rem 1.5rem 0;">
+                                            <div style="font-size:.95rem; font-weight:800; color:#1d4ed8; background:#eff6ff; border:2px solid #1d4ed8; border-radius:10px; padding:10px 14px; text-align:center;">🍎 iPhone / iPad — MIT AI2 Companion</div>
+                                        </td>
+                                    </tr>
+
+                                    <tr style="background:#eff6ff;">
+                                        <td class="col-instruction">
+                                            <span class="activity-num" style="background:#1d4ed8;color:#fff;">iOS</span>
+                                            <p class="instruction-text">En iPhone la instalación directa requiere una cuenta de desarrollador de Apple. La alternativa es <strong>MIT AI2 Companion</strong> y guardar el proyecto en tu cuenta.</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="border-color:#1d4ed8; background:#eff6ff; font-size:0.85rem;">
+                                                <p style="margin:0 0 .5rem; font-weight:700; color:#1e3a8a;">Paso 1 — Instala MIT AI2 Companion en tu iPhone:</p>
+                                                <ol style="padding-left:1.2rem; line-height:2; margin:0 0 .75rem;">
+                                                    <li>Abre el <strong>App Store</strong> en tu iPhone</li>
+                                                    <li>Busca <strong>"MIT AI2 Companion"</strong> e instálala (es gratuita)</li>
+                                                </ol>
+                                                <p style="margin:0 0 .5rem; font-weight:700; color:#1e3a8a;">Paso 2 — Conecta y prueba tu app:</p>
+                                                <ol style="padding-left:1.2rem; line-height:2; margin:0 0 .75rem;">
+                                                    <li>En App Inventor ve al menú <strong>Connect → AI Companion</strong></li>
+                                                    <li>Escanea el QR con la app MIT AI2 Companion de tu iPhone</li>
+                                                    <li>Tu app aparecerá en tu celular funcionando en tiempo real</li>
+                                                </ol>
+                                                <p style="margin:0 0 .5rem; font-weight:700; color:#1e3a8a;">Paso 3 — Guarda tu proyecto en App Inventor:</p>
+                                                <ol style="padding-left:1.2rem; line-height:2; margin:0 0 .75rem;">
+                                                    <li>En App Inventor menú <strong>Projects → Save project</strong></li>
+                                                    <li>Verifica que aparezca el nombre de tu proyecto en la lista de proyectos</li>
+                                                </ol>
+                                                <div style="padding:.6rem .8rem; background:#dbeafe; border-left:3px solid #1d4ed8; border-radius:6px; font-size:.78rem;">
+                                                    ✅ Tu proyecto queda guardado en tu cuenta de App Inventor. Siempre que abras Companion y te conectes, tu app estará ahí.
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- ── REVISIÓN DEL MAESTRO ── -->
+                                    <tr>
+                                        <td class="col-instruction" colspan="2" style="padding:.75rem 1.5rem 0;">
+                                            <div style="font-size:.95rem; font-weight:800; color:#1e293b; background:#f1f5f9; border:2px solid #64748b; border-radius:10px; padding:10px 14px; text-align:center;">🔍 ¿Qué revisará el maestro?</div>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="col-instruction" colspan="2" style="padding:.5rem 1.5rem .75rem;">
+                                            <div class="note-box" style="font-size:0.85rem;">
+                                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:.75rem;">
+                                                    <div style="background:#f0fdf4; border:1.5px solid #16a34a; border-radius:8px; padding:.75rem;">
+                                                        <p style="margin:0 0 .4rem; font-weight:800; color:#14532d; font-size:.82rem;">✅ Lo básico (semanas 11–13)</p>
+                                                        <ul style="margin:0; padding-left:1rem; font-size:.78rem; line-height:1.8; color:#166534;">
+                                                            <li>Screen1 con botón de navegación</li>
+                                                            <li>Screen2 con 3 TextBox y etiquetas</li>
+                                                            <li>Botón Guardar con join (1 línea)</li>
+                                                            <li>Botón Limpiar funcionando</li>
+                                                            <li>Screen3 con imágenes de ayuda</li>
+                                                        </ul>
+                                                    </div>
+                                                    <div style="background:#fef9c3; border:1.5px solid #d97706; border-radius:8px; padding:.75rem;">
+                                                        <p style="margin:0 0 .4rem; font-weight:800; color:#92400e; font-size:.82rem;">⭐ Lo avanzado (semanas 14–15)</p>
+                                                        <ul style="margin:0; padding-left:1rem; font-size:.78rem; line-height:1.8; color:#92400e;">
+                                                            <li>Validación if/else con aviso rojo</li>
+                                                            <li>Datos en 3 líneas separadas (verde)</li>
+                                                            <li>Saludo personalizado en Screen1</li>
+                                                            <li>Vibración al guardar correctamente</li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Aviso: llevar con el maestro -->
+                                    <tr style="background:#fef3c7;">
+                                        <td class="col-instruction" colspan="2" style="padding:.75rem 1.5rem;">
+                                            <div style="display:flex; align-items:flex-start; gap:.75rem; padding:.85rem 1rem; background:#fff; border:2px solid #d97706; border-radius:10px;">
+                                                <div style="font-size:2rem; line-height:1;">🧑‍🏫</div>
+                                                <div>
+                                                    <p style="margin:0 0 .35rem; font-weight:800; color:#92400e; font-size:.9rem;">Al terminar — acércate con el maestro</p>
+                                                    <p style="margin:0; font-size:.82rem; color:#78350f; line-height:1.6;">Cuando hayas terminado la instalación, <strong>lleva tu celular con el maestro</strong> para la revisión final. Muéstrale tu app funcionando en vivo.</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Evidencia H2 -->
+                                    <tr style="background:#fffbeb;">
+                                        <td class="col-instruction">
+                                            <span class="activity-num" style="color:#b45309;">📸 Evidencia HORA 2</span>
+                                            <p class="instruction-text">Agrega en tu documento (misma pestaña Semana 15 ⭐) <strong>una de estas tres opciones</strong> según tu avance:</p>
+                                        </td>
+                                        <td class="col-content">
+                                            <div class="note-box" style="border-color:#f59e0b; background:#fffbeb; font-size:0.85rem;">
+                                                <div style="display:flex; flex-direction:column; gap:.6rem;">
+
+                                                    <!-- Opción 1 -->
+                                                    <div style="background:#f0fdf4; border:1.5px solid #16a34a; border-radius:8px; padding:.7rem .9rem;">
+                                                        <p style="margin:0 0 .3rem; font-weight:800; color:#14532d; font-size:.82rem;">✅ Opción 1 — App instalada en tu dispositivo</p>
+                                                        <p style="margin:0; font-size:.78rem; color:#166534; line-height:1.7;">📸 Captura de tu app <strong>en el menú del teléfono</strong> como aplicación instalada (sin Companion).<br>📸 Captura del <strong>código QR</strong> generado en el menú Build.</p>
+                                                    </div>
+
+                                                    <!-- Opción 2 -->
+                                                    <div style="background:#eff6ff; border:1.5px solid #1d4ed8; border-radius:8px; padding:.7rem .9rem;">
+                                                        <p style="margin:0 0 .3rem; font-weight:800; color:#1e3a8a; font-size:.82rem;">🔵 Opción 2 — Solo el QR generado</p>
+                                                        <p style="margin:0; font-size:.78rem; color:#1e40af; line-height:1.7;">📸 Captura del menú <strong>Build → Android App (.apk)</strong> con el QR visible.<br><span style="color:#64748b; font-style:italic;">Válido si no lograste instalarla hoy — demuestra que llegaste hasta la compilación.</span></p>
+                                                    </div>
+
+                                                    <!-- Opción 3 -->
+                                                    <div style="background:#faf5ff; border:1.5px solid #7c3aed; border-radius:8px; padding:.7rem .9rem;">
+                                                        <p style="margin:0 0 .3rem; font-weight:800; color:#4c1d95; font-size:.82rem;">🟣 Opción 3 — App corriendo en MIT AI2 Companion</p>
+                                                        <p style="margin:0; font-size:.78rem; color:#5b21b6; line-height:1.7;">📸 Captura de tu app <strong>funcionando en AI2 Companion</strong> en tu celular.<br>📸 Captura del <strong>proyecto guardado</strong> en App Inventor (pantalla principal con el nombre de tu proyecto).<br><span style="color:#64748b; font-style:italic;">Válido si no pudiste instalar — lo importante es que tu proyecto esté completo y funcionando.</span></p>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                            <p style="margin-top:.75rem; font-size:.8rem; color:#b45309; font-weight:700;">⚠️ Sin las capturas en tu documento no se cuenta como entregado.</p>
+                                        </td>
+                                    </tr>
+
+                                </tbody>
+                            </table>
                         </div>
 
                         <!-- Semana bloqueada: placeholder para alumnos -->
@@ -2537,10 +2895,10 @@
             12: "🔐 SEMANA 12: Join y Pruebas en App Inventor",
             13: "🎨 SEMANA 13: Botón Limpiar, Regresar y mejoras visuales",
             14: "✅ SEMANA 14: Validación con if/else y Pantalla de Ayuda",
-            15: "🎓 SEMANA 15: Tercer Examen Parcial",
+            15: "⭐ SEMANA 15: Pulido final e instalación",
         };
         // Semanas publicadas por defecto (sin GAS)
-        const _CD_LOCAL_DEFAULT = [1,2,3,4,5,6,7,8,9,10,11];
+        const _CD_LOCAL_DEFAULT = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
 
         // Fechas de cada semana para detección automática de la semana actual
         const WEEK_DATES = [
