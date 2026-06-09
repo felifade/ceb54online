@@ -494,8 +494,23 @@ function _renderCalificaciones(materias) {
 
   var rows = materias.map(function(m) {
     var global = Number(m.global);
-    var globalTxt = (!isNaN(global) && m.global !== '') ? global.toFixed(1) : '—';
-    var globalColor = (!isNaN(global) && m.global !== '' && global < 6) ? '#dc2626' : '#1e293b';
+    var tieneGlobal = !isNaN(global) && m.global !== '' && String(m.global).trim() !== '';
+    var globalTxt = tieneGlobal ? global.toFixed(1) : '—';
+    // Color del número global: rojo si reprobado, verde si aprobado, gris si sin dato
+    var globalNumColor = tieneGlobal ? (global < 6 ? '#fca5a5' : '#86efac') : '#94a3b8';
+    // Badge de exención / examen ordinario
+    var badgeHtml = '';
+    if (tieneGlobal) {
+      if (global >= 6) {
+        badgeHtml = '<div style="margin-top:0.4rem;font-size:0.6rem;font-weight:700;letter-spacing:.04em;'
+          + 'background:#16a34a;color:#fff;border-radius:4px;padding:0.15rem 0.4rem;display:inline-block;">EXENTO</div>';
+      } else {
+        badgeHtml = '<div style="margin-top:0.4rem;font-size:0.6rem;font-weight:700;letter-spacing:.04em;'
+          + 'background:#ea580c;color:#fff;border-radius:4px;padding:0.15rem 0.4rem;display:inline-block;">PRESENTA EXAMEN</div>';
+      }
+    } else {
+      badgeHtml = '<div style="margin-top:0.4rem;font-size:0.6rem;font-weight:600;color:#94a3b8;">Sin registro</div>';
+    }
     return '<div style="border:1.5px solid #e2e8f0;border-radius:12px;padding:0.875rem 1rem;margin-bottom:0.75rem;">'
       + '<div style="font-weight:700;font-size:0.88rem;margin-bottom:0.5rem;color:#1e293b;">' + esc(m.asignatura) + '</div>'
       + (m.docente ? '<div style="font-size:0.72rem;color:#94a3b8;margin-bottom:0.75rem;">Docente: ' + esc(m.docente) + '</div>' : '')
@@ -512,9 +527,10 @@ function _renderCalificaciones(materias) {
       +   '<div style="font-size:0.65rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:0.25rem;">Parcial 3</div>'
       +   '<div style="font-size:1rem;">' + grade(m.p3_total) + '</div>'
       + '</div>'
-      + '<div style="background:#0f172a;border-radius:8px;padding:0.5rem 0.25rem;">'
+      + '<div style="background:#1e293b;border-radius:8px;padding:0.5rem 0.25rem;">'
       +   '<div style="font-size:0.65rem;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:0.25rem;">Global</div>'
-      +   '<div style="font-size:1rem;font-weight:800;color:' + globalColor + ';">' + globalTxt + '</div>'
+      +   '<div style="font-size:1rem;font-weight:800;color:' + globalNumColor + ';">' + globalTxt + '</div>'
+      +   badgeHtml
       + '</div>'
       + '</div>'
       + '</div>';
