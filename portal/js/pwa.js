@@ -6,17 +6,53 @@
 (function () {
   'use strict';
 
-  // ── 1. Registrar Service Worker ────────────────────────────
+  // ── 1. Registrar Service Worker + detección de actualizaciones ──
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
       navigator.serviceWorker
-        .register('/portal/sw.js', { scope: '/portal/' })
+        .register('/portal/sw.js', { scope: '/portal/', updateViaCache: 'none' })
         .then(function (reg) {
           console.log('[PWA] Service Worker activo. Scope:', reg.scope);
+
+          // Buscar updates al cargar la página
+          reg.update().catch(function () {});
+
+          // Si hay un nuevo SW esperando, activarlo de inmediato
+          if (reg.waiting) {
+            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+          }
+
+          // Escuchar cuando llega un SW nuevo en background
+          reg.addEventListener('updatefound', function () {
+            var newSW = reg.installing;
+            if (!newSW) return;
+            newSW.addEventListener('statechange', function () {
+              if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+                // Nuevo SW listo (había uno controlando ya = es UPDATE, no primera instalación)
+                newSW.postMessage({ type: 'SKIP_WAITING' });
+              }
+            });
+          });
+
+          // Cuando el controlador cambia (el nuevo SW tomó control), recargar UNA vez
+          var refreshing = false;
+          navigator.serviceWorker.addEventListener('controllerchange', function () {
+            if (refreshing) return;
+            refreshing = true;
+            console.log('[PWA] Service Worker actualizado, recargando…');
+            window.location.reload();
+          });
         })
         .catch(function (err) {
           console.warn('[PWA] Error al registrar SW:', err);
         });
+
+      // Cada 30 min revisa si hay update (si la pestaña sigue abierta)
+      setInterval(function () {
+        navigator.serviceWorker.getRegistration('/portal/').then(function (reg) {
+          if (reg) reg.update().catch(function () {});
+        });
+      }, 30 * 60 * 1000);
     });
   }
 

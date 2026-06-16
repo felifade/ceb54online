@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <script>const APP_VERSION = "v20260418";</script>
+  <script>const APP_VERSION = "v20260521";</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portal Alumno | CEB 5/4</title>
@@ -15,7 +15,7 @@
   <!-- /PWA -->
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@0.511.0"></script>
-  <link rel="stylesheet" href="css/portal.css?v=20260419">
+  <link rel="stylesheet" href="css/portal.css?v=20260521">
 </head>
 <body>
 
@@ -376,10 +376,10 @@
 
 </main>
 
-<script src="js/portal-api.js?v=20260418"></script>
-<script src="js/alumno.js?v=20260509"></script>
-<script src="js/prefectura-portal.js?v=20260418"></script>
-<script src="js/horario-portal.js?v=20260418"></script>
+<script src="js/portal-api.js?v=20260521"></script>
+<script src="js/alumno.js?v=20260521"></script>
+<script src="js/prefectura-portal.js?v=20260521"></script>
+<script src="js/horario-portal.js?v=20260521"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
   const u = portalSession.load();
@@ -393,9 +393,9 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 
 <!-- Fuente única de datos del calendario -->
-<script src="../pec/js/api_calendario.js?v=20260418"></script>
-<script src="../pec/js/app_calendario.js?v=20260418"></script>
-<script src="js/calendar-widget.js?v=20260418"></script>
+<script src="../pec/js/api_calendario.js?v=20260521"></script>
+<script src="../pec/js/app_calendario.js?v=20260521"></script>
+<script src="js/calendar-widget.js?v=20260521"></script>
 
 <script>
 /* ══ TAB NAVIGATION ═════════════════════════════════════════════════ */
@@ -615,6 +615,6 @@ function syncFechasSidebar() {
     if (el) new MutationObserver(syncFechasSidebar).observe(el, { childList: true, characterData: true, subtree: true });
 });
 </script>
-<script src="js/pwa.js?v=20260418"></script>
+<script src="js/pwa.js?v=20260521"></script>
 </body>
 </html>
