@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/tools/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CEB Tools | Compresor PDF Inteligente</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script type="module" crossorigin src="/tools/assets/index-DO9G9Siq.js"></script>
+    <link rel="stylesheet" crossorigin href="/tools/assets/index-DFLFRz5l.css">
+  <link rel="manifest" href="/tools/manifest.webmanifest"></head>
+  <body>
+    <div id="app" class="app-container">
+      
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <img src="/tools/logo.png" alt="CEB Logo" class="sidebar-logo">
+          <h2 class="sidebar-title">CEB Tools</h2>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="#" class="nav-item active">
+            <i data-lucide="home"></i>
+            Inicio
+          </a>
+          <a href="#" class="nav-item">
+            <i data-lucide="file-zip"></i>
+            Compresor PDF
+          </a>
+          <a href="#" class="nav-item">
+            <i data-lucide="info"></i>
+            Ayuda y Requisitos
+          </a>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <header class="top-header">
+          <div>
+            <h3 style="color: var(--text-primary); font-weight: 500; font-size: 1.1rem;">Panel Principal</h3>
+          </div>
+          <div>
+            <button class="btn btn-secondary">
+              <i data-lucide="settings"></i> Ajustes
+            </button>
+          </div>
+        </header>
+
+        <div class="content-wrapper">
+          <div class="welcome-section" style="margin-bottom: 2rem;">
+            <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">Bienvenido a CEB Tools</h1>
+            <p style="font-size: 1.1rem; max-width: 600px;">Herramientas académicas profesionales para estudiantes y docentes del Centro de Estudios de Bachillerato CEB 5/4.</p>
+          </div>
+
+          <div class="tools-grid">
+            
+            <!-- Tool 1: PDF Compressor (Active) -->
+            <div class="card tool-card" id="card-compressor">
+              <div class="tool-icon-wrapper">
+                <i data-lucide="file-zip" style="width: 24px; height: 24px;"></i>
+              </div>
+              <h3 class="tool-title">Compresor Inteligente de PDF</h3>
+              <p class="tool-desc">Reduce drásticamente el peso de tus portafolios escolares y documentos escaneados manteniendo el texto legible.</p>
+              <button class="btn btn-primary" style="margin-top: auto; width: 100%;">Abrir Herramienta</button>
+            </div>
+
+            <!-- Tool 2: Merge PDF (Disabled) -->
+            <div class="card tool-card disabled">
+              <div class="badge">Próximamente</div>
+              <div class="tool-icon-wrapper" style="background-color: var(--bg-light); color: var(--text-secondary);">
+                <i data-lucide="combine" style="width: 24px; height: 24px;"></i>
+              </div>
+              <h3 class="tool-title" style="color: var(--text-secondary);">Unir PDFs</h3>
+              <p class="tool-desc">Combina múltiples documentos PDF en un solo archivo de manera rápida y segura.</p>
+            </div>
+
+            <!-- Tool 3: Split PDF (Disabled) -->
+            <div class="card tool-card disabled">
+              <div class="badge">Próximamente</div>
+              <div class="tool-icon-wrapper" style="background-color: var(--bg-light); color: var(--text-secondary);">
+                <i data-lucide="scissors" style="width: 24px; height: 24px;"></i>
+              </div>
+              <h3 class="tool-title" style="color: var(--text-secondary);">Dividir PDF</h3>
+              <p class="tool-desc">Extrae páginas específicas o separa un documento grande en varios archivos pequeños.</p>
+            </div>
+
+            <!-- Tool 4: Convert Images (Disabled) -->
+            <div class="card tool-card disabled">
+              <div class="badge">Próximamente</div>
+              <div class="tool-icon-wrapper" style="background-color: var(--bg-light); color: var(--text-secondary);">
+                <i data-lucide="image" style="width: 24px; height: 24px;"></i>
+              </div>
+              <h3 class="tool-title" style="color: var(--text-secondary);">Imágenes a PDF</h3>
+              <p class="tool-desc">Convierte tus fotografías de tareas en un documento PDF bien organizado y optimizado.</p>
+            </div>
+
+          </div>
+        </div>
+      </main>
+
+    </div>
+    
+  </body>
+</html>

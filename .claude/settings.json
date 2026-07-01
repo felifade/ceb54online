@@ -14,7 +14,9 @@
       "Bash(lsof -ti:8090)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:8090/cultura-digital/assets/visuales/semana-11/bloques-guardar.html\")",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:8090/cultura-digital/assets/visuales/semana-09/interfaz-registro-tareas.html\")",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:8090/cultura-digital-iii/assets/visuales/semana-11/calendario-eventos.html\")"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:8090/cultura-digital-iii/assets/visuales/semana-11/calendario-eventos.html\")",
+      "Bash(git commit -m ' *)",
+      "Bash(git config *)"
     ]
   }
 }

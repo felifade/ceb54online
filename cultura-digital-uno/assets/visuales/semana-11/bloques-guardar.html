@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Bloques — BotonGuardar</title>
+<style>
+html, body { height: 100%; margin: 0; padding: 0; box-sizing: border-box; }
+* { box-sizing: border-box; }
+body {
+  background: #1c1d26;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  padding: 1.2rem 1.4rem;
+  overflow: auto;
+  color: #e2e8f0;
+}
+
+/* ── Encabezado ── */
+.guide-title {
+  font-size: .72rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  margin-bottom: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.guide-title::before {
+  content: '';
+  display: inline-block;
+  width: 10px; height: 10px;
+  background: #ffab19;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* ── Workspace ── */
+.workspace {
+  background: #272831;
+  border-radius: 12px;
+  padding: 1.4rem 1.6rem;
+  border: 1px solid #383944;
+  display: inline-block;
+  min-width: 300px;
+}
+
+/* ── Bloques App Inventor ── */
+
+/* Bloque evento (amarillo/naranja) */
+.blk {
+  display: inline-flex;
+  flex-direction: column;
+  border-radius: 6px 6px 6px 6px;
+  font-size: .78rem;
+  font-weight: 700;
+  position: relative;
+  user-select: none;
+}
+.blk-event {
+  background: #ffab19;
+  color: #1a1a00;
+  border: 2px solid #c47d00;
+  border-radius: 8px 8px 0 0;
+}
+.blk-header {
+  padding: .45rem .9rem .45rem .75rem;
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  flex-wrap: wrap;
+}
+.blk-keyword {
+  font-style: italic;
+  opacity: .75;
+  font-size: .72rem;
+}
+.blk-component {
+  background: rgba(0,0,0,.18);
+  border-radius: 5px;
+  padding: .15rem .55rem;
+  font-size: .78rem;
+}
+.blk-dot { opacity: .5; font-size: .9rem; }
+.blk-event-name {
+  font-size: .8rem;
+  font-weight: 900;
+}
+
+/* Cuerpo del evento (do) */
+.blk-do {
+  background: rgba(0,0,0,.15);
+  padding: .35rem .7rem;
+  font-size: .65rem;
+  font-style: italic;
+  letter-spacing: .04em;
+  border-top: 1px solid rgba(0,0,0,.2);
+}
+.blk-body {
+  background: #1c1d26;
+  border: 2px solid #c47d00;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  padding: .7rem .9rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+/* Bloque setter (verde) */
+.blk-setter {
+  background: #4a7d4a;
+  color: #fff;
+  border: 2px solid #306030;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  flex-wrap: wrap;
+  padding: .4rem .75rem;
+  font-size: .75rem;
+  font-weight: 700;
+}
+.blk-setter .blk-component { background: rgba(0,0,0,.25); }
+.blk-setter-arrow {
+  font-size: .65rem;
+  background: rgba(255,255,255,.15);
+  border-radius: 3px;
+  padding: .05rem .25rem;
+}
+.blk-setter-to { font-style: italic; font-size: .68rem; opacity: .8; }
+
+/* Bloque texto (magenta) */
+.blk-text {
+  background: #a835a8;
+  color: #fff;
+  border: 2px solid #7a1a7a;
+  border-radius: 6px;
+  padding: .35rem .75rem;
+  font-size: .78rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: .2rem;
+}
+.blk-text-quote { opacity: .6; font-size: .85rem; }
+
+/* ── Leyenda ── */
+.legend {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem .9rem;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .65rem;
+  color: #94a3b8;
+}
+.legend-dot {
+  width: 10px; height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* ── Tooltip ── */
+.blk:hover, .blk-setter:hover, .blk-text:hover {
+  filter: brightness(1.12);
+  cursor: default;
+}
+.has-tip { position: relative; cursor: help; }
+.has-tip::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0f172a;
+  color: #e2e8f0;
+  font-size: .65rem;
+  font-weight: 400;
+  font-style: normal;
+  white-space: nowrap;
+  padding: .3rem .6rem;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s;
+  z-index: 10;
+  max-width: 260px;
+  white-space: normal;
+  text-align: center;
+}
+.has-tip:hover::after { opacity: 1; }
+
+/* ── Flecha de flujo ── */
+.flow-arrow {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .65rem;
+  color: #475569;
+  margin: .25rem 0;
+  padding-left: .2rem;
+}
+.flow-arrow::before {
+  content: '↳';
+  font-size: .9rem;
+  color: #ffab19;
+}
+</style>
+</head>
+<body>
+
+<div class="guide-title">Guía de Bloques — Hora 1: BotonGuardar</div>
+
+<div class="workspace">
+
+  <!-- Bloque principal: evento -->
+  <div class="blk blk-event">
+
+    <div class="blk-header has-tip" data-tip="Evento: se activa cuando el usuario toca este botón">
+      <span class="blk-keyword">cuando</span>
+      <span class="blk-component">BotonGuardar</span>
+      <span class="blk-dot">·</span>
+      <span class="blk-event-name">Click</span>
+    </div>
+
+    <div class="blk-do">ejecutar</div>
+
+    <div class="blk-body">
+
+      <!-- Bloque setter -->
+      <span class="blk-setter has-tip" data-tip="Setter: cambia el texto que muestra LabelResultado">
+        <span class="blk-keyword" style="font-size:.68rem;opacity:.8;">establecer</span>
+        <span class="blk-component">LabelResultado</span>
+        <span class="blk-dot">·</span>
+        <span>Texto</span>
+        <span class="blk-setter-arrow">▾</span>
+        <span class="blk-setter-to">como</span>
+
+        <!-- Bloque texto anidado -->
+        <span class="blk-text has-tip" data-tip="Texto fijo que aparecerá en pantalla">
+          <span class="blk-text-quote">"</span>
+          ¡Guardado!
+          <span class="blk-text-quote">"</span>
+        </span>
+      </span>
+
+      <div class="flow-arrow">El label mostrará: <strong style="color:#a5f3fc; margin-left:.3rem;">¡Guardado!</strong></div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Leyenda -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#ffab19;"></div> Evento (cuando…)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#4a7d4a;"></div> Setter (establecer…)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#a835a8;"></div> Texto fijo ("…")</div>
+</div>
+
+</body>
+</html>

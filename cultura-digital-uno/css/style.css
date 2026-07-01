@@ -1,0 +1,571 @@
+/* =========================================
+   STYLE.CSS - CULTURA DIGITAL II
+   Diseño de Libreta Digital Académica
+   ========================================= */
+
+:root {
+    --paper-bg: #ffffff;
+    --paper-line: #e5e7eb;
+    --paper-margin: #fecaca;
+    --notebook-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    --header-dark: #1e293b;
+    --accent: #059669; /* Verde CEB */
+    --text-primary: #334155;
+    --text-secondary: #64748b;
+    --border-radius: 12px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    /* Bloqueo global de selección ULTRA REFORZADO */
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    background-attachment: fixed;
+    color: var(--text-primary);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* Permitir copia solo en zonas específicas */
+.allow-copy, .allow-copy * {
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+}
+
+h1, h2, h3, .font-outfit {
+    font-family: 'Outfit', sans-serif;
+}
+
+/* Layout Principal */
+.app-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar (Glassmorphism) */
+.sidebar {
+    width: 280px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-right: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.02);
+    padding: 1rem 1.1rem;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-header {
+    margin-bottom: 0.6rem;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.logo-sidebar {
+    width: 56px;
+    height: auto;
+    margin-bottom: 0.35rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.school-name-sidebar {
+    font-size: 0.73rem;
+    font-weight: 700;
+    color: var(--header-dark);
+    line-height: 1.2;
+    margin-bottom: 0.2rem;
+}
+
+.teacher-name-sidebar {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+}
+
+.header-divider {
+    border: 0;
+    border-top: 1.5px solid #f1f5f9;
+    margin: 0.35rem 0;
+}
+
+.subject-name {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--header-dark);
+    letter-spacing: -0.5px;
+}
+
+.sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #e2e8f0 transparent;
+}
+.sidebar-nav::-webkit-scrollbar { width: 4px; }
+.sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+
+/* Dictado y Protección */
+.dictation-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #ef4444; /* Rojo para atención */
+    background: #fee2e2;
+    padding: 4px 12px;
+    border-radius: 99px;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.no-copy {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    cursor: default;
+    color: #64748b;
+    font-style: italic;
+    border-left: 2px dashed #cbd5e1;
+    padding-left: 1rem;
+    margin: 0.5rem 0;
+}
+
+.menu-section {
+    margin-bottom: 1.5rem;
+}
+
+.menu-title {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.menu-list {
+    list-style: none;
+}
+
+.menu-item {
+    margin-bottom: 0.25rem;
+}
+
+.menu-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    text-decoration: none;
+    color: var(--text-primary);
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+}
+
+.menu-date {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    font-weight: 400;
+    margin-left: auto;
+    opacity: 0.8;
+}
+
+.menu-link:hover {
+    background: rgba(241, 245, 249, 0.8);
+    transform: translateX(4px);
+}
+
+.menu-link.active {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    color: var(--accent);
+    font-weight: 700;
+    border-color: rgba(5, 150, 105, 0.1);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.05);
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Notebook Container */
+.notebook-perspective {
+    perspective: 1500px;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.notebook-page {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    min-height: 80vh;
+    border-radius: 24px;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1), 0 10px 15px -5px rgba(0, 0, 0, 0.04);
+    position: relative;
+    padding: 3rem;
+    transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.notebook-page::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--paper-margin);
+}
+
+/* Animación de paso de página */
+.page-flip {
+    transform-origin: left;
+    transform: rotateY(-180deg);
+}
+
+/* Header de la semana */
+.week-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 1.5rem;
+}
+
+.week-title-pre {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent) 0%, #0ea5e9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 2px;
+}
+
+.week-title-main {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--header-dark);
+    margin-top: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Controles de Horas */
+.hour-navigation {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    justify-content: center;
+}
+
+.hour-btn {
+    padding: 0.6rem 2.5rem;
+    border-radius: 99px;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(8px);
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--text-secondary);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.hour-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    background: white;
+}
+
+.hour-btn.active {
+    background: linear-gradient(135deg, var(--accent) 0%, #047857 100%);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 10px 20px -5px rgba(5, 150, 105, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Contenido de la Libreta */
+.sheet-container {
+    position: relative;
+    width: 100%;
+}
+
+.sheet {
+    opacity: 0;
+    visibility: hidden;
+    position: absolute;
+    top: 0;
+    transform: translateY(15px);
+    width: 100%;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.back-to-portal {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(4px);
+    color: var(--header-dark);
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+
+.back-to-portal:hover {
+    background: var(--accent);
+    color: white;
+    transform: translateX(-4px);
+    box-shadow: 0 10px 15px -3px rgba(5, 150, 105, 0.3);
+}
+
+.sheet.active {
+    opacity: 1;
+    visibility: visible;
+    position: relative;
+    transform: translateY(0);
+}
+
+/* Encabezados de Hora */
+.hour-header {
+    background: linear-gradient(135deg, var(--header-dark) 0%, #334155 100%);
+    color: white;
+    padding: 0.75rem;
+    text-align: center;
+    font-weight: 800;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 0;
+    border-radius: 12px 12px 0 0;
+}
+
+/* Tabla Académica */
+.academic-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+    border: 1px solid #e2e8f0;
+    background: white;
+    border-radius: 0 0 12px 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.academic-table th, .academic-table td {
+    padding: 1.2rem;
+    border: 1px solid #e2e8f0;
+    vertical-align: top;
+}
+
+.col-instruction {
+    width: 40%;
+    background: #f8fafc;
+}
+
+.col-content {
+    width: 60%;
+}
+
+.activity-num {
+    font-weight: 800;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 0.4rem;
+}
+
+.instruction-text {
+    font-size: 0.95rem;
+    color: var(--header-dark);
+    font-weight: 600;
+}
+
+/* Formatos de contenido */
+.content-sample {
+    font-family: 'Inter', sans-serif;
+}
+
+.title-sample {
+    font-size: 20px;
+    text-align: center;
+    font-weight: bold;
+    margin: 1rem 0;
+}
+
+.note-box {
+    background: #fff;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--accent);
+}
+
+/* Notas del Docente (Protegidas) */
+.teacher-notes-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--header-dark);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.2rem;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    z-index: 1000;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.teacher-notes-btn:hover {
+    transform: scale(1.05) translateY(-5px);
+    background: var(--accent);
+}
+
+.teacher-panel {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 320px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    border: 1px solid #e2e8f0;
+    padding: 1.5rem;
+    display: none; /* Se activa con JS */
+    z-index: 999;
+}
+
+.teacher-panel.active {
+    display: block;
+    animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.tp-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--header-dark);
+    font-weight: 800;
+    margin-bottom: 1rem;
+    border-bottom: 1.5px solid #f1f5f9;
+    padding-bottom: 0.6rem;
+}
+
+.tp-content {
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.tp-note {
+    background: #fffbeb;
+    border-left: 4px solid #f59e0b;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 0.75rem;
+}
+
+/* ── Sidebar toggle ─────────────────────────────────── */
+.sidebar {
+    position: relative;
+    transition: width 0.28s cubic-bezier(.4,0,.2,1), padding 0.28s;
+    overflow: hidden;
+}
+
+/* El botón es hermano del sidebar — no queda recortado por overflow:hidden */
+.cd-sidebar-toggle {
+    position: fixed;
+    top: 50vh;
+    left: calc(280px - 14px); /* borde derecho del sidebar expandido */
+    transform: translateY(-50%);
+    width: 28px; height: 28px;
+    background: white;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,.12);
+    z-index: 100;
+    flex-shrink: 0;
+    transition: left 0.28s cubic-bezier(.4,0,.2,1), background .15s;
+}
+.cd-sidebar-toggle:hover { background: var(--accent, #10b981); border-color: var(--accent, #10b981); }
+.cd-sidebar-toggle:hover svg { stroke: #fff; }
+.cd-sidebar-toggle svg { width: 14px; height: 14px; stroke: #64748b; transition: transform .28s, stroke .15s; }
+
+/* Selector hermano: cuando el sidebar está colapsado el botón se desplaza a la izquierda */
+.sidebar--collapsed ~ .cd-sidebar-toggle {
+    left: -14px;
+}
+.sidebar--collapsed ~ .cd-sidebar-toggle svg { transform: rotate(180deg); }
+
+/* Estado colapsado */
+.sidebar--collapsed {
+    width: 0 !important;
+    padding: 0 !important;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .sidebar { width: 240px; }
+    .notebook-page { padding: 2rem; }
+    .cd-sidebar-toggle { left: calc(240px - 14px); }
+}
+
+@media (max-width: 768px) {
+    .app-container { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: relative; }
+    .notebook-page { padding: 1.5rem; border-left: 0; border-top: 10px solid #e2e8f0; }
+    .week-title-main { font-size: 1.5rem; }
+    .cd-sidebar-toggle { display: none; }
+}
