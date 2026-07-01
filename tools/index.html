@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="/tools/assets/index-DO9G9Siq.js"></script>
+    <script type="module" crossorigin src="/tools/assets/index-5uj78wSx.js"></script>
     <link rel="stylesheet" crossorigin href="/tools/assets/index-DFLFRz5l.css">
   <link rel="manifest" href="/tools/manifest.webmanifest"></head>
   <body>
@@ -22,13 +22,17 @@
           <h2 class="sidebar-title">CEB Tools</h2>
         </div>
         <nav class="sidebar-nav">
-          <a href="#" class="nav-item active">
+          <a href="#" class="nav-item active" id="nav-inicio">
             <i data-lucide="home"></i>
             Inicio
           </a>
-          <a href="#" class="nav-item">
+          <a href="#" class="nav-item" id="nav-compressor">
             <i data-lucide="file-zip"></i>
             Compresor PDF
+          </a>
+          <a href="#" class="nav-item" id="nav-attendance">
+            <i data-lucide="users"></i>
+            Lector de Asistencia
           </a>
           <a href="#" class="nav-item">
             <i data-lucide="info"></i>
@@ -68,14 +72,15 @@
               <button class="btn btn-primary" style="margin-top: auto; width: 100%;">Abrir Herramienta</button>
             </div>
 
-            <!-- Tool 2: Merge PDF (Disabled) -->
-            <div class="card tool-card disabled">
-              <div class="badge">Próximamente</div>
-              <div class="tool-icon-wrapper" style="background-color: var(--bg-light); color: var(--text-secondary);">
-                <i data-lucide="combine" style="width: 24px; height: 24px;"></i>
+            <!-- Tool 2: Attendance Optimizer -->
+            <div class="card tool-card" id="card-attendance">
+              <div class="badge" style="background: var(--primary-color); color: white;">NUEVO</div>
+              <div class="tool-icon-wrapper" style="background-color: rgba(234, 179, 8, 0.2); color: #ca8a04;">
+                <i data-lucide="users" style="width: 24px; height: 24px;"></i>
               </div>
-              <h3 class="tool-title" style="color: var(--text-secondary);">Unir PDFs</h3>
-              <p class="tool-desc">Combina múltiples documentos PDF en un solo archivo de manera rápida y segura.</p>
+              <h3 class="tool-title">Optimizador de Asistencia</h3>
+              <p class="tool-desc">Convierte tus listas de asistencia ilegibles en PDFs con letra grande o tablas de Excel limpias y listas para usar.</p>
+              <button class="btn btn-primary" style="margin-top: auto; width: 100%; background: #ca8a04; border-color: #ca8a04;">Abrir Herramienta</button>
             </div>
 
             <!-- Tool 3: Split PDF (Disabled) -->
